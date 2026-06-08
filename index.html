@@ -284,10 +284,11 @@ tbody tr:hover{background:var(--teal-pale)}
           <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>יזם</th>
           <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
           <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מיקום</th>
-          <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>מטרה</th>
-          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>תאריך</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>אחראי/ת</th>
-          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>גוש/חלקה</th>
+          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>מטרה</th>
+          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך</th>
+          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>אחראי/ת</th>
+          <th onclick="sortTable(10)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -411,6 +412,7 @@ tbody tr:hover{background:var(--teal-pale)}
         <div class="detail-item"><div class="detail-label">יזם</div><input id="addDeveloper" class="status-select" style="width:100%;margin-top:4px" placeholder="שם היזם"></div>
         <div class="detail-item"><div class="detail-label">מגיש / עורך</div><input id="addSubmitter" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האדריכל"></div>
         <div class="detail-item"><div class="detail-label">מיקום</div><input id="addLocation" class="status-select" style="width:100%;margin-top:4px" placeholder="רחוב, מגרש, גוש..."></div>
+        <div class="detail-item"><div class="detail-label">גוש/חלקה</div><input id="addParcel" class="status-select" style="width:100%;margin-top:4px" placeholder="גוש/חלקה"></div>
         <div class="detail-item full"><div class="detail-label">מטרה</div><input id="addPurpose" class="status-select" style="width:100%;margin-top:4px" placeholder="תיאור מטרת התוכנית"></div>
         <div class="detail-item"><div class="detail-label">אחראי/ת</div><input id="addHandler" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האחראי"></div>
         <div class="detail-item"><div class="detail-label">סטטוס</div>
@@ -502,6 +504,9 @@ let plans = RAW_DATA.map((r,i) => ({
   year: r[10],
   month: r[11] || '',
   developer: '',
+  parcel: '',
+  lat: null,
+  lng: null,
   approvalDate: '',
   forumArchitect: '',
   forumConsultants: '',
@@ -599,7 +604,7 @@ function applyFilters() {
     if (s && p.status !== s) return false;
     if (h && p.handler !== h) return false;
     if (q) {
-      const txt = [p.tik,p.district,p.planNum,p.developer,p.submitter,p.location,p.purpose,p.handler,p.status].join(' ').toLowerCase();
+      const txt = [p.tik,p.district,p.planNum,p.developer,p.submitter,p.location,p.parcel,p.purpose,p.handler,p.status].join(' ').toLowerCase();
       if (!txt.includes(q)) return false;
     }
     return true;
@@ -622,7 +627,7 @@ function resetFilters() {
 // ── TABLE ──
 function sortTable(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-  const keys = ['tik','district','planNum','developer','submitter','location','purpose','date','handler','status'];
+  const keys = ['tik','district','planNum','developer','submitter','location','parcel','purpose','date','handler','status'];
   const key = keys[col];
   filtered.sort((a,b) => {
     let va = a[key]||'', vb = b[key]||'';
@@ -666,7 +671,7 @@ function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
   const tbody = document.getElementById('tableBody');
-  const keys = ['tik','district','planNum','developer','submitter','location','purpose','date','handler','status'];
+  const keys = ['tik','district','planNum','developer','submitter','location','parcel','purpose','date','handler','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
 
   let prevGroupVal = null;
@@ -691,6 +696,7 @@ function renderTable() {
         <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
         <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
         <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
+        <td><input value="${p.parcel||''}" onchange="saveField(${p.id},'parcel',this)" placeholder="גוש/חלקה"></td>
         <td><input value="${p.purpose||''}" onchange="saveField(${p.id},'purpose',this)"></td>
         <td><input type="date" value="${p.date||''}" onchange="saveField(${p.id},'date',this)"></td>
         <td><input value="${p.handler||''}" onchange="saveField(${p.id},'handler',this)"></td>
@@ -705,6 +711,7 @@ function renderTable() {
       <td>${p.developer||'—'}</td>
       <td>${p.submitter||'—'}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
+      <td style="font-size:11px;white-space:nowrap">${p.parcel||'—'}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.purpose}">${p.purpose||'—'}</td>
       <td style="white-space:nowrap">${fmtDate(p.date)}</td>
       <td>${p.handler||'—'}</td>
@@ -745,6 +752,7 @@ function openDetail(id) {
       <div class="detail-item"><div class="detail-label">תאריך פתיחה</div><div class="detail-value">${fmtDate(p.date)}</div></div>
       <div class="detail-item"><div class="detail-label">תאריך אישור בוועדה</div><input type="date" value="${p.approvalDate||''}" class="status-select" style="width:100%;margin-top:4px" onchange="plans.find(x=>x.id===${p.id}).approvalDate=this.value;toast('תאריך אישור עודכן')"></div>
       <div class="detail-item full"><div class="detail-label">מיקום</div><div class="detail-value" style="font-size:13px">${p.location||'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">גוש/חלקה</div><div class="detail-value" style="font-size:13px">${p.parcel||'—'}</div></div>
       <div class="detail-item full"><div class="detail-label">מטרה</div><div class="detail-value" style="font-size:13px">${p.purpose||'—'}</div></div>
       <div class="detail-item"><div class="detail-label">אחראי/ת</div><div class="detail-value" style="font-size:13px">${p.handler||'—'}</div></div>
       <div class="detail-item">
@@ -802,6 +810,9 @@ function addPlan() {
     developer: document.getElementById('addDeveloper').value.trim(),
     submitter: document.getElementById('addSubmitter').value.trim(),
     location: document.getElementById('addLocation').value.trim(),
+    parcel: document.getElementById('addParcel').value.trim(),
+    lat: null,
+    lng: null,
     purpose: document.getElementById('addPurpose').value.trim(),
     date: dateStr,
     handler: document.getElementById('addHandler').value.trim(),
@@ -819,7 +830,7 @@ function addPlan() {
   renderLanding();
   closeAddModal();
   toast(`תוכנית ${tik} נוספה בהצלחה`);
-  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addPurpose','addHandler','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
+  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addPurpose','addHandler','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
 }
 
 // ── MAP ──
@@ -890,15 +901,29 @@ function initMap() {
   gisLayers.plans = L.layerGroup();
   gisLayers.plans.addTo(gisMap);
 
-  const counts = {};
+  const districtIdx = {};
+  const districtCnt = {};
+  plans.forEach(p => { districtCnt[p.district] = (districtCnt[p.district]||0)+1; });
+
   plans.forEach(p => {
-    const coords = ASHDOD_DISTRICTS[p.district];
-    if (!coords) return;
-    const key = coords.join(',');
-    counts[key] = (counts[key]||0) + 1;
-    const jitter = [(Math.random()-0.5)*0.003, (Math.random()-0.5)*0.003];
+    let lat = p.lat, lng = p.lng;
+    if (!lat || !lng) {
+      const coords = ASHDOD_DISTRICTS[p.district];
+      if (!coords) return;
+      districtIdx[p.district] = (districtIdx[p.district]||0);
+      const i = districtIdx[p.district]++;
+      const total = districtCnt[p.district];
+      if (total === 1) {
+        lat = coords[0]; lng = coords[1];
+      } else {
+        const angle = (2 * Math.PI * i) / total;
+        const r = 0.0015 + (i % 2) * 0.0008;
+        lat = coords[0] + r * Math.cos(angle);
+        lng = coords[1] + r * Math.sin(angle);
+      }
+    }
     const color = STATUS_COLORS[p.status] || 'rgba(0,0,0,0.25)';
-    const marker = L.circleMarker([coords[0]+jitter[0], coords[1]+jitter[1]], {
+    const marker = L.circleMarker([lat, lng], {
       radius: 11, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
     });
     marker.bindTooltip(`<strong style="font-size:15px">תיק ${p.tik}</strong><br><span style="font-size:13px">${p.district}</span><br><span style="font-size:13px">${p.location||'—'}</span><br><span style="font-size:12px;color:#666">${p.purpose||'—'}</span>`, {direction:'top',offset:[0,-12],className:'big-tooltip'});
