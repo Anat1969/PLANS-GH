@@ -289,12 +289,13 @@ tbody tr:hover{background:var(--teal-pale)}
           <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>תיק</th>
           <th onclick="sortTable(1)"><span class="sort-arrow">▼</span>רובע</th>
           <th onclick="sortTable(2)"><span class="sort-arrow">▼</span>מס' תכנית</th>
-          <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
-          <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>מיקום</th>
-          <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מטרה</th>
-          <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>תאריך</th>
-          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>אחראי/ת</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>יזם</th>
+          <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
+          <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מיקום</th>
+          <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>מטרה</th>
+          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>תאריך</th>
+          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>אחראי/ת</th>
+          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -419,6 +420,7 @@ tbody tr:hover{background:var(--teal-pale)}
         <div class="detail-item"><div class="detail-label">רובע</div><input id="addDistrict" class="status-select" style="width:100%;margin-top:4px" placeholder="רובע א'"></div>
         <div class="detail-item"><div class="detail-label">מס' תכנית</div><input id="addPlan" class="status-select" style="width:100%;margin-top:4px" placeholder="תב/1900"></div>
         <div class="detail-item"><div class="detail-label">שינוי לתכנית</div><input id="addChange" class="status-select" style="width:100%;margin-top:4px" placeholder="603-..."></div>
+        <div class="detail-item"><div class="detail-label">יזם</div><input id="addDeveloper" class="status-select" style="width:100%;margin-top:4px" placeholder="שם היזם"></div>
         <div class="detail-item"><div class="detail-label">מגיש / עורך</div><input id="addSubmitter" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האדריכל"></div>
         <div class="detail-item"><div class="detail-label">מיקום</div><input id="addLocation" class="status-select" style="width:100%;margin-top:4px" placeholder="רחוב, מגרש, גוש..."></div>
         <div class="detail-item full"><div class="detail-label">מטרה</div><input id="addPurpose" class="status-select" style="width:100%;margin-top:4px" placeholder="תיאור מטרת התוכנית"></div>
@@ -510,6 +512,7 @@ let plans = RAW_DATA.map((r,i) => ({
   status: r[9] || 'טרם עודכן',
   year: r[10],
   month: r[11] || '',
+  developer: '',
   forumArchitect: '',
   forumConsultants: '',
   committeeDate: ''
@@ -606,7 +609,7 @@ function applyFilters() {
     if (s && p.status !== s) return false;
     if (h && p.handler !== h) return false;
     if (q) {
-      const txt = [p.tik,p.district,p.planNum,p.submitter,p.location,p.purpose,p.handler,p.status].join(' ').toLowerCase();
+      const txt = [p.tik,p.district,p.planNum,p.developer,p.submitter,p.location,p.purpose,p.handler,p.status].join(' ').toLowerCase();
       if (!txt.includes(q)) return false;
     }
     return true;
@@ -629,7 +632,7 @@ function resetFilters() {
 // ── TABLE ──
 function sortTable(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-  const keys = ['tik','district','planNum','submitter','location','purpose','date','handler','status'];
+  const keys = ['tik','district','planNum','developer','submitter','location','purpose','date','handler','status'];
   const key = keys[col];
   filtered.sort((a,b) => {
     let va = a[key]||'', vb = b[key]||'';
@@ -661,7 +664,7 @@ function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
   const tbody = document.getElementById('tableBody');
-  const keys = ['tik','district','planNum','submitter','location','purpose','date','handler','status'];
+  const keys = ['tik','district','planNum','developer','submitter','location','purpose','date','handler','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
 
   let prevGroupVal = null;
@@ -683,6 +686,7 @@ function renderTable() {
         <td><strong>${p.tik}</strong></td>
         <td><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
         <td><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
+        <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
         <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
         <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
         <td><input value="${p.purpose||''}" onchange="saveField(${p.id},'purpose',this)"></td>
@@ -696,6 +700,7 @@ function renderTable() {
       <td><strong>${p.tik}</strong></td>
       <td>${p.district}</td>
       <td style="font-size:12px">${p.planNum}</td>
+      <td>${p.developer||'—'}</td>
       <td>${p.submitter||'—'}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.purpose}">${p.purpose||'—'}</td>
@@ -733,6 +738,7 @@ function openDetail(id) {
       <div class="detail-item"><div class="detail-label">רובע / אזור</div><div class="detail-value">${p.district}</div></div>
       <div class="detail-item"><div class="detail-label">מס' תכנית</div><div class="detail-value">${p.planNum||'—'}</div></div>
       <div class="detail-item"><div class="detail-label">שינוי לתכנית</div><div class="detail-value" style="font-size:12px">${p.change||'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">יזם</div><div class="detail-value" style="font-size:13px">${p.developer||'—'}</div></div>
       <div class="detail-item"><div class="detail-label">מגיש / עורך</div><div class="detail-value" style="font-size:13px">${p.submitter||'—'}</div></div>
       <div class="detail-item"><div class="detail-label">תאריך</div><div class="detail-value">${fmtDate(p.date)}</div></div>
       <div class="detail-item full"><div class="detail-label">מיקום</div><div class="detail-value" style="font-size:13px">${p.location||'—'}</div></div>
@@ -790,6 +796,7 @@ function addPlan() {
     district: document.getElementById('addDistrict').value.trim(),
     planNum: document.getElementById('addPlan').value.trim(),
     change: document.getElementById('addChange').value.trim(),
+    developer: document.getElementById('addDeveloper').value.trim(),
     submitter: document.getElementById('addSubmitter').value.trim(),
     location: document.getElementById('addLocation').value.trim(),
     purpose: document.getElementById('addPurpose').value.trim(),
@@ -808,7 +815,7 @@ function addPlan() {
   renderLanding();
   closeAddModal();
   toast(`תוכנית ${tik} נוספה בהצלחה`);
-  ['addTik','addDistrict','addPlan','addChange','addSubmitter','addLocation','addPurpose','addHandler','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
+  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addPurpose','addHandler','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
 }
 
 // ── MAP ──
