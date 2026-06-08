@@ -106,7 +106,7 @@ tbody tr:hover{background:var(--teal-pale)}
 
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal-overlay.open{display:flex}
-.modal{background:var(--paper);border-radius:8px;max-width:720px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.modal{background:var(--paper);border-radius:8px;max-width:960px;width:94%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
 .modal-header{padding:1.5rem 2rem;border-bottom:1px solid var(--stone);display:flex;justify-content:space-between;align-items:center}
 .modal-header h3{font-family:var(--serif);font-size:20px}
 .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:rgba(0,0,0,0.3);padding:4px 8px;transition:all 0.15s}
@@ -175,6 +175,10 @@ tbody tr:hover{background:var(--teal-pale)}
   #gis-map{height:350px}
   .filter-bar{flex-direction:column}
   .detail-grid{grid-template-columns:1fr}
+  .detail-dates-row{flex-wrap:wrap}
+  .detail-date-cell{min-width:45%}
+  .detail-sections-grid{grid-template-columns:1fr}
+  .detail-info-row{grid-template-columns:1fr 1fr}
   .donut-wrap{flex-direction:column}
 }
 
@@ -200,6 +204,31 @@ tbody tr:hover{background:var(--teal-pale)}
 .pattern-card strong{font-size:15px;display:block;margin-bottom:6px;color:var(--ink)}
 .pattern-card p{font-size:13px;color:rgba(0,0,0,0.55);line-height:1.6}
 
+.detail-dates-row{display:flex;gap:0;border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;border:1px solid var(--stone)}
+.detail-date-cell{flex:1;padding:1rem 0.8rem;text-align:center;background:var(--fog);border-left:1px solid var(--stone)}
+.detail-date-cell:last-child{border-left:none}
+.detail-date-cell .dlabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:rgba(0,0,0,0.4);margin-bottom:6px}
+.detail-date-cell .dval{font-size:16px;font-weight:700;color:var(--teal)}
+.detail-date-cell input[type="date"]{font-size:14px;font-weight:700;color:var(--teal);border:none;background:transparent;text-align:center;width:100%;font-family:var(--sans);cursor:pointer}
+.detail-section{background:var(--fog);border-radius:var(--r);padding:1.2rem 1.5rem;margin-bottom:1rem}
+.detail-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--bronze-deep);margin-bottom:0.8rem;display:flex;align-items:center;gap:6px}
+.detail-section-title::before{content:'';width:3px;height:14px;background:var(--bronze);border-radius:2px;display:inline-block}
+.detail-section textarea{width:100%;min-height:80px;border:1px solid var(--stone);border-radius:var(--r);padding:0.7rem;font-family:var(--sans);font-size:13px;resize:vertical;background:var(--paper);color:var(--ink);line-height:1.6}
+.detail-section textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(42,95,95,0.1)}
+.detail-sections-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.detail-info-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.8rem;margin-bottom:1.2rem}
+.detail-info-item{background:var(--fog);padding:0.6rem 0.8rem;border-radius:var(--r)}
+.detail-info-item .dlabel{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(0,0,0,0.35);margin-bottom:2px}
+.detail-info-item .dval{font-size:13px;font-weight:600;color:var(--ink)}
+.status-traffic{display:flex;align-items:center;justify-content:center;gap:12px;padding:1rem 2rem;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;border:none;width:100%;transition:all 0.2s}
+.status-traffic .light{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.3)}
+.traffic-done{background:var(--ok);color:#fff}
+.traffic-active{background:var(--warn);color:#fff}
+.traffic-wait{background:var(--info);color:#fff}
+.traffic-closed{background:var(--err);color:#fff}
+.traffic-default{background:rgba(0,0,0,0.15);color:var(--ink)}
+.traffic-urgent{background:var(--err);color:#fff;animation:pulse-urgent 1.5s ease-in-out infinite}
+@keyframes pulse-urgent{0%,100%{box-shadow:0 0 0 0 rgba(184,64,64,0.4)}50%{box-shadow:0 0 0 8px rgba(184,64,64,0)}}
 .detail-dates{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--stone)}
 .detail-dates .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:8px}
 
@@ -406,8 +435,7 @@ tbody tr:hover{background:var(--teal-pale)}
         <div class="detail-item"><div class="detail-label">מגיש / עורך</div><input id="addSubmitter" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האדריכל"></div>
         <div class="detail-item"><div class="detail-label">מיקום</div><input id="addLocation" class="status-select" style="width:100%;margin-top:4px" placeholder="רחוב, מגרש, גוש..."></div>
         <div class="detail-item"><div class="detail-label">גוש/חלקה</div><input id="addParcel" class="status-select" style="width:100%;margin-top:4px" placeholder="גוש/חלקה"></div>
-        <div class="detail-item full"><div class="detail-label">מטרה</div><input id="addPurpose" class="status-select" style="width:100%;margin-top:4px" placeholder="תיאור מטרת התוכנית"></div>
-        <div class="detail-item"><div class="detail-label">אחראי/ת</div><input id="addHandler" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האחראי"></div>
+        <div class="detail-item full"><div class="detail-label">שם הפרויקט</div><input id="addProjectName" class="status-select" style="width:100%;margin-top:4px" placeholder="שם הפרויקט"></div>
         <div class="detail-item"><div class="detail-label">סטטוס</div>
           <select id="addStatus" class="status-select" style="width:100%;margin-top:4px">
             <option>טרם עודכן</option><option>בטיפול</option><option>הושלם</option><option>בהמתנה</option><option>סגור</option><option>דחוף</option>
@@ -438,6 +466,8 @@ tbody tr:hover{background:var(--teal-pale)}
 const STATUSES = ['טרם עודכן','בטיפול','הושלם','בהמתנה','סגור','דחוף','תוכנית נסגרה'];
 const STATUS_COLORS = {'טרם עודכן':'rgba(0,0,0,0.25)','בטיפול':'#c47a20','הושלם':'#3d8b5e','בהמתנה':'#3B8BD4','סגור':'#b84040','דחוף':'#b84040','תוכנית נסגרה':'#b84040'};
 const STATUS_BADGE = {'טרם עודכן':'badge-default','בטיפול':'badge-active','הושלם':'badge-done','בהמתנה':'badge-wait','סגור':'badge-closed','דחוף':'badge-urgent','תוכנית נסגרה':'badge-closed'};
+const STATUS_TRAFFIC = {'טרם עודכן':'traffic-default','בטיפול':'traffic-active','הושלם':'traffic-done','בהמתנה':'traffic-wait','סגור':'traffic-closed','דחוף':'traffic-urgent','תוכנית נסגרה':'traffic-closed'};
+const STATUS_LIGHTS = {'טרם עודכן':['#999','#999','#999'],'בטיפול':['#999','#f5a623','#999'],'הושלם':['#999','#999','#3d8b5e'],'בהמתנה':['#999','#999','#3B8BD4'],'סגור':['#b84040','#999','#999'],'דחוף':['#b84040','#999','#999'],'תוכנית נסגרה':['#b84040','#999','#999']};
 
 const RAW_DATA = [
 [1714,"טו'","תב/1714","603-0262121","אד' יואל פייגין","מגרש 18","תוכנית בינוי","2024-11-26","ענת שטיבלמן","הושלם",2024,"נובמבר"],
@@ -503,7 +533,11 @@ let plans = RAW_DATA.map((r,i) => ({
   approvalDate: '',
   forumArchitect: '',
   forumConsultants: '',
-  committeeDate: ''
+  committeeDate: '',
+  projectName: '',
+  projectDescription: '',
+  planningData: '',
+  opinion: ''
 }));
 
 let filtered = [...plans];
@@ -731,45 +765,73 @@ function renderTable() {
 function openDetail(id) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
+  const lights = STATUS_LIGHTS[p.status]||['#999','#999','#999'];
+  const trafficCls = STATUS_TRAFFIC[p.status]||'traffic-default';
   document.getElementById('modalTitle').textContent = `תיק ${p.tik} — ${p.district}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-grid">
-      <div class="detail-item"><div class="detail-label">מס' תיק</div><div class="detail-value">${p.tik}</div></div>
-      <div class="detail-item"><div class="detail-label">רובע / אזור</div><div class="detail-value">${p.district}</div></div>
-      <div class="detail-item"><div class="detail-label">מס' תכנית</div><div class="detail-value">${p.planNum||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">שינוי לתכנית</div><div class="detail-value" style="font-size:12px">${p.change||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">יזם</div><div class="detail-value" style="font-size:13px">${p.developer||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">מגיש / עורך</div><div class="detail-value" style="font-size:13px">${p.submitter||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">תאריך פתיחה</div><div class="detail-value">${fmtDate(p.date)}</div></div>
-      <div class="detail-item"><div class="detail-label">תאריך אישור בוועדה</div><input type="date" value="${p.approvalDate||''}" class="status-select" style="width:100%;margin-top:4px" onchange="plans.find(x=>x.id===${p.id}).approvalDate=this.value;toast('תאריך אישור עודכן')"></div>
-      <div class="detail-item full"><div class="detail-label">מיקום</div><div class="detail-value" style="font-size:13px">${p.location||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">גוש/חלקה</div><div class="detail-value" style="font-size:13px">${p.parcel||'—'}</div></div>
-      <div class="detail-item full"><div class="detail-label">מטרה</div><div class="detail-value" style="font-size:13px">${p.purpose||'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">אחראי/ת</div><div class="detail-value" style="font-size:13px">${p.handler||'—'}</div></div>
-      <div class="detail-item">
-        <div class="detail-label">סטטוס</div>
-        <select class="status-select" style="margin-top:4px;font-size:13px" onchange="changeStatus(${p.id},this.value)">
-          ${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}
-        </select>
+    <div class="detail-dates-row">
+      <div class="detail-date-cell">
+        <div class="dlabel">תאריך פתיחה</div>
+        <div class="dval">${fmtDate(p.date)}</div>
+      </div>
+      <div class="detail-date-cell">
+        <div class="dlabel">פורום אדריכל</div>
+        <input type="date" value="${p.forumArchitect||''}" onchange="plans.find(x=>x.id===${p.id}).forumArchitect=this.value;toast('פורום אדריכל עודכן')">
+      </div>
+      <div class="detail-date-cell">
+        <div class="dlabel">פורום יועצים</div>
+        <input type="date" value="${p.forumConsultants||''}" onchange="plans.find(x=>x.id===${p.id}).forumConsultants=this.value;toast('פורום יועצים עודכן')">
+      </div>
+      <div class="detail-date-cell">
+        <div class="dlabel">תאריך ועדה</div>
+        <input type="date" value="${p.committeeDate||''}" onchange="plans.find(x=>x.id===${p.id}).committeeDate=this.value;toast('תאריך ועדה עודכן')">
+      </div>
+      <div class="detail-date-cell">
+        <div class="dlabel">תאריך אישור</div>
+        <input type="date" value="${p.approvalDate||''}" onchange="plans.find(x=>x.id===${p.id}).approvalDate=this.value;toast('תאריך אישור עודכן')">
       </div>
     </div>
-    <div class="detail-dates">
-      <div class="section-label">תאריכים</div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <div class="detail-label">פורום אדריכל</div>
-          <input type="date" value="${p.forumArchitect||''}" class="status-select" style="width:100%;margin-top:4px" onchange="plans.find(x=>x.id===${p.id}).forumArchitect=this.value;toast('פורום אדריכל עודכן')">
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">פורום יועצים</div>
-          <input type="date" value="${p.forumConsultants||''}" class="status-select" style="width:100%;margin-top:4px" onchange="plans.find(x=>x.id===${p.id}).forumConsultants=this.value;toast('פורום יועצים עודכן')">
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">תאריך ועדה</div>
-          <input type="date" value="${p.committeeDate||''}" class="status-select" style="width:100%;margin-top:4px" onchange="plans.find(x=>x.id===${p.id}).committeeDate=this.value;toast('תאריך ועדה עודכן')">
-        </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="detail-section" style="margin-bottom:0.6rem;padding:0.8rem 1.2rem">
+        <div class="detail-section-title">שם הפרויקט</div>
+        <input type="text" value="${(p.projectName||'').replace(/"/g,'&quot;')}" placeholder="הזן שם פרויקט..." style="width:100%;border:1px solid var(--stone);border-radius:var(--r);padding:0.5rem 0.7rem;font-family:var(--sans);font-size:15px;font-weight:600;background:var(--paper);color:var(--ink)" onchange="plans.find(x=>x.id===${p.id}).projectName=this.value;toast('שם הפרויקט עודכן')">
       </div>
     </div>
+
+    <div class="detail-info-row">
+      <div class="detail-info-item"><div class="dlabel">מס' תכנית</div><div class="dval">${p.planNum||'—'}</div></div>
+      <div class="detail-info-item"><div class="dlabel">שינוי לתכנית</div><div class="dval" style="font-size:11px">${p.change||'—'}</div></div>
+      <div class="detail-info-item"><div class="dlabel">יזם</div><div class="dval">${p.developer||'—'}</div></div>
+      <div class="detail-info-item"><div class="dlabel">מגיש / עורך</div><div class="dval">${p.submitter||'—'}</div></div>
+    </div>
+    <div class="detail-info-row" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="detail-info-item"><div class="dlabel">רובע / אזור</div><div class="dval">${p.district}</div></div>
+      <div class="detail-info-item"><div class="dlabel">מיקום</div><div class="dval">${p.location||'—'}</div></div>
+      <div class="detail-info-item"><div class="dlabel">גוש / חלקה</div><div class="dval">${p.parcel||'—'}</div></div>
+    </div>
+
+    <div class="detail-sections-grid">
+      <div class="detail-section">
+        <div class="detail-section-title">פרטי מקום</div>
+        <textarea placeholder="פרטי המיקום, הגוש, החלקה, ייעוד הקרקע..." onchange="plans.find(x=>x.id===${p.id}).projectDescription=this.value;toast('תיאור עודכן')">${p.projectDescription||''}</textarea>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">נתוני תב״ע</div>
+        <textarea placeholder="זכויות בנייה, צפיפות, גובה, שימושים..." onchange="plans.find(x=>x.id===${p.id}).planningData=this.value;toast('נתוני תבע עודכנו')">${p.planningData||''}</textarea>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">חוות דעת</div>
+        <textarea placeholder="חוות דעת אדריכלית, המלצות, הערות..." onchange="plans.find(x=>x.id===${p.id}).opinion=this.value;toast('חוות דעת עודכנה')">${p.opinion||''}</textarea>
+      </div>
+    </div>
+
+    <button class="status-traffic ${trafficCls}" onclick="cycleStatus(${p.id})">
+      <span class="light" style="background:${lights[0]}"></span>
+      <span class="light" style="background:${lights[1]}"></span>
+      <span class="light" style="background:${lights[2]}"></span>
+      <span>${p.status}</span>
+    </button>
   `;
   document.getElementById('detailModal').classList.add('open');
 }
@@ -780,6 +842,16 @@ document.getElementById('detailModal').addEventListener('click', function(e) { i
 function changeStatus(id, newStatus) {
   const p = plans.find(x=>x.id===id);
   if (p) { p.status = newStatus; renderTable(); renderLanding(); toast(`סטטוס תיק ${p.tik} עודכן ל: ${newStatus}`); }
+}
+
+function cycleStatus(id) {
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  const idx = STATUSES.indexOf(p.status);
+  p.status = STATUSES[(idx+1)%STATUSES.length];
+  renderTable(); renderLanding();
+  openDetail(id);
+  toast(`סטטוס עודכן ל: ${p.status}`);
 }
 
 // ── ADD PLAN ──
@@ -804,16 +876,20 @@ function addPlan() {
     parcel: document.getElementById('addParcel').value.trim(),
     lat: null,
     lng: null,
-    purpose: document.getElementById('addPurpose').value.trim(),
+    purpose: '',
     date: dateStr,
-    handler: document.getElementById('addHandler').value.trim(),
+    handler: '',
     status: document.getElementById('addStatus').value,
     year: now.getFullYear(),
     month: '',
     approvalDate: document.getElementById('addApproval').value || '',
     forumArchitect: document.getElementById('addForumArch').value || '',
     forumConsultants: document.getElementById('addForumCons').value || '',
-    committeeDate: document.getElementById('addCommittee').value || ''
+    committeeDate: document.getElementById('addCommittee').value || '',
+    projectName: document.getElementById('addProjectName').value.trim(),
+    projectDescription: '',
+    planningData: '',
+    opinion: ''
   };
   plans.push(newPlan);
   populateFilters();
@@ -821,7 +897,7 @@ function addPlan() {
   renderLanding();
   closeAddModal();
   toast(`תוכנית ${tik} נוספה בהצלחה`);
-  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addPurpose','addHandler','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
+  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
 }
 
 // ── MAP ──
