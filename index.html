@@ -260,8 +260,10 @@ tbody tr:hover{background:var(--teal-pale)}
       <div class="page-title">טבלת תוכניות בינוי</div>
       <div class="page-subtitle">40 תוכניות — סנן, מיין, חפש ועדכן סטטוס</div>
     </div>
-    <button class="btn btn-ghost btn-sm" id="editToggle" onclick="toggleEditMode()" style="margin-left:8px">מצב עריכה</button>
-    <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית חדשה</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית חדשה</button>
+      <button class="btn btn-primary" id="editToggle" onclick="toggleEditMode()">מצב עריכה</button>
+    </div>
   </div>
 
   <div class="filter-bar" id="filterBar">
@@ -280,15 +282,14 @@ tbody tr:hover{background:var(--teal-pale)}
         <tr>
           <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>תיק</th>
           <th onclick="sortTable(1)"><span class="sort-arrow">▼</span>רובע</th>
-          <th onclick="sortTable(2)"><span class="sort-arrow">▼</span>מס' תכנית</th>
-          <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>יזם</th>
-          <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
-          <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מיקום</th>
+          <th onclick="sortTable(2)"><span class="sort-arrow">▼</span>מיקום</th>
+          <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>מס' תכנית</th>
+          <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>יזם</th>
+          <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
           <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>גוש/חלקה</th>
-          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>מטרה</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך</th>
-          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>אחראי/ת</th>
-          <th onclick="sortTable(10)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>תאריך</th>
+          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך ועדה</th>
+          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -326,14 +327,6 @@ tbody tr:hover{background:var(--teal-pale)}
           <div class="layer-name">שטחים ירוקים</div>
           <div class="layer-toggle" data-layer="green"></div>
         </div>
-      </div>
-      <div class="section-title" style="margin-top:1.5rem">מקרא סטטוס</div>
-      <div style="font-size:11px;line-height:2.2">
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:rgba(0,0,0,0.25)"></div> טרם עודכן</div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:var(--warn)"></div> בטיפול</div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:var(--ok)"></div> הושלם</div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:var(--info)"></div> בהמתנה</div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:var(--err)"></div> דחוף / סגור</div>
       </div>
       <div class="section-title" style="margin-top:1.5rem">סטטיסטיקה</div>
       <div id="mapStats" style="font-size:12px;line-height:2"></div>
@@ -627,7 +620,7 @@ function resetFilters() {
 // ── TABLE ──
 function sortTable(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-  const keys = ['tik','district','planNum','developer','submitter','location','parcel','purpose','date','handler','status'];
+  const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
   const key = keys[col];
   filtered.sort((a,b) => {
     let va = a[key]||'', vb = b[key]||'';
@@ -671,7 +664,7 @@ function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
   const tbody = document.getElementById('tableBody');
-  const keys = ['tik','district','planNum','developer','submitter','location','parcel','purpose','date','handler','status'];
+  const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
 
   let prevGroupVal = null;
@@ -692,14 +685,13 @@ function renderTable() {
       return `<tr class="${groupClass}">
         <td><strong>${p.tik}</strong></td>
         <td><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
+        <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
         <td><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
         <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
         <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
-        <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
         <td><input value="${p.parcel||''}" onchange="saveField(${p.id},'parcel',this)" placeholder="גוש/חלקה"></td>
-        <td><input value="${p.purpose||''}" onchange="saveField(${p.id},'purpose',this)"></td>
         <td><input type="date" value="${p.date||''}" onchange="saveField(${p.id},'date',this)"></td>
-        <td><input value="${p.handler||''}" onchange="saveField(${p.id},'handler',this)"></td>
+        <td><input type="date" value="${p.committeeDate||''}" onchange="saveField(${p.id},'committeeDate',this)"></td>
         <td><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`;
     }
@@ -707,14 +699,13 @@ function renderTable() {
     return `<tr class="${groupClass}" onclick="openDetail(${p.id})">
       <td><strong>${p.tik}</strong></td>
       <td>${p.district}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
       <td style="font-size:12px">${p.planNum}</td>
       <td>${p.developer||'—'}</td>
       <td>${p.submitter||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
       <td style="font-size:11px;white-space:nowrap">${p.parcel||'—'}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.purpose}">${p.purpose||'—'}</td>
       <td style="white-space:nowrap">${fmtDate(p.date)}</td>
-      <td>${p.handler||'—'}</td>
+      <td style="white-space:nowrap">${fmtDate(p.committeeDate)}</td>
       <td>${statusBadge(p.status)}</td>
     </tr>`;
   }).join('');
