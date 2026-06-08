@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>תוכניות בינוי — אשדוד</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
 --ink:#1a1a1a;--paper:#faf9f7;--stone:#e8e5df;--fog:#f2f0ec;
 --teal:#2A5F5F;--teal-light:#3a7a7a;--teal-pale:rgba(42,95,95,0.08);
---bronze:#E8A87C;--bronze-deep:#c4845a;
+--bronze:#C5A55A;--bronze-deep:#A88B3D;
 --ok:#3d8b5e;--warn:#c47a20;--err:#b84040;--info:#3B8BD4;
---sans:'Heebo',sans-serif;--serif:'Frank Ruhl Libre',serif;
+--sans:'Rubik',sans-serif;--serif:'Rubik',serif;
 --r:6px;--shadow:0 1px 4px rgba(0,0,0,0.06);
 }
 html{direction:rtl;scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
 
 .masthead{background:var(--ink);color:var(--paper);position:sticky;top:0;z-index:1000}
 .masthead-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px}
-.logo{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:0.5px;color:var(--paper);cursor:pointer}
+.logo{font-family:var(--serif);font-size:22px;font-weight:700;letter-spacing:0.5px;color:var(--paper);cursor:pointer}
 .logo span{color:var(--bronze);font-weight:400}
 nav{display:flex;gap:2px}
-nav button{background:none;border:none;color:rgba(255,255,255,0.5);padding:0.7rem 1rem;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;border-bottom:2px solid transparent;white-space:nowrap}
+nav button{background:none;border:none;color:rgba(255,255,255,0.5);padding:0.7rem 1.2rem;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;border-bottom:2px solid transparent;white-space:nowrap}
 nav button:hover{color:var(--paper)}
 nav button.active{color:var(--paper);border-bottom-color:var(--bronze)}
 .search-bar{position:relative}
@@ -36,9 +36,9 @@ nav button.active{color:var(--paper);border-bottom-color:var(--bronze)}
 .page.active{display:block;animation:fadeIn 0.25s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-.page-title{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--ink);margin-bottom:0.3rem}
-.page-subtitle{font-size:13px;color:rgba(0,0,0,0.4);margin-bottom:2rem;font-weight:300;letter-spacing:0.3px}
-.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:1rem;margin-top:2rem}
+.page-title{font-family:var(--serif);font-size:34px;font-weight:700;color:var(--ink);margin-bottom:0.3rem}
+.page-subtitle{font-size:15px;color:rgba(0,0,0,0.4);margin-bottom:2rem;font-weight:300;letter-spacing:0.3px}
+.section-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:1rem;margin-top:2rem}
 .section-title:first-child{margin-top:0}
 
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
@@ -48,7 +48,7 @@ nav button.active{color:var(--paper);border-bottom-color:var(--bronze)}
 
 .metric{background:white;border:1px solid var(--stone);border-radius:var(--r);padding:1.2rem;text-align:center;transition:all 0.2s}
 .metric:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
-.metric-val{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--teal)}
+.metric-val{font-family:var(--serif);font-size:38px;font-weight:700;color:var(--teal)}
 .metric-lbl{font-size:10px;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
 
 .card{background:white;border:1px solid var(--stone);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--shadow);transition:all 0.2s}
@@ -63,13 +63,13 @@ nav button.active{color:var(--paper);border-bottom-color:var(--bronze)}
 .badge-urgent{background:rgba(184,64,64,0.2);color:var(--err);font-weight:900}
 
 .tbl-wrap{background:white;border:1px solid var(--stone);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.5rem}
-table{width:100%;border-collapse:collapse;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
 thead{background:var(--ink)}
-th{padding:10px 14px;text-align:right;color:rgba(255,255,255,0.85);font-weight:500;font-size:11px;letter-spacing:0.3px;cursor:pointer;user-select:none;white-space:nowrap;transition:background 0.15s}
+th{padding:12px 16px;text-align:right;color:rgba(255,255,255,0.85);font-weight:500;font-size:13px;letter-spacing:0.3px;cursor:pointer;user-select:none;white-space:nowrap;transition:background 0.15s}
 th:hover{background:rgba(255,255,255,0.08)}
 th .sort-arrow{margin-right:4px;opacity:0.4;font-size:9px}
 th.sorted .sort-arrow{opacity:1;color:var(--bronze)}
-td{padding:10px 14px;border-bottom:1px solid var(--fog)}
+td{padding:12px 16px;border-bottom:1px solid var(--fog)}
 tbody tr{transition:background 0.15s;cursor:pointer}
 tbody tr:hover{background:var(--teal-pale)}
 
@@ -136,13 +136,13 @@ tbody tr:hover{background:var(--teal-pale)}
 .layer-toggle.on::after{right:auto;left:2px}
 
 .hero{text-align:center;padding:4rem 2rem 3rem}
-.hero h1{font-family:var(--serif);font-size:42px;font-weight:700;margin-bottom:0.5rem}
+.hero h1{font-family:var(--serif);font-size:48px;font-weight:700;margin-bottom:0.5rem}
 .hero h1 span{color:var(--bronze)}
-.hero p{font-size:15px;color:rgba(0,0,0,0.45);max-width:500px;margin:0 auto 2rem;font-weight:300}
+.hero p{font-size:17px;color:rgba(0,0,0,0.45);max-width:500px;margin:0 auto 2rem;font-weight:300}
 .hero-stats{display:flex;justify-content:center;gap:3rem}
 .hero-stat{text-align:center}
-.hero-stat .val{font-family:var(--serif);font-size:36px;font-weight:700;color:var(--teal)}
-.hero-stat .lbl{font-size:11px;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px}
+.hero-stat .val{font-family:var(--serif);font-size:42px;font-weight:700;color:var(--teal)}
+.hero-stat .lbl{font-size:13px;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px}
 
 .quick-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem}
 .quick-card{background:white;border:1px solid var(--stone);border-radius:var(--r);padding:1.5rem;cursor:pointer;transition:all 0.2s;text-align:center}
@@ -176,6 +176,15 @@ tbody tr:hover{background:var(--teal-pale)}
   .detail-grid{grid-template-columns:1fr}
   .donut-wrap{flex-direction:column}
 }
+
+.sort-group-border td{border-bottom:2px solid var(--bronze) !important}
+.sort-group-alt{background:rgba(197,165,90,0.06)}
+.edit-mode td{padding:4px 8px}
+.edit-mode input,.edit-mode select{width:100%;padding:4px 6px;border:1px solid var(--stone);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:white}
+.edit-mode input:focus,.edit-mode select:focus{border-color:var(--teal);outline:none}
+#editToggle.active{background:var(--teal);color:white;border-color:var(--teal)}
+.hero-bg{position:relative}
+.hero-bg::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('hero-bg.jpg') center/cover no-repeat;opacity:0.08;pointer-events:none;border-radius:var(--r)}
 </style>
 </head>
 <body>
@@ -197,24 +206,25 @@ tbody tr:hover{background:var(--teal-pale)}
 
 <!-- ════════ LANDING ════════ -->
 <div id="landing" class="page active">
-  <div class="hero">
+  <div class="hero hero-bg">
     <h1>תוכניות בינוי <span>אשדוד</span></h1>
+    <div style="font-size:20px;font-weight:500;color:var(--bronze);margin-bottom:0.5rem;letter-spacing:0.5px">אדריכלית העיר ענת דוד שטיבלמן</div>
     <p>ניהול, מעקב ותצוגה של כלל תוכניות הבינוי בעיר אשדוד. נתונים מעודכנים מ-2018 עד 2026.</p>
     <div class="hero-stats" id="heroStats"></div>
   </div>
   <div class="quick-cards">
     <div class="quick-card" onclick="go('table',document.querySelectorAll('#mainNav button')[1])">
-      <div class="icon">📋</div>
+      
       <h3>טבלת תוכניות</h3>
       <p>צפייה, סינון, חיפוש ועדכון סטטוס לכל התוכניות</p>
     </div>
     <div class="quick-card" onclick="go('map',document.querySelectorAll('#mainNav button')[2])">
-      <div class="icon">🗺️</div>
+      
       <h3>מפה אינטראקטיבית</h3>
       <p>תצוגה מרחבית של כלל התוכניות על מפת אשדוד</p>
     </div>
     <div class="quick-card" onclick="go('trends',document.querySelectorAll('#mainNav button')[3])">
-      <div class="icon">📊</div>
+      
       <h3>מגמות וסיכום</h3>
       <p>ניתוח מגמות, פילוח לפי רובע, שנה ואחראי</p>
     </div>
@@ -231,6 +241,7 @@ tbody tr:hover{background:var(--teal-pale)}
       <div class="page-title">טבלת תוכניות בינוי</div>
       <div class="page-subtitle">40 תוכניות — סנן, מיין, חפש ועדכן סטטוס</div>
     </div>
+    <button class="btn btn-ghost btn-sm" id="editToggle" onclick="toggleEditMode()" style="margin-left:8px">מצב עריכה</button>
     <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית חדשה</button>
   </div>
 
@@ -401,46 +412,46 @@ const STATUS_COLORS = {'טרם עודכן':'rgba(0,0,0,0.25)','בטיפול':'#c
 const STATUS_BADGE = {'טרם עודכן':'badge-default','בטיפול':'badge-active','הושלם':'badge-done','בהמתנה':'badge-wait','סגור':'badge-closed','דחוף':'badge-urgent','תוכנית נסגרה':'badge-closed'};
 
 const RAW_DATA = [
-[1714,"רובע טו'","תב/1714","603-0262121","יואל פייגין","מגרש 18","תוכנית בינוי","2024-11-26","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
-[1732,"רובע מרינה","תב/ 1732","112/101/02/3","דני רוזן","מרינה","תוכנית בינוי","2024-05-15","ענת שטיבלמן","טרם עודכן",2024,"מאי"],
-[1747,"רובע מיוחד","תב/1743","603-0811588","הדס אדריכלות ועיצוב בעמ","מתחם י\"א הרובע המיוחד","תכנית בינוי","2023-10-26","ענת שטיבלמן","טרם עודכן",2023,"אוקטובר"],
-[1749,"רובע מיוחד","תב/1745","603-0811588","גנאדי טרוינין","מגרשים 602-605","תכנית בינוי","2023-11-06","ענת שטיבלמן","טרם עודכן",2023,"נובמבר"],
-[1753,"רובע ט\"ז","תב/1739","603-03117784","גנאדי טרוינין","מנגו 4","תוכנית בינוי","2023-12-07","ענת שטיבלמן","טרם עודכן",2023,"דצמבר"],
-[1754,"רובע חוף הים","תב/1736","44/101/02/3","יואל פייגין","חוף הים","כפר נופש רביירה","2023-12-10","ענת שטיבלמן","טרם עודכן",2023,"דצמבר"],
-[1754,"רובע סיטי","תב/1730","603-0735282","אד' דוד","142","תוכנית בינוי","2024-12-02","ענת שטיבלמן","טרם עודכן",2024,"דצמבר"],
-[1778,"רובע פארק לכיש","תב/1750","תמל 1062","טטרו שחר אדריכלים","פארק לכיש מגרשים 27,29,32","תכנית בינוי ועיצוב","2024-09-09","ענת שטיבלמן","טרם עודכן",2024,"ספטמבר"],
-[1800,"רובע מיוחד","תב/1800","603-0811588","אד' עמית","625-626","תוכנית בינוי","2024-10-28","ענת שטיבלמן","טרם עודכן",2024,"אוקטובר"],
-[1802,"רובע ריביירה","תב/1802","44/101/02/3","רשות הספורט","טניס","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
-[1803,"רובע פארק לכיש","תב/1803","תמל 1062","0","503","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
-[1804,"רובע פארק לכיש","תב/1804","תמל 1062","0","504","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
-[1807,"רובע מרינה","תב/1815","112/101/02/3","אד' אפי","50,45","תוכנית בינוי","2024-11-19","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
-[1808,"רובע מרינה","תב/1816","112/101/02/3","אד' אפי","52,47","תוכנית בינוי","2024-11-20","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
-[1809,"רובע סיטי","תב/1824","603-0735282","אד' דוד שבזין","141","תוכנית בינוי","2024-11-21","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
-[1810,"רובע מיוחד","תב/ 1713","603-0811588","אד' טיטו אומן","618","תוכנית בינוי","2024-11-21","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
-[1811,"רובע מיוחד","תב/1811","603-0811588","אד' טאובר","601","תוכנית בינוי","2024-10-29","ענת שטיבלמן","טרם עודכן",2024,"אוקטובר"],
-[1815,"רובע מיוחד","תב/1735","603-0811588","אד' אליעזר","619","תוכנית בינוי","2024-12-02","ענת שטיבלמן","טרם עודכן",2024,"דצמבר"],
-[1841,"רובע מיוחד","תב/1841","","ענת שטיבלמן","רובע מיוחד","בית כנסת מגרש 301","","ענת שטיבלמן","טרם עודכן",null,""],
-[1844,"רובע פארק לכיש","תב/1844","תמל 1062","גאי גולדשטיין","מגרש 502 - פארק לכיש","תוכנית בינוי","2025-04-27","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
-[1845,"רובע מער דרום","תב/1845","603-0477232","הרן ילין","מגרש 106,33","תוכנית בינוי","2025-04-27","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
-[1847,"רובע א'","תב/1847","603-0394320","אלי זהבי","מגרש 24","תוכנית בינוי","2025-04-30","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
-[1862,"רובע מער דרום","תב/1862","603-0477232","גיל מינסטר","מגרש 5","תוכנית בינוי (בנייה על הגג)","2025-07-20","ענת שטיבלמן","טרם עודכן",2025,"יולי"],
-[1863,"רובע מער דרום","תב/1863","603-0477232","גיל מינסטר","מגרש 1","תוכנית בינוי","2025-07-28","ענת שטיבלמן","טרם עודכן",2025,"יולי"],
-[1871,"רובע מרינה","תב/1871","112//101/02/3","דני רוזן","מגרש 42,43,44","תוכנית בינוי","2025-09-14","ענת שטיבלמן","טרם עודכן",2025,"ספטמבר"],
-[1876,"רובע מיוחד","תב/1876","603-0811588","אומן אדריכלים","מגרש 618","שינוי תוכנית בינוי - סימון זיקת הנאה","2025-10-26","ענת שטיבלמן","טרם עודכן",2025,"אוקטובר"],
-[1880,"רובע מער דרום","תב/1880","603-0477232","בסם נאסר","מגרש 11","סגירת חלל קיים בקומת מרתף","2025-12-09","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
-[1873,"רובע מער דרום","תב/1873","603-0477232","וולטר שיינקמן","מגרש 23","תוכנית בינוי","2025-09-14","ענת שטיבלמן","טרם עודכן",2025,"ספטמבר"],
-[1885,"רובע ב'","תב/1885","603-0590729","לאה שניאור","מתחם סוהו - רחוב האורגים","תוכנית בינוי","2025-10-01","ענת שטיבלמן","טרם עודכן",2025,"אוקטובר"],
-[1886,"רובע מער דרום","תב/1886","603-0477232","גיל מיניסטר","מגרש 2","תוכנית בינוי","2025-11-01","ענת שטיבלמן","טרם עודכן",2025,"נובמבר"],
-[1887,"רובע ה'","תב/1887","תמל 2024","יגאל לוי","נאות ספיר","תוכנית בינוי","2025-12-01","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
-[1888,"רובע ח'","תב/1888","603-1460740","גיל מיניסטר","רותם פלדות - תדהר","תוכנית בינוי","2025-12-01","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
-[1901,"חוף יא","תב/1901","14/118/03/3","אייל לוגסי","חוף יא","תוכנית בינוי","2026-03-08","ענת שטיבלמן","טרם עודכן",2026,"מרץ"],
-[1902,"חנ\"י","תב/1902","47/101/02/3","יבגני ברופמן","נמל אשדוד","תוכנית בינוי","2026-03-08","ענת שטיבלמן","טרם עודכן",2026,"מרץ"],
-[1908,"מער דרום - מגרש 8","תב/1908","603-0477232","אד' אפרייט","מער דרום","תוכנית בינוי","2026-06-07","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
-[1909,"רובע א - איצטדיון","תב/1909","603-1308642","אד' איגרא","מתחם האצטדיון","תוכנית בינוי","2026-06-08","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
-[1910,"רובע א - מרכז מסחרי","תב/1910","603-0391219","אד' גיל מיניסטר","מרכז א","תוכנית בינוי","2026-06-09","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
-[1911,"רובע ב - הרב מיימון","תב/1911","","אד' גיל מיניסטר","מתחם הרב מימון","תוכנית בינוי","2026-06-10","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
-[1912,"רובע  ב - המעפילים","תב/1912","תמל 2022","אד' גיל מיניסטר","מתחם המעפילים","תוכנית בינוי","2026-06-11","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
-[1913,"אחד העם - הרצל","תב/1913","תמל 2023","אד' גיל מיניסטר","ציר הרצל אחד העם","תוכנית בינוי","2026-06-12","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1714,"טו'","תב/1714","603-0262121","אד' יואל פייגין","מגרש 18","תוכנית בינוי","2024-11-26","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
+[1732,"מרינה","תב/ 1732","112/101/02/3","אד' דני רוזן","מגרש מרינה","תוכנית בינוי","2024-05-15","ענת שטיבלמן","טרם עודכן",2024,"מאי"],
+[1747,"מיוחד","תב/1743","603-0811588","אד' הדס אדריכלות ועיצוב בעמ","מגרש מתחם י\"א הרובע המיוחד","תוכנית בינוי","2023-10-26","ענת שטיבלמן","טרם עודכן",2023,"אוקטובר"],
+[1749,"מיוחד","תב/1745","603-0811588","אד' גנאדי טרוינין","מגרשים 602-605","תוכנית בינוי","2023-11-06","ענת שטיבלמן","טרם עודכן",2023,"נובמבר"],
+[1753,"ט\"ז","תב/1739","603-03117784","אד' גנאדי טרוינין","מגרש מנגו 4","תוכנית בינוי","2023-12-07","ענת שטיבלמן","טרם עודכן",2023,"דצמבר"],
+[1754,"חוף הים","תב/1736","44/101/02/3","אד' יואל פייגין","מגרש חוף הים","תוכנית בינוי","2023-12-10","ענת שטיבלמן","טרם עודכן",2023,"דצמבר"],
+[1754,"סיטי","תב/1730","603-0735282","אד' דוד","מגרש 142","תוכנית בינוי","2024-12-02","ענת שטיבלמן","טרם עודכן",2024,"דצמבר"],
+[1778,"פארק לכיש","תב/1750","תמל 1062","אד' טטרו שחר אדריכלים","מגרש פארק לכיש מגרשים 27,29,32","תוכנית בינוי","2024-09-09","ענת שטיבלמן","טרם עודכן",2024,"ספטמבר"],
+[1800,"מיוחד","תב/1800","603-0811588","אד' עמית","מגרש 625-626","תוכנית בינוי","2024-10-28","ענת שטיבלמן","טרם עודכן",2024,"אוקטובר"],
+[1802,"ריביירה","תב/1802","44/101/02/3","רשות הספורט","מגרש טניס","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1803,"פארק לכיש","תב/1803","תמל 1062","0","מגרש 503","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1804,"פארק לכיש","תב/1804","תמל 1062","0","מגרש 504","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1807,"מרינה","תב/1815","112/101/02/3","אד' אפי","מגרש 50,45","תוכנית בינוי","2024-11-19","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
+[1808,"מרינה","תב/1816","112/101/02/3","אד' אפי","מגרש 52,47","תוכנית בינוי","2024-11-20","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
+[1809,"סיטי","תב/1824","603-0735282","אד' דוד שבזין","מגרש 141","תוכנית בינוי","2024-11-21","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
+[1810,"מיוחד","תב/ 1713","603-0811588","אד' טיטו אומן","מגרש 618","תוכנית בינוי","2024-11-21","ענת שטיבלמן","טרם עודכן",2024,"נובמבר"],
+[1811,"מיוחד","תב/1811","603-0811588","אד' טאובר","מגרש 601","תוכנית בינוי","2024-10-29","ענת שטיבלמן","טרם עודכן",2024,"אוקטובר"],
+[1815,"מיוחד","תב/1735","603-0811588","אד' אליעזר","מגרש 619","תוכנית בינוי","2024-12-02","ענת שטיבלמן","טרם עודכן",2024,"דצמבר"],
+[1841,"מיוחד","תב/1841","","ענת שטיבלמן","מגרש רובע מיוחד","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1844,"פארק לכיש","תב/1844","תמל 1062","אד' גאי גולדשטיין","מגרש 502 - פארק לכיש","תוכנית בינוי","2025-04-27","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
+[1845,"מע\"ר דרום","תב/1845","603-0477232","אד' הרן ילין","מגרש 106,33","תוכנית בינוי","2025-04-27","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
+[1847,"א'","תב/1847","603-0394320","אד' אלי זהבי","מגרש 24","תוכנית בינוי","2025-04-30","ענת שטיבלמן","טרם עודכן",2025,"אפריל"],
+[1862,"מע\"ר דרום","תב/1862","603-0477232","אד' גיל מינסטר","מגרש 5","תוכנית בינוי","2025-07-20","ענת שטיבלמן","טרם עודכן",2025,"יולי"],
+[1863,"מע\"ר דרום","תב/1863","603-0477232","אד' גיל מינסטר","מגרש 1","תוכנית בינוי","2025-07-28","ענת שטיבלמן","טרם עודכן",2025,"יולי"],
+[1871,"מרינה","תב/1871","112//101/02/3","אד' דני רוזן","מגרש 42,43,44","תוכנית בינוי","2025-09-14","ענת שטיבלמן","טרם עודכן",2025,"ספטמבר"],
+[1876,"מיוחד","תב/1876","603-0811588","אד' אומן אדריכלים","מגרש 618","תוכנית בינוי","2025-10-26","ענת שטיבלמן","טרם עודכן",2025,"אוקטובר"],
+[1880,"מע\"ר דרום","תב/1880","603-0477232","אד' בסם נאסר","מגרש 11","תוכנית בינוי","2025-12-09","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
+[1873,"מע\"ר דרום","תב/1873","603-0477232","אד' וולטר שיינקמן","מגרש 23","תוכנית בינוי","2025-09-14","ענת שטיבלמן","טרם עודכן",2025,"ספטמבר"],
+[1885,"ב'","תב/1885","603-0590729","אד' לאה שניאור","מגרש מתחם סוהו - רחוב האורגים","תוכנית בינוי","2025-10-01","ענת שטיבלמן","טרם עודכן",2025,"אוקטובר"],
+[1886,"מע\"ר דרום","תב/1886","603-0477232","אד' גיל מיניסטר","מגרש 2","תוכנית בינוי","2025-11-01","ענת שטיבלמן","טרם עודכן",2025,"נובמבר"],
+[1887,"ה'","תב/1887","תמל 2024","אד' יגאל לוי","מגרש נאות ספיר","תוכנית בינוי","2025-12-01","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
+[1888,"ח'","תב/1888","603-1460740","אד' גיל מיניסטר","מגרש רותם פלדות - תדהר","תוכנית בינוי","2025-12-01","ענת שטיבלמן","טרם עודכן",2025,"דצמבר"],
+[1901,"חוף יא","תב/1901","14/118/03/3","אד' אייל לוגסי","מגרש חוף יא","תוכנית בינוי","2026-03-08","ענת שטיבלמן","טרם עודכן",2026,"מרץ"],
+[1902,"חנ\"י","תב/1902","47/101/02/3","אד' יבגני ברופמן","מגרש נמל אשדוד","תוכנית בינוי","2026-03-08","ענת שטיבלמן","טרם עודכן",2026,"מרץ"],
+[1908,"מע\"ר דרום","תב/1908","603-0477232","אד' אפרייט","מגרש מער דרום","תוכנית בינוי","2026-06-07","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1909,"א","תב/1909","603-1308642","אד' איגרא","מגרש מתחם האצטדיון","תוכנית בינוי","2026-06-08","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1910,"א","תב/1910","603-0391219","אד' גיל מיניסטר","מגרש מרכז א","תוכנית בינוי","2026-06-09","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1911,"ב","תב/1911","","אד' גיל מיניסטר","מגרש מתחם הרב מימון","תוכנית בינוי","2026-06-10","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1912,"ב","תב/1912","תמל 2022","אד' גיל מיניסטר","מגרש מתחם המעפילים","תוכנית בינוי","2026-06-11","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
+[1913,"אחד העם","תב/1913","תמל 2023","אד' גיל מיניסטר","מגרש ציר הרצל אחד העם","תוכנית בינוי","2026-06-12","ענת שטיבלמן","טרם עודכן",2026,"יוני"],
 ];
 
 let plans = RAW_DATA.map((r,i) => ({
@@ -586,24 +597,68 @@ function sortTable(col) {
   renderTable();
 }
 
+let editMode = false;
+function toggleEditMode() {
+  editMode = !editMode;
+  document.getElementById('editToggle').classList.toggle('active', editMode);
+  document.querySelector('.tbl-wrap table').classList.toggle('edit-mode', editMode);
+  renderTable();
+}
+
+function saveField(id, field, el) {
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  p[field] = el.value;
+  toast('שדה עודכן');
+}
+
 function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
   const tbody = document.getElementById('tableBody');
+  const keys = ['tik','district','planNum','submitter','location','purpose','date','handler','status'];
+  const sortKey = sortCol >= 0 ? keys[sortCol] : null;
 
-  tbody.innerHTML = pageData.map(p => `
-    <tr onclick="openDetail(${p.id})">
+  let prevGroupVal = null;
+  let groupIdx = 0;
+
+  tbody.innerHTML = pageData.map((p, idx) => {
+    let groupClass = '';
+    if (sortKey) {
+      const val = String(p[sortKey]||'');
+      if (val !== prevGroupVal) { groupIdx++; prevGroupVal = val; }
+      groupClass = groupIdx % 2 === 0 ? ' sort-group-alt' : '';
+      if (idx < pageData.length - 1 && String(pageData[idx+1][sortKey]||'') !== val) {
+        groupClass += ' sort-group-border';
+      }
+    }
+
+    if (editMode) {
+      return `<tr class="${groupClass}">
+        <td><strong>${p.tik}</strong></td>
+        <td><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
+        <td><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
+        <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
+        <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
+        <td><input value="${p.purpose||''}" onchange="saveField(${p.id},'purpose',this)"></td>
+        <td><input type="date" value="${p.date||''}" onchange="saveField(${p.id},'date',this)"></td>
+        <td><input value="${p.handler||''}" onchange="saveField(${p.id},'handler',this)"></td>
+        <td><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
+      </tr>`;
+    }
+
+    return `<tr class="${groupClass}" onclick="openDetail(${p.id})">
       <td><strong>${p.tik}</strong></td>
       <td>${p.district}</td>
-      <td style="font-size:11px">${p.planNum}</td>
+      <td style="font-size:12px">${p.planNum}</td>
       <td>${p.submitter||'—'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.purpose}">${p.purpose||'—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.purpose}">${p.purpose||'—'}</td>
       <td style="white-space:nowrap">${fmtDate(p.date)}</td>
       <td>${p.handler||'—'}</td>
       <td>${statusBadge(p.status)}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pag = document.getElementById('pagination');
@@ -727,6 +782,11 @@ const ASHDOD_DISTRICTS = {
   "יג": [31.796, 34.656],
   "לא צוין": [31.802, 34.650],
   "עירוני": [31.802, 34.650],
+  "מע\"ר דרום": [31.800, 34.643],
+  "א": [31.812, 34.650],
+  "ב": [31.807, 34.653],
+  "ח": [31.803, 34.655],
+  "ט\"ז": [31.818, 34.658],
   "רובע מעורב": [31.805, 34.651],
 };
 
@@ -905,11 +965,11 @@ function drawDonut(canvasId, values, colors) {
     start += angle;
   });
   ctx.fillStyle = 'var(--ink)';
-  ctx.font = '700 24px "Frank Ruhl Libre"';
+  ctx.font = '700 24px "Rubik"';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(total, cx, cy-6);
-  ctx.font = '300 11px Heebo';
+  ctx.font = '300 12px Rubik';
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.fillText('סך הכל', cx, cy+14);
 }
