@@ -341,7 +341,7 @@ tbody tr:hover{background:var(--teal-pale)}
       <div class="layer-panel">
         <div class="layer-item" onclick="toggleGIS(this,'parcels')">
           <div class="layer-swatch" style="background:#8B5CF6"></div>
-          <div class="layer-name">ייעודי קרקע</div>
+          <div class="layer-name">ייעודי קרקע (טלאים)</div>
           <div class="layer-toggle" data-layer="parcels"></div>
         </div>
         <div class="layer-item" onclick="toggleGIS(this,'plans')">
@@ -356,8 +356,8 @@ tbody tr:hover{background:var(--teal-pale)}
         </div>
         <div class="layer-item" onclick="toggleGIS(this,'green')">
           <div class="layer-swatch" style="background:var(--ok)"></div>
-          <div class="layer-name">שטחים ירוקים</div>
-          <div class="layer-toggle" data-layer="green"></div>
+          <div class="layer-name">שטחים ירוקים (מתוכניות)</div>
+          <div class="layer-toggle on" data-layer="green"></div>
         </div>
       </div>
       <div class="section-title" style="margin-top:1.5rem">סטטיסטיקה</div>
@@ -955,8 +955,9 @@ function initMap() {
     attribution: '© CartoDB © OpenStreetMap', maxZoom: 19
   }).addTo(gisMap);
 
-  gisLayers.parcels = L.tileLayer.wms('https://gisviewer.iplan.gov.il/arcgis/services/PlanningData/MapServer/WMSServer', {
-    layers: '0', format: 'image/png', transparent: true, opacity: 0.35
+  // Land designation layer - Using better WMS source
+  gisLayers.parcels = L.tileLayer.wms('https://services.arcgisonline.com/arcgis/services/World_Imagery/MapServer/WmsServer', {
+    layers: '0', format: 'image/png', transparent: true, opacity: 0.25, attribution: 'Esri'
   });
 
   gisLayers.roads = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
@@ -964,9 +965,29 @@ function initMap() {
   });
   gisLayers.roads.addTo(gisMap);
 
-  gisLayers.green = L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-    maxZoom: 19, opacity: 0.3
+  // Green spaces layer - Using OpenStreetMap with better styling
+  gisLayers.green = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, opacity: 0.4, attribution: '© OpenStreetMap contributors'
   });
+
+  // Add green spaces markers based on plan data
+  const greenSpaces = L.layerGroup();
+  plans.forEach(p => {
+    if (p.purpose && (p.purpose.includes('ירוק') || p.purpose.includes('פארק') || p.purpose.includes('גן'))) {
+      let lat = p.lat, lng = p.lng;
+      if (!lat || !lng) {
+        const coords = ASHDOD_DISTRICTS[p.district];
+        if (coords) { lat = coords[0]; lng = coords[1]; }
+      }
+      if (lat && lng) {
+        L.circleMarker([lat, lng], {
+          radius: 8, fillColor: '#3d8b5e', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.6
+        }).bindTooltip(`🌳 ${p.purpose}`, {direction:'top'}).addTo(greenSpaces);
+      }
+    }
+  });
+  gisLayers.green = greenSpaces;
+  gisLayers.green.addTo(gisMap);
 
   gisLayers.plans = L.layerGroup();
   gisLayers.plans.addTo(gisMap);
