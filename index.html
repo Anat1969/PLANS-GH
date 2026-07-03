@@ -472,6 +472,23 @@ const STATUS_BADGE = {'טרם עודכן':'badge-default','בטיפול':'badge-
 const STATUS_TRAFFIC = {'טרם עודכן':'traffic-default','בטיפול':'traffic-active','הושלם':'traffic-done','בהמתנה':'traffic-wait','סגור':'traffic-closed','דחוף':'traffic-urgent','תוכנית נסגרה':'traffic-closed'};
 const STATUS_LIGHTS = {'טרם עודכן':['#999','#999','#999'],'בטיפול':['#999','#f5a623','#999'],'הושלם':['#999','#999','#3d8b5e'],'בהמתנה':['#999','#999','#3B8BD4'],'סגור':['#b84040','#999','#999'],'דחוף':['#b84040','#999','#999'],'תוכנית נסגרה':['#b84040','#999','#999']};
 
+// Normalize district names to canonical form
+function normalizeDistrict(d) {
+  if (!d) return '';
+  const map = {
+    'רובע א':'רובע א', 'רובע א\'':'רובע א', 'א':'רובע א', 'א\'':'רובע א',
+    'רובע ב\'':'רובע ב\'', 'ב\'':'רובע ב\'',
+    'רובע ג\'':'רובע ג\'', 'ג\'':'רובע ג\'', 'רובע  ג':'רובע ג\'',
+    'רובע ד\'':'רובע ד\'', 'ד\'':'רובע ד\'',
+    'רובע ה\'':'רובע ה\'', 'רובע ה':'רובע ה\'', 'ה\'':'רובע ה\'', 'ה':'רובע ה\'',
+    'רובע ו':'רובע ו\'', 'רובע ו\'':'רובע ו\'', 'ו':'רובע ו\'', 'ו\'':'רובע ו\'',
+    'רובע ז\'':'רובע ז\'',
+    'רובע ח\'':'רובע ח\'', 'ח\'':'רובע ח\'',
+    'רובע ט\'':'רובע ט\'', 'רובע ט':'רובע ט\'', 'ט':'רובע ט\'',
+  };
+  return map[d] || d;
+}
+
 const RAW_DATA = [
 [1714,"טו'","תב/1714","603-0262121","אד' יואל פייגין","מגרש 18","תוכנית בינוי","2024-11-26","ענת שטיבלמן","הושלם",2024,"נובמבר"],
 [1732,"מרינה","תב/ 1732","112/101/02/3","אד' דני רוזן","מגרש מרינה","תוכנית בינוי","2024-05-15","ענת שטיבלמן","הושלם",2024,"מאי"],
@@ -515,33 +532,37 @@ const RAW_DATA = [
 [1913,"אחד העם","תב/1913","תמל 2023","אד' גיל מיניסטר","מגרש ציר הרצל אחד העם","תוכנית בינוי","2026-06-12","ענת שטיבלמן","הושלם",2026,"יוני"],
 ];
 
-let plans = RAW_DATA.map((r,i) => ({
-  id: i,
-  tik: r[0],
-  district: r[1] || '',
-  planNum: r[2] || '',
-  change: r[3] || '',
-  submitter: r[4] || '',
-  location: r[5] || '',
-  purpose: r[6] || '',
-  date: r[7] || '',
-  handler: r[8] || '',
-  status: r[9] || 'טרם עודכן',
-  year: r[10],
-  month: r[11] || '',
-  developer: '',
-  parcel: '',
-  lat: null,
-  lng: null,
-  approvalDate: '',
-  forumArchitect: '',
-  forumConsultants: '',
-  committeeDate: '',
-  projectName: '',
-  projectDescription: '',
-  planningData: '',
-  opinion: ''
-}));
+let plans = RAW_DATA.map((r,i) => {
+  const p = {
+    id: i,
+    tik: r[0],
+    district: r[1] || '',
+    planNum: r[2] || '',
+    change: r[3] || '',
+    submitter: r[4] || '',
+    location: r[5] || '',
+    purpose: r[6] || '',
+    date: r[7] || '',
+    handler: r[8] || '',
+    status: r[9] || 'טרם עודכן',
+    year: r[10],
+    month: r[11] || '',
+    developer: '',
+    parcel: '',
+    lat: null,
+    lng: null,
+    approvalDate: '',
+    forumArchitect: '',
+    forumConsultants: '',
+    committeeDate: '',
+    projectName: '',
+    projectDescription: '',
+    planningData: '',
+    opinion: ''
+  };
+  p.district = normalizeDistrict(p.district);
+  return p;
+});
 
 let filtered = [...plans];
 let currentPage = 1;
@@ -606,7 +627,7 @@ function renderLanding() {
 
 // ── FILTERS ──
 function populateFilters() {
-  const districts = [...new Set(plans.map(p=>p.district).filter(Boolean))].sort();
+  const districts = [...new Set(plans.map(p=>normalizeDistrict(p.district)).filter(Boolean))].sort();
   const years = [...new Set(plans.map(p=>p.year).filter(Boolean))].sort();
   const statuses = [...new Set(plans.map(p=>p.status).filter(Boolean))];
   const handlers = [...new Set(plans.map(p=>p.handler).filter(Boolean))].sort();
@@ -629,7 +650,7 @@ function applyFilters() {
   const q = document.getElementById('filterSearch').value.toLowerCase();
 
   filtered = plans.filter(p => {
-    if (d && p.district !== d) return false;
+    if (d && normalizeDistrict(p.district) !== d) return false;
     if (y && String(p.year) !== y) return false;
     if (s && p.status !== s) return false;
     if (h && p.handler !== h) return false;
@@ -695,6 +716,10 @@ function saveField(id, field, el) {
   if (!p) return;
   p[field] = el.value;
   toast('שדה עודכן');
+  // Update filter options when data changes
+  if (field === 'district' || field === 'year' || field === 'status' || field === 'handler') {
+    populateFilters();
+  }
 }
 
 function renderTable() {
