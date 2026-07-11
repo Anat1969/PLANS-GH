@@ -323,6 +323,86 @@ tbody tr:hover{background:var(--teal-pale)}
   .opinion-doc .no-print-border textarea{display:none}
   .opinion-doc .print-only{display:block !important;font-size:14px;line-height:1.7;white-space:pre-wrap;padding:4px 0}
 }
+
+/* ══════════ דף הנחיות להגשה (GuidelinesPage) ══════════ */
+#guidelines{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+.gl-hero{padding:1.5rem 0 1.2rem;border-bottom:1px solid var(--stone)}
+.gl-title{font-family:var(--display);font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
+.gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
+.gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+.gl-nav{position:sticky;top:56px;z-index:90;background:var(--paper);display:flex;gap:2px;flex-wrap:wrap;padding:0.6rem 0;border-bottom:1px solid var(--stone);margin-bottom:1.5rem}
+.gl-nav a{font-size:13px;color:var(--teal);text-decoration:none;padding:5px 12px;border-radius:99px;white-space:nowrap;transition:background 0.15s}
+.gl-nav a:hover{background:var(--teal-pale)}
+.gl-section{margin-bottom:2.5rem;scroll-margin-top:120px}
+.gl-h2{font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);padding-bottom:0.4rem;border-bottom:2px solid var(--teal);display:inline-block;margin-bottom:0.3rem}
+.gl-sub2{font-size:13.5px;color:rgba(0,0,0,0.5);margin-bottom:1.2rem;line-height:1.6}
+.gl-list{list-style:none;padding:0;margin:0}
+.gl-list li{font-size:13.5px;padding:5px 0 5px 0;padding-right:1.2rem;position:relative;color:rgba(0,0,0,0.75);line-height:1.5}
+.gl-list li::before{content:'—';position:absolute;right:0;color:var(--teal)}
+.tri-3{grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem}
+.goals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.goal-card{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1.1rem}
+.goal-card-title{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:0.6rem}
+.goal-card ul{list-style:none;padding:0;margin:0}
+.goal-card li{font-size:12.5px;padding:3px 0;color:rgba(0,0,0,0.7)}
+.goal-chip{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;margin-right:3px}
+/* flow */
+.flow-wrap{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.flow-step{border:1px solid var(--stone);border-radius:var(--r);background:#fff;overflow:hidden}
+.flow-head{display:flex;align-items:center;gap:0.7rem;padding:0.8rem 1rem;cursor:pointer}
+.flow-head:hover{background:var(--fog)}
+.flow-num{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.flow-name{font-weight:600;font-size:14.5px;flex:1}
+.flow-chevron{color:rgba(0,0,0,0.4);transition:transform 0.2s}
+.flow-step.open .flow-chevron,.accordion.open .flow-chevron{transform:rotate(180deg)}
+.flow-detail{display:none;padding:0.4rem 1rem 1rem 3.3rem;font-size:13px;line-height:1.9;color:rgba(0,0,0,0.75)}
+.flow-step.open .flow-detail{display:block}
+.flow-note{margin-top:0.5rem;padding:0.5rem 0.8rem;background:var(--teal-pale);border-radius:var(--r);font-size:12.5px;color:var(--teal)}
+.flow-arrow{text-align:center;color:var(--teal);font-size:18px;line-height:1;padding:3px 0}
+/* dates */
+.dates-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.date-card{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1.1rem;position:relative}
+.date-badge{display:inline-block;font-size:11px;font-weight:700;color:var(--bronze-deep);background:rgba(197,165,90,0.15);padding:2px 10px;border-radius:99px;margin-bottom:0.5rem}
+.date-card h4{font-family:var(--display);font-size:17px;margin-bottom:0.6rem}
+.date-row{font-size:12.5px;line-height:1.6;margin-bottom:5px;color:rgba(0,0,0,0.72)}
+.gl-link{display:inline-block;margin-top:1rem;color:var(--teal);font-size:13.5px;cursor:pointer;text-decoration:none}
+.gl-link:hover{text-decoration:underline}
+/* gantt demo */
+.g-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.g-leg{font-size:12px;display:flex;align-items:center;gap:5px;color:rgba(0,0,0,0.65)}
+.g-dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+.g-planned{background:#c9d4d4}.g-in_progress{background:var(--teal)}.g-waiting{background:var(--bronze)}.g-done{background:var(--ok)}.g-delayed{background:var(--err)}
+.gantt-demo{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1rem}
+.g-row{display:flex;align-items:center;gap:0.8rem;margin-bottom:7px}
+.g-label{width:150px;font-size:12px;text-align:left;flex-shrink:0;color:rgba(0,0,0,0.7)}
+.g-track{flex:1;height:14px;background:var(--fog);border-radius:99px;position:relative}
+.g-bar{position:absolute;height:100%;border-radius:99px;min-width:20px}
+/* materials checklist */
+.check-list{list-style:none;padding:0;margin:0}
+.check-list li{font-size:13px;padding:4px 0;display:flex;align-items:center;gap:8px;color:rgba(0,0,0,0.75)}
+.check-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--teal);color:var(--teal);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+/* dev plan layers */
+.gl-highlight{background:var(--teal-pale);border-radius:var(--r);padding:1.5rem;margin-inline:-0.5rem}
+.layers-diagram{display:flex;flex-wrap:wrap;gap:8px;padding:0.5rem 0}
+.layer-chip{background:#fff;border:1px solid var(--teal);color:var(--teal);font-size:12px;font-weight:500;padding:5px 12px;border-radius:var(--r);box-shadow:0 1px 3px rgba(42,95,95,0.12)}
+/* comm cycle */
+.cyc-title{font-weight:700;font-size:14px;margin:1.2rem 0 0.6rem;color:var(--ink)}
+.cyc-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1rem}
+.cyc-node{background:var(--teal-pale);color:var(--teal);font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:99px}
+.cyc-arrow{color:var(--teal);font-weight:700}
+/* roles */
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.role-card{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1.1rem}
+.role-name{font-family:var(--display);font-size:16px;font-weight:700;color:var(--teal);margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid var(--fog)}
+.role-card ul{list-style:none;padding:0;margin:0}
+.role-card li{font-size:12.5px;padding:3px 0;color:rgba(0,0,0,0.72)}
+@media (max-width:768px){
+  #guidelines{padding:1rem}
+  .gl-nav{top:52px}
+  .tri-3,.goals-grid,.dates-grid{grid-template-columns:1fr}
+  .g-label{width:110px}
+  .flow-detail{padding-right:1rem}
+}
 </style>
 </head>
 <body>
@@ -333,6 +413,7 @@ tbody tr:hover{background:var(--teal-pale)}
   <nav id="mainNav">
     <button class="active" onclick="go('landing',this)">ראשי</button>
     <button onclick="go('table',this)">טבלת תוכניות</button>
+    <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('settingsPage',this)">הגדרות</button>
@@ -549,6 +630,13 @@ tbody tr:hover{background:var(--teal-pale)}
       </div>
     </div>
   </div>
+</div>
+
+<!-- ════════ GUIDELINES PAGE (דף הנחיות כללי — GuidelinesPage) ════════ -->
+<div id="guidelines" class="page">
+  <div id="gl-hero"></div>
+  <nav id="gl-nav" class="gl-nav"></nav>
+  <div id="gl-body"></div>
 </div>
 
 <!-- ════════ PROJECT PAGE ════════ -->
@@ -772,8 +860,27 @@ function go(id, btn) {
   if (btn) btn.classList.add('active');
   if (id === 'map' && !window._mapInit) { setTimeout(initMap, 150); window._mapInit = true; }
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
+  if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
+  // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
+  const routable = ['landing','table','guidelines','map','trends','settingsPage'];
+  if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
+
+/** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
+function activateNavFor(id) {
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, settingsPage:5};
+  const btns = document.querySelectorAll('#mainNav button');
+  const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
+}
+
+/** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
+function routeFromHash() {
+  const id = (location.hash||'').replace('#','');
+  const routable = ['landing','table','guidelines','map','trends','settingsPage'];
+  if (routable.includes(id)) activateNavFor(id);
+}
+window.addEventListener('hashchange', routeFromHash);
 
 function toast(msg) {
   const t = document.getElementById('toast');
@@ -2091,11 +2198,240 @@ function resetAllData(){
   setTimeout(()=>location.reload(),800);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   דף הנחיות להגשת תוכנית בינוי ועיצוב — GuidelinesPage
+   כל התוכן מרוכז ב-GUIDELINES_DATA (הפרדת תוכן מ-UI). הרכיבים מרנדרים ממנו.
+   לעריכה עתידית: שנה כאן בלבד — הוסף סעיפים, שנה סדר, קשר בין פריטים.
+   ══════════════════════════════════════════════════════════════════ */
+const GOAL_TAGS = { welfare:['רווחה חברתית','#5B4A8A'], env:['איכות סביבה','#3D8B37'], ops:['אפקטיביות תפעולית','#C67B1C'] };
+
+const GUIDELINES_DATA = {
+  hero: {
+    title: 'הנחיות להגשת תוכנית בינוי ועיצוב',
+    subtitle: 'מפת הדרך להכנת התוכנית, תיאום הגורמים המקצועיים, הגשת החומרים וקידום האישור',
+  },
+  sectionNav: [
+    ['snapshot','תמונת מצב'],['flow','תהליך האישור'],['dates','לוחות זמנים'],
+    ['guidelines','הנחיות תכנון'],['materials','חומרי הגשה'],['comm','תקשורת והשלמות'],
+    ['roles','בעלי תפקידים'],['faq','שאלות נפוצות'],
+  ],
+  triangle: [
+    {key:'composition',title:'קומפוזיציה',items:['העמדת המבנים','מסה, גובה וקנה מידה','חזיתות וחומריות','היחס בין הבינוי למרחב הציבורי','יצירת זהות אדריכלית אחידה']},
+    {key:'circulation',title:'סירקולציה',items:['תנועת הולכי רגל','תנועת כלי רכב','נגישות','כניסות ויציאות','חניה','שבילי אופניים','תפעול, פינוי אשפה ורכב שירות','קישוריות בין המבנים למרחב הציבורי']},
+    {key:'strategy',title:'אסטרטגיה',items:['התאמה לתוכנית התקפה','שלביות','תפעול ותחזוקה','קיימות','גמישות עתידית','איכות המרחב הציבורי','התאמה לצרכי המשתמשים']},
+  ],
+  goals: [
+    {tag:'welfare',title:'רווחה חברתית',items:['נוחות המשתמש','נגישות','הצללה','אזורי מפגש ושהייה','ביטחון אישי','איכות המרחב המשותף']},
+    {tag:'env',title:'איכות סביבה',items:['עצים וצל','הפחתת אי-חום','ניהול נגר','בנייה ירוקה','חיסכון באנרגיה','חומרים עמידים ומתאימים לאקלים']},
+    {tag:'ops',title:'אפקטיביות תפעולית',items:['פינוי אשפה','גישה לרכב שירות וכיבוי אש','תחזוקה','מערכות טכניות','תשתיות','חיסכון תפעולי','מניעת עומס עתידי']},
+  ],
+  flow: [
+    {name:'פתיחת פרויקט',goal:'קליטת פרויקט חדש והקמת התיק',who:'אדריכלית העיר',docs:'שם ומספר תוכנית',outputs:'מספר תיק, גאנט ריק, רשימת מסמכים',cond:'הזנת פרטי מיקום ובעלי תפקידים',owner:'אדריכלית',note:'הכל מתחיל בפתיחה מסודרת ובקביעת 3 מועדים'},
+    {name:'קבלת מידע ראשוני',goal:'איסוף תוכנית תקפה, מדידה, זכויות ונתוני מגרש',who:'אדריכל הפרויקט',docs:'תב״ע, מדידה, זכויות בנייה, תצלומי מצב',outputs:'תיק מידע מלא',cond:'שלמות המידע הראשוני',owner:'אדריכל',note:''},
+    {name:'קביעת שלושה מועדים מראש',goal:'קיבוע פורום אדריכל, פורום יועצים והכנה לוועדה',who:'אדריכלית העיר',docs:'—',outputs:'3 מועדים בגאנט',cond:'המועדים נקבעו',owner:'אדריכלית',note:'המפתח לעמידה בלוחות זמנים'},
+    {name:'פורום אדריכל',goal:'בדיקה אדריכלית-עירונית',who:'אדריכלית + אדריכל',docs:'מצגת היכרות, פיתוח ראשוני, חתכים, הדמיות',outputs:'החלטה: אישור / סבב נוסף',cond:'כל 10 הקריטריונים תואם/לא רלוונטי',owner:'אדריכלית',note:''},
+    {name:'השלמות',goal:'תיקון ממצאים',who:'אדריכל הפרויקט',docs:'חומר מתוקן',outputs:'גרסה מעודכנת',cond:'האדריכלית מאשרת שההשלמות בוצעו',owner:'אדריכל',note:''},
+    {name:'פורום יועצים',goal:'בדיקה מקצועית ב-12 תחומים',who:'אדריכלית + אדריכל + יועצים',docs:'מצגת יועצים, פיתוח מעודכן, תנועה, ניקוז, תשתיות',outputs:'החלטה: אישור / סבב / חזרה',cond:'כל התחומים תואם/לא רלוונטי',owner:'אדריכלית',note:''},
+    {name:'השלמות',goal:'תיקון ממצאים מקצועיים',who:'אדריכל הפרויקט',docs:'חומר מתוקן',outputs:'גרסה מעודכנת',cond:'האדריכלית מאשרת',owner:'אדריכל',note:''},
+    {name:'הכנה לוועדה',goal:'ניסוח חוות דעת סופית',who:'אדריכלית העיר',docs:'הרמוניקה, פיתוח צבעוני מלא, טבלאות שטחים',outputs:'חוות דעת + המלצה',cond:'חוות הדעת מוכנה',owner:'אדריכלית',note:''},
+    {name:'הגשה לוועדה',goal:'אישור רשמי',who:'חברי ועדה',docs:'חוות דעת, תוכנית בינוי מלאה',outputs:'החלטת ועדה',cond:'—',owner:'ועדה',note:''},
+    {name:'אישור או דרישה להשלמות',goal:'קבלת החלטה',who:'ועדה',docs:'—',outputs:'אישור / בתנאים / דחייה',cond:'עמידה בתנאים (אם נדרש)',owner:'אדריכלית',note:''},
+    {name:'סגירה וארכוב',goal:'תיעוד סופי',who:'אדריכלית העיר',docs:'תוכנית מאושרת חתומה',outputs:'ארכיון דיגיטלי ומודפס',cond:'—',owner:'אדריכלית',note:'חתימה וסריקה, מודפס ודיגיטלי'},
+  ],
+  dates: [
+    {name:'פורום אדריכל',goal:'בדיקה אדריכלית-עירונית של הכיוון התכנוני',before:'מצגת היכרות, ניתוח מגרש, פיתוח ראשוני, חתכים, הדמיות',who:'אדריכלית העיר, אדריכל הפרויקט',ready:'כיוון תכנוני מאושר או רשימת השלמות',done:'כל הקריטריונים נבדקו והתקבלה החלטה'},
+    {name:'פורום יועצים',goal:'בדיקה מקצועית רב-תחומית',before:'מצגת יועצים, פיתוח מעודכן, תנועה, ניקוז, תשתיות, כיבוי אש',who:'אדריכלית, אדריכל, יועצים מקצועיים',ready:'אישור מקצועי או דרישות להשלמה',done:'כל התחומים נבדקו ותואמו'},
+    {name:'הכנה לוועדה',goal:'גיבוש חוות דעת והמלצה סופית',before:'הרמוניקה, פיתוח צבעוני מלא, טבלאות שטחים וזכויות, מענה להערות',who:'אדריכלית העיר',ready:'חוות דעת סופית מוכנה להגשה',done:'החומר מלא, מתואם ומוכן לוועדה'},
+  ],
+  gantt: [
+    {name:'פתיחת פרויקט',status:'done'},{name:'איסוף חומר',status:'done'},{name:'הכנת מצגת היכרות',status:'done'},
+    {name:'פורום אדריכל',status:'in_progress'},{name:'השלמות',status:'waiting'},{name:'תיאום יועצים',status:'planned'},
+    {name:'פורום יועצים',status:'planned'},{name:'תוכנית פיתוח צבעונית',status:'planned'},{name:'הרמוניקה',status:'planned'},
+    {name:'הכנה לוועדה',status:'planned'},{name:'ועדה',status:'planned'},{name:'השלמות לאחר ועדה',status:'delayed'},{name:'אישור וסגירה',status:'planned'},
+  ],
+  ganttLegend: [['planned','מתוכנן'],['in_progress','בביצוע'],['waiting','ממתין להשלמה'],['done','הושלם'],['delayed','בעיכוב']],
+  guidelineGroups: [
+    {title:'בינוי והעמדה',goals:['welfare','ops'],items:['התאמה לקווי הבניין ולתוכנית התקפה','העמדת המבנים ביחס לרחוב ולמרחב הציבורי','יצירת חזית עירונית פעילה','התייחסות לקנה המידה ולמרקם הסמוך','מניעת שטחים שיוריים ולא מתפקדים']},
+    {title:'קומת קרקע והמרחב הציבורי',goals:['welfare'],items:['כניסות ברורות ונגישות','קשר ישיר בין המבנה לרחוב','מסחר פעיל כאשר נדרש','אזורי שהייה מוצלים','ספסלים, ריהוט ונטיעות','רציפות הולכי רגל','מניעת מפגעים ומערכות טכניות בחזית']},
+    {title:'חזיתות וחומריות',goals:['welfare'],items:['שפה אדריכלית אחידה','היררכיה בין בסיס, גוף וסיומת','שילוב מערכות טכניות באופן מוצנע','חומרי גמר עמידים','מניעת חזרתיות מונוטונית','התייחסות לחזיתות הנצפות מהמרחב הציבורי']},
+    {title:'תנועה, חניה ונגישות',goals:['welfare','ops'],items:['הפרדה בטוחה בין הולכי רגל לרכב','רציפות מסלולים נגישים','מיקום כניסות ויציאות','תכנון חניה','שבילי אופניים','גישה לרכב חירום ושירות','אזורי פריקה וטעינה']},
+    {title:'פיתוח, נוף והצללה',goals:['env','welfare'],items:['עצים קיימים ומוצעים','הצללה אפקטיבית','שטחי חלחול','ניהול נגר','אזורי גינון','חומרי ריצוף','מפלסים','חיבור למרחב הציבורי']},
+    {title:'תשתיות ותפעול',goals:['ops'],items:['אשפה','חדרים טכניים','גמל מים וחיבורי תשתית','פילרים','מתקני חשמל','ניקוז','מיזוג','גישה לתחזוקה','מניעת מפגעים חזותיים ותפעוליים']},
+    {title:'קיימות',goals:['env'],items:['הפחתת עומסי חום','שימוש בצל טבעי ומלאכותי','בנייה ירוקה','חיסכון במים','חיסכון באנרגיה','חומרים עמידים','תחזוקה ארוכת טווח']},
+  ],
+  materials: [
+    {stage:'חומרי פתיחת פרויקט',checker:'אדריכלית',items:['פרטי הפרויקט','פרטי היזם','פרטי האדריכל','תוכנית תקפה','מדידה','נתוני המגרש','זכויות בנייה','תצלומי מצב קיים','קבצי מקור']},
+    {stage:'פורום אדריכל',checker:'אדריכלית העיר',items:['מצגת היכרות','ניתוח המגרש והסביבה','עקרונות תכנון','חלופות העמדה','קומפוזיציה','סירקולציה','אסטרטגיה','תוכנית פיתוח ראשונית','חתכים עקרוניים','הדמיות ראשוניות']},
+    {stage:'פורום יועצים',checker:'יועצים מקצועיים',items:['מצגת יועצים','תוכנית פיתוח מעודכנת','תנועה וחניה','נגישות','ניקוז ונגר','אשפה','תשתיות','כיבוי אש','נטיעות והצללה','מערכות טכניות','התייחסות להערות פורום אדריכל']},
+    {stage:'הכנה לוועדה',checker:'אדריכלית העיר',items:['הרמוניקה','תוכנית פיתוח צבעונית מלאה','תוכניות','חתכים','חזיתות','הדמיות','טבלאות שטחים','טבלת זכויות','מסמך מענה להערות','קבצים מעודכנים ומתואמים']},
+    {stage:'אישור סופי',checker:'ועדה / אדריכלית',items:['החלטת ועדה','חוות דעת','תוכנית מאושרת','חומר גרפי מאושר','רשימת תנאים','גרסה סופית לארכיון']},
+  ],
+  devPlanLayers: ['גבולות מגרש','מבנים','כניסות','יציאות','הולכי רגל','כלי רכב','אופניים','חניה','נגישות','כיבוי אש','רחבות','אזורי שהייה','הצללה','עצים','גינון','ניקוז ונגר','אשפה','תשתיות','מערכות טכניות','חומרי ריצוף','מפלסים','מסחר','שטחים ציבוריים','קשר למרחב הציבורי','חתכים ומקרא'],
+  commRules: ['כל החומרים מועלים לאפליקציה','כל הערה משויכת למסמך, גיליון או נושא','אין להעביר גרסאות מקבילות בערוצים שונים','כל העלאה חדשה מחליפה או מעדכנת גרסה קיימת','יש לצרף מענה מסודר לכל הערה','הערה תיסגר רק לאחר בדיקה','גרסאות קודמות נשמרות בארכיון','לפני כל פורום יש לוודא שהחומר מלא ומעודכן'],
+  commCycle: ['הערה','אחראי','תאריך יעד','העלאת תיקון','בדיקה','סגירה'],
+  roles: [
+    {role:'אדריכלית העיר',items:['הנחיות תכנון ועיצוב','בדיקת איכות אדריכלית','אישור מעבר בין שלבים','חוות דעת לוועדה']},
+    {role:'אדריכל הפרויקט',items:['הכנת החומרים','תיאום היועצים','העלאת הקבצים','מענה להערות','ניהול גרסאות']},
+    {role:'היזם',items:['השלמת מידע','אישור החלטות','עמידה בלוחות זמנים','מינוי אנשי מקצוע']},
+    {role:'יועצים מקצועיים',items:['בדיקת תחום האחריות','תיאום בין-תחומי','העלאת תוכניות מעודכנות','מענה להערות']},
+    {role:'רכז / מנהל התהליך',items:['תיאום מועדים','מעקב אחרי משימות','בדיקת שלמות החומרים','עדכון סטטוס']},
+  ],
+  faq: [
+    ['מתי נקבעים שלושת מועדי האישור?','מיד עם פתיחת הפרויקט קובעים מראש שלושה מועדים: פורום אדריכל, פורום יועצים והכנה לוועדה. קיבוע מוקדם מבטיח עמידה בלוחות הזמנים.'],
+    ['מה נדרש לפורום אדריכל?','מצגת היכרות, ניתוח מגרש וסביבה, עקרונות תכנון, חלופות העמדה, פיתוח ראשוני, חתכים עקרוניים והדמיות ראשוניות.'],
+    ['מה נדרש לפורום יועצים?','מצגת יועצים, פיתוח מעודכן, תנועה וחניה, נגישות, ניקוז ונגר, אשפה, תשתיות, כיבוי אש, נטיעות והתייחסות להערות פורום אדריכל.'],
+    ['מהי הרמוניקה?','מצגת מקופלת ומקיפה המרכזת את כל שכבות התכנון והפיתוח לקראת הוועדה.'],
+    ['מה חייב להופיע בתוכנית הפיתוח הצבעונית?','כל שכבות התכנון בתמונה אחת: בינוי, תנועה, נגישות, נוף, הצללה, ניקוז, תשתיות, מערכות, מפלסים, חתכים ומקרא.'],
+    ['כיצד מעלים גרסה חדשה?','מעלים את הקובץ לאפליקציה; ההעלאה מחליפה או מעדכנת את הגרסה הקיימת, והגרסה הקודמת נשמרת בארכיון.'],
+    ['כיצד יודעים אילו חומרים חסרים?','טאב חומרי ההגשה מציג לכל שלב מה נדרש; חומר חובה שלא הועלה מסומן כ"חסר".'],
+    ['מה התנאי למעבר לשלב הבא?','השלמת כל סעיפי הבדיקה של השלב (תואם או לא רלוונטי) ואישור מפורש של אדריכלית העיר.'],
+    ['כיצד מטפלים בהערות?','כל הערה משויכת למסמך, מקבלת אחראי ותאריך יעד, נפתרת בהעלאת תיקון, נבדקת ורק אז נסגרת.'],
+    ['מה נשמר לאחר אישור הוועדה?','החלטת הוועדה, חוות הדעת, התוכנית המאושרת, החומר הגרפי המאושר ורשימת התנאים — הכל בארכיון.'],
+  ],
+};
+
+/** תגי יעד-על חזותיים לקבוצת הנחיה */
+function goalChips(keys){ return (keys||[]).map(k=>{const g=GOAL_TAGS[k];return `<span class="goal-chip" style="background:${g[1]}22;color:${g[1]};border:1px solid ${g[1]}55">${g[0]}</span>`;}).join(''); }
+
+/** רכיב ראשי — בונה את כל דף ההנחיות מ-GUIDELINES_DATA */
+function renderGuidelines(){
+  const D = GUIDELINES_DATA;
+  document.getElementById('gl-hero').innerHTML = glHero(D.hero);
+  document.getElementById('gl-nav').innerHTML = glSectionNav(D.sectionNav);
+  document.getElementById('gl-body').innerHTML =
+    glSnapshot(D) + glFlow(D) + glDates(D) + glGantt(D) + glGuidelines(D) +
+    glMaterials(D) + glDevPlan(D) + glComm(D) + glRoles(D) + glFaq(D);
+}
+
+/* GuidelinesHero */
+function glHero(h){ return `<div class="gl-hero">
+  <h1 class="gl-title">${h.title}</h1>
+  <p class="gl-sub">${h.subtitle}</p>
+  <div class="gl-actions">
+    <button class="btn btn-bronze" onclick="openAddModal()">פתיחת פרויקט חדש</button>
+    <button class="btn btn-ghost" onclick="go('table',document.querySelectorAll('#mainNav button')[1])">חזרה לטבלת התוכניות</button>
+  </div></div>`; }
+
+/* InternalSectionNav — דביק */
+function glSectionNav(nav){ return nav.map(([id,label])=>`<a href="#gl-${id}" onclick="glScroll(event,'gl-${id}')">${label}</a>`).join(''); }
+function glScroll(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+/* אזור 1 — תמונת מצב: PlanningTriangle + StakeholderGoals */
+function glSnapshot(D){
+  const tri = D.triangle.map(t=>`<div class="tri-col"><div class="tri-title">${t.title}</div><ul>${t.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+  const goals = D.goals.map(g=>{const c=GOAL_TAGS[g.tag][1];return `<div class="goal-card" style="border-top:3px solid ${c}"><div class="goal-card-title" style="color:${c}">${g.title}</div><ul>${g.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;}).join('');
+  return `<section id="gl-snapshot" class="gl-section"><h2 class="gl-h2">תמונת מצב</h2>
+    <div class="gl-sub2">שלושה עקרונות תכנון ושלושה יעדי-על שכל תוכנית נמדדת מולם</div>
+    <div class="triangle-grid tri-3">${tri}</div>
+    <div class="goals-grid">${goals}</div></section>`;
+}
+
+/* אזור 2 — ApprovalFlow (Stepper/Accordion) */
+function glFlow(D){
+  const steps = D.flow.map((s,i)=>`<div class="flow-step" id="flowstep-${i}">
+    <div class="flow-head" onclick="document.getElementById('flowstep-${i}').classList.toggle('open')">
+      <span class="flow-num">${i+1}</span><span class="flow-name">${s.name}</span><span class="flow-chevron">▾</span></div>
+    <div class="flow-detail">
+      <div><strong>מטרה:</strong> ${s.goal}</div>
+      <div><strong>משתתפים:</strong> ${s.who}</div>
+      <div><strong>מסמכים נדרשים:</strong> ${s.docs}</div>
+      <div><strong>תוצרים:</strong> ${s.outputs}</div>
+      <div><strong>תנאי מעבר:</strong> ${s.cond}</div>
+      <div><strong>אחראי:</strong> ${s.owner}</div>
+      ${s.note?`<div class="flow-note">${s.note}</div>`:''}
+    </div></div>`).join('<div class="flow-arrow">↓</div>');
+  return `<section id="gl-flow" class="gl-section"><h2 class="gl-h2">תהליך האישור</h2>
+    <div class="gl-sub2">לחיצה על שלב פותחת את פרטיו — מטרה, משתתפים, מסמכים, תוצרים ותנאי מעבר</div>
+    <div class="flow-wrap">${steps}</div></section>`;
+}
+
+/* אזור 3 — ApprovalDatesTimeline */
+function glDates(D){
+  const cards = D.dates.map((d,i)=>`<div class="date-card">
+    <div class="date-badge">מועד ${i+1}</div><h4>${d.name}</h4>
+    <div class="date-row"><strong>מטרה:</strong> ${d.goal}</div>
+    <div class="date-row"><strong>להעביר מראש:</strong> ${d.before}</div>
+    <div class="date-row"><strong>משתתפים:</strong> ${d.who}</div>
+    <div class="date-row"><strong>בסיום:</strong> ${d.ready}</div>
+    <div class="date-row"><strong>ייחשב כהשלמה:</strong> ${d.done}</div></div>`).join('');
+  return `<section id="gl-dates" class="gl-section"><h2 class="gl-h2">לוחות זמנים — שלושת מועדי האישור</h2>
+    <div class="gl-sub2">עם פתיחת כל פרויקט נקבעים מראש שלושה מועדים. זהו הסבר כללי בלבד — קביעת המועדים בפועל נעשית בפתיחת הפרויקט.</div>
+    <div class="dates-grid">${cards}</div>
+    <a class="gl-link" onclick="openAddModal()">פתיחת פרויקט חדש וקביעת מועדים ›</a></section>`;
+}
+
+/* אזור 4 — TypicalProjectGantt */
+function glGantt(D){
+  const legend = D.ganttLegend.map(([s,l])=>`<span class="g-leg"><span class="g-dot g-${s}"></span>${l}</span>`).join('');
+  const bars = D.gantt.map((g,i)=>`<div class="g-row"><div class="g-label">${g.name}</div><div class="g-track"><div class="g-bar g-${g.status}" style="right:${i*4}%;width:${18+((i*7)%22)}%"></div></div></div>`).join('');
+  return `<section id="gl-gantt-anchor" class="gl-section"><h2 class="gl-h2">גאנט טיפוסי (לדוגמה)</h2>
+    <div class="gl-sub2">ציר זמן עקרוני להמחשה — ללא נתוני פרויקט אמיתיים</div>
+    <div class="g-legend">${legend}</div>
+    <div class="gantt-demo">${bars}</div></section>`;
+}
+
+/* אזור 5 — PlanningGuidelinesAccordion */
+function glGuidelines(D){
+  const groups = D.guidelineGroups.map((g,i)=>`<div class="accordion" id="glacc-${i}">
+    <div class="acc-head" onclick="document.getElementById('glacc-${i}').classList.toggle('open')">
+      <span>${g.title}</span><span style="display:flex;gap:4px;align-items:center">${goalChips(g.goals)}<span class="flow-chevron">▾</span></span></div>
+    <div class="acc-body"><ul class="gl-list">${g.items.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`).join('');
+  return `<section id="gl-guidelines" class="gl-section"><h2 class="gl-h2">הנחיות תכנון ועיצוב</h2>
+    <div class="gl-sub2">כל קבוצה מסומנת ביעדי-העל שהיא תורמת להם: ${goalChips(['welfare','env','ops'])}</div>
+    ${groups}</section>`;
+}
+
+/* אזור 6 — SubmissionMaterialsChecklist */
+function glMaterials(D){
+  const secs = D.materials.map(m=>`<div class="pp-card"><h4>${m.stage}</h4>
+    <div style="font-size:12px;color:rgba(0,0,0,0.5);margin-bottom:0.6rem">גורם בודק: ${m.checker}</div>
+    <ul class="check-list">${m.items.map(it=>`<li><span class="check-box">✓</span>${it}</li>`).join('')}</ul></div>`).join('');
+  return `<section id="gl-materials" class="gl-section"><h2 class="gl-h2">חומרי ההגשה</h2>
+    <div class="gl-sub2">רשימת החומרים הנדרשים לפי שלב. באפליקציה עצמה כל פרויקט מקבל מעקב חסר/הועלה.</div>
+    ${secs}</section>`;
+}
+
+/* אזור 7 — DevelopmentPlanLayers (Exploded Layers) */
+function glDevPlan(D){
+  const layers = D.devPlanLayers.map((l,i)=>`<div class="layer-chip" style="--d:${i}">${l}</div>`).join('');
+  return `<section id="gl-devplan-anchor" class="gl-section gl-highlight"><h2 class="gl-h2">תוכנית הפיתוח הצבעונית — המסמך המרכזי לתיאום התכנון</h2>
+    <div class="gl-sub2">התוכנית מרכזת בתמונה אחת את כל שכבות התכנון, הפיתוח, התנועה, הנגישות, הנוף והתפעול.</div>
+    <div class="layers-diagram">${layers}</div></section>`;
+}
+
+/* אזור 8 — CommunicationFlow */
+function glComm(D){
+  const rules = D.commRules.map(r=>`<li>${r}</li>`).join('');
+  const cycle = D.commCycle.map((c,i)=>`<span class="cyc-node">${c}</span>${i<D.commCycle.length-1?'<span class="cyc-arrow">←</span>':''}`).join('');
+  return `<section id="gl-comm" class="gl-section"><h2 class="gl-h2">תקשורת והשלמות</h2>
+    <div class="gl-sub2">ערוץ אחד, גרסה אחת, מעקב סגור לכל הערה</div>
+    <ul class="gl-list">${rules}</ul>
+    <div class="cyc-title">מחזור הערה</div><div class="cyc-flow">${cycle}</div></section>`;
+}
+
+/* אזור 9 — RolesMatrix */
+function glRoles(D){
+  const cards = D.roles.map(r=>`<div class="role-card"><div class="role-name">${r.role}</div><ul>${r.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+  return `<section id="gl-roles" class="gl-section"><h2 class="gl-h2">בעלי תפקידים</h2>
+    <div class="gl-sub2">מטריצת אחריות — מי אחראי למה</div>
+    <div class="roles-grid">${cards}</div></section>`;
+}
+
+/* אזור 10 — FAQSection */
+function glFaq(D){
+  const items = D.faq.map((f,i)=>`<div class="accordion" id="faq-${i}">
+    <div class="acc-head" onclick="document.getElementById('faq-${i}').classList.toggle('open')"><span>${f[0]}</span><span class="flow-chevron">▾</span></div>
+    <div class="acc-body"><p style="font-size:13.5px;line-height:1.7;color:rgba(0,0,0,0.7)">${f[1]}</p></div></div>`).join('');
+  return `<section id="gl-faq" class="gl-section"><h2 class="gl-h2">שאלות נפוצות</h2>${items}</section>`;
+}
+
 // ── INIT ──
 populateFilters();
 applyFilters();
 renderLanding();
 (function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
+// שחזור דף מ-hash (כתובת ישירה / רענון ללא 404)
+if (location.hash) routeFromHash();
 </script>
 </body>
 </html>
