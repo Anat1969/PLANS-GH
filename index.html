@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>תוכניות בינוי — אשדוד</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -15,6 +15,11 @@
 --ok:#3d8b5e;--warn:#c47a20;--err:#b84040;--info:#3B8BD4;
 --sans:'Rubik',sans-serif;--serif:'Rubik',serif;
 --r:6px;--shadow:0 1px 4px rgba(0,0,0,0.06);
+/* ── מערכת עיצוב שדרוג: גופן כותרות + שלבים + סטטוסי בדיקה ── */
+--display:'Frank Ruhl Libre',serif;
+--stage-1:#2A5F5F;--stage-2:#5B4A8A;--stage-3:#C67B1C;--approved:#3D8B37;
+--s-pass:#3D8B37;--s-warn:#C67B1C;--s-fail:#C0392B;--s-pending:#7F8C8D;--s-na:#BDC3C7;
+--s-pass-bg:#E8F5E9;--s-warn-bg:#FFF3E0;--s-fail-bg:#FFEBEE;--s-pending-bg:#F5F5F5;--s-na-bg:#F0F0F0;
 }
 html{direction:rtl;scroll-behavior:smooth}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
@@ -235,6 +240,71 @@ tbody tr:hover{background:var(--teal-pale)}
 .detail-dates .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:8px}
 
 .leaflet-tooltip{font-size:14px !important;padding:10px 14px !important;line-height:1.6 !important;max-width:280px !important}
+
+/* ══════════ דף פרויקט + צ'קליסטים + הגדרות (שדרוג) ══════════ */
+#projectPage{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+.pp-breadcrumb{font-size:13px;color:rgba(0,0,0,0.45);margin-bottom:0.8rem}
+.pp-breadcrumb a{color:var(--teal);cursor:pointer;text-decoration:none}
+.pp-breadcrumb a:hover{text-decoration:underline}
+.pp-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem;border-bottom:2px solid var(--stone)}
+.pp-title{font-family:var(--display);font-size:30px;font-weight:700;line-height:1.2;color:var(--ink)}
+.pp-sub{font-size:14px;color:rgba(0,0,0,0.55);margin-top:4px}
+.pp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stage-badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 12px;border-radius:4px;color:#fff}
+.stage-badge.st1{background:var(--stage-1)}.stage-badge.st2{background:var(--stage-2)}
+.stage-badge.st3{background:var(--stage-3)}.stage-badge.stapp{background:var(--approved)}
+.pp-tabs{display:flex;gap:0;border-bottom:2px solid var(--stone);margin:1.2rem 0 1.5rem;flex-wrap:wrap}
+.pp-tab{padding:0.7rem 1.3rem;font-size:14px;font-weight:500;color:rgba(0,0,0,0.55);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:var(--sans)}
+.pp-tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.pp-tab:hover{color:var(--teal)}
+.pp-panel{display:none}
+.pp-panel.active{display:block}
+.pp-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.pp-field{margin-bottom:0.9rem}
+.pp-field label{display:block;font-size:12px;font-weight:600;color:var(--teal);margin-bottom:4px;letter-spacing:0.3px}
+.pp-field .rv{font-size:15px;color:var(--ink)}
+.pp-field input,.pp-field textarea,.pp-field select{width:100%;border:1px solid var(--stone);border-radius:var(--r);padding:0.5rem 0.7rem;font-family:var(--sans);font-size:14px;background:var(--paper);color:var(--ink)}
+.pp-field textarea{min-height:70px;resize:vertical;line-height:1.6}
+.pp-field input:focus,.pp-field textarea:focus,.pp-field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-pale)}
+.pp-card{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1.2rem;margin-bottom:1rem}
+.pp-card h4{font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:0.8rem;color:var(--ink)}
+.chk-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem;margin-bottom:1rem}
+.progress-wrap{flex:1;min-width:220px}
+.progress-bar{height:8px;background:var(--fog);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:var(--teal);border-radius:99px;transition:width 0.3s}
+.progress-label{font-size:13px;font-weight:600;color:var(--ink)}
+.chk-item{border:1px solid var(--stone);border-radius:var(--r);padding:1rem 1.1rem;margin-bottom:0.7rem;border-right:4px solid var(--s-pending);transition:border-color 0.2s,background 0.2s}
+.chk-item .code{font-size:11px;font-weight:700;color:rgba(0,0,0,0.4);letter-spacing:0.5px}
+.chk-item .crit{font-size:15px;font-weight:700;color:var(--ink);margin:2px 0}
+.chk-item .desc{font-size:12.5px;color:rgba(0,0,0,0.55);line-height:1.5;margin-bottom:0.7rem}
+.chk-row{display:flex;gap:0.7rem;flex-wrap:wrap;align-items:flex-start}
+.chk-row select{flex:0 0 160px;border:1px solid var(--stone);border-radius:var(--r);padding:0.4rem 0.6rem;font-family:var(--sans);font-size:13px;background:#fff}
+.chk-row textarea{flex:1;min-width:200px;border:1px solid var(--stone);border-radius:var(--r);padding:0.4rem 0.6rem;font-family:var(--sans);font-size:13px;min-height:38px;resize:vertical;background:var(--paper)}
+.chk-item.st-pass{border-right-color:var(--s-pass);background:var(--s-pass-bg)}
+.chk-item.st-warning{border-right-color:var(--s-warn);background:var(--s-warn-bg)}
+.chk-item.st-fail{border-right-color:var(--s-fail);background:var(--s-fail-bg)}
+.chk-item.st-na{border-right-color:var(--s-na);background:var(--s-na-bg)}
+.chk-item.st-pending{border-right-color:var(--s-pending)}
+.decision-box{background:var(--fog);border-radius:var(--r);padding:1.2rem;margin-top:1.2rem}
+.decision-box label.opt{display:block;font-size:14px;margin:6px 0;cursor:pointer}
+.accordion{border:1px solid var(--stone);border-radius:var(--r);margin-bottom:0.6rem;overflow:hidden}
+.acc-head{display:flex;justify-content:space-between;align-items:center;padding:0.8rem 1rem;cursor:pointer;background:#fff;font-weight:600;font-size:14px}
+.acc-head:hover{background:var(--fog)}
+.acc-body{padding:1rem;border-top:1px solid var(--stone);display:none}
+.accordion.open .acc-body{display:block}
+.doc-item,.link-item{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.9rem;border:1px solid var(--stone);border-radius:var(--r);margin-bottom:0.5rem;font-size:13px}
+.timeline{position:relative;padding-right:1.5rem;margin-top:1rem}
+.timeline::before{content:'';position:absolute;right:5px;top:0;bottom:0;width:2px;background:var(--stone)}
+.tl-event{position:relative;margin-bottom:1.3rem;padding-right:1.2rem}
+.tl-event::before{content:'';position:absolute;right:-1.5rem;top:3px;width:12px;height:12px;border-radius:50%;background:var(--teal);border:2px solid #fff;box-shadow:0 0 0 1px var(--stone)}
+.tl-event .tl-date{font-size:12px;font-weight:600;color:var(--teal)}
+.tl-event .tl-desc{font-size:14px;color:var(--ink)}
+.tl-event.future::before{background:#fff;border-color:var(--s-pending)}
+.tl-event.future .tl-desc{color:rgba(0,0,0,0.45)}
+#settingsPage{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+.settings-section{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1.3rem;margin-bottom:1.2rem}
+.settings-section h3{font-family:var(--display);font-size:19px;margin-bottom:0.9rem}
+@media (max-width:768px){.pp-cols{grid-template-columns:1fr}#projectPage,#settingsPage{padding:1rem}}
 </style>
 </head>
 <body>
@@ -247,6 +317,7 @@ tbody tr:hover{background:var(--teal-pale)}
     <button onclick="go('table',this)">טבלת תוכניות</button>
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
+    <button onclick="go('settingsPage',this)">הגדרות</button>
   </nav>
   <div class="search-bar">
     <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" oninput="globalSearchFn(this.value)">
@@ -462,6 +533,66 @@ tbody tr:hover{background:var(--teal-pale)}
   </div>
 </div>
 
+<!-- ════════ PROJECT PAGE ════════ -->
+<div id="projectPage" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="closeProject()">טבלת תוכניות</a> ‹ <span id="ppCrumb">פרויקט</span></div>
+  <div class="pp-head">
+    <div>
+      <div class="pp-title" id="ppTitle">—</div>
+      <div class="pp-sub" id="ppSub">—</div>
+    </div>
+    <div class="pp-actions">
+      <span id="ppStageBadge"></span>
+      <button class="btn btn-ghost btn-sm" onclick="closeProject()">חזרה לטבלה</button>
+    </div>
+  </div>
+
+  <div class="pp-tabs" id="ppTabs">
+    <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
+    <button class="pp-tab" onclick="ppTab('review',this)">בדיקה</button>
+    <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
+    <button class="pp-tab" onclick="ppTab('comm',this)">תקשורת</button>
+    <button class="pp-tab" onclick="ppTab('timeline',this)">ציר זמן</button>
+  </div>
+
+  <div class="pp-panel active" id="panel-info"></div>
+  <div class="pp-panel" id="panel-review"></div>
+  <div class="pp-panel" id="panel-docs"></div>
+  <div class="pp-panel" id="panel-comm"></div>
+  <div class="pp-panel" id="panel-timeline"></div>
+</div>
+
+<!-- ════════ SETTINGS PAGE ════════ -->
+<div id="settingsPage" class="page">
+  <div class="page-title">הגדרות ונתונים</div>
+  <div class="page-subtitle">ניהול נתונים, גיבוי, ייצוא וייבוא</div>
+
+  <div class="settings-section">
+    <h3>גיבוי וייצוא</h3>
+    <p style="font-size:13px;color:rgba(0,0,0,0.55);margin-bottom:1rem">כל הנתונים נשמרים בדפדפן שלך (localStorage). מומלץ לגבות מדי פעם לקובץ.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportJSON()">ייצוא גיבוי (JSON)</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">ייבוא מקובץ</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(this)">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>איפוס</h3>
+    <p style="font-size:13px;color:rgba(0,0,0,0.55);margin-bottom:1rem">מחיקת כל השינויים השמורים וחזרה לנתוני הבסיס. פעולה זו בלתי הפיכה.</p>
+    <button class="btn btn-ghost" style="color:var(--err);border-color:var(--err)" onclick="resetAllData()">אפס את כל הנתונים</button>
+  </div>
+
+  <div class="settings-section">
+    <h3>אודות</h3>
+    <p style="font-size:13px;color:rgba(0,0,0,0.6);line-height:1.8">
+      תוכניות בינוי — אשדוד · אדריכלית העיר ענת דוד שטיבלמן<br>
+      מערכת לניהול, מעקב ואישור תוכניות בינוי. נתונים נשמרים מקומית בדפדפן.<br>
+      <span id="lastSaveInfo" style="color:rgba(0,0,0,0.4)"></span>
+    </p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -563,6 +694,44 @@ let plans = RAW_DATA.map((r,i) => {
   p.district = normalizeDistrict(p.district);
   return p;
 });
+
+/* ══════════ שכבת שמירה — localStorage ══════════ */
+const STORAGE_KEY = 'ashdod_plans_v1';
+function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
+const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
+  'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
+  'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications'];
+function loadPlans() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
+  if (!saved || !Array.isArray(saved.plans)) return;
+  const byKey = {}; plans.forEach(p => byKey[planKey(p)] = p);
+  saved.plans.forEach(sp => {
+    const existing = byKey[sp.__key];
+    if (existing) {
+      PERSIST_FIELDS.forEach(f => { if (sp[f] !== undefined) existing[f] = sp[f]; });
+    } else {
+      const np = { ...sp, id: plans.length };
+      delete np.__key;
+      plans.push(np);
+      byKey[planKey(np)] = np;
+    }
+  });
+}
+function savePlans() {
+  try {
+    const payload = { savedAt: new Date().toISOString(), plans: plans.map(p => {
+      const o = { __key: planKey(p) };
+      PERSIST_FIELDS.forEach(f => { if (p[f] !== undefined) o[f] = p[f]; });
+      o.tik = p.tik; o.year = p.year; o.month = p.month;
+      return o;
+    }) };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e) { console.warn('save failed', e); }
+}
+loadPlans();
+setInterval(savePlans, 30000);
+window.addEventListener('beforeunload', savePlans);
 
 let filtered = [...plans];
 let currentPage = 1;
@@ -703,6 +872,7 @@ function toggleEditMode() {
         }
       });
     });
+    savePlans();
     toast('כל השינויים נשמרו');
   }
   editMode = !editMode;
@@ -715,6 +885,7 @@ function saveField(id, field, el) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
   p[field] = el.value;
+  savePlans();
   toast('שדה עודכן');
   // Update filter options when data changes
   if (field === 'district' || field === 'year' || field === 'status' || field === 'handler') {
@@ -854,12 +1025,15 @@ function openDetail(id) {
       </div>
     </div>
 
-    <button class="status-traffic ${trafficCls}" onclick="cycleStatus(${p.id})">
-      <span class="light" style="background:${lights[0]}"></span>
-      <span class="light" style="background:${lights[1]}"></span>
-      <span class="light" style="background:${lights[2]}"></span>
-      <span>${p.status}</span>
-    </button>
+    <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.5rem">
+      <button class="status-traffic ${trafficCls}" onclick="cycleStatus(${p.id})">
+        <span class="light" style="background:${lights[0]}"></span>
+        <span class="light" style="background:${lights[1]}"></span>
+        <span class="light" style="background:${lights[2]}"></span>
+        <span>${p.status}</span>
+      </button>
+      <button class="btn btn-primary" onclick="closeModal();openProject(${p.id})">פתח דף פרויקט מלא ›</button>
+    </div>
   `;
   document.getElementById('detailModal').classList.add('open');
 }
@@ -869,7 +1043,7 @@ document.getElementById('detailModal').addEventListener('click', function(e) { i
 
 function changeStatus(id, newStatus) {
   const p = plans.find(x=>x.id===id);
-  if (p) { p.status = newStatus; renderTable(); renderLanding(); toast(`סטטוס תיק ${p.tik} עודכן ל: ${newStatus}`); }
+  if (p) { p.status = newStatus; savePlans(); renderTable(); renderLanding(); toast(`סטטוס תיק ${p.tik} עודכן ל: ${newStatus}`); }
 }
 
 function cycleStatus(id) {
@@ -877,6 +1051,7 @@ function cycleStatus(id) {
   if (!p) return;
   const idx = STATUSES.indexOf(p.status);
   p.status = STATUSES[(idx+1)%STATUSES.length];
+  savePlans();
   renderTable(); renderLanding();
   openDetail(id);
   toast(`סטטוס עודכן ל: ${p.status}`);
@@ -920,6 +1095,7 @@ function addPlan() {
     opinion: ''
   };
   plans.push(newPlan);
+  savePlans();
   populateFilters();
   applyFilters();
   renderLanding();
@@ -1266,10 +1442,351 @@ function globalSearchFn(query) {
   applyFilters();
 }
 
+/* ══════════════════════════════════════════════════════
+   דף פרויקט — 5 טאבים (מידע, בדיקה, מסמכים, תקשורת, ציר זמן)
+   ══════════════════════════════════════════════════════ */
+
+const STAGE1_CHECKLIST = [
+  {code:'S1-A',criterion:'מפגש מבנה-קרקע',desc:'התאמה טופוגרפית, טיפול בהפרשי מפלסים, שילוב עם הנוף'},
+  {code:'S1-B',criterion:'הצנעת מערכות תשתית',desc:'מיקום תאים טכניים, גישות שירות, הסתרה ויזואלית'},
+  {code:'S1-C',criterion:'סירקולציה ואסטרטגיה',desc:'זרימת תנועה, נקודות כניסה, קשר לתחבורה ציבורית'},
+  {code:'S1-D',criterion:'קומפוזיציה ותכנון פיתוח',desc:'יחסי קנה מידה, קו בנייה, חלוקת מסות'},
+  {code:'S1-E',criterion:'רצף והמשכיות עירונית',desc:'התאמה לאופי האזור, חומרי בנייה, תרומה למרקם'},
+  {code:'S1-F',criterion:'בטיחות ונגישות',desc:'תקן 1918, דרכי מילוט, תאורה, אבטחה סביבתית'},
+  {code:'S1-G',criterion:'שקיפות וגיוון',desc:'פתיחה בקומת קרקע, קשר פנים-חוץ, מניעת קירות עיוורים'},
+  {code:'S1-H',criterion:'הנדסת אנוש וארגונומיה',desc:'גבהי תקרה, איוורור, חדירת אור, נוחות שהייה'},
+  {code:'S1-I',criterion:'ביופיליה ושילוב טבע',desc:'שטחים ירוקים, צמחייה מקומית, מערכות מים'},
+  {code:'S1-J',criterion:'ערכי חינוך ורווחה קהילתית',desc:'תרומה לקהילה, מקומות מפגש, נגישות לכלל האוכלוסייה'},
+];
+const STAGE2_CHECKLIST = [
+  {code:'S2-TRAFFIC',domain:'יועץ דרכים ותנועה',desc:'רשת תנועה בת-קיימה, רחובות משולבים, נתיבי אופניים, צמתים, גישות חירום'},
+  {code:'S2-PARKING',domain:'יועץ חניה',desc:'תקני חניה לפי ייעוד, חניה תת-קרקעית, מכפילים, חניות נגישות, חניות אופניים'},
+  {code:'S2-SEWAGE',domain:'יועץ תברואה',desc:'מערכות ביוב, חיבור לרשת עירונית, נקודות איסוף פסולת, גישות שירות'},
+  {code:'S2-DRAINAGE',domain:'יועץ ניקוז ונגר',desc:'ניהול נגר עילי 100%, חלחול והחדרה, גינות גשם, משטחים חדירים, איגום מים'},
+  {code:'S2-ELECTRIC',domain:'יועץ חשמל ותקשורת',desc:'עומסי חשמל, חיבור לרשת, תאי טרנספורמציה, תקשורת, כבלים תת-קרקעיים'},
+  {code:'S2-LIGHTING',domain:'יועץ תאורה',desc:'תקן ישראלי 13201, מניעת זיהום אור, תאורת LED, יעילות אנרגטית'},
+  {code:'S2-LANDSCAPE',domain:'יועץ נטיעות (אדריכל נוף)',desc:'עצים מקומיים, בתי גידול, צפיפות נטיעות, השקייה חסכנית, גיוון צמחייה'},
+  {code:'S2-ENVIRON',domain:'יועץ איכות סביבה',desc:'מניעת זיהומים, בנייה ירוקה, חסכון במים ואנרגיה, גגות ירוקים'},
+  {code:'S2-ECOLOGY',domain:'יועץ אקולוג',desc:'שימור ערכי טבע, מסדרונות אקולוגיים, בתי גידול, צמחייה פולשנית'},
+  {code:'S2-SOIL',domain:'מהנדס קרקע',desc:'מאזן עבודות עפר, שימור קרקע עליונה, שימוש חוזר 85%, טיפול בחומרי גלם'},
+  {code:'S2-PERMIT',domain:'יועץ רישוי',desc:'תנאים להיתר בנייה, אישורי רשויות, תכניות בינוי, היתרים מיוחדים, תאום גורמים'},
+  {code:'S2-PLANNING',domain:'יועץ תכנון',desc:'תאימות לתב״ע, קווי בנייה, זכויות בנייה, יחסי בנייה, גובה מבנים, שטחי שירות'},
+];
+const CHK_STATUSES = [
+  {v:'pending',l:'ממתין'},{v:'pass',l:'תואם'},{v:'warning',l:'דורש תיקון'},
+  {v:'fail',l:'לא תואם'},{v:'na',l:'לא רלוונטי'},
+];
+const DOC_TYPES = ['תוכנית פיתוח','חתך/חזית','הדמייה','תצ״א','תשריט תב״ע','חוות דעת','סיכום פגישה','התכתבות','אחר'];
+
+let currentProjectId = null;
+
+function ensureProjectData(p) {
+  if (!p.stage) p.stage = 'stage_1';
+  if (!p.review) p.review = {};
+  if (!p.review.stage1) p.review.stage1 = { items:{}, decision:'', nextDate:'', conditions:'' };
+  if (!p.review.stage2) p.review.stage2 = { items:{}, decision:'' };
+  if (!Array.isArray(p.documents)) p.documents = [];
+  if (!Array.isArray(p.timeline)) p.timeline = [];
+  if (!Array.isArray(p.communications)) p.communications = [];
+}
+
+function openProject(id) {
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  ensureProjectData(p);
+  currentProjectId = id;
+  document.getElementById('ppCrumb').textContent = p.projectName || `תיק ${p.tik}`;
+  document.getElementById('ppTitle').textContent = p.projectName || `תיק ${p.tik} — ${p.district}`;
+  document.getElementById('ppSub').textContent = [p.developer||p.submitter, p.district, p.planNum].filter(Boolean).join(' · ') || '—';
+  renderStageBadge(p);
+  document.querySelectorAll('#ppTabs .pp-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
+  document.getElementById('panel-info').classList.add('active');
+  renderInfoTab(p); renderReviewTab(p); renderDocsTab(p); renderCommTab(p); renderTimelineTab(p);
+  go('projectPage', null);
+}
+function closeProject() {
+  currentProjectId = null;
+  go('table', document.querySelectorAll('#mainNav button')[1]);
+}
+function ppTab(name, btn) {
+  document.querySelectorAll('#ppTabs .pp-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+}
+function renderStageBadge(p) {
+  const map = {stage_1:['שלב 1 — פורום אדריכל','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['ועדה','st3'],approved:['מאושר','stapp']};
+  const [txt,cls] = map[p.stage] || map.stage_1;
+  document.getElementById('ppStageBadge').innerHTML = `<span class="stage-badge ${cls}">${txt}</span>`;
+}
+function pj() { return plans.find(x=>x.id===currentProjectId); }
+
+function renderInfoTab(p) {
+  const esc = s => (s||'').toString().replace(/"/g,'&quot;');
+  document.getElementById('panel-info').innerHTML = `
+    <div class="pp-cols">
+      <div class="pp-card">
+        <h4>פרטי יזם ואדריכל</h4>
+        <div class="pp-field"><label>יזם</label><input value="${esc(p.developer)}" onchange="pjSet('developer',this.value)"></div>
+        <div class="pp-field"><label>מגיש / עורך</label><input value="${esc(p.submitter)}" onchange="pjSet('submitter',this.value)"></div>
+        <div class="pp-field"><label>שם הפרויקט</label><input value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);document.getElementById('ppTitle').textContent=this.value||'תיק ${p.tik}'"></div>
+      </div>
+      <div class="pp-card">
+        <h4>מיקום ותב״ע</h4>
+        <div class="pp-field"><label>רובע / אזור</label><input value="${esc(p.district)}" onchange="pjSet('district',this.value)"></div>
+        <div class="pp-field"><label>מיקום</label><input value="${esc(p.location)}" onchange="pjSet('location',this.value)"></div>
+        <div class="pp-field"><label>מס' תכנית</label><input value="${esc(p.planNum)}" onchange="pjSet('planNum',this.value)"></div>
+        <div class="pp-field"><label>גוש / חלקה</label><input value="${esc(p.parcel)}" onchange="pjSet('parcel',this.value)"></div>
+      </div>
+    </div>
+    <div class="pp-card">
+      <h4>שלב בתהליך וסטטוס</h4>
+      <div class="pp-cols">
+        <div class="pp-field"><label>שלב</label>
+          <select onchange="pjSet('stage',this.value);renderStageBadge(pj());renderReviewTab(pj())">
+            <option value="stage_1"${p.stage==='stage_1'?' selected':''}>שלב 1 — פורום אדריכל</option>
+            <option value="stage_2"${p.stage==='stage_2'?' selected':''}>שלב 2 — פורום יועצים</option>
+            <option value="committee"${p.stage==='committee'?' selected':''}>ועדה</option>
+            <option value="approved"${p.stage==='approved'?' selected':''}>מאושר</option>
+          </select>
+        </div>
+        <div class="pp-field"><label>סטטוס</label>
+          <select onchange="pjSet('status',this.value);renderTable()">
+            ${STATUSES.map(s=>`<option${p.status===s?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="pp-card">
+      <h4>תיאור ונתוני תכנון</h4>
+      <div class="pp-field"><label>תיאור הפרויקט</label><textarea onchange="pjSet('projectDescription',this.value)">${p.projectDescription||''}</textarea></div>
+      <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
+      <div class="pp-field"><label>חוות דעת אדריכלית</label><textarea onchange="pjSet('opinion',this.value)">${p.opinion||''}</textarea></div>
+    </div>`;
+}
+function pjSet(field, val) { const p=pj(); if(!p)return; p[field]=val; savePlans(); toast('נשמר'); }
+
+function renderReviewTab(p) {
+  const el = document.getElementById('panel-review');
+  if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
+    el.innerHTML = renderStage2(p);
+  } else {
+    el.innerHTML = renderStage1(p);
+  }
+  updateProgress(p);
+}
+function chkSelect(stageKey, code, cur) {
+  return `<select onchange="setChk('${stageKey}','${code}','status',this.value)">
+    ${CHK_STATUSES.map(s=>`<option value="${s.v}"${cur===s.v?' selected':''}>${s.l}</option>`).join('')}</select>`;
+}
+function renderStage1(p) {
+  const items = p.review.stage1.items;
+  const rows = STAGE1_CHECKLIST.map(c => {
+    const it = items[c.code] || {status:'pending',note:''};
+    return `<div class="chk-item st-${it.status}" id="chk-stage1-${c.code}">
+      <div class="code">${c.code}</div>
+      <div class="crit">${c.criterion}</div>
+      <div class="desc">${c.desc}</div>
+      <div class="chk-row">
+        ${chkSelect('stage1',c.code,it.status)}
+        <textarea placeholder="הערות..." onchange="setChk('stage1','${c.code}','note',this.value)">${it.note||''}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+  const d = p.review.stage1;
+  return `<div class="chk-header">
+      <div class="progress-wrap"><span class="progress-label" id="prog-label">0 / 10</span><div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0"></div></div></div>
+    </div>${rows}
+    <div class="decision-box">
+      <h4 style="font-family:var(--display);font-size:18px;margin-bottom:0.6rem">החלטת פורום אדריכל העיר</h4>
+      <label class="opt"><input type="radio" name="dec1" value="approve"${d.decision==='approve'?' checked':''} onchange="setDecision('stage1',this.value)"> אישור — מעבר לפורום יועצים</label>
+      <label class="opt"><input type="radio" name="dec1" value="next_round"${d.decision==='next_round'?' checked':''} onchange="setDecision('stage1',this.value)"> סבב נוסף בפורום אדריכל העיר</label>
+      <div class="pp-field" style="margin-top:0.8rem"><label>תאריך בדיקה הבא</label><input type="date" value="${d.nextDate||''}" onchange="setDecisionField('stage1','nextDate',this.value)"></div>
+      <div class="pp-field"><label>התניות ודרישות</label><textarea onchange="setDecisionField('stage1','conditions',this.value)">${d.conditions||''}</textarea></div>
+    </div>`;
+}
+function renderStage2(p) {
+  const items = p.review.stage2.items;
+  const cards = STAGE2_CHECKLIST.map(c => {
+    const it = items[c.code] || {status:'pending',note:'',consultant:'',fileUrl:''};
+    const stLabel = (CHK_STATUSES.find(s=>s.v===it.status)||CHK_STATUSES[0]).l;
+    return `<div class="accordion" id="acc-${c.code}">
+      <div class="acc-head" onclick="document.getElementById('acc-${c.code}').classList.toggle('open')">
+        <span>${c.domain}</span><span class="badge ${badgeCls(it.status)}">${stLabel}</span>
+      </div>
+      <div class="acc-body">
+        <div class="desc" style="font-size:12.5px;color:rgba(0,0,0,0.55);margin-bottom:0.7rem">${c.desc}</div>
+        <div class="pp-field"><label>שם היועץ</label><input value="${(it.consultant||'').replace(/"/g,'&quot;')}" onchange="setChk('stage2','${c.code}','consultant',this.value)"></div>
+        <div class="chk-row">${chkSelect('stage2',c.code,it.status)}
+          <textarea placeholder="הערות..." onchange="setChk('stage2','${c.code}','note',this.value)">${it.note||''}</textarea></div>
+        <div class="pp-field" style="margin-top:0.6rem"><label>קישור לקובץ (URL)</label><input value="${(it.fileUrl||'').replace(/"/g,'&quot;')}" placeholder="https://..." onchange="setChk('stage2','${c.code}','fileUrl',this.value)"></div>
+      </div>
+    </div>`;
+  }).join('');
+  const d = p.review.stage2;
+  return `<div class="chk-header">
+      <div class="progress-wrap"><span class="progress-label" id="prog-label">0 / 12</span><div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0"></div></div></div>
+    </div>${cards}
+    <div class="decision-box">
+      <h4 style="font-family:var(--display);font-size:18px;margin-bottom:0.6rem">החלטת פורום יועצים</h4>
+      <label class="opt"><input type="radio" name="dec2" value="approve"${d.decision==='approve'?' checked':''} onchange="setDecision('stage2',this.value)"> אישור מלא — מעבר לוועדה</label>
+      <label class="opt"><input type="radio" name="dec2" value="next_round"${d.decision==='next_round'?' checked':''} onchange="setDecision('stage2',this.value)"> סבב נוסף בפורום יועצים</label>
+      <label class="opt"><input type="radio" name="dec2" value="return_stage1"${d.decision==='return_stage1'?' checked':''} onchange="setDecision('stage2',this.value)"> החזרה לפורום אדריכל העיר</label>
+    </div>`;
+}
+function badgeCls(st){return {pass:'badge-done',warning:'badge-active',fail:'badge-urgent',na:'badge-default',pending:'badge-default'}[st]||'badge-default';}
+function setChk(stageKey, code, key, val) {
+  const p=pj(); if(!p)return;
+  const store = stageKey==='stage1'?p.review.stage1.items:p.review.stage2.items;
+  if(!store[code]) store[code]={status:'pending',note:''};
+  store[code][key]=val; savePlans();
+  if(key==='status'){
+    if(stageKey==='stage1'){const item=document.getElementById('chk-stage1-'+code);if(item)item.className='chk-item st-'+val;}
+    else{const acc=document.getElementById('acc-'+code);if(acc){const b=acc.querySelector('.acc-head .badge');if(b){b.className='badge '+badgeCls(val);b.textContent=(CHK_STATUSES.find(s=>s.v===val)||CHK_STATUSES[0]).l;}}}
+    updateProgress(p);
+  }
+  toast('נשמר');
+}
+function setDecision(stageKey, val){const p=pj();if(!p)return;(stageKey==='stage1'?p.review.stage1:p.review.stage2).decision=val;savePlans();toast('החלטה נשמרה');}
+function setDecisionField(stageKey,key,val){const p=pj();if(!p)return;p.review.stage1[key]=val;savePlans();toast('נשמר');}
+function updateProgress(p){
+  const isS2 = p.stage==='stage_2'||p.stage==='committee'||p.stage==='approved';
+  const list = isS2?STAGE2_CHECKLIST:STAGE1_CHECKLIST;
+  const items = isS2?p.review.stage2.items:p.review.stage1.items;
+  const done = list.filter(c=>{const it=items[c.code];return it&&it.status&&it.status!=='pending';}).length;
+  const fill=document.getElementById('prog-fill'),lbl=document.getElementById('prog-label');
+  if(fill)fill.style.width=(done/list.length*100)+'%';
+  if(lbl)lbl.textContent=`${done} / ${list.length}`;
+}
+
+function renderDocsTab(p) {
+  const docs = p.documents.map((d,i)=>`<div class="doc-item">
+    <div><strong>${d.name}</strong> <span style="color:rgba(0,0,0,0.45)">· ${d.type} · ${d.date||''}</span></div>
+    <div style="display:flex;gap:6px">${d.url?`<a class="btn btn-ghost btn-sm" href="${d.url}" target="_blank" rel="noopener">צפה</a>`:''}<button class="btn btn-ghost btn-sm" onclick="removeDoc(${i})">מחק</button></div>
+  </div>`).join('') || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מסמכים עדיין.</p>';
+  document.getElementById('panel-docs').innerHTML = `
+    <div class="pp-card">
+      <h4>הוספת מסמך / קישור</h4>
+      <div class="pp-cols">
+        <div class="pp-field"><label>שם המסמך</label><input id="docName" placeholder="שם"></div>
+        <div class="pp-field"><label>סוג</label><select id="docType">${DOC_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      </div>
+      <div class="pp-field"><label>קישור (URL)</label><input id="docUrl" placeholder="https://..."></div>
+      <button class="btn btn-primary btn-sm" onclick="addDoc()">הוסף מסמך</button>
+    </div>
+    <div class="pp-card"><h4>מסמכים מצורפים</h4>${docs}</div>`;
+}
+function addDoc(){
+  const p=pj();if(!p)return;
+  const name=document.getElementById('docName').value.trim();
+  if(!name){toast('נא להזין שם מסמך');return;}
+  p.documents.push({name,type:document.getElementById('docType').value,url:document.getElementById('docUrl').value.trim(),date:todayStr()});
+  savePlans();renderDocsTab(p);toast('מסמך נוסף');
+}
+function removeDoc(i){const p=pj();if(!p)return;p.documents.splice(i,1);savePlans();renderDocsTab(p);toast('מסמך נמחק');}
+
+function renderCommTab(p){
+  const list=[...p.communications].reverse().map((c,ri)=>{
+    const i=p.communications.length-1-ri;
+    return `<div class="pp-card">
+      <div style="display:flex;justify-content:space-between"><strong>${c.subject||(c.type==='note'?'הערה פנימית':'סיכום פגישה')}</strong><span style="font-size:12px;color:rgba(0,0,0,0.45)">${c.date} · ${c.type==='note'?'הערה':'פגישה'}</span></div>
+      ${c.participants?`<div style="font-size:12px;color:rgba(0,0,0,0.5);margin-top:4px">משתתפים: ${c.participants}</div>`:''}
+      <div style="font-size:14px;margin-top:6px;white-space:pre-wrap">${c.content||''}</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="removeComm(${i})">מחק</button>
+    </div>`;
+  }).join('') || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין רשומות עדיין.</p>';
+  document.getElementById('panel-comm').innerHTML=`
+    <div class="pp-card">
+      <h4>רשומה חדשה</h4>
+      <div class="pp-field"><label>סוג</label><select id="commType" onchange="document.getElementById('commMeta').style.display=this.value==='meeting'?'block':'none'"><option value="meeting">סיכום פגישה</option><option value="note">הערה פנימית</option></select></div>
+      <div id="commMeta">
+        <div class="pp-field"><label>נושא</label><input id="commSubject"></div>
+        <div class="pp-field"><label>משתתפים</label><input id="commParticipants"></div>
+      </div>
+      <div class="pp-field"><label>תוכן</label><textarea id="commContent"></textarea></div>
+      <button class="btn btn-primary btn-sm" onclick="addComm()">הוסף רשומה</button>
+    </div>
+    <div>${list}</div>`;
+}
+function addComm(){
+  const p=pj();if(!p)return;
+  const content=document.getElementById('commContent').value.trim();
+  if(!content){toast('נא להזין תוכן');return;}
+  const type=document.getElementById('commType').value;
+  p.communications.push({type,date:todayStr(),subject:document.getElementById('commSubject').value.trim(),participants:document.getElementById('commParticipants').value.trim(),content});
+  savePlans();renderCommTab(p);toast('רשומה נוספה');
+}
+function removeComm(i){const p=pj();if(!p)return;p.communications.splice(i,1);savePlans();renderCommTab(p);toast('נמחק');}
+
+function renderTimelineTab(p){
+  const base=[];
+  if(p.date)base.push({date:p.date,desc:'פתיחת תיק',auto:true});
+  if(p.forumArchitect)base.push({date:p.forumArchitect,desc:'פורום אדריכל העיר',auto:true});
+  if(p.forumConsultants)base.push({date:p.forumConsultants,desc:'פורום יועצים',auto:true});
+  if(p.committeeDate)base.push({date:p.committeeDate,desc:'ועדה',auto:true});
+  if(p.approvalDate)base.push({date:p.approvalDate,desc:'אישור',auto:true});
+  const all=[...base,...p.timeline].filter(e=>e.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const today=todayStr();
+  const events=all.map(e=>`<div class="tl-event ${e.date>today?'future':''}"><div class="tl-date">${fmtDate(e.date)}</div><div class="tl-desc">${e.desc}</div></div>`).join('')
+    || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין אירועים עדיין.</p>';
+  let days='';
+  if(base.length){const start=base[0].date;const diff=Math.round((new Date(today)-new Date(start))/864e5);days=`<p style="font-size:13px;color:rgba(0,0,0,0.55);margin-top:1rem">זמן בתהליך: ${diff} ימים (מתוך ~60 צפוי)</p>`;}
+  document.getElementById('panel-timeline').innerHTML=`
+    <div class="pp-card">
+      <h4>הוספת אירוע</h4>
+      <div class="pp-cols">
+        <div class="pp-field"><label>תאריך</label><input type="date" id="tlDate"></div>
+        <div class="pp-field"><label>תיאור</label><input id="tlDesc" placeholder="תיאור האירוע"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addTlEvent()">הוסף אירוע</button>
+    </div>
+    <div class="pp-card"><h4>ציר זמן</h4><div class="timeline">${events}</div>${days}</div>`;
+}
+function addTlEvent(){
+  const p=pj();if(!p)return;
+  const date=document.getElementById('tlDate').value,desc=document.getElementById('tlDesc').value.trim();
+  if(!date||!desc){toast('נא למלא תאריך ותיאור');return;}
+  p.timeline.push({date,desc});savePlans();renderTimelineTab(p);toast('אירוע נוסף');
+}
+
+function todayStr(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;}
+
+/* ══════════ הגדרות — ייצוא / ייבוא / איפוס ══════════ */
+function exportJSON(){
+  savePlans();
+  const data=localStorage.getItem(STORAGE_KEY)||JSON.stringify({plans:[]});
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`ashdod-plans-backup-${todayStr()}.json`;a.click();
+  URL.revokeObjectURL(a.href);toast('הגיבוי הורד');
+}
+function importJSON(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      if(!parsed||!Array.isArray(parsed.plans))throw new Error('מבנה לא תקין');
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(parsed));
+      toast('הנתונים יובאו — טוען מחדש');
+      setTimeout(()=>location.reload(),800);
+    }catch(err){toast('שגיאה בייבוא: '+err.message);}
+  };
+  reader.readAsText(file);input.value='';
+}
+function resetAllData(){
+  if(!confirm('לאפס את כל הנתונים השמורים ולחזור לנתוני הבסיס? פעולה בלתי הפיכה.'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  toast('הנתונים אופסו — טוען מחדש');
+  setTimeout(()=>location.reload(),800);
+}
+
 // ── INIT ──
 populateFilters();
 applyFilters();
 renderLanding();
+(function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
 </script>
 </body>
 </html>
