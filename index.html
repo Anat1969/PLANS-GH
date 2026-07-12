@@ -431,6 +431,33 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .gl-editable[contenteditable="true"]{outline:1px dashed var(--teal);outline-offset:2px;border-radius:3px;cursor:text;background:rgba(42,95,95,0.04)}
 .gl-editable[contenteditable="true"]:focus{outline:2px solid var(--teal);background:rgba(42,95,95,0.08)}
 @media print{.mode-toggle{display:none !important}}
+/* ══════════ סייען AI ══════════ */
+#aiFab{position:fixed;bottom:24px;left:24px;width:58px;height:58px;border-radius:50%;border:none;background:var(--teal);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(42,95,95,0.4);z-index:9998;transition:transform .15s}
+#aiFab:hover{transform:scale(1.08)}
+#aiPanel{position:fixed;bottom:24px;left:24px;width:380px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 48px);background:#fff;border:1px solid var(--stone);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.22);z-index:9999;display:none;flex-direction:column;overflow:hidden}
+#aiPanel.open{display:flex}
+#aiHeader{background:var(--teal);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+#aiHeader .ai-title{font-weight:700;font-size:15px}
+#aiHeader .ai-sub{font-size:11px;opacity:.85}
+.ai-close{background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;opacity:.8}
+.ai-close:hover{opacity:1}
+#aiActions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--fog);background:#fafafa}
+.ai-action{background:#fff;border:1px solid var(--teal);color:var(--teal);font-size:12px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s}
+.ai-action:hover{background:var(--teal);color:#fff}
+#aiBody{flex:1;overflow-y:auto;padding:14px 16px;font-size:13px;line-height:1.6;color:#222}
+.ai-hint,.ai-loading{color:#888;font-size:12px;text-align:center;padding:20px 0}
+.ai-msg h4{font-size:14px;margin:10px 0 4px;color:var(--teal)}
+.ai-msg ul{padding-inline-start:20px;margin:6px 0}
+.ai-findings{margin-top:12px;border-top:1px solid var(--fog);padding-top:8px}
+.ai-findings h4{font-size:13px;color:var(--teal);margin-bottom:6px}
+.ai-finding{padding:5px 0;border-bottom:1px solid var(--fog);font-size:12px}
+.ai-finding .ai-src{display:block;color:#999;font-size:11px;margin-top:2px}
+.ai-warn{background:#fff7e6;border:1px solid #ffd591;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:12px;color:#8a5a00}
+.ai-btn-copy{margin-top:12px;width:100%;background:var(--teal);color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer;font-size:13px}
+#aiInputRow{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--fog)}
+#aiInput{flex:1;border:1px solid var(--stone);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+#aiInputRow button{background:var(--teal);color:#fff;border:none;padding:0 16px;border-radius:8px;cursor:pointer;font-size:13px}
+@media print{#aiFab,#aiPanel{display:none !important}}
 </style>
 </head>
 <body>
@@ -2539,6 +2566,142 @@ renderLanding();
 if (location.hash) routeFromHash();
 // אתחול מצב גלובלי (תצוגה/עריכה) — ברירת מחדל תצוגה
 initGlobalMode();
+
+/* ══════════ סייען AI — מנוע הבדיקה של אדריכל/ת העיר ══════════ */
+/* ה-backend רץ על Vercel. GitHub Pages לא מריץ שרת, לכן הקריאות מופנות
+   לכתובת ה-Vercel כשלא נמצאים כבר עליה. */
+const AI_API_BASE = (location.hostname.endsWith('vercel.app') || location.hostname === 'localhost')
+  ? '' : 'https://gh-deploy-xi.vercel.app';
+
+async function callAssistant(actionId, payload) {
+  const res = await fetch(AI_API_BASE + '/api/assistant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action_id: actionId, payload })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || data.error || 'שגיאה');
+  return data.response || {};
+}
+
+// בונה payload מהפרויקט הנוכחי לפי סוג הפעולה
+function aiPayloadFor(actionId) {
+  const p = pj();
+  if (!p) return {};
+  const meta = p.meta || {};
+  const base = {
+    projectName: p.projectName, developer: p.developer || p.submitter,
+    district: p.district, planNum: p.planNum, purpose: p.purpose,
+    location: p.location, meta, opinion: p.opinion
+  };
+  if (actionId === 'parking_calculator') {
+    return { unitMix: meta.unitMix || {}, totalUnits: meta.units || meta.totalUnits, designation: meta.designation || p.purpose };
+  }
+  if (actionId === 'generate_opinion') {
+    return { meta, findings: (p.review && p.review.findings) || [] };
+  }
+  return { projectData: base };
+}
+
+function aiRender(html) {
+  document.getElementById('aiBody').innerHTML = html;
+  document.getElementById('aiBody').scrollTop = 0;
+}
+// המרת Markdown בסיסי לתצוגה
+function aiMd(s) {
+  return (s||'').toString()
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^### (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^## (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^[-•] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s,'<ul>$1</ul>')
+    .replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+}
+
+const AI_ACTIONS = [
+  { id:'pros_cons_analysis', label:'יתרונות, חסרונות והצעות', icon:'⚖️' },
+  { id:'generate_opinion', label:'נסח חוות דעת', icon:'📝' },
+  { id:'parking_calculator', label:'חשב תקני חניה', icon:'🅿️' },
+];
+
+async function runAiAction(actionId) {
+  if (!currentProjectId) { toast('פתחי דף פרויקט תחילה'); return; }
+  aiRender('<div class="ai-loading">מנתח… ⏳</div>');
+  try {
+    const r = await callAssistant(actionId, aiPayloadFor(actionId));
+    let html = '<div class="ai-msg">' + aiMd(r.text || '(אין תשובה)') + '</div>';
+    if (r.findings && r.findings.length) {
+      const smap = {V:'✅',X:'❌','?':'⚠️','-':'➖'};
+      html += '<div class="ai-findings"><h4>ממצאים</h4>' + r.findings.map(f =>
+        `<div class="ai-finding">${smap[f.status]||''} <b>${aiMd(f.criterion)}</b>${f.notes?' — '+aiMd(f.notes):''}${f.source?`<span class="ai-src">${aiMd(f.source)}</span>`:''}</div>`
+      ).join('') + '</div>';
+    }
+    if (r.warnings && r.warnings.length) {
+      html += '<div class="ai-warn">⚠️ ' + r.warnings.map(aiMd).join('<br>⚠️ ') + '</div>';
+    }
+    // כפתור העתקה לחוות הדעת
+    if (actionId === 'generate_opinion' && r.text) {
+      window._aiLastOpinion = r.text;
+      html += '<button class="ai-btn-copy" onclick="aiCopyToOpinion()">📋 העתק לטאב חוות דעת</button>';
+    }
+    aiRender(html);
+  } catch (e) {
+    aiRender('<div class="ai-warn">שגיאה: ' + aiMd(e.message) + '</div>');
+  }
+}
+
+function aiCopyToOpinion() {
+  const p = pj(); if (!p || !window._aiLastOpinion) return;
+  if (!p.opinion || typeof p.opinion !== 'object') p.opinion = { description:'', summary:'', recommendation:'', savedAt:'' };
+  p.opinion.description = window._aiLastOpinion;
+  p.opinion.savedAt = todayStr();
+  savePlans();
+  renderOpinionTab(p);
+  toast('הועתק לטאב חוות דעת');
+}
+
+async function aiAsk() {
+  const inp = document.getElementById('aiInput');
+  const q = inp.value.trim(); if (!q) return;
+  inp.value = '';
+  aiRender('<div class="ai-loading">חושב… ⏳</div>');
+  try {
+    const ctx = currentProjectId ? aiPayloadFor('pros_cons_analysis') : {};
+    const r = await callAssistant('ask', { question: q, ...ctx });
+    aiRender('<div class="ai-msg">' + aiMd(r.text || '(אין תשובה)') + '</div>');
+  } catch (e) {
+    aiRender('<div class="ai-warn">שגיאה: ' + aiMd(e.message) + '</div>');
+  }
+}
+
+function toggleAi() {
+  const panel = document.getElementById('aiPanel');
+  const open = panel.classList.toggle('open');
+  if (open && !panel.dataset.init) {
+    document.getElementById('aiActions').innerHTML = AI_ACTIONS.map(a =>
+      `<button class="ai-action" onclick="runAiAction('${a.id}')">${a.icon} ${a.label}</button>`).join('');
+    panel.dataset.init = '1';
+  }
+}
 </script>
+
+<!-- ══════════ סייען AI — כפתור צף + פאנל ══════════ -->
+<button id="aiFab" onclick="toggleAi()" title="מנוע הבדיקה של אדריכל/ת העיר">🏛️</button>
+<div id="aiPanel">
+  <div id="aiHeader">
+    <div>
+      <div class="ai-title">מנוע הבדיקה 🏛️</div>
+      <div class="ai-sub">אדריכל/ת העיר · אשדוד</div>
+    </div>
+    <button class="ai-close" onclick="toggleAi()">✕</button>
+  </div>
+  <div id="aiActions"></div>
+  <div id="aiBody"><div class="ai-hint">פתחי דף פרויקט ובחרי פעולה, או שאלי שאלה מקצועית למטה.</div></div>
+  <div id="aiInputRow">
+    <input id="aiInput" placeholder="שאלה מקצועית…" onkeydown="if(event.key==='Enter')aiAsk()">
+    <button onclick="aiAsk()">שלח</button>
+  </div>
+</div>
 </body>
 </html>
