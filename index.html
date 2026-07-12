@@ -191,12 +191,20 @@ tbody tr:hover{background:var(--teal-pale)}
   .donut-wrap{flex-direction:column}
 }
 
-.sort-group-border td{border-bottom:2px solid var(--bronze) !important}
-.sort-group-alt{background:rgba(197,165,90,0.06)}
+/* מסגור קבוצת ערך זהה כמקשה אחת בעת מיון לפי עמודה */
+.sort-grp.grp-a td{background:rgba(42,95,95,0.05)}
+.sort-grp.grp-b td{background:rgba(197,165,90,0.07)}
+.sort-grp td:first-child{border-inline-start:2px solid transparent}
+.sort-grp td:last-child{border-inline-end:2px solid transparent}
+.sort-grp.grp-a td:first-child{border-inline-start-color:rgba(42,95,95,0.35)}
+.sort-grp.grp-a td:last-child{border-inline-end-color:rgba(42,95,95,0.35)}
+.sort-grp.grp-b td:first-child{border-inline-start-color:rgba(197,165,90,0.5)}
+.sort-grp.grp-b td:last-child{border-inline-end-color:rgba(197,165,90,0.5)}
+.sort-grp.grp-start td{border-top:2px solid rgba(0,0,0,0.12)}
+.sort-grp.grp-end td{border-bottom:2px solid rgba(0,0,0,0.12)}
 .edit-mode td{padding:4px 8px}
 .edit-mode input,.edit-mode select{width:100%;padding:4px 6px;border:1px solid var(--stone);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:white}
 .edit-mode input:focus,.edit-mode select:focus{border-color:var(--teal);outline:none}
-#editToggle.active{background:var(--teal);color:white;border-color:var(--teal)}
 .hero-bg{position:relative}
 .hero-bg::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('hero-bg.jpg') center/cover no-repeat;opacity:0.08;pointer-events:none;border-radius:var(--r)}
 
@@ -510,6 +518,11 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #aiInput{flex:1;border:1px solid var(--stone);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
 #aiInputRow button{background:var(--teal);color:#fff;border:none;padding:0 16px;border-radius:8px;cursor:pointer;font-size:13px}
 @media print{#aiFab,#aiPanel{display:none !important}}
+/* ══════════ ארגון סרגלים: ניווט/מידע נפרד מניהול ══════════ */
+.masthead-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toolbar-nav{display:flex;gap:2px;flex-wrap:wrap}
+.toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15)}
+@media (max-width:900px){.toolbar-manage{margin-inline-start:0;border-inline-start:none;padding-inline-start:0;width:100%;justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -517,7 +530,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <header class="masthead">
 <div class="masthead-inner">
   <div class="logo" onclick="go('landing',this)">אשדוד <span>תוכניות בינוי</span></div>
-  <nav id="mainNav">
+  <!-- קבוצת ניווט/מידע -->
+  <nav id="mainNav" class="toolbar-nav">
     <button class="active" onclick="go('landing',this)">ראשי</button>
     <button onclick="go('table',this)">טבלת תוכניות</button>
     <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
@@ -525,16 +539,19 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('settingsPage',this)">הגדרות</button>
   </nav>
-  <div class="mode-toggle" onclick="toggleGlobalMode()" title="החלף בין מצב תצוגה למצב עריכה" role="switch" tabindex="0" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleGlobalMode()}">
-    <span class="mode-light" id="modeLight"></span>
-    <span class="mode-label" id="modeLabel">תצוגה</span>
-    <span class="mode-switch"><span class="mode-knob"></span></span>
+  <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
+  <div class="toolbar-manage">
+    <div class="search-bar">
+      <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" data-nolock="1" oninput="globalSearchFn(this.value)">
+    </div>
+    <div class="mode-toggle" onclick="toggleGlobalMode()" title="החלף בין מצב תצוגה למצב עריכה" role="switch" tabindex="0" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleGlobalMode()}">
+      <span class="mode-light" id="modeLight"></span>
+      <span class="mode-label" id="modeLabel">תצוגה</span>
+      <span class="mode-switch"><span class="mode-knob"></span></span>
+    </div>
+    <a href="https://claude.ai/code/session_01BJESVEYRci4MYmZ3FnAZuW" target="_blank" class="upgrade-btn">📋 שדרוג</a>
+    <a href="vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS" class="upgrade-btn upgrade-btn-vs" title="פתיחת הפרויקט ב-VS Code">שדרוג VS</a>
   </div>
-  <div class="search-bar">
-    <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" oninput="globalSearchFn(this.value)">
-  </div>
-  <a href="https://claude.ai/code/session_01BJESVEYRci4MYmZ3FnAZuW" target="_blank" class="upgrade-btn">📋 שדרוג</a>
-  <a href="vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS" class="upgrade-btn upgrade-btn-vs" title="פתיחת הפרויקט ב-VS Code">שדרוג VS</a>
 </div>
 </header>
 
@@ -543,7 +560,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="hero hero-bg">
     <h1>תוכניות בינוי <span>אשדוד</span></h1>
     <div style="font-size:20px;font-weight:500;color:var(--bronze);margin-bottom:0.5rem;letter-spacing:0.5px">אדריכלית העיר ענת דוד שטיבלמן</div>
-    <p>ניהול, מעקב ותצוגה של כלל תוכניות הבינוי בעיר אשדוד. נתונים מעודכנים מ-2018 עד 2026.</p>
+    <p>ניהול, מעקב ותצוגה של כלל תוכניות הבינוי בעיר אשדוד.</p>
     <div class="hero-stats" id="heroStats"></div>
   </div>
   <div class="quick-cards">
@@ -564,8 +581,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
   </div>
 
-  <div class="section-title" style="margin-top:3rem">אחרונות שנוספו</div>
-  <div id="recentPlans" class="g3"></div>
 </div>
 
 <!-- ════════ TABLE ════════ -->
@@ -577,7 +592,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית חדשה</button>
-      <button class="btn btn-primary" id="editToggle" onclick="toggleEditMode()">מצב עריכה</button>
     </div>
   </div>
 
@@ -763,7 +777,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
     <div class="pp-actions">
       <span id="ppStageBadge"></span>
-      <button class="btn btn-primary btn-sm" id="ppEditBtn" onclick="toggleGlobalMode()">✎ מצב עריכה</button>
       <button class="btn btn-ghost btn-sm" onclick="closeProject()">חזרה לטבלה</button>
     </div>
   </div>
@@ -1095,18 +1108,25 @@ function applyGlobalMode(){
   document.body.classList.toggle('view-mode', !globalEdit);
   const lbl = document.getElementById('modeLabel'); if(lbl) lbl.textContent = globalEdit ? 'עריכה' : 'תצוגה';
   const tgl = document.querySelector('.mode-toggle'); if(tgl) tgl.setAttribute('aria-checked', globalEdit);
-  const eb = document.getElementById('ppEditBtn');
-  if(eb){ eb.textContent = globalEdit ? '✓ סיום עריכה' : '✎ מצב עריכה'; eb.classList.toggle('btn-primary',!globalEdit); eb.classList.toggle('btn-ghost',globalEdit); }
   lockInputs(!globalEdit);
   setGuidelinesEditable(globalEdit);
+  syncTableEditMode();
 }
 /** נועל/משחרר כל שדות הקלט הניתנים לעריכה (מלבד חיפוש/סינון/העלאת קבצים) */
 function lockInputs(lock){
-  const sel = '#projectPage input, #projectPage textarea, #projectPage select';
+  // כל שדות התוכן בכל הדפים (מלבד חיפוש/סינון/העלאה) — נעילה/שחרור לפי מצב עריכה
+  const sel = '#projectPage input, #projectPage textarea, #projectPage select,' +
+              '#guidelines input, #guidelines textarea,' +
+              '#settingsPage input:not(#addTik), #settingsPage textarea';
   document.querySelectorAll(sel).forEach(el=>{
     if(el.type==='file') return;
+    if(el.dataset.nolock==='1') return;              // שדות חיפוש/סינון — תמיד פעילים
     if(el.readOnly && el.dataset.always==='ro') return; // שדות שתמיד לקריאה (מס' תיק)
     if(el.tagName==='SELECT') el.disabled = lock; else el.readOnly = lock;
+  });
+  // טקסטים עריכים (contentEditable) בכל הדפים
+  document.querySelectorAll('.gl-editable, [data-editable="1"]').forEach(el=>{
+    el.contentEditable = lock ? 'false' : 'true';
   });
 }
 /** הופך את טקסטי דף ההנחיות לעריכים במצב עריכה */
@@ -1137,7 +1157,6 @@ function fmtDate(d) {
 // ── LANDING ──
 function renderLanding() {
   const total = plans.length;
-  const years = [...new Set(plans.map(p=>p.year).filter(Boolean))].sort();
   const districts = [...new Set(plans.map(p=>p.district).filter(Boolean))];
   const handlers = [...new Set(plans.map(p=>p.handler).filter(Boolean))];
 
@@ -1145,24 +1164,7 @@ function renderLanding() {
     <div class="hero-stat"><div class="val">${total}</div><div class="lbl">תוכניות</div></div>
     <div class="hero-stat"><div class="val">${districts.length}</div><div class="lbl">רובעים</div></div>
     <div class="hero-stat"><div class="val">${handlers.length}</div><div class="lbl">אחראים</div></div>
-    <div class="hero-stat"><div class="val">${years[0]}–${years[years.length-1]}</div><div class="lbl">טווח שנים</div></div>
   `;
-
-  const recent = [...plans].filter(p=>p.date).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,6);
-  document.getElementById('recentPlans').innerHTML = recent.map(p => `
-    <div class="card card-render" style="cursor:pointer" onclick="openDetail(${p.id})">
-      ${p.render?`<div class="card-render-bg" style="background-image:url('${p.render}')"></div>`:''}
-      <div class="card-render-content">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-          <strong style="font-size:14px">תיק ${p.tik}</strong>
-          ${statusBadge(p.status)}
-        </div>
-        <div style="font-size:12px;color:rgba(0,0,0,0.5);margin-bottom:4px">${p.district} — ${p.location||'—'}</div>
-        <div style="font-size:12px;color:rgba(0,0,0,0.6)">${p.purpose||'—'}</div>
-        <div style="font-size:10px;color:rgba(0,0,0,0.3);margin-top:6px">${fmtDate(p.date)}</div>
-      </div>
-    </div>
-  `).join('');
 }
 
 // ── FILTERS ──
@@ -1216,40 +1218,48 @@ function resetFilters() {
 }
 
 // ── TABLE ──
+const SORT_KEYS = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
+const NUMERIC_COLS = new Set(['tik','planNum']);
+const DATE_COLS = new Set(['date','committeeDate']);
 function sortTable(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-  const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
-  const key = keys[col];
+  const key = SORT_KEYS[col];
+  const collator = new Intl.Collator('he', {numeric:true, sensitivity:'base'});
   filtered.sort((a,b) => {
-    let va = a[key]||'', vb = b[key]||'';
-    if (key === 'tik') { va = Number(va)||0; vb = Number(vb)||0; }
-    if (va < vb) return -1 * sortDir;
-    if (va > vb) return 1 * sortDir;
-    return 0;
+    let va = a[key], vb = b[key];
+    const ea = (va===undefined||va===null||va==='');
+    const eb = (vb===undefined||vb===null||vb==='');
+    if (ea && eb) return 0;
+    if (ea) return 1;   // ערכים ריקים תמיד בסוף
+    if (eb) return -1;
+    if (NUMERIC_COLS.has(key)) {
+      const na = parseFloat(String(va).replace(/[^\d.]/g,''))||0;
+      const nb = parseFloat(String(vb).replace(/[^\d.]/g,''))||0;
+      return (na-nb) * sortDir;
+    }
+    if (DATE_COLS.has(key)) return (String(va).localeCompare(String(vb))) * sortDir; // ISO
+    return collator.compare(String(va), String(vb)) * sortDir; // טקסט עברי טבעי
   });
   currentPage = 1;
   renderTable();
+  updateSortArrows();
+}
+/** מעדכן חיווי חץ המיון בכותרת (עולה/יורד) ומנקה את השאר */
+function updateSortArrows(){
+  document.querySelectorAll('#table thead th .sort-arrow').forEach((el,i)=>{
+    if(i===sortCol){ el.textContent = sortDir>0?'▲':'▼'; el.style.opacity='1'; }
+    else { el.textContent='▼'; el.style.opacity='0.25'; }
+  });
 }
 
 let editMode = false;
-function toggleEditMode() {
-  if (editMode) {
-    document.querySelectorAll('#tableBody tr').forEach(tr => {
-      tr.querySelectorAll('input, select').forEach(el => {
-        const onch = el.getAttribute('onchange');
-        if (onch) {
-          const m = onch.match(/saveField\((\d+),'(\w+)',this\)/);
-          if (m) { const p = plans.find(x=>x.id===+m[1]); if (p) p[m[2]] = el.value; }
-        }
-      });
-    });
-    savePlans();
-    toast('כל השינויים נשמרו');
-  }
-  editMode = !editMode;
-  document.getElementById('editToggle').classList.toggle('active', editMode);
-  document.querySelector('.tbl-wrap table').classList.toggle('edit-mode', editMode);
-  renderTable();
+/** מסנכרן את מצב עריכת הטבלה למצב הגלובלי (כפתור עריכה יחיד) */
+function syncTableEditMode() {
+  editMode = globalEdit;
+  const tbl = document.querySelector('.tbl-wrap table');
+  if (tbl) tbl.classList.toggle('edit-mode', editMode);
+  const tp = document.getElementById('table');
+  if (tp && tp.classList.contains('active')) renderTable();
 }
 
 /* ══════════ מסגרת הדמיית פרויקט (2 שורות) — הצגה / גרירה / הדבקה / העלאה ══════════ */
@@ -1363,11 +1373,13 @@ function renderTable() {
     let groupClass = '';
     if (sortKey) {
       const val = String(p[sortKey]||'');
-      if (val !== prevGroupVal) { groupIdx++; prevGroupVal = val; }
-      groupClass = groupIdx % 2 === 0 ? ' sort-group-alt' : '';
-      if (idx < pageData.length - 1 && String(pageData[idx+1][sortKey]||'') !== val) {
-        groupClass += ' sort-group-border';
-      }
+      const isFirst = val !== prevGroupVal;
+      if (isFirst) { groupIdx++; prevGroupVal = val; }
+      const isLast = (idx === pageData.length - 1) || String(pageData[idx+1][sortKey]||'') !== val;
+      // כל קבוצת ערך זהה ממוסגרת יחד: פתיחה, סגירה, וגוף — צביעה אחידה לפי הקבוצה
+      groupClass = ' sort-grp' + (groupIdx % 2 === 0 ? ' grp-a' : ' grp-b');
+      if (isFirst) groupClass += ' grp-start';
+      if (isLast) groupClass += ' grp-end';
     }
 
     if (editMode) {
