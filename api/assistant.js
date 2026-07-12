@@ -66,6 +66,7 @@ function buildUserMessage(actionId, payload = {}) {
 }
 
 module.exports = async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -104,14 +105,19 @@ module.exports = async function handler(req, res) {
     const data = await apiRes.json();
     const raw = (data.content || []).map((b) => b.text || '').join('').trim();
 
-    // ה-system מבקש JSON. ננסה לפרסר; אם נכשל — נחזיר טקסט חופשי
+    // ה-system מבקש JSON. ננסה לפרסר בכמה דרכים; אם נכשל — נחזיר טקסט חופשי
     let parsed = null;
-    try {
-      const jsonStr = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-      parsed = JSON.parse(jsonStr);
-    } catch (e) {
-      parsed = { text: raw };
+    const tryParse = (s) => { try { return JSON.parse(s); } catch (e) { return null; } };
+    // 1) ניקוי code-fence אם קיים (גם עם טקסט לפניו)
+    let cleaned = raw.replace(/```json\s*/i, '').replace(/```/g, '').trim();
+    parsed = tryParse(cleaned) || tryParse(raw);
+    // 2) חילוץ אובייקט JSON הראשון מתוך טקסט מעורב
+    if (!parsed) {
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (m) parsed = tryParse(m[0]);
     }
+    // 3) fallback — טקסט חופשי
+    if (!parsed || typeof parsed !== 'object') parsed = { text: raw };
 
     return res.status(200).json({
       response: parsed,
