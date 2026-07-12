@@ -882,7 +882,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','_seeded'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -922,7 +922,13 @@ function applySeedOpinions() {
     ensureProjectData(p);
     if (!p._seeded) p._seeded = {};
     // ממלא שדה ריק בלבד ומסמן אותו ככחול (תוכן מיובא)
-    const put = (key, cur, val) => { if (!cur && val) { p._seeded[key] = 1; return val; } return cur; };
+    // ממלא שדה ריק; ומסמן ככחול אם הערך הנוכחי זהה לערך ה-seed (כלומר מקורו יבוא, לא הקלדה ידנית)
+    const put = (key, cur, val) => {
+      if (!val) return cur;
+      if (!cur) { p._seeded[key] = 1; return val; }          // שדה ריק → ממלא + כחול
+      if (cur === val && !p._userEdited?.[key]) p._seeded[key] = 1; // כבר מכיל את ערך ה-seed → כחול
+      return cur;
+    };
     p.projectName  = put('projectName',  p.projectName,  s.projectName);
     p.committeeDate = put('committeeDate', p.committeeDate, s.committeeDate);
     if (p.opinion && typeof p.opinion === 'object') {
@@ -941,10 +947,10 @@ function applySeedOpinions() {
 /** מחזיר class כחול אם השדה מולא מ-seed ועדיין לא נערך ידנית */
 function seedClass(p, key) { return (p && p._seeded && p._seeded[key]) ? ' ai-seeded' : ''; }
 /** מסיר סימון כחול משדה אחרי עריכה ידנית — הופך לתוכן של המשתמש */
-function clearSeed(p, key) { if (p && p._seeded && p._seeded[key]) { delete p._seeded[key]; } }
+function clearSeed(p, key) { if (!p) return; if (!p._userEdited) p._userEdited = {}; p._userEdited[key] = 1; if (p._seeded && p._seeded[key]) delete p._seeded[key]; }
 
-applySeedOpinions();
 loadPlans();
+applySeedOpinions();
 setInterval(savePlans, 30000);
 window.addEventListener('beforeunload', savePlans);
 
