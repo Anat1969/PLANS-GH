@@ -72,8 +72,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'חסר ANTHROPIC_API_KEY בהגדרות Vercel' });
+  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.ANAT_KEY_CLOUDE;
+  if (!apiKey) return res.status(500).json({ error: 'חסר מפתח API בהגדרות Vercel (ANTHROPIC_API_KEY / ANAT_KEY_CLOUDE)' });
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
