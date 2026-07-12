@@ -67,7 +67,7 @@ nav button.active{color:var(--paper);border-bottom-color:var(--bronze)}
 .badge-default{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.4)}
 .badge-active{background:rgba(196,122,32,0.12);color:var(--warn)}
 .badge-done{background:rgba(61,139,94,0.12);color:var(--ok)}
-.badge-wait{background:rgba(59,139,212,0.12);color:var(--info)}
+.badge-wait{background:rgba(196,122,32,0.12);color:var(--warn)}
 .badge-closed{background:rgba(184,64,64,0.12);color:var(--err)}
 .badge-urgent{background:rgba(184,64,64,0.2);color:var(--err);font-weight:900}
 
@@ -233,7 +233,7 @@ tbody tr:hover{background:var(--teal-pale)}
 .status-traffic .light{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.3)}
 .traffic-done{background:var(--ok);color:#fff}
 .traffic-active{background:var(--warn);color:#fff}
-.traffic-wait{background:var(--info);color:#fff}
+.traffic-wait{background:var(--warn);color:#fff}
 .traffic-closed{background:var(--err);color:#fff}
 .traffic-default{background:rgba(0,0,0,0.15);color:var(--ink)}
 .traffic-urgent{background:var(--err);color:#fff;animation:pulse-urgent 1.5s ease-in-out infinite}
@@ -253,8 +253,11 @@ tbody tr:hover{background:var(--teal-pale)}
 .pp-sub{font-size:14px;color:rgba(0,0,0,0.55);margin-top:4px}
 .pp-actions{display:flex;gap:8px;flex-wrap:wrap}
 .stage-badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 12px;border-radius:4px;color:#fff}
-.stage-badge.st1{background:var(--stage-1)}.stage-badge.st2{background:var(--stage-2)}
-.stage-badge.st3{background:var(--stage-3)}.stage-badge.stapp{background:var(--approved)}
+/* רמזור אחיד: שלב 1/2 = צהוב (בתהליך), ועדה = צהוב-כתום, מאושר = ירוק */
+.stage-badge.st1{background:var(--warn)}.stage-badge.st2{background:var(--warn)}
+.stage-badge.st3{background:#d98a2b}.stage-badge.stapp{background:var(--ok)}
+/* נקודת רמזור לצד תווית השלב */
+.stage-badge::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.9);margin-inline-end:6px;vertical-align:middle}
 .pp-tabs{display:flex;gap:0;border-bottom:2px solid var(--stone);margin:1.2rem 0 1.5rem;flex-wrap:wrap}
 .pp-tab{padding:0.7rem 1.3rem;font-size:14px;font-weight:500;color:rgba(0,0,0,0.55);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:var(--sans)}
 .pp-tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
@@ -373,7 +376,8 @@ tbody tr:hover{background:var(--teal-pale)}
 .g-legend{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
 .g-leg{font-size:12px;display:flex;align-items:center;gap:5px;color:rgba(0,0,0,0.65)}
 .g-dot{width:11px;height:11px;border-radius:3px;display:inline-block}
-.g-planned{background:#c9d4d4}.g-in_progress{background:var(--teal)}.g-waiting{background:var(--bronze)}.g-done{background:var(--ok)}.g-delayed{background:var(--err)}
+/* רמזור אחיד לגאנט: לא התחיל=אפור · בביצוע/ממתין=צהוב · הושלם=ירוק · מעוכב=אדום */
+.g-planned{background:#c9d4d4}.g-in_progress{background:var(--warn)}.g-waiting{background:var(--warn)}.g-done{background:var(--ok)}.g-delayed{background:var(--err)}
 .gantt-demo{background:#fff;border:1px solid var(--fog);border-radius:var(--r);padding:1rem}
 .g-row{display:flex;align-items:center;gap:0.8rem;margin-bottom:7px}
 .g-label{width:150px;font-size:12px;text-align:left;flex-shrink:0;color:rgba(0,0,0,0.7)}
@@ -455,8 +459,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #projectPage input[type=text],#projectPage input:not([type]),#projectPage input[type=date],
 #projectPage input[type=number],#projectPage textarea,#projectPage select{color:#1a56db}
 #projectPage input::placeholder,#projectPage textarea::placeholder{color:#c4c9cf;opacity:1}
-/* שדה לקריאה בלבד (מס' תיק) נשאר אפור */
-#projectPage input[readonly]{color:rgba(0,0,0,0.5) !important}
+/* שדה 'מספר תיק' בלבד נשאר אפור (מסומן data-always=ro) */
+#projectPage input[data-always="ro"]{color:rgba(0,0,0,0.5) !important}
 @media print{#projectPage input,#projectPage textarea,#projectPage select{color:#000 !important}}
 /* ══════════ מסגרת הדמיית פרויקט (גובה ~2 שורות) ══════════ */
 .render-frame{position:relative;width:88px;height:72px;border-radius:6px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
@@ -759,6 +763,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
     <div class="pp-actions">
       <span id="ppStageBadge"></span>
+      <button class="btn btn-primary btn-sm" id="ppEditBtn" onclick="toggleGlobalMode()">✎ מצב עריכה</button>
       <button class="btn btn-ghost btn-sm" onclick="closeProject()">חזרה לטבלה</button>
     </div>
   </div>
@@ -1090,6 +1095,8 @@ function applyGlobalMode(){
   document.body.classList.toggle('view-mode', !globalEdit);
   const lbl = document.getElementById('modeLabel'); if(lbl) lbl.textContent = globalEdit ? 'עריכה' : 'תצוגה';
   const tgl = document.querySelector('.mode-toggle'); if(tgl) tgl.setAttribute('aria-checked', globalEdit);
+  const eb = document.getElementById('ppEditBtn');
+  if(eb){ eb.textContent = globalEdit ? '✓ סיום עריכה' : '✎ מצב עריכה'; eb.classList.toggle('btn-primary',!globalEdit); eb.classList.toggle('btn-ghost',globalEdit); }
   lockInputs(!globalEdit);
   setGuidelinesEditable(globalEdit);
 }
@@ -2031,7 +2038,7 @@ function renderInfoTab(p) {
         <div class="pp-field"><label>הדמיית הפרויקט</label><div id="renderInfoFrame">${renderFrameHTML(p)}</div></div>
         <div class="pp-field"><label>שם הפרויקט</label><input class="${seedClass(p,'projectName').trim()}" value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);this.classList.remove('ai-seeded');document.getElementById('ppTitle').textContent=this.value||'תיק ${p.tik}'"></div>
         <div class="pp-field"><label>מספר תוכנית בינוי (תב/----)</label><input value="${esc(p.planNum)}" onchange="pjSet('planNum',this.value)"></div>
-        <div class="pp-field"><label>מספר תיק (אוטומטי)</label><input value="${esc(p.fileNumber)}" readonly style="background:var(--fog);color:rgba(0,0,0,0.5)"></div>
+        <div class="pp-field"><label>מספר תיק (אוטומטי)</label><input value="${esc(p.fileNumber)}" readonly data-always="ro" style="background:var(--fog)"></div>
         <div class="pp-field"><label>סוג הפרויקט</label><select onchange="mSet('projectType',this.value)"><option value="">—</option>${PROJECT_TYPES.map(t=>`<option${m.projectType===t?' selected':''}>${t}</option>`).join('')}</select></div>
         <div class="pp-cols">
           <div class="pp-field"><label>שלב נוכחי</label>
