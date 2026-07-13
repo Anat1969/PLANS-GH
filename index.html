@@ -529,6 +529,27 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .cloud-status.cloud-pending{background:var(--warn)}
 .cloud-status.cloud-err{background:var(--err)}
 @media print{.cloud-status{display:none}}
+/* תאריכים בצבעי סטטוס: אדום/כתום/ירוק/כחול */
+.date-status{font-weight:600;padding:2px 8px;border-radius:6px;font-size:12px}
+.ds-green{background:rgba(61,139,94,0.14);color:var(--ok)}
+.ds-orange{background:rgba(196,122,32,0.14);color:var(--warn)}
+.ds-red{background:rgba(184,64,64,0.14);color:var(--err)}
+.ds-blue{background:rgba(59,139,212,0.14);color:var(--info)}
+/* ══════════ פריסת אזורים אנכית + מסגרות תמונה ══════════ */
+.area-row{display:grid;grid-template-columns:1fr 260px;gap:1rem;align-items:stretch;margin-bottom:1.2rem}
+.area-row .pp-card{margin:0}
+.area-frame{display:flex}
+.img-box{position:relative;width:100%;min-height:160px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
+.img-box img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+.img-empty{border:1.5px dashed var(--stone);cursor:pointer;flex-direction:column;gap:4px;color:#9aa;transition:all .15s}
+.img-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
+/* מסגרת גדולה מלבנית לתוכנית הפיתוח */
+.devplan-card{margin-bottom:1.4rem}
+.devplan-box{position:relative;width:100%;height:340px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
+.devplan-box img{width:100%;height:100%;object-fit:contain;cursor:zoom-in;background:#fff}
+.devplan-empty{border:2px dashed var(--stone);cursor:pointer;flex-direction:column;gap:8px;color:#9aa;transition:all .15s}
+.devplan-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
+@media (max-width:768px){.area-row{grid-template-columns:1fr}.devplan-box{height:220px}}
 </style>
 </head>
 <body>
@@ -629,8 +650,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
           <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>יזם</th>
           <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
           <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>גוש/חלקה</th>
-          <th onclick="sortTable(7)"><span class="sort-arrow">▼</span>תאריך</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך ועדה</th>
+          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך הכנה לוועדה</th>
           <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
@@ -924,7 +944,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -1219,6 +1239,16 @@ function fmtDate(d) {
   if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
   return d;
 }
+/** מחזיר class צבע לתאריך לפי הסטטוס: אדום/כתום/ירוק/כחול */
+function statusDateClass(status){
+  const map = {
+    'הושלם':'ds-green',
+    'בטיפול':'ds-orange','בהמתנה':'ds-orange',
+    'דחוף':'ds-red','סגור':'ds-red','תוכנית נסגרה':'ds-red',
+    'טרם עודכן':'ds-blue'
+  };
+  return map[status] || 'ds-blue';
+}
 
 // ── LANDING ──
 function renderLanding() {
@@ -1412,6 +1442,80 @@ function renderInfoFrameUpdate(p){
   el.innerHTML=renderFrameHTML(p);
 }
 
+/* ══════════ מסגרות תמונה לאזורים + תוכנית פיתוח (גרירה/הדבקה/העלאה) ══════════ */
+/** מסגרת תמונה לאזור idx (0-8) — לצד כרטיס האזור */
+function areaFrameHTML(p, idx){
+  const img = (p.areaImgs && p.areaImgs[idx]) || '';
+  if (img) {
+    return `<div class="img-box" ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'area',${idx})">
+      <img src="${img}" onclick="genZoom('area',${idx})" alt="תמונה">
+      <button class="render-clear" onclick="event.stopPropagation();genClear('area',${idx})">✕</button>
+    </div>`;
+  }
+  return `<div class="img-box img-empty" tabindex="0" title="גררי תמונה · הדביקי (Ctrl+V) · או לחצי להעלאה"
+      onclick="genPick('area',${idx})" onpaste="genPaste(event,'area',${idx})"
+      ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'area',${idx})">
+      <span class="render-plus">＋</span><span class="render-hint">תמונה</span>
+    </div>`;
+}
+/** מסגרת מלבנית גדולה לתוכנית הפיתוח */
+function devPlanFrameHTML(p){
+  const img = p.devPlanImg || '';
+  if (img) {
+    return `<div class="devplan-box" ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'dev')">
+      <img src="${img}" onclick="genZoom('dev')" alt="תוכנית פיתוח">
+      <button class="render-clear" onclick="event.stopPropagation();genClear('dev')">✕</button>
+    </div>`;
+  }
+  return `<div class="devplan-box devplan-empty" tabindex="0" title="גררי את תוכנית הפיתוח · הדביקי (Ctrl+V) · או לחצי להעלאה"
+      onclick="genPick('dev')" onpaste="genPaste(event,'dev')"
+      ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'dev')">
+      <span class="render-plus" style="font-size:32px">＋</span><span class="render-hint">גררי / הדביקי / העלי את תוכנית הפיתוח</span>
+    </div>`;
+}
+/** מאחסן תמונה בשדה המתאים (dev / area[idx]) ומרענן */
+function genStore(kind, idx, dataUrl){
+  const p = pj(); if(!p) return;
+  if (kind==='dev') { p.devPlanImg = dataUrl; }
+  else { if(!Array.isArray(p.areaImgs)) p.areaImgs=[]; p.areaImgs[idx]=dataUrl; }
+  savePlans();
+  const el = document.getElementById(kind==='dev'?'devPlanFrame':null);
+  if (kind==='dev' && el) el.innerHTML = devPlanFrameHTML(p);
+  else renderInfoTab(p); // אזורים — רענון הטאב
+}
+function genPick(kind, idx){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=e=>{ _fileToDataUrl(e.target.files[0], d=>genStore(kind,idx,d)); }; inp.click();
+}
+function genPaste(ev, kind, idx){
+  const items=(ev.clipboardData||{}).items||[];
+  for(const it of items){ if(it.type&&it.type.startsWith('image/')){ ev.preventDefault(); _fileToDataUrl(it.getAsFile(), d=>genStore(kind,idx,d)); return; } }
+}
+function genDragOver(ev){ ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.classList.add('render-dragover'); }
+function genDragLeave(ev){ ev.currentTarget.classList.remove('render-dragover'); }
+function genDrop(ev, kind, idx){
+  ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.classList.remove('render-dragover');
+  const dt=ev.dataTransfer;
+  if(dt.files&&dt.files.length){ _fileToDataUrl(dt.files[0], d=>genStore(kind,idx,d)); return; }
+  const url=dt.getData('text/uri-list')||dt.getData('text/plain');
+  if(url&&/^https?:\/\//.test(url)) genStore(kind,idx,url);
+}
+function genClear(kind, idx){
+  const p=pj(); if(!p) return;
+  if(kind==='dev'){ p.devPlanImg=''; } else if(Array.isArray(p.areaImgs)){ p.areaImgs[idx]=''; }
+  savePlans();
+  if(kind==='dev'){ const el=document.getElementById('devPlanFrame'); if(el) el.innerHTML=devPlanFrameHTML(p); }
+  else renderInfoTab(p);
+}
+function genZoom(kind, idx){
+  const p=pj(); if(!p) return;
+  const img = kind==='dev' ? p.devPlanImg : (p.areaImgs&&p.areaImgs[idx]);
+  if(!img) return;
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=()=>ov.remove();
+  ov.innerHTML=`<img src="${img}"><div class="render-lb-close">✕</div>`;
+  document.body.appendChild(ov);
+}
+
 function saveField(id, field, el) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
@@ -1457,13 +1561,12 @@ function renderTable() {
         <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
         <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
         <td><input value="${p.parcel||''}" onchange="saveField(${p.id},'parcel',this)" placeholder="גוש/חלקה"></td>
-        <td><input type="date" value="${p.date||''}" onchange="saveField(${p.id},'date',this)"></td>
         <td><input type="date" value="${p.committeeDate||''}" onchange="saveField(${p.id},'committeeDate',this)"></td>
         <td><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`;
     }
 
-    return `<tr class="${groupClass}" onclick="openDetail(${p.id})">
+    return `<tr class="${groupClass}" onclick="openProject(${p.id})">
       <td><strong>${p.tik}</strong></td>
       <td onclick="event.stopPropagation()">${renderFrameHTML(p)}</td>
       <td>${p.district}</td>
@@ -1472,8 +1575,7 @@ function renderTable() {
       <td>${p.developer||'—'}</td>
       <td>${p.submitter||'—'}</td>
       <td style="font-size:11px;white-space:nowrap">${p.parcel||'—'}</td>
-      <td style="white-space:nowrap">${fmtDate(p.date)}</td>
-      <td style="white-space:nowrap">${fmtDate(p.committeeDate)}</td>
+      <td style="white-space:nowrap"><span class="date-status ${statusDateClass(p.status)}">${fmtDate(p.committeeDate)}</span></td>
       <td>${statusBadge(p.status)}</td>
     </tr>`;
   }).join('');
@@ -2065,14 +2167,20 @@ function defaultGantt() {
   return M.map(([milestone,owner])=>({milestone,owner,plan:'',actual:'',status:'not_started',reason:''}));
 }
 
+/** שם פרויקט בנוי: תב/מספר - רובע - מגרש - יזם */
+function buildProjectTitle(p){
+  const tav = p.planNum ? (String(p.planNum).includes('תב') ? p.planNum : ('תב/'+p.planNum)) : ('תב/'+p.tik);
+  return [tav, p.district, p.location, (p.developer||p.submitter)].filter(Boolean).join(' - ');
+}
 function openProject(id) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
   ensureProjectData(p);
   currentProjectId = id;
-  document.getElementById('ppCrumb').textContent = p.projectName || `תיק ${p.tik}`;
-  document.getElementById('ppTitle').textContent = p.projectName || `תיק ${p.tik} — ${p.district}`;
-  document.getElementById('ppSub').textContent = [p.developer||p.submitter, p.district, p.planNum].filter(Boolean).join(' · ') || '—';
+  const title = buildProjectTitle(p);
+  document.getElementById('ppCrumb').textContent = title;
+  document.getElementById('ppTitle').textContent = title;
+  document.getElementById('ppSub').textContent = p.projectName || '—';
   renderStageBadge(p);
   document.querySelectorAll('#ppTabs .pp-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
@@ -2109,7 +2217,13 @@ const esc = s => (s||'').toString().replace(/"/g,'&quot;');
 function renderInfoTab(p) {
   const m = p.meta;
   document.getElementById('panel-info').innerHTML = `
-    <div class="pp-cols">
+    <!-- מסגרת גדולה: תוכנית הפיתוח -->
+    <div class="pp-card devplan-card">
+      <h4>תוכנית הפיתוח</h4>
+      <div id="devPlanFrame">${devPlanFrameHTML(p)}</div>
+    </div>
+    <!-- אזורים בפריסה אנכית; כל אזור לצד מסגרת תמונה -->
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 1 — זיהוי הפרויקט</h4>
         <div class="pp-field"><label>הדמיית הפרויקט</label><div id="renderInfoFrame">${renderFrameHTML(p)}</div></div>
@@ -2129,6 +2243,9 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>סטטוס</label><select onchange="pjSet('status',this.value);renderTable()">${STATUSES.map(s=>`<option${p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
         </div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,0)}</div>
+    </div>
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 2 — מיקום</h4>
         <div class="pp-field"><label>רובע</label><input value="${esc(p.district)}" onchange="pjSet('district',this.value)"></div>
@@ -2138,9 +2255,10 @@ function renderInfoTab(p) {
         <div class="pp-field"><label>מספר מגרשים</label><input type="number" value="${esc(m.plotCount)}" onchange="mSet('plotCount',this.value)"></div>
         <div class="pp-field"><label>שטח (מ״ר)</label><input class="${seedClass(p,'meta.area').trim()}" value="${esc(m.area)}" onchange="mSet('area',this.value);this.classList.remove('ai-seeded')"></div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,1)}</div>
     </div>
 
-    <div class="pp-cols">
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 3 — בעלי תפקידים</h4>
         <div class="pp-field"><label>שם היזם</label><input class="${seedClass(p,'developer').trim()}" value="${esc(p.developer)}" onchange="pjSet('developer',this.value);this.classList.remove('ai-seeded')"></div>
@@ -2155,6 +2273,9 @@ function renderInfoTab(p) {
         <div class="pp-cols"><div class="pp-field"><label>טלפון איש קשר</label><input class="${seedClass(p,'meta.contactPhone').trim()}" value="${esc(m.contactPhone)}" onchange="mSet('contactPhone',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>מייל איש קשר</label><input class="${seedClass(p,'meta.contactEmail').trim()}" value="${esc(m.contactEmail)}" onchange="mSet('contactEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,2)}</div>
+    </div>
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 4 — פרמטרים סטטוטוריים</h4>
         <div class="pp-field"><label>תב״ע מקור</label><input class="${seedClass(p,'meta.zoningPlan').trim()}" value="${esc(m.zoningPlan)}" onchange="mSet('zoningPlan',this.value);this.classList.remove('ai-seeded')"></div>
@@ -2164,15 +2285,19 @@ function renderInfoTab(p) {
         <div class="pp-cols"><div class="pp-field"><label>הקלות מבוקשות</label><input class="${seedClass(p,'meta.reliefsAsked').trim()}" value="${esc(m.reliefsAsked)}" onchange="mSet('reliefsAsked',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>הקלות שאושרו</label><input value="${esc(m.reliefsApproved)}" onchange="mSet('reliefsApproved',this.value)"></div></div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,3)}</div>
     </div>
 
-    <div class="pp-card">
-      <h4>אזור 5 — בינוי לפי מגרשים</h4>
-      <div id="plotsWrap">${renderPlots(p)}</div>
-      <button class="btn btn-ghost btn-sm" onclick="addPlot()">+ הוסף מגרש</button>
+    <div class="area-row">
+      <div class="pp-card">
+        <h4>אזור 5 — בינוי לפי מגרשים</h4>
+        <div id="plotsWrap">${renderPlots(p)}</div>
+        <button class="btn btn-ghost btn-sm" onclick="addPlot()">+ הוסף מגרש</button>
+      </div>
+      <div class="area-frame">${areaFrameHTML(p,4)}</div>
     </div>
 
-    <div class="pp-cols">
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 6 — נגישות ותשתיות</h4>
         <div class="pp-field"><label>תנועת רכבים</label><textarea onchange="oSet('access','vehicles',this.value)">${p.access.vehicles||''}</textarea></div>
@@ -2185,15 +2310,20 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>שטחי חלחול (%)</label><input type="number" value="${esc(p.parking.permeable)}" onchange="oSet('parking','permeable',this.value)"></div>
         </div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,5)}</div>
+    </div>
+    <div class="area-row">
       <div class="pp-card">
         <h4>אזור 7 — הערכת היבטים</h4>
         <div class="pp-field"><label>היבט סביבתי (אנרגיה, חזית חמישית ירוקה)</label><textarea class="${seedClass(p,'aspects.environmental').trim()}" onchange="oSet('aspects','environmental',this.value);this.classList.remove('ai-seeded')">${p.aspects.environmental||''}</textarea></div>
         <div class="pp-field"><label>היבט חווייתי (שהייה, חצרות, שבילים)</label><textarea class="${seedClass(p,'aspects.experiential').trim()}" onchange="oSet('aspects','experiential',this.value);this.classList.remove('ai-seeded')">${p.aspects.experiential||''}</textarea></div>
         <div class="pp-field"><label>היבט תפעולי (ריכוז והצנעת מערכות)</label><textarea class="${seedClass(p,'aspects.operational').trim()}" onchange="oSet('aspects','operational',this.value);this.classList.remove('ai-seeded')">${p.aspects.operational||''}</textarea></div>
       </div>
+      <div class="area-frame">${areaFrameHTML(p,6)}</div>
     </div>
 
-    <div class="pp-card">
+    <div class="area-row">
+      <div class="pp-card">
       <h4>אזור 8 — תאריכים ומועדים</h4>
       <div class="pp-cols">
         <div class="pp-field"><label>פורום אדריכל — מתוכנן</label><input type="date" value="${esc(p.datesPlan.forum1)}" onchange="oSet('datesPlan','forum1',this.value);renderProcessTab(pj())"></div>
@@ -2205,9 +2335,12 @@ function renderInfoTab(p) {
         <div class="pp-field"><label>ועדה — בפועל</label><input type="date" class="${seedClass(p,'committeeDate').trim()}" value="${esc(p.committeeDate)}" onchange="pjSet('committeeDate',this.value);this.classList.remove('ai-seeded');renderTimelineTab(pj())"></div>
         <div class="pp-field"><label>תאריך אישור</label><input type="date" value="${esc(p.approvalDate)}" onchange="pjSet('approvalDate',this.value);renderTimelineTab(pj())"></div>
       </div>
+      </div>
+      <div class="area-frame">${areaFrameHTML(p,7)}</div>
     </div>
 
-    <div class="pp-card">
+    <div class="area-row">
+      <div class="pp-card">
       <h4>אזור 9 — סיכום והמלצה</h4>
       <div class="pp-field"><label>תיאור הפרויקט</label><textarea onchange="pjSet('projectDescription',this.value)">${p.projectDescription||''}</textarea></div>
       <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
@@ -2215,6 +2348,8 @@ function renderInfoTab(p) {
       <div class="pp-field"><label>הערות גורמים (מרוכז מיועצים)</label><textarea onchange="oSet('summary','consultantNotes',this.value)">${p.summary.consultantNotes||''}</textarea></div>
       <div class="pp-field"><label>החלטת ועדה</label><textarea class="${seedClass(p,'summary.committeeDecision').trim()}" onchange="oSet('summary','committeeDecision',this.value);this.classList.remove('ai-seeded')">${p.summary.committeeDecision||''}</textarea></div>
       <div class="pp-field"><label>הערות אדריכלית העיר</label><textarea onchange="oSet('summary','cityArchNotes',this.value)">${p.summary.cityArchNotes||''}</textarea></div>
+      </div>
+      <div class="area-frame">${areaFrameHTML(p,8)}</div>
     </div>`;
 }
 function pjSet(field, val) { const p=pj(); if(!p)return; p[field]=val; clearSeed(p,field); savePlans(); toast('נשמר'); }
