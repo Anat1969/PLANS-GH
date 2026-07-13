@@ -523,10 +523,11 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .toolbar-nav{display:flex;gap:2px;flex-wrap:wrap}
 .toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15)}
 @media (max-width:900px){.toolbar-manage{margin-inline-start:0;border-inline-start:none;padding-inline-start:0;width:100%;justify-content:flex-start}}
-.cloud-status{font-size:11px;padding:3px 8px;border-radius:99px;white-space:nowrap;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.85)}
-.cloud-status.cloud-ok{background:rgba(61,220,132,0.18);color:#9be8bf}
-.cloud-status.cloud-pending{background:rgba(255,255,255,0.12);color:#ffe08a}
-.cloud-status.cloud-err{background:rgba(220,80,80,0.2);color:#ffb3b3}
+/* כפתור מצב ענן — באותו עיצוב כמו כפתורי הכותרת (upgrade-btn) */
+.cloud-status{background:var(--bronze);color:white;padding:6px 16px;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;transition:all 0.2s}
+.cloud-status.cloud-ok{background:var(--ok)}
+.cloud-status.cloud-pending{background:var(--warn)}
+.cloud-status.cloud-err{background:var(--err)}
 @media print{.cloud-status{display:none}}
 </style>
 </head>
@@ -542,7 +543,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
-    <button onclick="go('settingsPage',this)">הגדרות</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -604,7 +604,13 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="filter-bar" id="filterBar">
     <select id="filterDistrict" onchange="applyFilters()"><option value="">כל הרובעים</option></select>
     <select id="filterYear" onchange="applyFilters()"><option value="">כל השנים</option></select>
-    <select id="filterStatus" onchange="applyFilters()"><option value="">כל הסטטוסים</option></select>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">כל השלבים</option>
+      <option value="stage_1">פורום אדריכל</option>
+      <option value="stage_2">פורום יועצים</option>
+      <option value="committee">הכנה לוועדה</option>
+      <option value="approved">מאושר</option>
+    </select>
     <select id="filterHandler" onchange="applyFilters()"><option value="">כל האחראים</option></select>
     <input type="text" id="filterSearch" placeholder="חיפוש חופשי..." oninput="applyFilters()" style="width:180px">
     <span class="filter-count" id="filterCount"></span>
@@ -680,7 +686,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <div class="counter-num" id="totalCounter">0</div>
       <div class="counter-label">תוכניות בינוי</div>
     </div>
-    <button class="btn btn-bronze counter-add" onclick="openAddModal()">+ תוכנית חדשה</button>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem">
@@ -811,36 +816,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 </div>
 
 <!-- ════════ SETTINGS PAGE ════════ -->
-<div id="settingsPage" class="page">
-  <div class="page-title">הגדרות ונתונים</div>
-  <div class="page-subtitle">ניהול נתונים, גיבוי, ייצוא וייבוא</div>
-
-  <div class="settings-section">
-    <h3>גיבוי וייצוא</h3>
-    <p style="font-size:13px;color:rgba(0,0,0,0.55);margin-bottom:1rem">כל הנתונים נשמרים בדפדפן שלך (localStorage). מומלץ לגבות מדי פעם לקובץ.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="exportJSON()">ייצוא גיבוי (JSON)</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">ייבוא מקובץ</button>
-      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(this)">
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <h3>איפוס</h3>
-    <p style="font-size:13px;color:rgba(0,0,0,0.55);margin-bottom:1rem">מחיקת כל השינויים השמורים וחזרה לנתוני הבסיס. פעולה זו בלתי הפיכה.</p>
-    <button class="btn btn-ghost" style="color:var(--err);border-color:var(--err)" onclick="resetAllData()">אפס את כל הנתונים</button>
-  </div>
-
-  <div class="settings-section">
-    <h3>אודות</h3>
-    <p style="font-size:13px;color:rgba(0,0,0,0.6);line-height:1.8">
-      תוכניות בינוי — אשדוד · אדריכלית העיר ענת דוד שטיבלמן<br>
-      מערכת לניהול, מעקב ואישור תוכניות בינוי. נתונים נשמרים מקומית בדפדפן.<br>
-      <span id="lastSaveInfo" style="color:rgba(0,0,0,0.4)"></span>
-    </p>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -1158,14 +1133,14 @@ function go(id, btn) {
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','settingsPage'];
+  const routable = ['landing','table','guidelines','map','trends'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, settingsPage:5};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1173,7 +1148,7 @@ function activateNavFor(id) {
 /** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
 function routeFromHash() {
   const id = (location.hash||'').replace('#','');
-  const routable = ['landing','table','guidelines','map','trends','settingsPage'];
+  const routable = ['landing','table','guidelines','map','trends'];
   if (routable.includes(id)) activateNavFor(id);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -1208,8 +1183,7 @@ function applyGlobalMode(){
 function lockInputs(lock){
   // כל שדות התוכן בכל הדפים (מלבד חיפוש/סינון/העלאה) — נעילה/שחרור לפי מצב עריכה
   const sel = '#projectPage input, #projectPage textarea, #projectPage select,' +
-              '#guidelines input, #guidelines textarea,' +
-              '#settingsPage input:not(#addTik), #settingsPage textarea';
+              '#guidelines input, #guidelines textarea';
   document.querySelectorAll(sel).forEach(el=>{
     if(el.type==='file') return;
     if(el.dataset.nolock==='1') return;              // שדות חיפוש/סינון — תמיד פעילים
@@ -1270,8 +1244,7 @@ function populateFilters() {
   fd.innerHTML = '<option value="">כל הרובעים</option>' + districts.map(d=>`<option>${d}</option>`).join('');
   const fy = document.getElementById('filterYear');
   fy.innerHTML = '<option value="">כל השנים</option>' + years.map(y=>`<option>${y}</option>`).join('');
-  const fs = document.getElementById('filterStatus');
-  fs.innerHTML = '<option value="">כל הסטטוסים</option>' + statuses.map(s=>`<option>${s}</option>`).join('');
+  // סינון השלבים סטטי (פורום אדריכל / יועצים / הכנה לוועדה / מאושר) — לא נדרס
   const fh = document.getElementById('filterHandler');
   fh.innerHTML = '<option value="">כל האחראים</option>' + handlers.map(h=>`<option>${h}</option>`).join('');
 }
@@ -1286,7 +1259,7 @@ function applyFilters() {
   filtered = plans.filter(p => {
     if (d && normalizeDistrict(p.district) !== d) return false;
     if (y && String(p.year) !== y) return false;
-    if (s && p.status !== s) return false;
+    if (s && (p.stage || 'stage_1') !== s) return false;
     if (h && p.handler !== h) return false;
     if (q) {
       const txt = [p.tik,p.district,p.planNum,p.developer,p.submitter,p.location,p.parcel,p.purpose,p.handler,p.status].join(' ').toLowerCase();
@@ -2810,7 +2783,6 @@ function glHero(h){ return `<div class="gl-hero">
   <h1 class="gl-title">${h.title}</h1>
   <p class="gl-sub">${h.subtitle}</p>
   <div class="gl-actions">
-    <button class="btn btn-bronze" onclick="openAddModal()">פתיחת פרויקט חדש</button>
     <button class="btn btn-ghost" onclick="go('table',document.querySelectorAll('#mainNav button')[1])">חזרה לטבלת התוכניות</button>
   </div></div>`; }
 
@@ -2858,8 +2830,7 @@ function glDates(D){
     <div class="date-row"><strong>ייחשב כהשלמה:</strong> ${d.done}</div></div>`).join('');
   return `<section id="gl-dates" class="gl-section"><h2 class="gl-h2">לוחות זמנים — שלושת מועדי האישור</h2>
     <div class="gl-sub2">עם פתיחת כל פרויקט נקבעים מראש שלושה מועדים. זהו הסבר כללי בלבד — קביעת המועדים בפועל נעשית בפתיחת הפרויקט.</div>
-    <div class="dates-grid">${cards}</div>
-    <a class="gl-link" onclick="openAddModal()">פתיחת פרויקט חדש וקביעת מועדים ›</a></section>`;
+    <div class="dates-grid">${cards}</div></section>`;
 }
 
 /* אזור 4 — TypicalProjectGantt */
