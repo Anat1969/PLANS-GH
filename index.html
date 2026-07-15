@@ -3511,7 +3511,7 @@ async function generateShareContent(){
   }
   for (const key of secs){
     try {
-      const r = await callAssistant('ask', { question: buildShareSectionPrompt(s, key, payload) });
+      const r = await callAssistant('generate_share', { prompt: buildShareSectionPrompt(s, key, payload) });
       if (r && r.text){ if(!s.generatedContent) s.generatedContent={}; s.generatedContent[key]=r.text; }
     } catch(e){ console.warn('gen section failed', key, e); }
   }
@@ -3524,7 +3524,7 @@ async function regenSection(key){
   toast('מפיק מחדש… ⏳');
   const payload=shareDataPayload(s);
   try {
-    const r = await callAssistant('ask', { question: buildShareSectionPrompt(s,key,payload) });
+    const r = await callAssistant('generate_share', { prompt: buildShareSectionPrompt(s,key,payload) });
     if(r&&r.text){ if(!s.generatedContent)s.generatedContent={}; s.generatedContent[key]=r.text; delete (s.manualEdits||{})[key]; }
   } catch(e){ toast('שגיאה בהפקה'); return; }
   s.updatedAt=todayStr(); saveShares(); openShare(s.id); toast('הסעיף הופק מחדש');
