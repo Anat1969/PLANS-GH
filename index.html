@@ -550,6 +550,61 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .devplan-empty{border:2px dashed var(--stone);cursor:pointer;flex-direction:column;gap:8px;color:#9aa;transition:all .15s}
 .devplan-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
 @media (max-width:768px){.area-row{grid-template-columns:1fr}.devplan-box{height:220px}}
+/* ══════════ מודול שיתופים ══════════ */
+.muted{color:rgba(0,0,0,0.4);font-size:13px}
+.shares-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.5rem}
+.share-type-card{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:1.4rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.share-type-card h3{font-family:var(--display);font-size:18px;color:var(--teal)}
+.stc-desc{font-size:13.5px;line-height:1.6;color:rgba(0,0,0,0.6);flex:1}
+.share-type-card .btn{align-self:flex-start}
+.shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+.share-item{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow)}
+.share-item-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.share-item-meta{font-size:12px;color:rgba(0,0,0,0.5);margin-bottom:10px}
+.share-item-actions{display:flex;gap:6px;flex-wrap:wrap}
+/* מסמך השיתוף */
+.share-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1rem;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+.share-tb-right{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.share-doc{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:2rem;max-width:920px;margin:0 auto;box-shadow:var(--shadow)}
+.share-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:#fafafa;border:1px solid var(--fog);border-radius:8px;padding:10px;margin-bottom:1.2rem}
+.share-filters .pp-field{margin:0;min-width:120px}
+.chk-inline{display:flex;align-items:center;gap:6px;font-size:13px}
+.share-title{font-family:var(--display);font-size:26px;text-align:center;margin-bottom:4px}
+.share-sub{text-align:center;color:var(--bronze);font-weight:500;margin-bottom:1.4rem}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.6rem}
+.kpi{background:#f6f8f8;border:1px solid var(--fog);border-radius:8px;padding:12px;text-align:center}
+.kpi-num{font-size:26px;font-weight:700;color:var(--teal)}
+.kpi-lbl{font-size:11px;color:rgba(0,0,0,0.55);margin-top:2px}
+.kpi-warn .kpi-num{color:var(--err)}
+.share-section{margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid var(--fog)}
+.share-section.locked{background:rgba(61,139,94,0.04);border-radius:8px;padding:10px}
+.share-sec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.share-sec-head h3{font-family:var(--display);font-size:17px;color:var(--ink)}
+.share-sec-tools{display:flex;gap:4px}
+.share-sec-body{font-size:14px;line-height:1.7;color:#222}
+.share-sec-body h4{font-size:15px;color:var(--teal);margin:8px 0 4px}
+.share-sec-body ul{padding-inline-start:20px;margin:6px 0}
+/* חזיתות */
+.mayor-hero{width:100%;height:300px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
+.mayor-hero img{width:100%;height:100%;object-fit:cover}
+.proj-facts{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin-bottom:1.4rem;padding:10px;background:#fafafa;border-radius:8px}
+.facade-alts{display:flex;flex-direction:column;gap:14px}
+.facade-alt{display:grid;grid-template-columns:200px 1fr;gap:14px;border:1px solid var(--fog);border-radius:8px;padding:12px}
+.fa-img{width:100%;height:150px;border:1.5px dashed var(--stone);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+.fa-img img{width:100%;height:100%;object-fit:cover}
+.fa-body{display:flex;flex-direction:column;gap:6px}
+.fa-name{font-weight:600;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit}
+.fa-body textarea{border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px;min-height:40px;color:#1a56db}
+.facade-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.fc-col{border:1px solid var(--fog);border-radius:8px;overflow:hidden}
+.fc-img{height:140px;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
+.fc-img img{width:100%;height:100%;object-fit:cover}
+.fc-name{font-weight:600;padding:6px 10px;font-size:13px}
+.fc-note{padding:0 10px 10px;font-size:12px;color:rgba(0,0,0,0.6)}
+.ver-modal{background:#fff;border-radius:12px;padding:1.5rem;max-width:520px;width:90vw}
+.ver-modal h3{font-family:var(--display);margin-bottom:1rem}
+@media (max-width:768px){.shares-cards{grid-template-columns:1fr}.kpi-row{grid-template-columns:1fr 1fr}.facade-alt{grid-template-columns:1fr}.share-doc{padding:1rem}}
+@media print{.share-toolbar,.share-filters,.pp-breadcrumb,.share-sec-tools,#mainNav,.masthead{display:none !important}.share-doc{border:none;box-shadow:none;max-width:100%}}
 </style>
 </head>
 <body>
@@ -564,6 +619,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
+    <button onclick="go('shares',this)">שיתופים</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -835,7 +891,34 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-panel" id="panel-opinion"></div>
 </div>
 
-<!-- ════════ SETTINGS PAGE ════════ -->
+<!-- ════════ SHARES PAGE ════════ -->
+<div id="shares" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>שיתופים</span></div>
+  <div class="page-title">שיתופים ודוחות להנהלה</div>
+  <div class="page-subtitle">הפקת שיתופים מקצועיים ומותאמים למקבלי החלטות, על בסיס הנתונים העדכניים של תוכניות הבינוי.</div>
+
+  <div class="shares-cards">
+    <div class="share-type-card">
+      <div class="stc-head"><h3>דוח מעקב חודשי למנכ״ל</h3></div>
+      <p class="stc-desc">דוח חודשי מקצועי, ישיר ומשכנע המסכם את מצב תוכניות הבינוי בשלב עבודה — התקדמות, עיכובים, סיכונים והחלטות נדרשות.</p>
+      <button class="btn btn-primary" onclick="newShare('monthly-ceo-report')">+ יצירת שיתוף חדש</button>
+    </div>
+    <div class="share-type-card">
+      <div class="stc-head"><h3>שיתוף עיצוב חזיתות לראש העיר</h3></div>
+      <p class="stc-desc">שיתוף חזותי, עירוני ותמציתי של הצעות לעיצוב חזיתות, חלופות תכנון, משמעות עירונית והמלצת אדריכלית העיר.</p>
+      <button class="btn btn-primary" onclick="newShare('mayor-facade-review')">+ יצירת שיתוף חדש</button>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:2rem">שיתופים קיימים</div>
+  <div id="sharesList"></div>
+</div>
+
+<!-- מציג שיתוף בודד (דוח/חזיתות) -->
+<div id="shareView" class="page">
+  <div id="shareViewInner"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -1153,14 +1236,14 @@ function go(id, btn) {
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends'];
+  const routable = ['landing','table','guidelines','map','trends','shares'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1168,7 +1251,7 @@ function activateNavFor(id) {
 /** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
 function routeFromHash() {
   const id = (location.hash||'').replace('#','');
-  const routable = ['landing','table','guidelines','map','trends'];
+  const routable = ['landing','table','guidelines','map','trends','shares'];
   if (routable.includes(id)) activateNavFor(id);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -3033,10 +3116,467 @@ function glFaq(D){
   return `<section id="gl-faq" class="gl-section"><h2 class="gl-h2">שאלות נפוצות</h2>${items}</section>`;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   מודול שיתופים — דוחות ושיתופים מותאמים למקבלי החלטות
+   ══════════════════════════════════════════════════════════════ */
+
+/** פרופילי קהל — מגדיר לכל סוג שיתוף את המטרה, הסגנון, המבנה והסקילים */
+const shareAudienceProfiles = {
+  ceo: {
+    audience: 'מנכ״ל העירייה',
+    purpose: 'בקרה ניהולית, זיהוי חסמים וקבלת החלטות',
+    writingStyle: 'ישיר, תמציתי, משכנע, מבוסס נתונים, מוכוון החלטות; מבנה כל פסקה: מה קרה → מה המשמעות → מה נדרש',
+    focus: ['התקדמות','עיכובים','אחריות','לוחות זמנים','סיכונים','החלטות נדרשות'],
+    skills: ['executive-summary','management-reporting','risk-analysis','decision-writing','municipal-project-control']
+  },
+  mayor: {
+    audience: 'ראש העיר',
+    purpose: 'בחירת חלופה והבנת הערך העירוני',
+    writingStyle: 'חזותי, קצר, עירוני, מעורר השראה וישיר; מסר מרכזי אחד לכל מקטע; ללא ז׳רגון אדריכלי ללא הסבר',
+    focus: ['נראות','זהות עירונית','מרחב ציבורי','תדמית העיר','השפעה על התושבים','המלצה מקצועית'],
+    skills: ['architectural-curation','visual-storytelling','urban-branding','facade-design-review','decision-presentation']
+  }
+};
+
+const SHARE_STATUS = { draft:'טיוטה', review:'מוכן לבדיקה', approved:'אושר לשיתוף' };
+const SHARE_STATUS_CLS = { draft:'ds-orange', review:'ds-blue', approved:'ds-green' };
+
+/* ── מבנה נתונים ואחסון (Supabase: ashdod_shares) ── */
+let shares = [];
+const SHARES_TABLE = 'ashdod_shares';
+
+function newShareId(){
+  let n = 1, id;
+  do { id = 'sh_' + n + '_' + (plans.length); n++; } while (shares.some(s=>s.id===id));
+  return id;
+}
+
+/** יוצר רשומת שיתוף חדשה לפי סוג */
+function newShare(type){
+  const prof = type==='monthly-ceo-report' ? shareAudienceProfiles.ceo : shareAudienceProfiles.mayor;
+  const now = todayStr();
+  const rec = {
+    id: newShareId(),
+    shareType: type,
+    audience: type==='monthly-ceo-report' ? 'ceo' : 'mayor',
+    title: type==='monthly-ceo-report' ? ('דוח מעקב חודשי — ' + heMonthName(nowMonth()) + ' ' + nowYear()) : 'שיתוף עיצוב חזיתות',
+    status: 'draft',
+    reportingPeriod: type==='monthly-ceo-report' ? { month: nowMonth(), year: nowYear() } : undefined,
+    filters: { district:'', developer:'', archName:'', stage:'', includeCompleted:true, includeAppendix:true },
+    projectIds: [],
+    generatedContent: {},
+    manualEdits: {},
+    lockedSections: [],
+    attachments: [],
+    facadeAlts: [], // לשיתוף חזיתות
+    createdBy: 'אדריכלית העיר',
+    updatedBy: 'אדריכלית העיר',
+    createdAt: now, updatedAt: now, version: 1,
+    history: []
+  };
+  shares.push(rec);
+  saveShares();
+  openShare(rec.id);
+}
+
+function nowMonth(){ return Number(todayStr().split('-')[1]); }
+function nowYear(){ return Number(todayStr().split('-')[0]); }
+function heMonthName(m){ return ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'][m]||''; }
+
+/* ── שמירה/טעינה אונליין ── */
+async function saveShares(){
+  try { localStorage.setItem('ashdod_shares_v1', JSON.stringify(shares)); } catch(e){}
+  try {
+    const rows = shares.map(s => ({ id: s.id, data: s, updated_at: new Date().toISOString() }));
+    if (!rows.length) return;
+    await fetch(SB_URL + '/rest/v1/' + SHARES_TABLE + '?on_conflict=id', {
+      method:'POST', headers:{ ...SB_HEADERS, 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(rows)
+    });
+  } catch(e){ console.warn('shares cloud save failed', e); }
+}
+async function loadShares(){
+  // מקומי קודם
+  try { const l = JSON.parse(localStorage.getItem('ashdod_shares_v1')||'null'); if (Array.isArray(l)) shares = l; } catch(e){}
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/' + SHARES_TABLE + '?select=data', { headers: SB_HEADERS });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length) {
+        const byId = {}; shares.forEach(s=>byId[s.id]=s);
+        rows.forEach(({data})=>{ if(data&&data.id) byId[data.id]=data; });
+        shares = Object.values(byId);
+      }
+    }
+  } catch(e){ console.warn('shares cloud load failed', e); }
+  renderSharesList();
+}
+async function deleteShare(id){
+  if (!confirm('למחוק שיתוף זה?')) return;
+  shares = shares.filter(s=>s.id!==id);
+  try { await fetch(SB_URL + '/rest/v1/' + SHARES_TABLE + '?id=eq.'+encodeURIComponent(id), { method:'DELETE', headers: SB_HEADERS }); } catch(e){}
+  saveShares(); renderSharesList(); toast('השיתוף נמחק');
+}
+function dupShare(id){
+  const s = shares.find(x=>x.id===id); if(!s) return;
+  const c = JSON.parse(JSON.stringify(s));
+  c.id = newShareId(); c.title = s.title + ' (עותק)'; c.status='draft'; c.version=1; c.createdAt=todayStr(); c.updatedAt=todayStr(); c.history=[];
+  shares.push(c); saveShares(); renderSharesList(); toast('השיתוף שוכפל');
+}
+
+/* ── רשימת שיתופים ── */
+function renderSharesList(){
+  const el = document.getElementById('sharesList'); if(!el) return;
+  if (!shares.length){ el.innerHTML = '<p style="color:rgba(0,0,0,0.45);font-size:13px;padding:1rem 0">אין שיתופים עדיין. צרי שיתוף חדש מאחד הכרטיסים למעלה.</p>'; return; }
+  el.innerHTML = '<div class="shares-grid">' + shares.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).map(s => {
+    const typeLbl = s.shareType==='monthly-ceo-report' ? 'דוח מנכ״ל' : 'שיתוף חזיתות';
+    return `<div class="share-item">
+      <div class="share-item-head">
+        <strong>${esc(s.title)}</strong>
+        <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
+      </div>
+      <div class="share-item-meta">${typeLbl} · גרסה ${s.version} · עודכן ${fmtDate(s.updatedAt)}</div>
+      <div class="share-item-actions">
+        <button class="btn btn-primary btn-sm" onclick="openShare('${s.id}')">פתיחה</button>
+        <button class="btn btn-ghost btn-sm" onclick="dupShare('${s.id}')">שכפול</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--err)" onclick="deleteShare('${s.id}')">מחיקה</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+/* ── פתיחת שיתוף בודד ── */
+let currentShareId = null;
+function openShare(id){
+  const s = shares.find(x=>x.id===id); if(!s) return;
+  currentShareId = id;
+  document.getElementById('shareViewInner').innerHTML = s.shareType==='monthly-ceo-report' ? renderCeoReport(s) : renderMayorShare(s);
+  go('shareView', null);
+  window.scrollTo({top:0});
+}
+function sh(){ return shares.find(x=>x.id===currentShareId); }
+function backToShares(){ go('shares', document.querySelectorAll('#mainNav button')[5]); }
+
+function setShareField(field, val){ const s=sh(); if(!s)return; s[field]=val; touchShare(s); }
+function setShareFilter(field, val){ const s=sh(); if(!s)return; s.filters[field]=val; touchShare(s); }
+function touchShare(s){ s.updatedAt=todayStr(); s.updatedBy='אדריכלית העיר'; saveShares(); }
+
+/** נועל/משחרר סעיף מפני יצירה מחדש */
+function toggleLockSection(key){
+  const s=sh(); if(!s)return;
+  if(!Array.isArray(s.lockedSections)) s.lockedSections=[];
+  const i=s.lockedSections.indexOf(key);
+  if(i>=0) s.lockedSections.splice(i,1); else s.lockedSections.push(key);
+  touchShare(s); openShare(s.id);
+}
+function isLocked(s,key){ return Array.isArray(s.lockedSections) && s.lockedSections.includes(key); }
+
+/** מקדם סטטוס: טיוטה → מוכן לבדיקה → אושר */
+function advanceShareStatus(){
+  const s=sh(); if(!s)return;
+  const order=['draft','review','approved'];
+  const next = order[(order.indexOf(s.status)+1)%order.length];
+  s.status=next; if(next==='approved') s.approvedAt=todayStr();
+  // שמירת גרסה בהיסטוריה
+  if(!Array.isArray(s.history)) s.history=[];
+  s.history.push({ version:s.version, status:s.status, at:todayStr(), snapshot: JSON.stringify(s.generatedContent).slice(0,4000) });
+  s.version = (s.version||1)+1;
+  touchShare(s); openShare(s.id); toast('סטטוס: '+SHARE_STATUS[next]+' · גרסה '+s.version);
+}
+
+/* ══════════ דוח מעקב חודשי למנכ״ל ══════════ */
+const CEO_ACTIVE_STATUSES = ['בטיפול','בהמתנה','דחוף']; // בתהליך/עבודה/המתנה/מעוכב
+
+/** מסנן את התוכניות הרלוונטיות לדוח לפי הפילטרים */
+function ceoSelectedPlans(s){
+  const f = s.filters||{};
+  return plans.filter(p=>{
+    if (f.district && normalizeDistrict(p.district)!==f.district) return false;
+    if (f.developer && (p.developer||'')!==f.developer) return false;
+    if (f.stage && (p.stage||'stage_1')!==f.stage) return false;
+    const active = CEO_ACTIVE_STATUSES.includes(p.status);
+    const done = p.status==='הושלם';
+    if (!active && !(done && f.includeCompleted)) return false;
+    return true;
+  });
+}
+
+/** בונה טבלת סטטוס תמציתית לדוח */
+function ceoStatusTable(list){
+  if(!list.length) return '<p class="muted">אין תוכניות התואמות את הסינון.</p>';
+  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const risk = p => (p.status==='דחוף'?'<span class="date-status ds-red">גבוה</span>':(p.status==='בהמתנה'?'<span class="date-status ds-orange">בינוני</span>':'<span class="date-status ds-green">נמוך</span>'));
+  return `<div class="tbl-wrap"><table><thead><tr>
+    <th>תוכנית</th><th>מגרש</th><th>יזם</th><th>אדריכל</th><th>שלב</th><th>יעד</th><th>סיכון</th></tr></thead><tbody>${
+    list.map(p=>`<tr><td><strong>תב/${p.tik}</strong></td><td>${esc(p.location||'—')}</td><td>${esc(p.developer||'—')}</td><td>${esc(p.submitter||p.meta&&p.meta.archName||'—')}</td><td>${stageLbl[p.stage||'stage_1']}</td><td>${fmtDate(p.committeeDate)}</td><td>${risk(p)}</td></tr>`).join('')
+  }</tbody></table></div>`;
+}
+
+/** אזור סעיף עם כפתור נעילה + יצירה מחדש */
+function sectionShell(s, key, title, bodyHtml){
+  const locked = isLocked(s,key);
+  return `<section class="share-section${locked?' locked':''}">
+    <div class="share-sec-head">
+      <h3>${title}</h3>
+      <div class="share-sec-tools no-print">
+        <button class="btn btn-ghost btn-sm" onclick="regenSection('${key}')" ${locked?'disabled':''}>יצירה מחדש</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleLockSection('${key}')">${locked?'🔒 נעול':'🔓 פתוח'}</button>
+      </div>
+    </div>
+    <div class="share-sec-body" contenteditable="false" data-seckey="${key}">${bodyHtml}</div>
+  </section>`;
+}
+
+function gcOr(s, key, fallback){
+  const v = (s.manualEdits && s.manualEdits[key]) || (s.generatedContent && s.generatedContent[key]);
+  return v ? aiMd(v) : fallback;
+}
+
+function renderCeoReport(s){
+  const list = ceoSelectedPlans(s);
+  const newThis = list.filter(p=>{ const d=p.date||''; const pr=s.reportingPeriod; if(!d||!pr) return false; const [y,m]=d.split('-'); return Number(y)===pr.year && Number(m)===pr.month; }).length;
+  const doneThis = plans.filter(p=>p.status==='הושלם' && p.committeeDate && s.reportingPeriod && Number(p.committeeDate.split('-')[0])===s.reportingPeriod.year && Number(p.committeeDate.split('-')[1])===s.reportingPeriod.month).length;
+  const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה').length;
+  const districts=[...new Set(plans.map(p=>normalizeDistrict(p.district)).filter(Boolean))].sort();
+  const developers=[...new Set(plans.map(p=>p.developer).filter(Boolean))].sort();
+  const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
+  return `
+  <div class="pp-breadcrumb no-print"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
+  <div class="share-toolbar no-print">
+    <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
+    <div class="share-tb-right">
+      <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
+      <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
+      <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
+      <button class="btn btn-primary btn-sm" onclick="generateShareContent()">✨ הפקת תוכן</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportShareWord()">Word</button>
+      <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
+    </div>
+  </div>
+
+  <div class="share-doc" id="shareDoc">
+    <div class="share-filters no-print">
+      <div class="pp-field"><label>חודש</label><select onchange="setSharePeriod('month',this.value)">${Array.from({length:12},(_,i)=>`<option value="${i+1}"${pr.month===i+1?' selected':''}>${heMonthName(i+1)}</option>`).join('')}</select></div>
+      <div class="pp-field"><label>שנה</label><input type="number" value="${pr.year}" onchange="setSharePeriod('year',this.value)"></div>
+      <div class="pp-field"><label>רובע</label><select onchange="setShareFilter('district',this.value);openShare('${s.id}')"><option value="">הכל</option>${districts.map(d=>`<option${s.filters.district===d?' selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="pp-field"><label>יזם</label><select onchange="setShareFilter('developer',this.value);openShare('${s.id}')"><option value="">הכל</option>${developers.map(d=>`<option${s.filters.developer===d?' selected':''}>${esc(d)}</option>`).join('')}</select></div>
+      <div class="pp-field"><label>שלב</label><select onchange="setShareFilter('stage',this.value);openShare('${s.id}')"><option value="">הכל</option><option value="stage_1"${s.filters.stage==='stage_1'?' selected':''}>פורום אדריכל</option><option value="stage_2"${s.filters.stage==='stage_2'?' selected':''}>פורום יועצים</option><option value="committee"${s.filters.stage==='committee'?' selected':''}>הכנה לוועדה</option><option value="approved"${s.filters.stage==='approved'?' selected':''}>מאושר</option></select></div>
+      <label class="chk-inline"><input type="checkbox" ${s.filters.includeCompleted?'checked':''} onchange="setShareFilter('includeCompleted',this.checked);openShare('${s.id}')"> כלול שהושלמו</label>
+    </div>
+
+    <h1 class="share-title" contenteditable="true" onblur="setShareTitle(this.textContent)">${esc(s.title)}</h1>
+    <div class="share-sub">אדריכלית העיר ענת דוד שטיבלמן · ${heMonthName(pr.month)} ${pr.year}</div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-num">${list.length}</div><div class="kpi-lbl">תוכניות פעילות</div></div>
+      <div class="kpi"><div class="kpi-num">${newThis}</div><div class="kpi-lbl">נקלטו החודש</div></div>
+      <div class="kpi"><div class="kpi-num">${doneThis}</div><div class="kpi-lbl">הושלמו החודש</div></div>
+      <div class="kpi kpi-warn"><div class="kpi-num">${delayed}</div><div class="kpi-lbl">בעיכוב / דורש טיפול</div></div>
+    </div>
+
+    ${sectionShell(s,'executive','תקציר מנהלים', gcOr(s,'executive','<p class="muted">לחצי „הפקת תוכן” כדי להפיק תקציר מנהלים מבוסס הנתונים.</p>'))}
+    ${sectionShell(s,'events','האירועים המרכזיים של החודש', gcOr(s,'events','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    <section class="share-section"><div class="share-sec-head"><h3>סטטוס תוכניות</h3></div>${ceoStatusTable(list)}</section>
+    ${sectionShell(s,'attention','תוכניות הדורשות תשומת לב', gcOr(s,'attention','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'achievements','הישגים והתקדמות', gcOr(s,'achievements','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'decisions','החלטות נדרשות מהמנכ״ל', gcOr(s,'decisions','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'nextmonth','מבט לחודש הבא', gcOr(s,'nextmonth','<p class="muted">יופק בהפקת תוכן.</p>'))}
+  </div>`;
+}
+function setSharePeriod(k,v){ const s=sh(); if(!s)return; if(!s.reportingPeriod)s.reportingPeriod={}; s.reportingPeriod[k]=Number(v); touchShare(s); openShare(s.id); }
+function setShareTitle(t){ const s=sh(); if(!s)return; s.title=t.trim()||s.title; touchShare(s); renderSharesList(); }
+
+/* ══════════ שיתוף עיצוב חזיתות לראש העיר ══════════ */
+function renderMayorShare(s){
+  const p = s.projectIds.length ? plans.find(x=>String(x.id)===String(s.projectIds[0])) : null;
+  const projOpts = plans.map(pl=>`<option value="${pl.id}"${p&&p.id===pl.id?' selected':''}>תב/${pl.tik} — ${esc(pl.district)} ${esc(pl.location||'')}</option>`).join('');
+  const alts = s.facadeAlts||[];
+  return `
+  <div class="pp-breadcrumb no-print"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
+  <div class="share-toolbar no-print">
+    <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
+    <div class="share-tb-right">
+      <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
+      <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
+      <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
+      <button class="btn btn-primary btn-sm" onclick="generateShareContent()">✨ הפקת תוכן</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
+      <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
+    </div>
+  </div>
+
+  <div class="share-doc mayor-doc" id="shareDoc">
+    <div class="share-filters no-print">
+      <div class="pp-field" style="flex:1"><label>בחירת תוכנית בינוי</label>
+        <select onchange="setMayorProject(this.value)"><option value="">— בחרי פרויקט —</option>${projOpts}</select></div>
+    </div>
+
+    ${!p ? '<p class="muted" style="padding:2rem;text-align:center">בחרי תוכנית בינוי כדי למשוך את נתוני הפרויקט, ההדמיות והחלופות.</p>' : `
+    <h1 class="share-title" contenteditable="true" onblur="setShareTitle(this.textContent)">${esc(s.title)}</h1>
+    <div class="share-sub">${buildProjectTitle(p)}</div>
+
+    <div class="mayor-hero">${p.devPlanImg||p.render ? `<img src="${p.devPlanImg||p.render}" alt="הדמיה">` : '<div class="muted">אין הדמיה — ניתן להעלות בדף הפרויקט</div>'}</div>
+
+    <div class="proj-facts">
+      <span><b>מיקום:</b> ${esc(p.district)} ${esc(p.location||'')}</span>
+      <span><b>יזם:</b> ${esc(p.developer||'—')}</span>
+      <span><b>אדריכל:</b> ${esc(p.submitter||(p.meta&&p.meta.archName)||'—')}</span>
+      <span><b>ייעוד:</b> ${esc((p.meta&&p.meta.designation)||p.purpose||'—')}</span>
+    </div>
+
+    ${sectionShell(s,'opening','פתיח', gcOr(s,'opening','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'urban','ההקשר העירוני', gcOr(s,'urban','<p class="muted">יופק בהפקת תוכן.</p>'))}
+
+    <section class="share-section"><div class="share-sec-head"><h3>חלופות עיצוב</h3><div class="no-print"><button class="btn btn-ghost btn-sm" onclick="addFacadeAlt()" ${alts.length>=4?'disabled':''}>+ הוסף חלופה</button></div></div>
+      <div class="facade-alts">${alts.length?alts.map((a,i)=>facadeAltHTML(a,i)).join(''):'<p class="muted">הוסיפי בין 2 ל-4 חלופות עיצוב.</p>'}</div>
+    </section>
+
+    ${alts.length>=2 ? `<section class="share-section"><div class="share-sec-head"><h3>השוואה חזותית</h3></div>
+      <div class="facade-compare">${alts.map(a=>`<div class="fc-col"><div class="fc-img">${a.img?`<img src="${a.img}">`:'<div class="muted">אין תמונה</div>'}</div><div class="fc-name">${esc(a.name||'—')}</div><div class="fc-note">${esc(a.pros||'')}</div></div>`).join('')}</div>
+    </section>`:''}
+
+    ${sectionShell(s,'recommendation','המלצת אדריכלית העיר', gcOr(s,'recommendation','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'decision','החלטה מבוקשת', gcOr(s,'decision','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    `}
+  </div>`;
+}
+function setMayorProject(id){ const s=sh(); if(!s)return; s.projectIds = id?[id]:[]; touchShare(s); openShare(s.id); }
+function addFacadeAlt(){ const s=sh(); if(!s)return; if(!Array.isArray(s.facadeAlts))s.facadeAlts=[]; if(s.facadeAlts.length>=4){toast('מקסימום 4 חלופות');return;} s.facadeAlts.push({name:'חלופה '+(s.facadeAlts.length+1),idea:'',pros:'',cons:'',img:''}); touchShare(s); openShare(s.id); }
+function setFacadeAlt(i,field,val){ const s=sh(); if(!s)return; s.facadeAlts[i][field]=val; touchShare(s); }
+function removeFacadeAlt(i){ const s=sh(); if(!s)return; s.facadeAlts.splice(i,1); touchShare(s); openShare(s.id); }
+function facadeAltImgPick(i){ const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange=e=>{ _fileToDataUrl(e.target.files[0], d=>{ const s=sh(); s.facadeAlts[i].img=d; touchShare(s); openShare(s.id); }); }; inp.click(); }
+function facadeAltHTML(a,i){
+  return `<div class="facade-alt">
+    <div class="fa-img" onclick="facadeAltImgPick(${i})" title="לחצי להעלאת הדמיה">${a.img?`<img src="${a.img}">`:'<span class="render-plus">＋</span>'}</div>
+    <div class="fa-body">
+      <input class="fa-name" value="${esc(a.name)}" onchange="setFacadeAlt(${i},'name',this.value)" placeholder="שם החלופה">
+      <textarea onchange="setFacadeAlt(${i},'idea',this.value)" placeholder="רעיון עיצובי">${esc(a.idea||'')}</textarea>
+      <div class="pp-cols">
+        <textarea onchange="setFacadeAlt(${i},'pros',this.value)" placeholder="יתרונות">${esc(a.pros||'')}</textarea>
+        <textarea onchange="setFacadeAlt(${i},'cons',this.value)" placeholder="חסרונות">${esc(a.cons||'')}</textarea>
+      </div>
+      <button class="btn btn-ghost btn-sm no-print" style="color:var(--err)" onclick="removeFacadeAlt(${i})">הסר חלופה</button>
+    </div>
+  </div>`;
+}
+
+/* ══════════ הפקת תוכן מותאם קהל (סקילים בפועל) ══════════ */
+/** בונה את הנתונים המובנים שיוזנו למחולל התוכן */
+function shareDataPayload(s){
+  if (s.shareType==='monthly-ceo-report'){
+    const list = ceoSelectedPlans(s);
+    const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+    return {
+      audience: 'ceo',
+      period: s.reportingPeriod,
+      plans: list.map(p=>({
+        tik:p.tik, name:buildProjectTitle(p), plot:p.location, developer:p.developer, architect:p.submitter||(p.meta&&p.meta.archName),
+        stage: stageLbl[p.stage||'stage_1'], status:p.status, committeeDate:p.committeeDate,
+        opinion:(p.opinion&&p.opinion.summary)||'', decision:(p.summary&&p.summary.committeeDecision)||'',
+        reliefs:(p.meta&&p.meta.reliefsAsked)||''
+      }))
+    };
+  }
+  const p = plans.find(x=>String(x.id)===String(s.projectIds[0]));
+  return {
+    audience:'mayor',
+    project: p?{ name:buildProjectTitle(p), district:p.district, location:p.location, developer:p.developer,
+      architect:p.submitter||(p.meta&&p.meta.archName), designation:(p.meta&&p.meta.designation)||p.purpose,
+      opinion:(p.opinion&&p.opinion.description||'').slice(0,1200) }:null,
+    alternatives: s.facadeAlts||[]
+  };
+}
+
+/** מפה של סעיפים לכל סוג שיתוף */
+const SHARE_SECTIONS = {
+  'monthly-ceo-report': ['executive','events','attention','achievements','decisions','nextmonth'],
+  'mayor-facade-review': ['opening','urban','recommendation','decision']
+};
+const SECTION_TITLES = {
+  executive:'תקציר מנהלים', events:'האירועים המרכזיים של החודש', attention:'תוכניות הדורשות תשומת לב',
+  achievements:'הישגים והתקדמות', decisions:'החלטות נדרשות מהמנכ״ל', nextmonth:'מבט לחודש הבא',
+  opening:'פתיח', urban:'ההקשר העירוני', recommendation:'המלצת אדריכלית העיר', decision:'החלטה מבוקשת'
+};
+
+/** מפיק את כל הסעיפים הלא-נעולים דרך ה-backend של הסייען */
+async function generateShareContent(){
+  const s=sh(); if(!s)return;
+  const secs = SHARE_SECTIONS[s.shareType].filter(k=>!isLocked(s,k));
+  if(!secs.length){ toast('כל הסעיפים נעולים'); return; }
+  toast('מפיק תוכן… ⏳');
+  const payload = shareDataPayload(s);
+  if ((s.shareType==='monthly-ceo-report' && !payload.plans.length) || (s.shareType==='mayor-facade-review' && !payload.project)) {
+    toast('מידע חסר להשלמת השיתוף'); return;
+  }
+  for (const key of secs){
+    try {
+      const r = await callAssistant('ask', { question: buildShareSectionPrompt(s, key, payload) });
+      if (r && r.text){ if(!s.generatedContent) s.generatedContent={}; s.generatedContent[key]=r.text; }
+    } catch(e){ console.warn('gen section failed', key, e); }
+  }
+  s.updatedAt=todayStr(); saveShares(); openShare(s.id); toast('התוכן הופק');
+}
+
+/** יצירה מחדש של סעיף בודד */
+async function regenSection(key){
+  const s=sh(); if(!s||isLocked(s,key))return;
+  toast('מפיק מחדש… ⏳');
+  const payload=shareDataPayload(s);
+  try {
+    const r = await callAssistant('ask', { question: buildShareSectionPrompt(s,key,payload) });
+    if(r&&r.text){ if(!s.generatedContent)s.generatedContent={}; s.generatedContent[key]=r.text; delete (s.manualEdits||{})[key]; }
+  } catch(e){ toast('שגיאה בהפקה'); return; }
+  s.updatedAt=todayStr(); saveShares(); openShare(s.id); toast('הסעיף הופק מחדש');
+}
+
+/** בונה prompt לפי פרופיל הקהל — מיישם בפועל את כללי הסקיל */
+function buildShareSectionPrompt(s, key, payload){
+  const prof = shareAudienceProfiles[payload.audience];
+  const rules = `אתה כותב עבור: ${prof.audience}. מטרה: ${prof.purpose}. סגנון: ${prof.writingStyle}. מיקוד: ${prof.focus.join(', ')}. אל תמציא נתונים — אם חסר מידע כתוב "מידע חסר להשלמת הדוח" ופרט מה נדרש. החזר טקסט בעברית בלבד (Markdown קצר: כותרות/רשימות), ללא הקדמות מתנצלות.`;
+  const sectionSpec = {
+    executive:'כתוב תקציר מנהלים קצר: מספר תוכניות פעילות, שנקלטו/קודמו/הושלמו/התעכבו החודש, ונושאים המחייבים החלטה. 4-6 שורות.',
+    events:'סנתז רק אירועים מהותיים לכל תוכנית (פגישות, השלמות, שינויי סטטוס, החלטות, חסמים). אל תציג פעולות טכניות קטנות. רשימה תמציתית.',
+    attention:'הצג רק תוכניות עם חריגה מלו״ז / חסם / היעדר מענה / מחלוקת / צורך בהחלטת הנהלה. לכל אחת: מה הבעיה → מדוע חשוב → מה נעשה → מה נדרש → ממי → עד מתי.',
+    achievements:'הצג הישגים מדידים: תוכניות שהתקדמו, חסמים שנפתרו, תיאומים שהושלמו. ענייני, ללא ניפוח.',
+    decisions:'צור אזור החלטות למנכ״ל בלבד. לכל החלטה: נושא, רקע קצר, משמעות אי-קבלת החלטה, המלצה מקצועית, החלטה נדרשת, מועד אחרון. אם אין — כתוב זאת במפורש.',
+    nextmonth:'מבט לחודש הבא: אבני דרך צפויות, תוכניות שיעברו שלב, הכרעות מתוכננות, סיכונים ופעולות מניעה.',
+    opening:'משפט פתיחה קצר: מהו הפרויקט, היכן, ומדוע עיצובו משמעותי לעיר אשדוד.',
+    urban:'ההקשר העירוני בקצרה: תרומה לרחוב/רובע/קו הרקיע, קשר למרחב הציבורי, נראות מצירים, זהות המקום, אקלים, חומרים ועמידות.',
+    recommendation:'המלצה קצרה ומאוזנת: איזו חלופה מומלצת ומדוע, אילו התאמות נדרשות, הערך העירוני, והסיכון אם תיבחר חלופה חלשה יותר.',
+    decision:'נסח החלטה ברורה הנדרשת מראש העיר: אישור החלופה המומלצת / בחירה בין חלופות / אישור להמשך פיתוח / בקשת הנחיית מדיניות.'
+  };
+  return `${rules}\n\nהמשימה: כתוב את הסעיף "${SECTION_TITLES[key]}".\n${sectionSpec[key]}\n\nנתונים עדכניים (JSON):\n${JSON.stringify(payload, null, 2)}`;
+}
+
+/* ── פעולות: גרסאות, ייצוא, מייל ── */
+function showVersions(){
+  const s=sh(); if(!s)return;
+  const h = s.history||[];
+  const rows = h.length ? h.map(v=>`<tr><td>גרסה ${v.version}</td><td>${SHARE_STATUS[v.status]||v.status}</td><td>${fmtDate(v.at)}</td></tr>`).join('') : '<tr><td colspan="3" class="muted">אין גרסאות קודמות עדיין</td></tr>';
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal"><h3>היסטוריית גרסאות — ${esc(s.title)}</h3><div class="tbl-wrap"><table><thead><tr><th>גרסה</th><th>סטטוס</th><th>תאריך</th></tr></thead><tbody>${rows}</tbody></table></div><button class="btn btn-primary btn-sm" onclick="this.closest('.render-lightbox').remove()">סגור</button></div>`;
+  document.body.appendChild(ov);
+}
+function exportShareWord(){
+  const doc=document.getElementById('shareDoc'); if(!doc)return;
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body dir="rtl" style="font-family:Rubik,Arial">'+doc.innerHTML.replace(/<[^>]*class="no-print"[^>]*>[\s\S]*?<\/[^>]*>/g,'')+'</body></html>';
+  const blob=new Blob(['﻿'+html],{type:'application/msword'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(sh().title||'שיתוף')+'.doc'; a.click();
+  toast('יוצא ל-Word');
+}
+function copyShareEmail(){
+  const doc=document.getElementById('shareDoc'); if(!doc)return;
+  const tmp=doc.cloneNode(true); tmp.querySelectorAll('.no-print').forEach(e=>e.remove());
+  const text=tmp.innerText.replace(/\n{3,}/g,'\n\n').trim();
+  navigator.clipboard.writeText(text).then(()=>toast('הועתק ללוח — הדבק במייל')).catch(()=>toast('העתקה נכשלה'));
+}
+
 // ── INIT ──
 populateFilters();
 applyFilters();
 renderLanding();
+loadShares();
 (function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
 // שחזור דף מ-hash (כתובת ישירה / רענון ללא 404)
 if (location.hash) routeFromHash();
