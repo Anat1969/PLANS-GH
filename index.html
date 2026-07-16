@@ -344,7 +344,7 @@ tbody tr:hover{background:var(--teal-pale)}
 .gl-title{font-family:var(--display);font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
 .gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
 .gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
-.gl-nav{position:sticky;top:56px;z-index:90;background:var(--paper);display:flex;gap:2px;flex-wrap:wrap;padding:0.6rem 0;border-bottom:1px solid var(--stone);margin-bottom:1.5rem}
+.gl-nav{position:sticky;top:64px;z-index:80;background:var(--paper);display:flex;gap:6px;flex-wrap:wrap;padding:0.7rem 0.5rem;border-bottom:1px solid var(--stone);margin-bottom:1.5rem;box-shadow:0 4px 8px -6px rgba(0,0,0,0.15)}
 .gl-nav a{font-size:13px;color:#fff;background:var(--teal);text-decoration:none;padding:7px 14px;border-radius:8px;white-space:nowrap;transition:all 0.15s;border:1px solid var(--teal);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.08);cursor:pointer}
 .gl-nav a:hover{background:var(--bronze);border-color:var(--bronze);transform:translateY(-1px)}
 .gl-section{margin-bottom:2.5rem;scroll-margin-top:120px}
@@ -559,8 +559,17 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .muted{color:rgba(0,0,0,0.4);font-size:13px}
 .shares-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.5rem}
 .share-type-card{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:1.4rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
-.share-type-card h3{font-family:var(--display);font-size:18px;color:var(--teal)}
-.stc-desc{font-size:13.5px;line-height:1.6;color:rgba(0,0,0,0.6);flex:1}
+.share-type-card h3{font-family:var(--display);font-size:22px;color:var(--teal)}
+/* ספריות שיתופים */
+.share-lib{margin-bottom:1.4rem}
+.share-lib-head{display:flex;align-items:center;gap:10px;cursor:pointer;padding:0.7rem 1rem;background:var(--teal-pale,#eef5f5);border-inline-start:3px solid var(--teal);border-radius:8px}
+.share-lib-head:hover{background:var(--fog)}
+.share-lib-head h3{font-family:var(--display);font-size:17px;color:var(--ink);flex:1}
+.lib-icon{font-size:18px}
+.lib-count{background:var(--teal);color:#fff;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px}
+.share-lib .shares-grid{margin-top:0.8rem}
+.share-note{background:#f0f7f7;border:1px solid #cfe3e3;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#2a5f5f;margin-bottom:1rem}
+.stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
 .share-item{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow)}
@@ -856,9 +865,16 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
           <div class="detail-item"><div class="detail-label">תאריך ועדה</div><input type="date" id="addCommittee" class="status-select" style="width:100%;margin-top:4px"></div>
         </div>
       </div>
-      <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem">
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="closeAddModal()">ביטול</button>
         <button class="btn btn-primary" onclick="addPlan()">הוסף תוכנית בינוי</button>
+      </div>
+      <div id="addPlanLinkRow" style="display:none;margin-top:0.8rem;padding:0.8rem;background:#f0f7f7;border:1px solid #cfe3e3;border-radius:8px">
+        <div style="font-size:13px;color:#2a5f5f;margin-bottom:6px">התוכנית נוספה. שלחי ליזם/אדריכל קישור למילוי שדות הבקשה:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="copyFillLink()">📋 העתק קישור למילוי שדות</button>
+          <button class="btn btn-ghost btn-sm" onclick="openFillLink()">פתח את דף הפרויקט</button>
+        </div>
       </div>
     </div>
   </div>
@@ -927,8 +943,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
   </div>
 
-  <div class="section-title" style="margin-top:2rem">שיתופים קיימים</div>
-  <div id="sharesList"></div>
+  <div id="sharesList" style="margin-top:1.5rem"></div>
 </div>
 
 <!-- מציג שיתוף בודד (דוח/חזיתות) -->
@@ -1305,9 +1320,15 @@ function activateNavFor(id) {
 
 /** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
 function routeFromHash() {
-  const id = (location.hash||'').replace('#','');
+  const raw = (location.hash||'').replace('#','');
+  // קישור ישיר לתוכנית: #project=1910  → פותח דף פרויקט לפי מס' תיק
+  if (raw.startsWith('project=')) {
+    const tik = raw.split('=')[1];
+    const p = plans.find(x=>String(x.tik)===String(tik));
+    if (p) { openProject(p.id); return; }
+  }
   const routable = ['landing','table','guidelines','map','trends','shares'];
-  if (routable.includes(id)) activateNavFor(id);
+  if (routable.includes(raw)) activateNavFor(raw);
 }
 window.addEventListener('hashchange', routeFromHash);
 
@@ -2025,8 +2046,17 @@ function cycleStatus(id) {
 }
 
 // ── ADD PLAN ──
-function openAddModal() { document.getElementById('addModal').classList.add('open'); }
-function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+function openAddModal() {
+  const lr=document.getElementById('addPlanLinkRow'); if(lr) lr.style.display='none';
+  _addedPlanTik=null;
+  document.getElementById('addModal').classList.add('open');
+}
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+  const lr=document.getElementById('addPlanLinkRow'); if(lr) lr.style.display='none';
+  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee','addArchEmail'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
+  _addedPlanTik=null;
+}
 document.getElementById('addModal').addEventListener('click', function(e) { if (e.target === this) closeAddModal(); });
 
 function addPlan() {
@@ -2067,13 +2097,28 @@ function addPlan() {
   populateFilters();
   applyFilters();
   renderLanding();
-  closeAddModal();
   toast(`תוכנית בינוי ${tik} נוספה בהצלחה`);
   if(newPlan.forumArchitect) notifyForumDate(newPlan,'forumArchitect',newPlan.forumArchitect);
   if(newPlan.forumConsultants) notifyForumDate(newPlan,'forumConsultants',newPlan.forumConsultants);
   if(newPlan.committeeDate) notifyForumDate(newPlan,'committeeDate',newPlan.committeeDate);
   notifyArchitectNewPlan(newPlan, archEmail);
-  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee','addArchEmail'].forEach(id=>document.getElementById(id).value='');
+  // הצגת קישור למילוי שדות (במקום סגירה מיידית)
+  _addedPlanTik = newPlan.tik;
+  const lr = document.getElementById('addPlanLinkRow'); if(lr) lr.style.display='block';
+}
+let _addedPlanTik = null;
+/** קישור עמוק לדף הפרויקט למילוי שדות ע"י היזם/אדריכל */
+function fillLinkFor(tik){ return location.origin + location.pathname + '#project=' + encodeURIComponent(tik); }
+function copyFillLink(){
+  if(_addedPlanTik==null){ toast('הוסיפי תוכנית תחילה'); return; }
+  const url = fillLinkFor(_addedPlanTik);
+  navigator.clipboard.writeText(url).then(()=>toast('הקישור הועתק — שלחי ליזם/אדריכל')).catch(()=>toast('העתקה נכשלה: '+url));
+}
+function openFillLink(){
+  if(_addedPlanTik==null) return;
+  const p = plans.find(x=>String(x.tik)===String(_addedPlanTik));
+  closeAddModal();
+  if(p){ location.hash='#project='+_addedPlanTik; openProject(p.id); }
 }
 
 // ── MAP ──
@@ -3477,24 +3522,43 @@ function dupShare(id){
 }
 
 /* ── רשימת שיתופים ── */
+let _libOpen = { 'monthly-ceo-report': true, 'mayor-facade-review': true };
+function toggleLib(type){ _libOpen[type] = !_libOpen[type]; renderSharesList(); }
+function shareItemHTML(s){
+  const typeLbl = s.shareType==='monthly-ceo-report' ? 'דוח מנכ״ל' : 'שיתוף חזיתות';
+  return `<div class="share-item">
+    <div class="share-item-head">
+      <strong>${esc(s.title)}</strong>
+      <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
+    </div>
+    <div class="share-item-meta">${typeLbl} · גרסה ${s.version} · עודכן ${fmtDate(s.updatedAt)}</div>
+    <div class="share-item-actions">
+      <button class="btn btn-primary btn-sm" onclick="openShare('${s.id}')">פתיחה</button>
+      <button class="btn btn-ghost btn-sm" onclick="dupShare('${s.id}')">שכפול</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--err)" onclick="deleteShare('${s.id}')">מחיקה</button>
+    </div>
+  </div>`;
+}
+/** רשימת שיתופים מאורגנת בשתי ספריות (מעקב חודשי / עיצוב חזיתות) */
 function renderSharesList(){
   const el = document.getElementById('sharesList'); if(!el) return;
-  if (!shares.length){ el.innerHTML = '<p style="color:rgba(0,0,0,0.45);font-size:13px;padding:1rem 0">אין שיתופים עדיין. צרי שיתוף חדש מאחד הכרטיסים למעלה.</p>'; return; }
-  el.innerHTML = '<div class="shares-grid">' + shares.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).map(s => {
-    const typeLbl = s.shareType==='monthly-ceo-report' ? 'דוח מנכ״ל' : 'שיתוף חזיתות';
-    return `<div class="share-item">
-      <div class="share-item-head">
-        <strong>${esc(s.title)}</strong>
-        <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
+  const byType = t => shares.filter(s=>s.shareType===t).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
+  const lib = (type, name) => {
+    const items = byType(type);
+    const open = _libOpen[type];
+    return `<div class="share-lib">
+      <div class="share-lib-head" onclick="toggleLib('${type}')">
+        <span class="lib-icon">📁</span>
+        <h3>${name}</h3>
+        <span class="lib-count">${items.length}</span>
+        <span class="flow-chevron"${open?' style="transform:rotate(180deg)"':''}>▾</span>
       </div>
-      <div class="share-item-meta">${typeLbl} · גרסה ${s.version} · עודכן ${fmtDate(s.updatedAt)}</div>
-      <div class="share-item-actions">
-        <button class="btn btn-primary btn-sm" onclick="openShare('${s.id}')">פתיחה</button>
-        <button class="btn btn-ghost btn-sm" onclick="dupShare('${s.id}')">שכפול</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--err)" onclick="deleteShare('${s.id}')">מחיקה</button>
-      </div>
+      ${open ? (items.length
+        ? `<div class="shares-grid">${items.map(shareItemHTML).join('')}</div>`
+        : '<p class="muted" style="padding:0.5rem 0">אין שיתופים בספרייה זו עדיין.</p>') : ''}
     </div>`;
-  }).join('') + '</div>';
+  };
+  el.innerHTML = lib('monthly-ceo-report','ספריית דוחות מעקב חודשי') + lib('mayor-facade-review','ספריית עיצוב חזיתות');
 }
 
 /* ── פתיחת שיתוף בודד ── */
@@ -3579,9 +3643,51 @@ function sectionShell(s, key, title, bodyHtml){
   </section>`;
 }
 
+/** תוכן הסעיף: עריכה ידנית > תוכן AI > תקציר אוטומטי מהנתונים (ללא טוקנים) > fallback */
 function gcOr(s, key, fallback){
   const v = (s.manualEdits && s.manualEdits[key]) || (s.generatedContent && s.generatedContent[key]);
-  return v ? aiMd(v) : fallback;
+  if (v) return aiMd(v);
+  const auto = autoSection(s, key);
+  return auto || fallback || '<p class="muted">לחצי „✨ העשר עם AI” כדי לנסח סעיף זה.</p>';
+}
+
+/* ── תקצירים אוטומטיים מהנתונים — 2-3 משפטים ענייניים, ללא AI ── */
+function autoSection(s, key){
+  const list = ceoSelectedPlans(s);
+  const pr = s.reportingPeriod || {month:nowMonth(), year:nowYear()};
+  const ym = String(pr.year)+'-'+String(pr.month).padStart(2,'0');
+  const today = todayStr();
+  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const newThis = list.filter(p=>(p.date||'').slice(0,7)===ym);
+  const doneThis = plans.filter(p=>p.status==='הושלם' && (p.committeeDate||'').slice(0,7)===ym);
+  const urgent = list.filter(p=>{ const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate; if(!pd)return false; const d=Math.round((new Date(pd)-new Date(today))/864e5); return d>=0&&d<=14; });
+  const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה');
+  const nm = p => 'תב/'+p.tik+(p.location?(' ('+p.location+')'):'');
+  const li = arr => arr.length ? '<ul>'+arr.map(x=>'<li>'+x+'</li>').join('')+'</ul>' : '';
+  switch(key){
+    case 'executive':
+      return `<p>${list.length} תוכניות בטיפול פעיל בחודש ${heMonthName(pr.month)} ${pr.year}. נקלטו החודש ${newThis.length}, הושלמו ${doneThis.length}, ובעיכוב/דחוף ${delayed.length}. ${urgent.length?('<b>'+urgent.length+' תוכניות מחייבות טיפול מיידי</b> (יעד תוך שבועיים).'):'אין תוכניות עם יעד קרוב מיידי.'}</p>`;
+    case 'events':
+      const ev = list.filter(p=>actedThisMonth(p,ym)).slice(0,8).map(p=>nm(p)+' — קודמה לשלב '+stageLbl[p.stage||'stage_1']);
+      return ev.length ? li(ev) : '<p class="muted">לא תועדו אירועים מהותיים בחודש זה.</p>';
+    case 'attention':
+      const att = delayed.concat(urgent.filter(p=>!delayed.includes(p))).slice(0,6).map(p=>{
+        const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate;
+        return '<b>'+nm(p)+'</b> — סטטוס '+p.status+(pd?(', יעד הכנה לוועדה '+fmtDate(pd)):'')+'. אחראי: '+(p.submitter||p.developer||'—');
+      });
+      return att.length ? li(att) : '<p>אין תוכניות הדורשות תשומת לב חריגה החודש.</p>';
+    case 'achievements':
+      const ach = doneThis.map(p=>nm(p)+' — הושלמה');
+      newThis.forEach(p=>ach.push(nm(p)+' — נקלטה ונפתח טיפול'));
+      return ach.length ? li(ach.slice(0,8)) : '<p class="muted">אין הישגים מדידים שתועדו החודש.</p>';
+    case 'decisions':
+      const dec = delayed.slice(0,5).map(p=>'<b>'+nm(p)+'</b> — נדרשת הכרעה להסרת החסם ולהמשך קידום.');
+      return dec.length ? (li(dec)+'<p>מומלץ לקבל החלטה בתוך שבועיים כדי למנוע עיכוב נוסף.</p>') : '<p>אין כרגע החלטות המחייבות את המנכ״ל.</p>';
+    case 'nextmonth':
+      const next = list.filter(p=>{ const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate; return pd && pd>=today; }).sort((a,b)=>{const x=(a.datesPlan&&a.datesPlan.committeePrep)||a.committeeDate,y=(b.datesPlan&&b.datesPlan.committeePrep)||b.committeeDate;return x.localeCompare(y);}).slice(0,6).map(p=>{const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate;return nm(p)+' — הכנה לוועדה '+fmtDate(pd);});
+      return next.length ? (li(next)+'<p>אבני הדרך הצפויות בחודש הבא לפי סדר דחיפות.</p>') : '<p class="muted">אין אבני דרך מתוזמנות לחודש הבא.</p>';
+  }
+  return '';
 }
 
 function renderCeoReport(s){
@@ -3600,7 +3706,7 @@ function renderCeoReport(s){
       <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
       <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
       <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="generateShareContent()">✨ הפקת תוכן</button>
+      <button class="btn btn-primary btn-sm" onclick="generateShareContent()" title="ניסוח משכנע יותר בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
       <button class="btn btn-ghost btn-sm" onclick="exportShareWord()">Word</button>
       <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
@@ -3608,6 +3714,7 @@ function renderCeoReport(s){
   </div>
 
   <div class="share-doc" id="shareDoc">
+    <div class="share-note no-print">הדוח מתמלא אוטומטית מהנתונים העדכניים — תקציר ענייני לכל כותרת. „✨ העשר עם AI” משכתב לניסוח מנהלי משכנע יותר (צורך טוקנים).</div>
     <div class="share-filters no-print">
       <div class="pp-field"><label>חודש</label><select onchange="setSharePeriod('month',this.value)">${Array.from({length:12},(_,i)=>`<option value="${i+1}"${pr.month===i+1?' selected':''}>${heMonthName(i+1)}</option>`).join('')}</select></div>
       <div class="pp-field"><label>שנה</label><input type="number" value="${pr.year}" onchange="setSharePeriod('year',this.value)"></div>
@@ -3627,13 +3734,13 @@ function renderCeoReport(s){
       <div class="kpi kpi-warn"><div class="kpi-num">${delayed}</div><div class="kpi-lbl">בעיכוב / דורש טיפול</div></div>
     </div>
 
-    ${sectionShell(s,'executive','תקציר מנהלים', gcOr(s,'executive','<p class="muted">לחצי „הפקת תוכן” כדי להפיק תקציר מנהלים מבוסס הנתונים.</p>'))}
-    ${sectionShell(s,'events','האירועים המרכזיים של החודש', gcOr(s,'events','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'executive','תקציר מנהלים', gcOr(s,'executive'))}
+    ${sectionShell(s,'events','האירועים המרכזיים של החודש', gcOr(s,'events'))}
     <section class="share-section"><div class="share-sec-head"><h3>סטטוס תוכניות</h3></div>${ceoStatusTable(list)}</section>
-    ${sectionShell(s,'attention','תוכניות הדורשות תשומת לב', gcOr(s,'attention','<p class="muted">יופק בהפקת תוכן.</p>'))}
-    ${sectionShell(s,'achievements','הישגים והתקדמות', gcOr(s,'achievements','<p class="muted">יופק בהפקת תוכן.</p>'))}
-    ${sectionShell(s,'decisions','החלטות נדרשות מהמנכ״ל', gcOr(s,'decisions','<p class="muted">יופק בהפקת תוכן.</p>'))}
-    ${sectionShell(s,'nextmonth','מבט לחודש הבא', gcOr(s,'nextmonth','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${sectionShell(s,'attention','תוכניות הדורשות תשומת לב', gcOr(s,'attention'))}
+    ${sectionShell(s,'achievements','הישגים והתקדמות', gcOr(s,'achievements'))}
+    ${sectionShell(s,'decisions','החלטות נדרשות מהמנכ״ל', gcOr(s,'decisions'))}
+    ${sectionShell(s,'nextmonth','מבט לחודש הבא', gcOr(s,'nextmonth'))}
   </div>`;
 }
 function setSharePeriod(k,v){ const s=sh(); if(!s)return; if(!s.reportingPeriod)s.reportingPeriod={}; s.reportingPeriod[k]=Number(v); touchShare(s); openShare(s.id); }
@@ -3652,7 +3759,7 @@ function renderMayorShare(s){
       <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
       <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
       <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="generateShareContent()">✨ הפקת תוכן</button>
+      <button class="btn btn-primary btn-sm" onclick="generateShareContent()" title="ניסוח בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
       <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
     </div>
