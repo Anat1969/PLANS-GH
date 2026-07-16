@@ -588,6 +588,27 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .wf-step.done .wf-num{background:var(--ok)}
 .wf-arrow{color:rgba(0,0,0,0.3);font-size:14px}
 @media (max-width:768px){.wf-label{display:none}.wf-arrow{display:none}}
+/* ══════════ טבלה 5 — מנוע חוקים ══════════ */
+.t5-card{margin-bottom:1.5rem}
+.t5-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.t5-summary{display:flex;gap:6px;flex-wrap:wrap}
+.t5-note{font-size:12.5px;color:rgba(0,0,0,0.55);margin-bottom:0.9rem;line-height:1.5}
+.t5-table th{background:var(--teal)}
+.t5-table td{vertical-align:top}
+.t5-table input{width:100%;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px}
+.t5-enf{font-size:10px;color:rgba(0,0,0,0.4);margin-top:2px}
+.t5-delta{font-size:12px;color:var(--err);font-weight:600}
+.t5-ok td{background:rgba(61,139,94,0.05)}
+.t5-explain td{background:rgba(196,122,32,0.06)}
+.t5-block td{background:rgba(184,64,64,0.07)}
+.t5-explain-row td{background:#fff7f0 !important;padding:8px 12px !important}
+.t5-explain label{display:block;font-size:12px;font-weight:600;color:#b45309;margin-bottom:4px}
+.t5-block .t5-explain-row td,.t5-explain-row.t5-block td{background:#fff5f5 !important}
+.t5-explain textarea{width:100%;min-height:44px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db;margin-bottom:6px}
+.t5-source{width:100%;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:12px}
+.t5-block-banner{background:rgba(184,64,64,0.1);border:1px solid var(--err);color:var(--err);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
+.t5-warn-banner{background:rgba(196,122,32,0.1);border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
+.t5-ok-banner{background:rgba(61,139,94,0.1);border:1px solid var(--ok);color:var(--ok);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -1085,7 +1106,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2675,9 +2696,10 @@ function workflowStatus(p){
     results: filled(p.opinion && p.opinion.recommendation)
   };
   const doneCount = Object.values(stepDone).filter(Boolean).length;
-  // אי־התאמות: סעיפי בדיקה שסומנו 'לא תואם'
+  // אי־התאמות: חוסמים+דורש-הסבר מטבלה 5 + סעיפי בדיקה שסומנו 'לא תואם'
   let mismatches = 0, missing = 0;
   if (p.guideChecks) Object.values(p.guideChecks).forEach(g=>{ if(g && g.ok===false) mismatches++; });
+  if (typeof table5Summary === 'function' && p.table5){ const t=table5Summary(p); mismatches += t.block + t.explain; missing += t.missing; }
   ['projectName','developer','district'].forEach(k=>{ if(!filled(p[k])) missing++; });
   ['zoningPlan','designation','area'].forEach(k=>{ if(!filled(m[k])) missing++; });
   return { stepDone, doneCount, mismatches, missing };
@@ -3053,13 +3075,114 @@ function setOpinion(field,val){const p=pj();if(!p)return;p.opinion[field]=val;cl
 /** עדכון סיכום חוות הדעת מהמודל המהיר — מבטיח מבנה אובייקט */
 function setModalOpinion(id,val){const p=plans.find(x=>x.id===id);if(!p)return;if(!p.opinion||typeof p.opinion!=='object')p.opinion={description:'',summary:'',recommendation:'',savedAt:''};p.opinion.summary=val;p.opinion.savedAt=todayStr();savePlans();toast('חוות דעת עודכנה');}
 
+/* ══════════ טבלה 5 — מנוע חוקים: מותר מול מוצע ══════════ */
+// שדות הטבלה: כל נושא + סוג הבדיקה (info/warn/block) + סוג ערך (number/text/percent)
+const TABLE5_FIELDS = [
+  { key:'units',      label:'מספר יחידות דיור', type:'number',  rule:'max',   enforce:'warn'  },
+  { key:'mainArea',   label:'שטח עיקרי (מ״ר)',  type:'number',  rule:'max',   enforce:'warn'  },
+  { key:'floors',     label:'מספר קומות',       type:'number',  rule:'max',   enforce:'block' },
+  { key:'height',     label:'גובה (מ׳)',        type:'number',  rule:'max',   enforce:'block' },
+  { key:'coverage',   label:'תכסית (%)',        type:'percent', rule:'max',   enforce:'warn'  },
+  { key:'setbackF',   label:'קו בניין קדמי (מ׳)',type:'number', rule:'min',   enforce:'block' },
+  { key:'setbackB',   label:'קו בניין אחורי (מ׳)',type:'number',rule:'min',   enforce:'block' },
+  { key:'setbackS',   label:'קו בניין צידי (מ׳)',type:'number', rule:'min',   enforce:'warn'  },
+  { key:'designation',label:'ייעוד',            type:'text',    rule:'match', enforce:'block' },
+  { key:'parking',    label:'תקן חניה',         type:'number',  rule:'min',   enforce:'warn'  }
+];
+const ENFORCE_LABEL = { info:'מידע', warn:'אזהרה', block:'חוסם הגשה' };
+
+function ensureTable5(p){
+  if(!p.table5) p.table5 = {};
+  TABLE5_FIELDS.forEach(f=>{ if(!p.table5[f.key]) p.table5[f.key] = { allowed:'', proposed:'', source:'', note:'' }; });
+}
+const _num = v => { const n = parseFloat(String(v).replace(/[^\d.\-]/g,'')); return isNaN(n)?null:n; };
+
+/** מחשב את תוצאת השורה: ok / explain / block / missing */
+function table5Result(f, row){
+  const a = row.allowed, pr = row.proposed;
+  if (a==='' && pr==='') return { level:'missing', text:'חסר', delta:'' };
+  if (a==='' || pr==='') return { level:'missing', text:'חסר נתון', delta:'' };
+  if (f.type==='text'){
+    const same = String(a).trim()===String(pr).trim();
+    return same ? {level:'ok',text:'תואם',delta:''} : {level: f.enforce==='block'?'block':'explain', text:'אינו תואם', delta:''};
+  }
+  const na=_num(a), np=_num(pr);
+  if (na===null || np===null) return { level:'missing', text:'ערך לא תקין', delta:'' };
+  let viol=false, delta='';
+  if (f.rule==='max'){ viol = np>na; if(viol) delta = 'חריגה של '+ (Math.round((np-na)*100)/100) + (f.type==='percent'?'%':''); }
+  else if (f.rule==='min'){ viol = np<na; if(viol) delta = 'חוסר של '+ (Math.round((na-np)*100)/100) + (f.type==='percent'?'%':''); }
+  if (!viol) return { level:'ok', text:'תואם', delta:'' };
+  return { level: f.enforce==='block'?'block':(f.enforce==='warn'?'explain':'ok'), text: delta, delta };
+}
+
+/** סיכום טבלה 5: כמה תואם/דורש הסבר/חוסם/חסר */
+function table5Summary(p){
+  ensureTable5(p);
+  let ok=0, explain=0, block=0, missing=0;
+  TABLE5_FIELDS.forEach(f=>{
+    const r = table5Result(f, p.table5[f.key]);
+    if(r.level==='ok')ok++; else if(r.level==='explain')explain++; else if(r.level==='block')block++; else missing++;
+  });
+  return { ok, explain, block, missing, canSubmit: block===0 };
+}
+
+function setTable5(key, field, val){
+  const p=pj(); if(!p)return; ensureTable5(p);
+  p.table5[key][field]=val; savePlans();
+  // רענון קל — עדכון סיכום, פס התקדמות ומסלול
+  renderReviewTab(p);
+  const wb=document.getElementById('workflowBar'); if(wb) renderWorkflowBar(p);
+}
+
+function renderTable5(p){
+  ensureTable5(p);
+  const sm = table5Summary(p);
+  const badge = lvl => {
+    const map={ok:['ds-green','תואם'],explain:['ds-orange','דורש הסבר'],block:['ds-red','חוסם הגשה'],missing:['ds-blue','חסר']};
+    return `<span class="date-status ${map[lvl][0]}">${map[lvl][1]}</span>`;
+  };
+  const rows = TABLE5_FIELDS.map(f=>{
+    const row = p.table5[f.key];
+    const r = table5Result(f, row);
+    const needExplain = (r.level==='explain'||r.level==='block');
+    return `<tr class="t5-${r.level}">
+      <td><b>${f.label}</b><div class="t5-enf">${ENFORCE_LABEL[f.enforce]}</div></td>
+      <td><input value="${esc(row.allowed)}" placeholder="מותר" onchange="setTable5('${f.key}','allowed',this.value)"></td>
+      <td><input value="${esc(row.proposed)}" placeholder="מוצע" onchange="setTable5('${f.key}','proposed',this.value)"></td>
+      <td>${badge(r.level)}${r.delta?(' <span class="t5-delta">'+r.delta+'</span>'):''}</td>
+    </tr>
+    ${needExplain?`<tr class="t5-explain-row"><td colspan="4">
+      <div class="t5-explain"><label>${r.level==='block'?'⛔ חוסם הגשה — נדרש תיקון או הקלה:':'הסבר/הצדקה + אסמכתה:'}</label>
+      <textarea placeholder="נימוק, הקלה או מקור..." onchange="setTable5('${f.key}','note',this.value)">${esc(row.note)}</textarea>
+      <input class="t5-source" value="${esc(row.source)}" placeholder="מקור / סעיף בתב״ע" onchange="setTable5('${f.key}','source',this.value)"></div>
+    </td></tr>`:''}`;
+  }).join('');
+  return `<div class="pp-card t5-card">
+    <div class="t5-head">
+      <h4>טבלה 5 — מותר מול מוצע</h4>
+      <div class="t5-summary">
+        <span class="date-status ds-green">${sm.ok} תואם</span>
+        <span class="date-status ds-orange">${sm.explain} דורש הסבר</span>
+        <span class="date-status ds-red">${sm.block} חוסם</span>
+        <span class="date-status ds-blue">${sm.missing} חסר</span>
+      </div>
+    </div>
+    <div class="t5-note">המערכת מחשבת אוטומטית חריגות וחוסרים. „חוסם הגשה” (אדום) מונע הגשה עד תיקון/הקלה; „דורש הסבר” (כתום) ניתן להמשך לאחר נימוק.</div>
+    <div class="tbl-wrap"><table class="t5-table"><thead><tr><th>נושא</th><th>מותר לפי התב״ע</th><th>מוצע</th><th>תוצאה</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${sm.block? `<div class="t5-block-banner">⛔ קיימות ${sm.block} אי־התאמות חוסמות — לא ניתן להגיש עד תיקון.</div>`
+      : (sm.explain? `<div class="t5-warn-banner">⚠️ ${sm.explain} נושאים דורשים הסבר לפני הגשה.</div>` : `<div class="t5-ok-banner">✓ אין אי־התאמות חוסמות.</div>`)}
+  </div>`;
+}
+
 function renderReviewTab(p) {
   const el = document.getElementById('panel-review');
+  let html = renderTable5(p); // מנוע החוקים בראש טאב הבדיקה
   if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
-    el.innerHTML = renderStage2(p);
+    html += renderStage2(p);
   } else {
-    el.innerHTML = renderStage1(p);
+    html += renderStage1(p);
   }
+  el.innerHTML = html;
   updateProgress(p);
 }
 function chkSelect(stageKey, code, cur) {
