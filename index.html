@@ -121,6 +121,30 @@ tbody tr:hover{background:var(--teal-pale)}
   .sec-nav-list{display:none;margin-top:6px;border-right:none;padding-right:0}
   .sec-nav.open .sec-nav-list{display:flex}
 }
+.contacts-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.cq-quick{display:inline-flex;gap:5px}
+.cq-chip,.cq-view{border:1px solid #d5d5d5;background:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-family:inherit;cursor:pointer;color:#555}
+.cq-chip.on{background:#7a1f2b;color:#fff;border-color:#7a1f2b}
+.cq-view{border-radius:8px}
+.contacts-bulk{background:#fbf3f4;border:1px solid #e6cdd1;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px}
+.contacts-bulk.off{display:none}
+.contacts-table th{position:sticky;top:0;background:#f7f7f7;z-index:2}
+.contacts-table td.c-notes{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#666}
+.c-link{color:#2a5f7a;cursor:pointer;text-decoration:none}.c-link:hover{text-decoration:underline}
+.c-ico{text-decoration:none;color:#888;margin-inline-start:2px}
+.samp-tag{background:#fff3cd;color:#8a6d00;border-radius:4px;font-size:10px;padding:1px 5px;margin-inline-start:4px}
+.contact-sample{background:#fffdf5}
+.contacts-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.contact-card{border:1px solid #e2e2e2;border-radius:10px;padding:12px 14px;background:#fff}
+.cc-top{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:6px}
+.cc-type{font-size:11px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 9px}
+.cc-line{font-size:12px;margin:3px 0;line-height:1.5}
+.cc-actions{margin-top:8px}
+.cform{display:grid;gap:4px;max-height:60vh;overflow:auto}
+.cform .mail-lbl{margin-top:8px}
+.cf-plans{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid #eee;border-radius:8px;padding:8px;max-height:160px;overflow:auto}
+.proj-contact-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media(max-width:700px){ .contacts-table thead{display:none} .cf-plans{grid-template-columns:1fr} }
 .btn-bronze{background:var(--bronze);color:white}
 .btn-bronze:hover{background:var(--bronze-deep)}
 
@@ -863,6 +887,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
     <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
+    <button onclick="go('contacts',this)">רשימות קשר</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -1219,6 +1244,14 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <!-- מציג שיתוף בודד (דוח/חזיתות) -->
 <div id="shareView" class="page">
   <div id="shareViewInner"></div>
+</div>
+
+<!-- ════════ CONTACTS PAGE (רשימות קשר) ════════ -->
+<div id="contacts" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>רשימות קשר</span></div>
+  <div class="page-title">רשימות קשר</div>
+  <div class="page-subtitle">מאגר מרכזי לניהול אנשי הקשר של תוכניות הבינוי והעיצוב — יזמים, אדריכלים ומנהלי פרויקט. הפרטים נשמרים פעם אחת ומשויכים לתוכניות.</div>
+  <div id="contactsBody"></div>
 </div>
 
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
@@ -1599,15 +1632,16 @@ function go(id, btn) {
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
+  if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares','muni'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -3138,7 +3172,9 @@ function renderInfoTab(p) {
       <div class="pp-field"><label>הערות אדריכלית העיר</label><textarea onchange="oSet('summary','cityArchNotes',this.value)">${p.summary.cityArchNotes||''}</textarea></div>
       </div>
       <div class="area-frame">${areaFrameHTML(p,8)}</div>
-    </div>`;
+    </div>
+    <div class="pp-card" id="projContacts"></div>`;
+  if(typeof renderProjectContacts==='function') renderProjectContacts(p);
 }
 function pjSet(field, val) { const p=pj(); if(!p)return; p[field]=val; clearSeed(p,field); savePlans(); toast('נשמר'); }
 function mSet(field, val) { const p=pj(); if(!p)return; p.meta[field]=val; clearSeed(p,'meta.'+field); savePlans(); toast('נשמר'); }
@@ -5722,10 +5758,304 @@ function mailPrepareSend(planId){
   document.querySelector('.render-lightbox')?.remove(); renderDailyWork&&renderDailyWork();
 }
 
+/* ══════════════════════════════════════════════════════════════
+   מאגר אנשי קשר מרכזי + שיוך לתוכניות בינוי
+   מבנה: contact = { id, name, type, org, title, phone, email, notes,
+                     tasks, updatedAt, sample:true?, plans:[tik,...] }
+   השיוך נשמר על איש הקשר (plans[]). פרטי הקשר נשמרים פעם אחת במאגר;
+   דף התוכנית מציג/משייך מתוך המאגר — ללא כפילות.
+   ═══════════════════════════════════════════════════════════════ */
+const CONTACT_TYPES = ['יזם','אדריכל','מנהל פרויקט'];
+let contacts = [];
+let _contactsLoaded = false;
+
+function _cid(){ // מזהה יציב ללא Date.now()/random (אסורים כאן) — רץ מהמקסימום הקיים
+  let mx = 0; contacts.forEach(c=>{ const n=parseInt(String(c.id).replace(/\D/g,''))||0; if(n>mx)mx=n; });
+  return 'c'+(mx+1);
+}
+
+async function loadContacts(){
+  // localStorage תחילה (מיידי), ואז ענן
+  try{ const l=JSON.parse(localStorage.getItem('ashdod_contacts_v1')||'null'); if(l&&Array.isArray(l.contacts)) contacts=l.contacts; }catch(e){}
+  try{
+    const res=await fetch(SB_URL+'/rest/v1/ashdod_muni?select=data&id=eq.contacts',{headers:SB_HEADERS});
+    if(res.ok){ const rows=await res.json(); const d=rows[0]&&rows[0].data; if(d&&Array.isArray(d.contacts)) contacts=d.contacts; }
+  }catch(e){}
+  if(!contacts.length) seedContacts();
+  _contactsLoaded=true;
+}
+async function saveContacts(){
+  const payload={ contacts };
+  try{ localStorage.setItem('ashdod_contacts_v1', JSON.stringify(payload)); }catch(e){}
+  try{ await fetch(SB_URL+'/rest/v1/ashdod_muni?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'contacts',data:payload,updated_at:new Date().toISOString()}])}); }catch(e){}
+}
+
+/* ── נתוני דוגמה (ניתנים למחיקה; מסומנים sample:true) ── */
+function seedContacts(){
+  const someTik = (plans[0]&&plans[0].tik)||'';
+  const someTik2 = (plans[1]&&plans[1].tik)||someTik;
+  contacts = [
+    {id:'c1',name:'דוגמה — יזם א׳',type:'יזם',org:'חברת בנייה לדוגמה בע״מ',title:'מנכ״ל',phone:'050-0000001',email:'sample.dev1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik?[someTik]:[],updatedAt:todayStr()},
+    {id:'c2',name:'דוגמה — יזם ב׳',type:'יזם',org:'ייזום נדל״ן לדוגמה',title:'מנהל פיתוח',phone:'050-0000002',email:'sample.dev2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik2?[someTik2]:[],updatedAt:todayStr()},
+    {id:'c3',name:'דוגמה — אדריכל א׳',type:'אדריכל',org:'סטודיו אדריכלים לדוגמה',title:'אדריכל ראשי',phone:'050-0000003',email:'sample.arch1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik?[someTik]:[],updatedAt:todayStr()},
+    {id:'c4',name:'דוגמה — אדריכל ב׳',type:'אדריכל',org:'משרד תכנון לדוגמה',title:'אדריכלית',phone:'050-0000004',email:'sample.arch2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:[],updatedAt:todayStr()},
+    {id:'c5',name:'דוגמה — מנהל פרויקט א׳',type:'מנהל פרויקט',org:'ניהול פרויקטים לדוגמה',title:'מנהל פרויקט',phone:'050-0000005',email:'sample.pm1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik2?[someTik2]:[],updatedAt:todayStr()},
+    {id:'c6',name:'דוגמה — מנהל פרויקט ב׳',type:'מנהל פרויקט',org:'פיקוח וניהול לדוגמה',title:'מנהל פיקוח',phone:'050-0000006',email:'sample.pm2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:[],updatedAt:todayStr()}
+  ];
+}
+
+/* ── מניעת כפילויות: מייל | טלפון | שם+חברה ── */
+function _norm(s){ return String(s||'').trim().toLowerCase().replace(/[\s\-]/g,''); }
+function findDuplicate(c, ignoreId){
+  return contacts.find(o=>{
+    if(o.id===ignoreId) return false;
+    if(c.email && _norm(o.email)===_norm(c.email) && c.email.trim()) return true;
+    if(c.phone && _norm(o.phone)===_norm(c.phone) && c.phone.trim()) return true;
+    if(c.name && c.org && _norm(o.name)===_norm(c.name) && _norm(o.org)===_norm(c.org)) return true;
+    return false;
+  });
+}
+
+/* ══════════ מצב תצוגה: מיון/סינון/חיפוש (נשמר) ══════════ */
+let contactView = { sort:'name', dir:1, type:'', plan:'', org:'', q:'', mode:'table', selected:{} };
+function loadContactView(){ try{ const v=JSON.parse(localStorage.getItem('ashdod_contactview_v1')||'null'); if(v) Object.assign(contactView,v,{selected:{}}); }catch(e){} }
+function saveContactView(){ try{ const {selected,...rest}=contactView; localStorage.setItem('ashdod_contactview_v1', JSON.stringify(rest)); }catch(e){} }
+
+function contactPlanTitle(tik){ const p=plans.find(x=>String(x.tik)===String(tik)); return p?('תב/'+p.tik):('תב/'+tik); }
+
+function filteredContacts(){
+  const v=contactView;
+  let list=contacts.filter(c=>{
+    if(v.type && c.type!==v.type) return false;
+    if(v.org && _norm(c.org)!==_norm(v.org)) return false;
+    if(v.plan && !(c.plans||[]).map(String).includes(String(v.plan))) return false;
+    if(v.q){ const t=[c.name,c.org,c.title,c.phone,c.email,c.notes,(c.plans||[]).map(contactPlanTitle).join(' ')].join(' ').toLowerCase(); if(!t.includes(v.q.toLowerCase())) return false; }
+    return true;
+  });
+  const coll=new Intl.Collator('he',{numeric:true,sensitivity:'base'});
+  const key=v.sort;
+  list.sort((a,b)=>{
+    let va=a[key], vb=b[key];
+    if(key==='plans'){ va=(a.plans||[]).join(','); vb=(b.plans||[]).join(','); }
+    const ea=!va, eb=!vb; if(ea&&eb)return 0; if(ea)return 1; if(eb)return -1;
+    return coll.compare(String(va),String(vb))*v.dir;
+  });
+  return list;
+}
+
+/* ══════════ דף רשימות קשר ══════════ */
+function renderContactsPage(){
+  const el=document.getElementById('contactsBody'); if(!el) return;
+  const v=contactView;
+  const orgs=[...new Set(contacts.map(c=>c.org).filter(Boolean))].sort();
+  const plansOpts=[...new Set(contacts.flatMap(c=>c.plans||[]))].sort();
+  const list=filteredContacts();
+  const selCount=Object.values(v.selected).filter(Boolean).length;
+  const chip=(lbl,val,field)=>`<button class="cq-chip ${v[field]===val?'on':''}" onclick="contactSet('${field}','${v[field]===val?'':val}')">${lbl}</button>`;
+
+  const controls=`
+    <div class="contacts-toolbar no-print">
+      <input id="contactSearch" class="team-f" style="min-width:220px" placeholder="חיפוש חופשי — שם, חברה, טלפון, מייל, פרויקט…" value="${esc(v.q)}" oninput="contactSet('q',this.value)">
+      <select class="team-f" onchange="contactSet('type',this.value)"><option value="">כל הסוגים</option>${CONTACT_TYPES.map(t=>`<option ${v.type===t?'selected':''}>${t}</option>`).join('')}</select>
+      <select class="team-f" onchange="contactSet('plan',this.value)"><option value="">כל התוכניות</option>${plansOpts.map(t=>`<option value="${esc(t)}" ${String(v.plan)===String(t)?'selected':''}>${esc(contactPlanTitle(t))}</option>`).join('')}</select>
+      <select class="team-f" onchange="contactSet('org',this.value)"><option value="">כל החברות</option>${orgs.map(o=>`<option ${v.org===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
+      <span class="cq-quick">${chip('יזמים','יזם','type')}${chip('אדריכלים','אדריכל','type')}${chip('מנהלי פרויקט','מנהל פרויקט','type')}</span>
+      <button class="cq-view" onclick="contactSet('mode','${v.mode==='table'?'cards':'table'}')">${v.mode==='table'?'תצוגת כרטיסים':'תצוגת טבלה'}</button>
+      <button class="btn btn-primary btn-sm" onclick="contactEdit('')">+ איש קשר חדש</button>
+    </div>
+    <div class="contacts-bulk ${selCount?'':'off'} no-print">
+      נבחרו <b>${selCount}</b> ·
+      <button class="btn btn-ghost btn-xs" onclick="bulkCopyEmails()">העתק כל כתובות הדוא״ל</button>
+      <button class="btn btn-ghost btn-xs" onclick="bulkMail()">הכנת רשימת נמענים למייל</button>
+      <button class="btn btn-ghost btn-xs" onclick="bulkAssign()">שיוך לתוכנית בינוי</button>
+      <button class="btn btn-ghost btn-xs" onclick="bulkCsv()">ייצוא CSV / Excel</button>
+      <button class="btn btn-ghost btn-xs" onclick="contactClearSel()">בטל בחירה</button>
+    </div>`;
+
+  let bodyHtml;
+  if(v.mode==='cards'){
+    bodyHtml=`<div class="contacts-cards">${list.map(c=>contactCard(c)).join('')||'<div class="muted">אין אנשי קשר.</div>'}</div>`;
+  } else {
+    const arrow=col=>v.sort===col?(v.dir>0?' ▲':' ▼'):'';
+    const th=(lbl,col)=>`<th onclick="contactSort('${col}')" style="cursor:pointer">${lbl}${arrow(col)}</th>`;
+    bodyHtml=`<div class="tbl-wrap"><table class="track-table contacts-table"><thead><tr>
+      <th class="no-print"></th>${th('שם','name')}${th('סוג','type')}${th('חברה/משרד','org')}${th('תפקיד','title')}<th>נייד</th><th>דוא״ל</th>${th('תוכניות','plans')}<th>הערות</th>${th('עודכן','updatedAt')}<th class="no-print">פעולות</th>
+    </tr></thead><tbody>${list.map(c=>contactRow(c)).join('')||'<tr><td colspan="10" class="muted">אין אנשי קשר.</td></tr>'}</tbody></table></div>`;
+  }
+  const sampleNote=contacts.some(c=>c.sample)?`<div class="calc-warn-banner">מוצגות רשומות דוגמה (מסומנות „דוגמה”) — ניתן למחוק אותן. <button class="btn btn-ghost btn-xs" onclick="deleteSampleContacts()">מחק את כל רשומות הדוגמה</button></div>`:'';
+  el.innerHTML=controls+sampleNote+`<div class="muted" style="margin:6px 0 10px">${list.length} מתוך ${contacts.length} אנשי קשר</div>`+bodyHtml;
+}
+
+function contactRow(c){
+  const v=contactView;
+  const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
+  return `<tr class="${c.sample?'contact-sample':''}">
+    <td class="no-print"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"></td>
+    <td><strong>${esc(c.name||'—')}</strong>${c.sample?' <span class="samp-tag">דוגמה</span>':''}</td>
+    <td>${esc(c.type||'—')}</td>
+    <td>${esc(c.org||'—')}</td>
+    <td>${esc(c.title||'—')}</td>
+    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">☎</a>`:'—'}</td>
+    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">✉</a>`:'—'}</td>
+    <td>${esc(plansTxt)}</td>
+    <td class="c-notes">${esc(c.notes||'')}</td>
+    <td style="white-space:nowrap">${fmtDate(c.updatedAt)}</td>
+    <td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></td>
+  </tr>`;
+}
+function contactCard(c){
+  const v=contactView;
+  const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
+  return `<div class="contact-card ${c.sample?'contact-sample':''}">
+    <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${c.sample?'<span class="samp-tag">דוגמה</span>':''}<span class="cc-type">${esc(c.type||'')}</span></div>
+    <div class="cc-line">${esc(c.org||'')}${c.title?(' · '+esc(c.title)):''}</div>
+    <div class="cc-line">${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:''} ${c.email?`· <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:''}</div>
+    <div class="cc-line muted">תוכניות: ${esc(plansTxt)}</div>
+    ${c.notes?`<div class="cc-line muted">${esc(c.notes)}</div>`:''}
+    <div class="cc-actions no-print"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></div>
+  </div>`;
+}
+
+/* ── פעולות מצב ── */
+function contactSet(field,val){ contactView[field]=val; saveContactView(); renderContactsPage(); }
+function contactSort(col){ const v=contactView; if(v.sort===col) v.dir*=-1; else { v.sort=col; v.dir=1; } saveContactView(); renderContactsPage(); }
+function contactToggleSel(id,on){ contactView.selected[id]=on; renderContactsPage(); }
+function contactClearSel(){ contactView.selected={}; renderContactsPage(); }
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>toast('הועתק: '+t)); }
+function deleteSampleContacts(){ if(!confirm('למחוק את כל רשומות הדוגמה?')) return; contacts=contacts.filter(c=>!c.sample); saveContacts(); renderContactsPage(); toast('רשומות הדוגמה נמחקו'); }
+
+/* ── הוספה/עריכה ── */
+function contactEdit(id){
+  const c = id ? contacts.find(x=>x.id===id) : {id:'',name:'',type:'יזם',org:'',title:'',phone:'',email:'',notes:'',tasks:'',plans:[]};
+  if(!c) return;
+  const allPlans=plans.slice().sort((a,b)=>String(a.tik).localeCompare(String(b.tik)));
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal">
+    <h3>${id?'עריכת איש קשר':'איש קשר חדש'}</h3>
+    <div class="cform">
+      <label class="mail-lbl">שם מלא</label><input id="cf_name" class="team-f" value="${esc(c.name)}">
+      <label class="mail-lbl">סוג</label><select id="cf_type" class="team-f">${CONTACT_TYPES.map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select>
+      <label class="mail-lbl">חברה / משרד</label><input id="cf_org" class="team-f" value="${esc(c.org)}">
+      <label class="mail-lbl">תפקיד</label><input id="cf_title" class="team-f" value="${esc(c.title)}">
+      <label class="mail-lbl">טלפון נייד</label><input id="cf_phone" class="team-f" value="${esc(c.phone)}">
+      <label class="mail-lbl">דוא״ל</label><input id="cf_email" class="team-f" value="${esc(c.email)}">
+      <label class="mail-lbl">הערות</label><textarea id="cf_notes" class="team-f">${esc(c.notes||'')}</textarea>
+      <label class="mail-lbl">פעולות נדרשות</label><textarea id="cf_tasks" class="team-f">${esc(c.tasks||'')}</textarea>
+      <label class="mail-lbl">תוכניות משויכות</label>
+      <div class="cf-plans">${allPlans.map(p=>`<label class="chk-inline"><input type="checkbox" value="${esc(p.tik)}" ${(c.plans||[]).map(String).includes(String(p.tik))?'checked':''}> תב/${esc(p.tik)} ${esc(p.location||p.district||'')}</label>`).join('')}</div>
+    </div>
+    <div class="mail-actions">
+      <button class="btn btn-primary btn-sm" onclick="contactSave('${id}')">שמירה</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">ביטול</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function contactSave(id){
+  const g=x=>document.getElementById(x).value.trim();
+  const rec={ id, name:g('cf_name'), type:g('cf_type'), org:g('cf_org'), title:g('cf_title'),
+    phone:g('cf_phone'), email:g('cf_email'), notes:g('cf_notes'), tasks:g('cf_tasks'),
+    plans:[...document.querySelectorAll('.cf-plans input:checked')].map(i=>i.value) };
+  if(!rec.name){ toast('נא להזין שם'); return; }
+  const dup=findDuplicate(rec, id);
+  if(dup){
+    if(!confirm('נמצאה רשומה דומה: „'+(dup.name||'')+'” ('+(dup.org||'')+'). \nלמזג לתוך הרשומה הקיימת? \n(אישור = מיזוג, ביטול = שמירה בכל זאת כרשומה נפרדת)')){
+      // שמירה כרשומה נפרדת
+    } else {
+      // מיזוג: משלים שדות ריקים ומאחד שיוכי תוכניות
+      ['name','type','org','title','phone','email','notes','tasks'].forEach(k=>{ if(!dup[k]&&rec[k]) dup[k]=rec[k]; });
+      dup.plans=[...new Set([...(dup.plans||[]), ...rec.plans])];
+      dup.sample=false; dup.updatedAt=todayStr();
+      saveContacts(); document.querySelector('.render-lightbox')?.remove(); renderContactsPage(); toast('הרשומות מוזגו'); return;
+    }
+  }
+  if(id){ const c=contacts.find(x=>x.id===id); if(c){ Object.assign(c,rec,{updatedAt:todayStr()}); if(rec.name||rec.email) c.sample=false; } }
+  else { rec.id=_cid(); rec.updatedAt=todayStr(); contacts.push(rec); }
+  saveContacts(); document.querySelector('.render-lightbox')?.remove(); renderContactsPage(); toast('נשמר');
+  if(typeof renderProjectContacts==='function' && currentProjectId){ const p=pj(); if(p) renderProjectContacts(p); }
+}
+function contactDelete(id){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  if(!confirm('למחוק את איש הקשר „'+(c.name||'')+'”? הפעולה אינה הפיכה.')) return;
+  contacts=contacts.filter(x=>x.id!==id); delete contactView.selected[id];
+  saveContacts(); renderContactsPage(); toast('נמחק');
+  if(typeof renderProjectContacts==='function' && currentProjectId){ const p=pj(); if(p) renderProjectContacts(p); }
+}
+
+/* ── פעולות קבוצתיות ── */
+function selectedContacts(){ return contacts.filter(c=>contactView.selected[c.id]); }
+function bulkCopyEmails(){ const em=selectedContacts().map(c=>c.email).filter(Boolean); if(!em.length){toast('אין כתובות דוא״ל בנבחרים');return;} copyText(em.join(', ')); }
+function bulkMail(){
+  const em=selectedContacts().map(c=>c.email).filter(Boolean);
+  if(!em.length){ toast('אין כתובות דוא״ל בנבחרים'); return; }
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal"><h3>רשימת נמענים למייל</h3>
+    <div class="calc-warn-banner">לא נשלח מייל אוטומטית — הרשימה מוכנה להעתקה או לפתיחת טיוטה בלקוח המייל שלך.</div>
+    <textarea class="team-f" style="min-height:90px" readonly>${esc(em.join(', '))}</textarea>
+    <div class="mail-actions">
+      <button class="btn btn-ghost btn-sm" onclick="copyText('${esc(em.join(', '))}')">העתק רשימה</button>
+      <button class="btn btn-primary btn-sm" onclick="window.location.href='mailto:'+encodeURIComponent('${esc(em.join(','))}')">פתח טיוטה בלקוח המייל</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגור</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+}
+function bulkAssign(){
+  const sel=selectedContacts(); if(!sel.length) return;
+  const tik=prompt('הזן מספר תב לשיוך (למשל 1910):'); if(!tik) return;
+  if(!plans.find(p=>String(p.tik)===String(tik.trim()))){ if(!confirm('לא נמצאה תוכנית תב/'+tik+' — לשייך בכל זאת?')) return; }
+  sel.forEach(c=>{ c.plans=[...new Set([...(c.plans||[]), tik.trim()])]; c.updatedAt=todayStr(); });
+  saveContacts(); renderContactsPage(); toast(sel.length+' אנשי קשר שויכו לתב/'+tik.trim());
+}
+function bulkCsv(){
+  const sel=selectedContacts(); const rows=sel.length?sel:filteredContacts();
+  const head=['שם','סוג','חברה','תפקיד','טלפון','דואל','תוכניות','הערות','עודכן'];
+  const esc2=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const csv=[head.join(',')].concat(rows.map(c=>[c.name,c.type,c.org,c.title,c.phone,c.email,(c.plans||[]).map(t=>'תב/'+t).join(' '),c.notes,fmtDate(c.updatedAt)].map(esc2).join(','))).join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='anshei_kesher.csv'; a.click();
+  toast('יוצא לקובץ CSV');
+}
+
+/* ══════════ אנשי קשר בפרויקט (בדף התוכנית) ══════════ */
+function projectContacts(tik){ return contacts.filter(c=>(c.plans||[]).map(String).includes(String(tik))); }
+function renderProjectContacts(p){
+  const el=document.getElementById('projContacts'); if(!el||!p) return;
+  const list=projectContacts(p.tik);
+  const rows=list.map(c=>`<tr>
+    <td><strong>${esc(c.name||'—')}</strong></td><td>${esc(c.type||'')}</td><td>${esc(c.org||'')}</td>
+    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:'—'}</td>
+    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:'—'}</td>
+    <td class="no-print"><button class="btn btn-ghost btn-xs" onclick="projUnassign('${c.id}','${esc(p.tik)}')">הסר שיוך</button></td>
+  </tr>`).join('');
+  el.innerHTML=`
+    <div class="detail-section-title">אנשי קשר בפרויקט</div>
+    <div class="muted" style="margin-bottom:8px;font-size:12px">היזמים, האדריכלים ומנהלי הפרויקט המשויכים לתוכנית. הפרטים נשמרים פעם אחת במאגר המרכזי — שינוי מתעדכן בכל התוכניות. <a class="c-link" onclick="go('contacts',null);document.querySelectorAll('#mainNav button').forEach(b=>{if((b.getAttribute('onclick')||'').includes('contacts'))b.click()})">למאגר המלא ›</a></div>
+    ${list.length?`<div class="tbl-wrap"><table class="track-table"><thead><tr><th>שם</th><th>סוג</th><th>חברה</th><th>נייד</th><th>דוא״ל</th><th class="no-print"></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="muted">אין אנשי קשר משויכים.</div>'}
+    <div class="proj-contact-add no-print">
+      <select id="projContactPick" class="team-f"><option value="">— בחר איש קשר מהמאגר לשיוך —</option>${contacts.filter(c=>!(c.plans||[]).map(String).includes(String(p.tik))).map(c=>`<option value="${c.id}">${esc(c.name)}${c.org?(' · '+esc(c.org)):''} (${esc(c.type)})</option>`).join('')}</select>
+      <button class="btn btn-ghost btn-sm" onclick="projAssign('${esc(p.tik)}')">שייך</button>
+      <button class="btn btn-ghost btn-sm" onclick="contactEdit('')">+ איש קשר חדש</button>
+    </div>`;
+}
+function projAssign(tik){
+  const id=document.getElementById('projContactPick').value; if(!id) return;
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  c.plans=[...new Set([...(c.plans||[]), String(tik)])]; c.updatedAt=todayStr(); c.sample=false;
+  saveContacts(); const p=pj(); if(p) renderProjectContacts(p); toast('שויך לתוכנית');
+}
+function projUnassign(id,tik){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  c.plans=(c.plans||[]).filter(t=>String(t)!==String(tik)); c.updatedAt=todayStr();
+  saveContacts(); const p=pj(); if(p) renderProjectContacts(p); toast('השיוך הוסר');
+}
+
+
 // ── INIT ──
 populateFilters();
 applyFilters();
 renderLanding();
+loadContactView();
+loadContacts();
 loadShares();
 (function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
 // שחזור דף מ-hash (כתובת ישירה / רענון ללא 404)
