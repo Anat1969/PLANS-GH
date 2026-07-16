@@ -535,6 +535,10 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .ds-orange{background:rgba(196,122,32,0.14);color:var(--warn)}
 .ds-red{background:rgba(184,64,64,0.14);color:var(--err)}
 .ds-blue{background:rgba(59,139,212,0.14);color:var(--info)}
+.date-input-ds-green{color:var(--ok)!important;font-weight:700}
+.date-input-ds-orange{color:var(--warn)!important;font-weight:700}
+.date-input-ds-red{color:var(--err)!important;font-weight:700}
+.date-input-ds-blue{color:var(--info)!important}
 /* ══════════ פריסת אזורים אנכית + מסגרות תמונה ══════════ */
 .area-row{display:grid;grid-template-columns:1fr 260px;gap:1rem;align-items:stretch;margin-bottom:1.2rem}
 .area-row .pp-card{margin:0}
@@ -706,8 +710,10 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
           <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>יזם</th>
           <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
           <th onclick="sortTable(6)"><span class="sort-arrow">▼</span>גוש/חלקה</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>תאריך הכנה לוועדה</th>
-          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>פורום אדריכל</th>
+          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>פורום יועצים</th>
+          <th onclick="sortTable(10)"><span class="sort-arrow">▼</span>הכנה לוועדה</th>
+          <th onclick="sortTable(11)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -1332,6 +1338,70 @@ function statusDateClass(status){
   };
   return map[status] || 'ds-blue';
 }
+/** רמזור תאריכים: אדום = עבר, צהוב = תוך 3 ימים, ירוק = עתידי, כחול = ריק */
+function dateTrafficClass(dateStr){
+  if(!dateStr) return 'ds-blue';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr+'T00:00:00'); if(isNaN(d)) return 'ds-blue';
+  const diff = Math.ceil((d - today)/(1000*60*60*24));
+  if(diff < 0) return 'ds-red';
+  if(diff <= 3) return 'ds-orange';
+  return 'ds-green';
+}
+
+const FORUM_EMAIL_RECIPIENTS = 'anatdavids@ashdod.muni.il';
+const FORUM_INFO = {
+  forumArchitect: {
+    label: 'פורום אדריכל העיר',
+    materials: '• מצגת אדריכלית מעודכנת\n• תשריט בינוי ופיתוח\n• חתכים וחזיתות\n• הדמיות (לפחות 3 זוויות)\n• טבלת שטחים\n• תרשים סביבה / תצ"א עם סימון המגרש'
+  },
+  forumConsultants: {
+    label: 'פורום יועצים',
+    materials: '• חוות דעת תנועה וחניה\n• חוות דעת ניקוז ונגר עילי\n• חוות דעת נגישות\n• חוות דעת בטיחות אש ודרכי מילוט\n• סקר עצים (אם רלוונטי)\n• תכנית פיתוח מפורטת\n• דוח קונסטרוקציה ראשוני'
+  },
+  committeeDate: {
+    label: 'הכנה לוועדה',
+    materials: '• תיק מבא"ת מלא ומעודכן\n• חוות דעת אדריכלית העיר\n• סיכומי פורום אדריכל ופורום יועצים\n• טופס בקשה חתום\n• אישורים מגורמי רישוי (חח"י, כב"א, משטרה)\n• נסח רישום עדכני\n• הסכמת בעלים (אם נדרש)'
+  }
+};
+
+function notifyForumDate(plan, field, dateVal){
+  if(!dateVal) return;
+  const info = FORUM_INFO[field]; if(!info) return;
+  const fmtD = fmtDate(dateVal);
+  const subject = encodeURIComponent(`נקבע תאריך ${info.label} — תיק ${plan.tik} (${plan.planNum})`);
+  const body = encodeURIComponent(
+    `שלום רב,\n\n` +
+    `נקבע תאריך ${info.label} לתוכנית בינוי:\n\n` +
+    `• מס׳ תיק: ${plan.tik}\n` +
+    `• מס׳ תכנית: ${plan.planNum}\n` +
+    `• יזם: ${plan.developer || '—'}\n` +
+    `• מגיש/עורך: ${plan.submitter || '—'}\n` +
+    `• מיקום: ${plan.location || '—'}\n` +
+    `• רובע: ${plan.district}\n\n` +
+    `📅 תאריך שנקבע: ${fmtD}\n\n` +
+    `══════════════════════════════\n` +
+    `חומרים נדרשים ל${info.label}:\n` +
+    `══════════════════════════════\n` +
+    `${info.materials}\n\n` +
+    `נא להערך בהתאם ולוודא שכל החומרים מוכנים לפחות 3 ימי עבודה לפני המועד.\n\n` +
+    `בברכה,\nמערכת תוכניות בינוי — עיריית אשדוד`
+  );
+  const recipients = FORUM_EMAIL_RECIPIENTS;
+  window.open(`mailto:${recipients}?subject=${subject}&body=${body}`, '_blank');
+  toast(`מייל עדכון ${info.label} נפתח`);
+}
+
+function saveForumDate(id, field, el){
+  const p = plans.find(x=>x.id===id);
+  if(!p) return;
+  const oldVal = p[field];
+  p[field] = el.value;
+  savePlans();
+  renderTable();
+  toast(`${FORUM_INFO[field]?.label || field} עודכן`);
+  if(el.value && el.value !== oldVal) notifyForumDate(p, field, el.value);
+}
 
 // ── LANDING ──
 function renderLanding() {
@@ -1396,9 +1466,9 @@ function resetFilters() {
 }
 
 // ── TABLE ──
-const SORT_KEYS = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
+const SORT_KEYS = ['tik','district','location','planNum','developer','submitter','parcel','date','forumArchitect','forumConsultants','committeeDate','status'];
 const NUMERIC_COLS = new Set(['tik','planNum']);
-const DATE_COLS = new Set(['date','committeeDate']);
+const DATE_COLS = new Set(['date','forumArchitect','forumConsultants','committeeDate']);
 function sortTable(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
   const key = SORT_KEYS[col];
@@ -1615,7 +1685,7 @@ function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
   const tbody = document.getElementById('tableBody');
-  const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','committeeDate','status'];
+  const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','forumArchitect','forumConsultants','committeeDate','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
 
   let prevGroupVal = null;
@@ -1644,7 +1714,9 @@ function renderTable() {
         <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
         <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
         <td><input value="${p.parcel||''}" onchange="saveField(${p.id},'parcel',this)" placeholder="גוש/חלקה"></td>
-        <td><input type="date" value="${p.committeeDate||''}" onchange="saveField(${p.id},'committeeDate',this)"></td>
+        <td><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
+        <td><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
+        <td><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
         <td><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`;
     }
@@ -1658,7 +1730,9 @@ function renderTable() {
       <td>${p.developer||'—'}</td>
       <td>${p.submitter||'—'}</td>
       <td style="font-size:11px;white-space:nowrap">${p.parcel||'—'}</td>
-      <td style="white-space:nowrap"><span class="date-status ${statusDateClass(p.status)}">${fmtDate(p.committeeDate)}</span></td>
+      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
+      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
+      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
       <td>${statusBadge(p.status)}</td>
     </tr>`;
   }).join('');
@@ -1695,15 +1769,15 @@ function openDetail(id) {
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">פורום אדריכל</div>
-        <input type="date" value="${p.forumArchitect||''}" onchange="plans.find(x=>x.id===${p.id}).forumArchitect=this.value;toast('פורום אדריכל עודכן')">
+        <input type="date" class="date-input-${dateTrafficClass(p.forumArchitect)}" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this);openDetail(${p.id})">
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">פורום יועצים</div>
-        <input type="date" value="${p.forumConsultants||''}" onchange="plans.find(x=>x.id===${p.id}).forumConsultants=this.value;toast('פורום יועצים עודכן')">
+        <input type="date" class="date-input-${dateTrafficClass(p.forumConsultants)}" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this);openDetail(${p.id})">
       </div>
       <div class="detail-date-cell">
-        <div class="dlabel">תאריך ועדה</div>
-        <input type="date" value="${p.committeeDate||''}" onchange="plans.find(x=>x.id===${p.id}).committeeDate=this.value;toast('תאריך ועדה עודכן')">
+        <div class="dlabel">הכנה לוועדה</div>
+        <input type="date" class="date-input-${dateTrafficClass(p.committeeDate)}" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this);openDetail(${p.id})">
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">תאריך אישור</div>
@@ -1821,6 +1895,9 @@ function addPlan() {
   renderLanding();
   closeAddModal();
   toast(`תוכנית ${tik} נוספה בהצלחה`);
+  if(newPlan.forumArchitect) notifyForumDate(newPlan,'forumArchitect',newPlan.forumArchitect);
+  if(newPlan.forumConsultants) notifyForumDate(newPlan,'forumConsultants',newPlan.forumConsultants);
+  if(newPlan.committeeDate) notifyForumDate(newPlan,'committeeDate',newPlan.committeeDate);
   ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
 }
 
@@ -2410,12 +2487,12 @@ function renderInfoTab(p) {
       <h4>אזור 8 — תאריכים ומועדים</h4>
       <div class="pp-cols">
         <div class="pp-field"><label>פורום אדריכל — מתוכנן</label><input type="date" value="${esc(p.datesPlan.forum1)}" onchange="oSet('datesPlan','forum1',this.value);renderProcessTab(pj())"></div>
-        <div class="pp-field"><label>פורום אדריכל — בפועל</label><input type="date" value="${esc(p.forumArchitect)}" onchange="pjSet('forumArchitect',this.value);renderTimelineTab(pj())"></div>
+        <div class="pp-field"><label>פורום אדריכל — בפועל</label><input type="date" class="date-input-${dateTrafficClass(p.forumArchitect)}" value="${esc(p.forumArchitect)}" onchange="saveForumDate(${p.id},'forumArchitect',this);renderTimelineTab(pj())"></div>
         <div class="pp-field"><label>פורום יועצים — מתוכנן</label><input type="date" value="${esc(p.datesPlan.forum2)}" onchange="oSet('datesPlan','forum2',this.value);renderProcessTab(pj())"></div>
-        <div class="pp-field"><label>פורום יועצים — בפועל</label><input type="date" value="${esc(p.forumConsultants)}" onchange="pjSet('forumConsultants',this.value);renderTimelineTab(pj())"></div>
+        <div class="pp-field"><label>פורום יועצים — בפועל</label><input type="date" class="date-input-${dateTrafficClass(p.forumConsultants)}" value="${esc(p.forumConsultants)}" onchange="saveForumDate(${p.id},'forumConsultants',this);renderTimelineTab(pj())"></div>
         <div class="pp-field"><label>הכנה לוועדה — מתוכנן</label><input type="date" value="${esc(p.datesPlan.committeePrep)}" onchange="oSet('datesPlan','committeePrep',this.value);renderProcessTab(pj())"></div>
         <div class="pp-field"><label>ועדה — מתוכנן</label><input type="date" value="${esc(p.datesPlan.committee)}" onchange="oSet('datesPlan','committee',this.value);renderProcessTab(pj())"></div>
-        <div class="pp-field"><label>ועדה — בפועל</label><input type="date" class="${seedClass(p,'committeeDate').trim()}" value="${esc(p.committeeDate)}" onchange="pjSet('committeeDate',this.value);this.classList.remove('ai-seeded');renderTimelineTab(pj())"></div>
+        <div class="pp-field"><label>ועדה — בפועל</label><input type="date" class="date-input-${dateTrafficClass(p.committeeDate)} ${seedClass(p,'committeeDate').trim()}" value="${esc(p.committeeDate)}" onchange="saveForumDate(${p.id},'committeeDate',this);this.classList.remove('ai-seeded');renderTimelineTab(pj())"></div>
         <div class="pp-field"><label>תאריך אישור</label><input type="date" value="${esc(p.approvalDate)}" onchange="pjSet('approvalDate',this.value);renderTimelineTab(pj())"></div>
       </div>
       </div>
