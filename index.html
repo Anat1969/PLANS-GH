@@ -849,6 +849,66 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .sc-orange{background:#fdeede;color:#9a5a00;border-color:#f5dcbd}
 .sc-red{background:#fdeaea;color:#9a2828;border-color:#f3cccc}
 .sc-gray{background:#f0f0f0;color:#666;border-color:#e2e2e2}
+/* ══════════ חומר חזותי — גלריות ══════════ */
+.vm-cats{display:flex;flex-direction:column;gap:14px}
+.vm-cat{border:1px solid #e6e6e6;border-radius:10px;padding:10px 12px;background:#fff}
+.vm-cat.vm-drop{border-color:var(--bronze,#9c7a3c);background:#fbf7f0}
+.vm-cat-head{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;color:#7a1f2b;margin-bottom:8px}
+.vm-count{background:#f0f0f0;color:#666;border-radius:12px;padding:1px 9px;font-size:11px}
+.vm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.vm-thumb{border:1px solid #e2e2e2;border-radius:8px;overflow:hidden;background:#fafafa;display:flex;flex-direction:column}
+.vm-thumb img{width:100%;height:150px;object-fit:contain;background:#f4f4f2;cursor:zoom-in;display:block}
+.vm-thumb-meta{font-size:11px;color:#555;padding:5px 8px;border-top:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vm-thumb-tools{display:flex;gap:4px;padding:5px 8px;border-top:1px solid #f0f0f0;align-items:center}
+.vm-thumb-tools select{flex:1;font-size:11px;border:1px solid #d5d5d5;border-radius:5px;padding:2px}
+.vm-empty{border:1.5px dashed #d5d5d5;border-radius:8px;padding:18px;text-align:center;color:#999;font-size:12px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.vm-empty-ro{padding:12px}
+.vm-empty-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+.btn-xs{padding:2px 7px;font-size:10px;border:1px solid #d5d5d5;background:#fff;border-radius:5px;cursor:pointer;font-family:inherit}
+/* ══════════ Viewer מסך מלא ══════════ */
+.viewer-ov{position:fixed;inset:0;background:rgba(15,15,18,0.96);z-index:11000;display:none;flex-direction:column}
+.viewer-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;color:#eee;font-size:13px;background:rgba(0,0,0,0.4);flex-wrap:wrap;gap:6px}
+.viewer-btns{display:flex;gap:4px;flex-wrap:wrap}
+.viewer-btns button,.viewer-btns a{background:rgba(255,255,255,0.12);color:#fff;border:none;border-radius:6px;width:34px;height:32px;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.viewer-btns button:hover,.viewer-btns a:hover{background:rgba(255,255,255,0.25)}
+.viewer-stage{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
+.viewer-stage:active{cursor:grabbing}
+.viewer-stage img{max-width:96vw;max-height:76vh;transition:transform .04s linear;user-select:none;image-rendering:auto}
+.viewer-strip{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:rgba(0,0,0,0.4)}
+.viewer-strip img{height:52px;border-radius:5px;cursor:pointer;opacity:.55;border:2px solid transparent}
+.viewer-strip img.on{opacity:1;border-color:var(--bronze,#c8a24a)}
+.viewer-info{position:absolute;top:56px;inset-inline-end:14px;background:rgba(0,0,0,0.85);color:#eee;padding:12px 16px;border-radius:8px;font-size:12px;line-height:1.7;max-width:280px}
+/* ══════════ הרמוניקה ══════════ */
+.harm-drop{border:1.5px dashed #d5d5d5;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.harm-drop.vm-drop{border-color:var(--bronze,#9c7a3c);background:#fbf7f0}
+.harm-list{display:flex;flex-direction:column;gap:8px}
+.harm-item{border:1px solid #e2e2e2;border-radius:8px;padding:10px 12px;background:#fff}
+.harm-item-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;font-size:13px}
+.harm-item-tools{display:flex;gap:5px;flex-wrap:wrap}
+.harm-frame{flex:1;width:100%;border:none;background:#fff}
+.harm-flow{flex:1;overflow:auto;text-align:center;background:#222;padding:10px}
+.harm-flow img{max-width:100%;height:auto}
+.harm-canvas{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;background:#222}
+.harm-canvas img{transition:transform .04s linear;user-select:none;max-width:none}
+@media print{.viewer-ov{display:none !important}}
+/* ══════════ בקרת איכות ══════════ */
+.qc-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.qc-cat{border:1px solid #e2e2e2;border-radius:10px;padding:12px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit}
+.qc-cat b{font-size:22px}
+.qc-cat span{font-size:12px;color:#666}
+.qc-cat.qc-ok{border-color:#c6e9d3;background:#f2fbf5}
+.qc-cat.qc-warn{border-color:#f0e4b8;background:#fdfaef}
+.qc-cat.qc-red{border-color:#f3cccc;background:#fdf3f3}
+.qc-summary{font-size:12px;margin-bottom:10px}
+.qc-detail-head{font-weight:600;color:#7a1f2b;margin:10px 0 6px}
+.qc-row{padding:6px 0;border-bottom:1px dashed #eee;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qc-conflict{border:1px solid #f3cccc;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fefafa;font-size:13px}
+.qc-cmp{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+.qc-tag{font-size:10px;background:#eee;border-radius:4px;padding:1px 6px;margin-inline-end:4px}
+.qc-cur .qc-tag{background:#e8f1fb;color:#1f5288}
+.qc-src .qc-tag{background:#e7f6ec;color:#1e6b3a}
+.qc-rec{font-size:12px;color:#7a1f2b;margin:4px 0}
+.qc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
 .mail-modal{max-width:640px;width:92vw;text-align:right}
 .mail-lbl{display:block;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);margin:10px 0 4px}
 .mail-modal input,.mail-modal textarea{width:100%;border:1px solid var(--stone);border-radius:6px;padding:8px;font-family:inherit;font-size:13px}
@@ -1426,7 +1486,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -3401,10 +3461,14 @@ function renderGraphicsTab(p){
         </div></div>`;
     }).join('')}</div>`).join('');
   document.getElementById('panel-graphics').innerHTML = `
-    <div class="pp-card" style="background:${reqMissing?'var(--s-warn-bg)':'var(--s-pass-bg)'}">
+    <div id="visualMaterial"></div>
+    <div id="harmonicaArea" style="margin-top:1.5rem"></div>
+    <div class="pp-card" style="margin-top:1.5rem;background:${reqMissing?'var(--s-warn-bg)':'var(--s-pass-bg)'}">
       <strong>${reqMissing?`חסרים ${reqMissing} מסמכי חובה`:'כל מסמכי החובה הועלו'}</strong>
       <div style="font-size:12px;color:rgba(0,0,0,0.55);margin-top:4px">סימון "הועלה" נקבע לפי קיום קישור URL. הזן קישור למסמך כדי לסמנו כהועלה.</div>
     </div>${html}`;
+  if(typeof renderVisualMaterial==='function') renderVisualMaterial(p);
+  if(typeof renderHarmonica==='function') renderHarmonica(p);
 }
 function setGraphic(id,url){const p=pj();if(!p)return;p.graphics[id]={url:url.trim(),date:todayStr()};savePlans();renderGraphicsTab(p);toast('נשמר');}
 
@@ -6331,7 +6395,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.3';
+const APP_VERSION = '2026.07.4';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -6390,8 +6454,16 @@ function renderSettings(){
         <div class="set-kv">גרסה: <b>${APP_VERSION}</b></div>
         <div class="set-kv">תוכניות: <b>${plansN}</b> · אנשי קשר: <b>${contactsN}</b></div>
       </div>
+    </div>
+    <h3 class="rep-h" style="margin-top:1.6rem">ניהול מסמכים, תמונות וחילוץ מידע</h3>
+    <div class="set-card" style="margin-bottom:14px">
+      <div id="docMgmtBody"></div>
+      <div class="mail-actions" style="margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="previewVisualsImport()">טעינת תמונות מהמקור (חוות הדעת)</button>
+      </div>
     </div>`;
   try{ const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); const e=document.getElementById('setLastSave'); if(s&&s.savedAt&&e) e.textContent=new Date(s.savedAt).toLocaleString('he-IL'); }catch(e){}
+  if(typeof renderDocMgmt==='function') renderDocMgmt();
 }
 
 /* ── גיבוי/שחזור ── */
@@ -6417,6 +6489,466 @@ function importBackup(input){
   r.readAsText(f); input.value='';
 }
 function exportContactsCsvAll(){ if(typeof bulkCsv==='function'){ const keep=contactView.selected; contactView.selected={}; bulkCsv(); contactView.selected=keep; } }
+
+
+/* ══════════════════════════════════════════════════════════════
+   חומר חזותי — גלריות לפי קטגוריה · Viewer מסך מלא · הרמוניקה · העלאה
+   מבנה: p.visuals = [ { id, src(dataURL), cat, title, note, source, page,
+                        order, conf, addedAt, w, h } ]
+          p.harmonica = [ { id, src, name, kind:'pdf'|'img', addedAt } ]
+   שמירה ב-localStorage/ענן דרך PERSIST_FIELDS (visuals, harmonica).
+   ═══════════════════════════════════════════════════════════════ */
+const VIS_CATS = [
+  {id:'render',    name:'הדמיות'},
+  {id:'binui',     name:'תוכניות בינוי'},
+  {id:'aerial',    name:'צילומי אוויר'},
+  {id:'tashrit',   name:'תשריטים'},
+  {id:'facade',    name:'חזיתות'},
+  {id:'section',   name:'חתכים'},
+  {id:'floor',     name:'תוכניות קומה'},
+  {id:'landscape', name:'פיתוח ונוף'},
+  {id:'traffic',   name:'תנועה וחניה'},
+  {id:'existing',  name:'מצב קיים'},
+  {id:'other',     name:'אחר'}
+];
+const VIS_CAT_LBL = Object.fromEntries(VIS_CATS.map(c=>[c.id,c.name]));
+
+/* ── סיווג אוטומטי לפי שם קובץ / כותרת (לא דורסת בחירה ידנית) ── */
+function classifyVisual(name, hint){
+  const t=((name||'')+' '+(hint||'')).toLowerCase();
+  const has=(...w)=>w.some(x=>t.includes(x));
+  if(has('הדמי','render','perspective','visual')) return 'render';
+  if(has('חזית','facade','elevation')) return 'facade';
+  if(has('חתך','section')) return 'section';
+  if(has('תשריט','survey','mapa','מפה')) return 'tashrit';
+  if(has('אוויר','aerial','לוויין','satellite','ortho')) return 'aerial';
+  if(has('קומה','floor','plan level','תוכנית קומה')) return 'floor';
+  if(has('בינוי','massing','site plan','העמדה')) return 'binui';
+  if(has('נוף','פיתוח','landscape','garden','גינון')) return 'landscape';
+  if(has('תנועה','חניה','traffic','parking')) return 'traffic';
+  if(has('קיים','existing','מצב קיים','photo','צילום')) return 'existing';
+  return 'other';
+}
+
+function _visInit(p){ if(!Array.isArray(p.visuals)) p.visuals=[]; if(!Array.isArray(p.harmonica)) p.harmonica=[]; }
+
+/* ── טעינת תמונות שחולצו מהמקור (קובץ visuals-seed.json בריפו) עם תצוגה מקדימה ── */
+let _visualsSeedCache=null;
+async function loadVisualsSeed(){
+  if(_visualsSeedCache) return _visualsSeedCache;
+  const res=await fetch('visuals-seed.json',{cache:'no-store'});
+  if(!res.ok) throw new Error('seed missing');
+  _visualsSeedCache=await res.json(); return _visualsSeedCache;
+}
+async function previewVisualsImport(){
+  let seed; try{ seed=await loadVisualsSeed(); }catch(e){ toast('קובץ התמונות לא נמצא'); return; }
+  const rows=[]; let newCount=0;
+  Object.entries(seed.visuals||{}).forEach(([tik,imgs])=>{
+    const p=plans.find(x=>String(x.tik)===String(tik));
+    const have=p?(p.visuals||[]).length:0;
+    const willAdd=p?imgs.filter(im=>!(p.visuals||[]).some(v=>v.title===im.title&&v.cat===im.cat)).length:0;
+    newCount+=willAdd;
+    rows.push({tik,total:imgs.length,willAdd,matched:!!p,cats:[...new Set(imgs.map(i=>VIS_CAT_LBL[i.cat]))]});
+  });
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal" style="max-width:640px">
+    <h3>ייבוא תמונות מהמקור — תצוגה מקדימה</h3>
+    <div class="pd-intro">מקור: קבצי „חוות הדעת” (החלטות ועדה). ${rows.reduce((s,r)=>s+r.total,0)} תמונות זוהו וסווגו אוטומטית · <b>${newCount}</b> חדשות ייווספו. לכל תמונה נשמר קובץ המקור ומספר העמוד. לא נמחקות תמונות קיימות.</div>
+    <div class="tbl-wrap" style="max-height:44vh;overflow:auto"><table class="track-table"><thead><tr><th>תב</th><th>מצב</th><th>תמונות</th><th>חדשות</th><th>קטגוריות</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr class="${r.matched?'':'contact-sample'}"><td><b>תב/${r.tik}</b></td><td>${r.matched?'תואם':'ללא תוכנית'}</td><td>${r.total}</td><td>${r.willAdd}</td><td class="muted">${r.cats.join(', ')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="mail-actions">
+      <button class="btn btn-primary btn-sm" onclick="confirmVisualsImport()">אישור ייבוא (${newCount} תמונות)</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">ביטול</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+}
+async function confirmVisualsImport(){
+  let seed; try{ seed=await loadVisualsSeed(); }catch(e){ return; }
+  let added=0;
+  Object.entries(seed.visuals||{}).forEach(([tik,imgs])=>{
+    const p=plans.find(x=>String(x.tik)===String(tik)); if(!p) return; _visInit(p);
+    imgs.forEach(im=>{
+      if((p.visuals||[]).some(v=>v.title===im.title&&v.cat===im.cat)) return; // מונע כפילות
+      p.visuals.push({ id:_visId(p), src:im.src, cat:im.cat, title:im.title, note:'',
+        source:im.source, page:im.page, order:p.visuals.length, conf:im.conf, addedAt:todayStr() });
+      added++;
+    });
+    p.updatedAt=todayStr();
+  });
+  savePlans(); document.querySelector('.render-lightbox')?.remove();
+  toast('יובאו '+added+' תמונות'); if(typeof renderDocMgmt==='function') renderDocMgmt();
+}
+function visualsByCat(p, cat){ _visInit(p); return p.visuals.filter(v=>v.cat===cat).sort((a,b)=>(a.order||0)-(b.order||0)); }
+function _visId(p){ _visInit(p); let mx=0; p.visuals.forEach(v=>{const n=parseInt(String(v.id).replace(/\D/g,''))||0; if(n>mx)mx=n;}); return 'v'+(mx+1); }
+
+/* ══════════ רינדור אזור חומר חזותי ══════════ */
+function renderVisualMaterial(p){
+  _visInit(p);
+  const el=document.getElementById('visualMaterial'); if(!el) return;
+  const catBlocks = VIS_CATS.map(c=>{
+    const items=visualsByCat(p,c.id);
+    const thumbs = items.map(v=>`
+      <div class="vm-thumb" draggable="${globalEdit?'true':'false'}" data-vid="${v.id}"
+           ondragstart="vmDragStart(event,'${v.id}')" title="${esc(v.title||'')}">
+        <img src="${v.src}" alt="${esc(v.title||'')}" loading="lazy" onclick="openViewer(${p.id},'${v.id}')">
+        <div class="vm-thumb-meta">${esc(v.title||VIS_CAT_LBL[v.cat])}${v.page?(' · עמ׳ '+v.page):''}</div>
+        ${globalEdit?`<div class="vm-thumb-tools no-print">
+          <select onchange="vmSetCat('${p.id}','${v.id}',this.value)" title="שינוי סיווג">${VIS_CATS.map(x=>`<option value="${x.id}" ${x.id===v.cat?'selected':''}>${x.name}</option>`).join('')}</select>
+          <button class="btn btn-xs" onclick="vmDelete('${p.id}','${v.id}')">✕</button>
+        </div>`:''}
+      </div>`).join('');
+    return `<div class="vm-cat" ondragover="event.preventDefault();this.classList.add('vm-drop')" ondragleave="this.classList.remove('vm-drop')" ondrop="vmDrop(event,'${p.id}','${c.id}')">
+      <div class="vm-cat-head"><span>${c.name}</span><span class="vm-count">${items.length}</span></div>
+      ${items.length?`<div class="vm-grid">${thumbs}</div>`:`
+        <div class="vm-empty ${globalEdit?'':'vm-empty-ro'}">
+          <span>אין חומר בקטגוריה זו</span>
+          ${globalEdit?`<div class="vm-empty-actions">
+            <button class="btn btn-ghost btn-xs" onclick="vmPickFile('${p.id}','${c.id}')">בחירת קובץ</button>
+            <span class="muted">· גרירה · הדבקה (Ctrl+V)</span>
+          </div>`:''}
+        </div>`}
+      ${items.length&&globalEdit?`<button class="btn btn-ghost btn-xs" onclick="vmPickFile('${p.id}','${c.id}')">+ הוספה לקטגוריה</button>`:''}
+    </div>`;
+  }).join('');
+  el.innerHTML=`
+    <div class="detail-section-title">חומר חזותי</div>
+    <div class="muted" style="font-size:12px;margin-bottom:8px">גלריית התמונות של התוכנית לפי קטגוריה. ניתן לגרור/להדביק/להעלות, לשנות סיווג, ולפתוח כל תמונה במסך מלא. שינוי סיווג ידני נשמר וגובר על הסיווג האוטומטי.</div>
+    <input type="file" id="vmFileInput" accept="image/*,application/pdf" multiple style="display:none" onchange="vmFilesSelected(this)">
+    <div class="vm-cats">${catBlocks}</div>`;
+  // paste support בהקשר הדף
+  if(!window._vmPasteBound){ window._vmPasteBound=true; document.addEventListener('paste', vmPasteHandler); }
+}
+let _vmTargetCat='other';
+function vmPickFile(pid,cat){ _vmTargetCat=cat; window._vmPid=pid; document.getElementById('vmFileInput').click(); }
+function vmFilesSelected(input){ const pid=window._vmPid||(pj()&&pj().id); [...input.files].forEach(f=>vmAddFile(pid,_vmTargetCat,f)); input.value=''; }
+function vmPasteHandler(e){
+  if(document.getElementById('projectPage') && !document.getElementById('projectPage').classList.contains('active')) return;
+  const p=pj(); if(!p||!globalEdit) return;
+  const items=e.clipboardData&&e.clipboardData.items; if(!items) return;
+  for(const it of items){ if(it.type&&it.type.indexOf('image')===0){ const f=it.getAsFile(); if(f){ vmAddFile(p.id,'other',f); toast('תמונה הודבקה'); } } }
+}
+function vmAddFile(pid, cat, file){
+  const p=plans.find(x=>x.id==pid); if(!p) return; _visInit(p);
+  if(file.type==='application/pdf'){ harmonicaAddFile(p, file); toast('PDF נוסף להרמוניקה'); return; }
+  const r=new FileReader();
+  r.onload=()=>{
+    const src=r.result;
+    const img=new Image();
+    img.onload=()=>{
+      p.visuals.push({ id:_visId(p), src, cat:cat||classifyVisual(file.name), title:file.name.replace(/\.[^.]+$/,''),
+        note:'', source:'הועלה ידנית', page:'', order:p.visuals.length, conf:'ידני', addedAt:todayStr(), w:img.width, h:img.height });
+      savePlans(); renderVisualMaterial(p);
+    };
+    img.onerror=()=>{ p.visuals.push({ id:_visId(p), src, cat:cat||'other', title:file.name, note:'', source:'הועלה ידנית', page:'', order:p.visuals.length, conf:'ידני', addedAt:todayStr() }); savePlans(); renderVisualMaterial(p); };
+    img.src=src;
+  };
+  r.readAsDataURL(file);
+}
+function vmSetCat(pid,vid,cat){ const p=plans.find(x=>x.id==pid); if(!p)return; const v=p.visuals.find(x=>x.id===vid); if(v){ v.cat=cat; v.conf='ידני'; savePlans(); renderVisualMaterial(p); } }
+function vmDelete(pid,vid){ const p=plans.find(x=>x.id==pid); if(!p)return; if(!confirm('למחוק תמונה זו?'))return; p.visuals=p.visuals.filter(x=>x.id!==vid); savePlans(); renderVisualMaterial(p); }
+function vmDragStart(e,vid){ e.dataTransfer.setData('vid',vid); }
+function vmDrop(e,pid,cat){ e.preventDefault(); e.currentTarget.classList.remove('vm-drop');
+  const vid=e.dataTransfer.getData('vid');
+  const p=plans.find(x=>x.id==pid); if(!p)return;
+  if(vid){ const v=p.visuals.find(x=>x.id===vid); if(v){ v.cat=cat; v.conf='ידני'; savePlans(); renderVisualMaterial(p); return; } }
+  // גרירת קבצים מהמחשב
+  if(e.dataTransfer.files&&e.dataTransfer.files.length){ [...e.dataTransfer.files].forEach(f=>vmAddFile(pid,cat,f)); }
+}
+
+/* ══════════ Viewer מסך מלא (זום/הזזה/סיבוב/ניווט) ══════════ */
+let _iviewer={list:[],idx:0,scale:1,rot:0,tx:0,ty:0,pid:null};
+function openViewer(pid,vid){
+  const p=plans.find(x=>x.id==pid); if(!p)return; _visInit(p);
+  _iviewer.list=p.visuals.slice().sort((a,b)=>(a.cat+ (a.order||0)).localeCompare(b.cat+(b.order||0)));
+  _iviewer.idx=Math.max(0,_iviewer.list.findIndex(v=>v.id===vid)); _iviewer.pid=pid;
+  _iviewer.scale=1; _iviewer.rot=0; _iviewer.tx=0; _iviewer.ty=0;
+  let ov=document.getElementById('imgViewer');
+  if(!ov){ ov=document.createElement('div'); ov.id='imgViewer'; ov.className='viewer-ov'; document.body.appendChild(ov); }
+  ov.innerHTML=`
+    <div class="viewer-bar no-print">
+      <span id="vwTitle"></span>
+      <div class="viewer-btns">
+        <button onclick="vwZoom(1.2)" title="הגדל">＋</button>
+        <button onclick="vwZoom(0.83)" title="הקטן">－</button>
+        <button onclick="vwRotate()" title="סיבוב">⟳</button>
+        <button onclick="vwFit()" title="התאמה">⤢</button>
+        <button onclick="vwReset()" title="איפוס">↺</button>
+        <button onclick="vwNav(-1)" title="הקודם">‹</button>
+        <button onclick="vwNav(1)" title="הבא">›</button>
+        <button onclick="vwSource()" title="פרטי מקור">ⓘ</button>
+        <a id="vwDownload" download title="הורדה">⤓</a>
+        <button onclick="closeViewer()" title="סגירה (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="viewer-stage" id="vwStage"><img id="vwImg" draggable="false"></div>
+    <div class="viewer-strip" id="vwStrip"></div>
+    <div class="viewer-info" id="vwInfo" style="display:none"></div>`;
+  ov.style.display='flex';
+  vwLoad(); bindViewerEvents(ov);
+}
+function vwLoad(){
+  const v=_iviewer.list[_iviewer.idx]; if(!v)return;
+  _iviewer.scale=1;_iviewer.rot=0;_iviewer.tx=0;_iviewer.ty=0;
+  const img=document.getElementById('vwImg'); img.src=v.src; vwApply();
+  document.getElementById('vwTitle').textContent=(v.title||VIS_CAT_LBL[v.cat])+(v.page?(' · עמ׳ '+v.page):'')+' ('+(_iviewer.idx+1)+'/'+_iviewer.list.length+')';
+  const dl=document.getElementById('vwDownload'); dl.href=v.src; dl.download=(v.title||'image')+'.'+((v.src.match(/^data:image\/(\w+)/)||[])[1]||'png');
+  const strip=document.getElementById('vwStrip');
+  strip.innerHTML=_iviewer.list.map((x,i)=>`<img src="${x.src}" class="${i===_iviewer.idx?'on':''}" onclick="_iviewer.idx=${i};vwLoad()">`).join('');
+  const info=document.getElementById('vwInfo');
+  info.innerHTML=`<b>קטגוריה:</b> ${VIS_CAT_LBL[v.cat]}<br><b>מקור:</b> ${esc(v.source||'—')}${v.page?(' · עמ׳ '+v.page):''}<br><b>סיווג:</b> ${esc(v.conf||'—')}<br><b>נוסף:</b> ${fmtDate(v.addedAt)}${v.note?('<br><b>הערה:</b> '+esc(v.note)):''}`;
+}
+function vwApply(){ const img=document.getElementById('vwImg'); if(img) img.style.transform=`translate(${_iviewer.tx}px,${_iviewer.ty}px) scale(${_iviewer.scale}) rotate(${_iviewer.rot}deg)`; }
+function vwZoom(f){ _iviewer.scale=Math.min(12,Math.max(0.2,_iviewer.scale*f)); vwApply(); }
+function vwRotate(){ _iviewer.rot=(_iviewer.rot+90)%360; vwApply(); }
+function vwReset(){ _iviewer.scale=1;_iviewer.rot=0;_iviewer.tx=0;_iviewer.ty=0; vwApply(); }
+function vwFit(){ vwReset(); }
+function vwNav(d){ _iviewer.idx=(_iviewer.idx+d+_iviewer.list.length)%_iviewer.list.length; vwLoad(); }
+function vwSource(){ const i=document.getElementById('vwInfo'); i.style.display=i.style.display==='none'?'block':'none'; }
+function closeViewer(){ const ov=document.getElementById('imgViewer'); if(ov) ov.style.display='none'; }
+function bindViewerEvents(ov){
+  const stage=document.getElementById('vwStage');
+  stage.onwheel=e=>{ e.preventDefault(); vwZoom(e.deltaY<0?1.15:0.87); };
+  let drag=false,sx,sy;
+  stage.onmousedown=e=>{ drag=true; sx=e.clientX-_iviewer.tx; sy=e.clientY-_iviewer.ty; };
+  window.addEventListener('mousemove',e=>{ if(drag){ _iviewer.tx=e.clientX-sx; _iviewer.ty=e.clientY-sy; vwApply(); } });
+  window.addEventListener('mouseup',()=>drag=false);
+  // מגע: זום ופאן
+  let pinch=0,lastT=null;
+  stage.ontouchstart=e=>{ if(e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);} else if(e.touches.length===1){ lastT={x:e.touches[0].clientX-_iviewer.tx,y:e.touches[0].clientY-_iviewer.ty}; } };
+  stage.ontouchmove=e=>{ e.preventDefault(); if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); if(pinch) vwZoom(d/pinch); pinch=d; } else if(e.touches.length===1&&lastT){ _iviewer.tx=e.touches[0].clientX-lastT.x; _iviewer.ty=e.touches[0].clientY-lastT.y; vwApply(); } };
+  if(!window._vwKeys){ window._vwKeys=true; document.addEventListener('keydown',e=>{
+    const ov=document.getElementById('imgViewer'); if(!ov||ov.style.display==='none')return;
+    if(e.key==='Escape')closeViewer(); else if(e.key==='ArrowLeft')vwNav(1); else if(e.key==='ArrowRight')vwNav(-1);
+    else if(e.key==='+'||e.key==='=')vwZoom(1.2); else if(e.key==='-')vwZoom(0.83);
+  }); }
+}
+
+/* ══════════ הרמוניקה ══════════ */
+function harmonicaAddFile(p, file){
+  _visInit(p);
+  const r=new FileReader();
+  r.onload=()=>{ p.harmonica.push({ id:'h'+(p.harmonica.length+1), src:r.result, name:file.name, kind:file.type==='application/pdf'?'pdf':'img', addedAt:todayStr() }); savePlans(); renderHarmonica(p); };
+  r.readAsDataURL(file);
+}
+function renderHarmonica(p){
+  _visInit(p);
+  const el=document.getElementById('harmonicaArea'); if(!el) return;
+  const items=p.harmonica;
+  el.innerHTML=`
+    <div class="detail-section-title">הרמוניקה</div>
+    <div class="muted" style="font-size:12px;margin-bottom:8px">מסמכי הרמוניקה של התוכנית (PDF ארוך/רב-עמודי, תמונות פנורמיות). נפתחים בתוך האפליקציה — תצוגה רציפה או תצוגת קנבס עם זום וניווט. לא מומרים לתמונות קטנות.</div>
+    <input type="file" id="harmFileInput" accept="application/pdf,image/*" style="display:none" onchange="harmSelected(this)">
+    ${globalEdit?`<div class="harm-drop" ondragover="event.preventDefault();this.classList.add('vm-drop')" ondragleave="this.classList.remove('vm-drop')" ondrop="harmDrop(event,'${p.id}')">
+      <button class="btn btn-ghost btn-sm" onclick="window._harmPid='${p.id}';document.getElementById('harmFileInput').click()">העלאת הרמוניקה</button>
+      <span class="muted">· גרירת קובץ לכאן</span></div>`:''}
+    <div class="harm-list">${items.length?items.map(h=>`
+      <div class="harm-item">
+        <div class="harm-item-head"><b>${esc(h.name)}</b> <span class="muted">${h.kind==='pdf'?'PDF':'תמונה'} · ${fmtDate(h.addedAt)}</span>
+          <span class="harm-item-tools">
+            <button class="btn btn-ghost btn-xs" onclick="openHarmonica('${p.id}','${h.id}','flow')">תצוגה רציפה</button>
+            <button class="btn btn-ghost btn-xs" onclick="openHarmonica('${p.id}','${h.id}','canvas')">תצוגת קנבס</button>
+            ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="harmDelete('${p.id}','${h.id}')">מחק</button>`:''}
+          </span></div>
+      </div>`).join(''):'<div class="muted">אין הרמוניקה עדיין.</div>'}</div>`;
+}
+function harmSelected(input){ const pid=window._harmPid; const p=plans.find(x=>x.id==pid); if(p)[...input.files].forEach(f=>harmonicaAddFile(p,f)); input.value=''; }
+function harmDrop(e,pid){ e.preventDefault(); e.currentTarget.classList.remove('vm-drop'); const p=plans.find(x=>x.id==pid); if(p&&e.dataTransfer.files)[...e.dataTransfer.files].forEach(f=>harmonicaAddFile(p,f)); }
+function harmDelete(pid,hid){ const p=plans.find(x=>x.id==pid); if(!p)return; if(!confirm('למחוק הרמוניקה זו?'))return; p.harmonica=p.harmonica.filter(x=>x.id!==hid); savePlans(); renderHarmonica(p); }
+function openHarmonica(pid,hid,mode){
+  const p=plans.find(x=>x.id==pid); if(!p)return; const h=p.harmonica.find(x=>x.id===hid); if(!h)return;
+  let ov=document.getElementById('harmViewer');
+  if(!ov){ ov=document.createElement('div'); ov.id='harmViewer'; ov.className='viewer-ov'; document.body.appendChild(ov); }
+  const isPdf=h.kind==='pdf';
+  ov.innerHTML=`
+    <div class="viewer-bar no-print">
+      <span>${esc(h.name)} · ${mode==='flow'?'תצוגה רציפה':'תצוגת קנבס'}</span>
+      <div class="viewer-btns">
+        ${!isPdf?`<button onclick="hvZoom(1.2)">＋</button><button onclick="hvZoom(0.83)">－</button><button onclick="hvFit()">⤢</button>`:''}
+        <a href="${h.src}" target="_blank" title="פתח קובץ מקורי">⤢קובץ</a>
+        <button onclick="closeHarmViewer()" title="סגירה">✕</button>
+      </div>
+    </div>
+    ${isPdf
+      ? `<iframe class="harm-frame" src="${h.src}#toolbar=1&view=FitH" title="${esc(h.name)}"></iframe>`
+      : (mode==='canvas'
+          ? `<div class="harm-canvas" id="hvCanvas"><img id="hvImg" src="${h.src}" draggable="false"></div>`
+          : `<div class="harm-flow"><img src="${h.src}"></div>`)}`;
+  ov.style.display='flex';
+  if(!isPdf&&mode==='canvas') bindHarmCanvas();
+}
+let _hv={scale:1,tx:0,ty:0};
+function hvZoom(f){ _hv.scale=Math.min(12,Math.max(0.2,_hv.scale*f)); hvApply(); }
+function hvFit(){ _hv={scale:1,tx:0,ty:0}; hvApply(); }
+function hvApply(){ const i=document.getElementById('hvImg'); if(i)i.style.transform=`translate(${_hv.tx}px,${_hv.ty}px) scale(${_hv.scale})`; }
+function bindHarmCanvas(){ _hv={scale:1,tx:0,ty:0}; const c=document.getElementById('hvCanvas'); if(!c)return;
+  c.onwheel=e=>{e.preventDefault();hvZoom(e.deltaY<0?1.15:0.87);};
+  let drag=false,sx,sy; c.onmousedown=e=>{drag=true;sx=e.clientX-_hv.tx;sy=e.clientY-_hv.ty;};
+  window.addEventListener('mousemove',e=>{if(drag){_hv.tx=e.clientX-sx;_hv.ty=e.clientY-sy;hvApply();}});
+  window.addEventListener('mouseup',()=>drag=false);
+}
+function closeHarmViewer(){ const ov=document.getElementById('harmViewer'); if(ov) ov.style.display='none'; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   בקרת איכות נתונים + ניהול מסמכים/תמונות/חילוץ (בדף הגדרות)
+   קורא את המקורות הקיימים (SEED_OPINIONS = טקסט חוות הדעת) ומשווה
+   לשדות התוכנית. אינו ממציא נתונים; מסמן חוסרים/סתירות/כפילויות.
+   ═══════════════════════════════════════════════════════════════ */
+
+// שדות ליבה לבדיקת שלמות מול המקור
+const QC_FIELDS = [
+  {k:'tik', label:'מספר תוכנית בינוי'},
+  {k:'projectName', label:'שם הפרויקט'},
+  {k:'developer', label:'יזם'},
+  {k:'submitter', label:'אדריכל'},
+  {k:'district', label:'רובע'},
+  {k:'parcel', label:'גוש/חלקה'},
+  {k:'status', label:'סטטוס'}
+];
+function _val(p,k){ const v=p[k]; return (v===undefined||v===null||String(v).trim()===''||String(v).trim()==='—')?'':String(v).trim(); }
+
+// זיהוי כפילויות תוכניות לפי שילוב מזהים (מספר/תב״ע/מגרש/גוש-חלקה)
+function qcDuplicatePlans(){
+  const groups={}; const dups=[];
+  plans.forEach(p=>{
+    const m=p.meta||{};
+    const key=[p.tik, m.zoningPlan, (p.plots&&p.plots[0]&&p.plots[0].num)||'', p.parcel].map(x=>String(x||'').trim().toLowerCase()).join('|');
+    (groups[key]=groups[key]||[]).push(p);
+    // גם התאמה משנית: אותו tik מדויק
+  });
+  const byTik={};
+  plans.forEach(p=>{ (byTik[String(p.tik)]=byTik[String(p.tik)]||[]).push(p); });
+  Object.entries(byTik).forEach(([tik,arr])=>{ if(arr.length>1) dups.push({tik, plans:arr}); });
+  return dups;
+}
+
+// חוסרים: שדות ליבה ריקים בתוכניות פעילות
+function qcMissing(){
+  const out=[];
+  plans.filter(p=>typeof planIsActive==='function'?planIsActive(p):true).forEach(p=>{
+    const miss=QC_FIELDS.filter(f=>!_val(p,f.k)).map(f=>f.label);
+    if(miss.length) out.push({tik:p.tik, id:p.id, name:(typeof buildProjectTitle==='function'?buildProjectTitle(p):('תב/'+p.tik)), miss});
+  });
+  return out;
+}
+
+// סתירות: ערך קיים בתוכנית מול ערך מזוהה במקור (SEED_OPINIONS) — לא נדרס אוטומטית
+function qcConflicts(){
+  const out=[];
+  if(typeof SEED_OPINIONS==='undefined') return out;
+  plans.forEach(p=>{
+    const seed=SEED_OPINIONS[String(p.tik)]; if(!seed) return;
+    // שם הפרויקט — אם המקור שונה מהקיים
+    const cur=_val(p,'projectName'), src=(seed.projectName||'').trim();
+    if(cur && src && cur!==src && _norm(cur)!==_norm(src)){
+      out.push({tik:p.tik, id:p.id, field:'projectName', label:'שם הפרויקט', current:cur, source:src, srcFile:'חוות דעת '+p.tik});
+    }
+  });
+  return out;
+}
+
+// חוות דעת לא משויכות: מקור קיים ללא תוכנית תואמת
+function qcUnmatched(){
+  const out=[];
+  if(typeof SEED_OPINIONS==='undefined') return out;
+  Object.keys(SEED_OPINIONS).forEach(tik=>{ if(!plans.find(p=>String(p.tik)===String(tik))) out.push(tik); });
+  return out;
+}
+
+// תמונות שלא סווגו
+function qcUnclassified(){
+  let n=0; plans.forEach(p=>{ (p.visuals||[]).forEach(v=>{ if(!v.cat||v.cat==='other') n++; }); }); return n;
+}
+// רשומות שלא עודכנו זמן רב
+function qcStale(){
+  const today=todayStr();
+  return plans.filter(p=>(typeof planIsActive==='function'?planIsActive(p):true) && (typeof daysSince==='function'?daysSince(p.updatedAt||p.date,today):0)>30)
+    .map(p=>({tik:p.tik,id:p.id,days:daysSince(p.updatedAt||p.date,today)}));
+}
+
+/* ── רינדור מסך בקרת איכות ── */
+function renderQC(){
+  const el=document.getElementById('qcBody'); if(!el) return;
+  const missing=qcMissing(), conflicts=qcConflicts(), dups=qcDuplicatePlans(), unmatched=qcUnmatched(), stale=qcStale();
+  const unclass=qcUnclassified();
+  const totalImgs=plans.reduce((s,p)=>s+((p.visuals||[]).length),0);
+  const cat=(title,count,cls)=>`<button class="qc-cat ${cls}" onclick="qcShow('${title}')"><b>${count}</b><span>${title}</span></button>`;
+  el.innerHTML=`
+    <div class="qc-cats">
+      ${cat('חסרים', missing.length, missing.length?'qc-warn':'qc-ok')}
+      ${cat('סתירות', conflicts.length, conflicts.length?'qc-red':'qc-ok')}
+      ${cat('כפילויות', dups.length, dups.length?'qc-red':'qc-ok')}
+      ${cat('לא משויכים', unmatched.length, unmatched.length?'qc-warn':'qc-ok')}
+      ${cat('תמונות לא מסווגות', unclass, unclass?'qc-warn':'qc-ok')}
+      ${cat('לא עודכנו זמן רב', stale.length, stale.length?'qc-warn':'qc-ok')}
+    </div>
+    <div class="qc-summary muted">סה״כ ${plans.length} תוכניות · ${totalImgs} תמונות · מקורות חוות דעת: ${typeof SEED_OPINIONS!=='undefined'?Object.keys(SEED_OPINIONS).length:0}</div>
+    <div id="qcDetail"></div>`;
+  window._qcData={missing,conflicts,dups,unmatched,stale};
+  qcShow('סתירות');
+}
+function qcShow(title){
+  const d=window._qcData||{}; const el=document.getElementById('qcDetail'); if(!el) return;
+  let html='';
+  if(title==='חסרים'){
+    html=(d.missing||[]).map(m=>`<div class="qc-row"><b>תב/${m.tik}</b> ${esc(m.name)} — חסר: <span class="c-missing">${m.miss.map(esc).join(', ')}</span> <button class="btn btn-ghost btn-xs" onclick="openProject(${m.id})">פתח</button></div>`).join('')||'<div class="muted">אין חוסרים בשדות הליבה.</div>';
+  } else if(title==='סתירות'){
+    html=(d.conflicts||[]).map(c=>`<div class="qc-conflict">
+      <div><b>תב/${c.tik}</b> · ${esc(c.label)}</div>
+      <div class="qc-cmp"><div class="qc-cur"><span class="qc-tag">נתון קיים</span> ${esc(c.current)}</div>
+      <div class="qc-src"><span class="qc-tag">בחוות הדעת</span> ${esc(c.source)} <span class="muted">(${esc(c.srcFile)})</span></div></div>
+      <div class="qc-rec">המלצת המערכת: ${esc(c.source)}</div>
+      <div class="qc-actions no-print">
+        <button class="btn btn-primary btn-xs" onclick="qcApply('${c.id}','${c.field}')">אשר והחלף</button>
+        <button class="btn btn-ghost btn-xs" onclick="qcKeep('${c.tik}','${c.field}')">השאר ערך קיים</button>
+        <button class="btn btn-ghost btn-xs" onclick="openProject(${c.id})">ערוך ידנית</button>
+      </div></div>`).join('')||'<div class="muted">לא נמצאו סתירות בין המקור לנתונים.</div>';
+  } else if(title==='כפילויות'){
+    html=(d.dups||[]).map(x=>`<div class="qc-row"><b>תב/${x.tik}</b> — ${x.plans.length} רשומות עם אותו מספר תוכנית <span class="c-missing">לאיחוד</span></div>`).join('')||'<div class="muted">אין כפילויות של תוכניות.</div>';
+  } else if(title==='לא משויכים'){
+    html=(d.unmatched||[]).map(t=>`<div class="qc-row">חוות דעת <b>תב/${t}</b> — אין תוכנית תואמת במערכת <span class="muted">(חריג לטיפול)</span></div>`).join('')||'<div class="muted">כל חוות הדעת משויכות לתוכנית.</div>';
+  } else if(title==='תמונות לא מסווגות'){
+    const rows=[]; plans.forEach(p=>(p.visuals||[]).forEach(v=>{ if(!v.cat||v.cat==='other') rows.push(`<div class="qc-row"><b>תב/${p.tik}</b> — ${esc(v.title||'תמונה')} <button class="btn btn-ghost btn-xs" onclick="openProject(${p.id});setTimeout(()=>ppTabByName('graphics'),200)">סווג</button></div>`); }));
+    html=rows.join('')||'<div class="muted">כל התמונות מסווגות.</div>';
+  } else if(title==='לא עודכנו זמן רב'){
+    html=(d.stale||[]).map(s=>`<div class="qc-row"><b>תב/${s.tik}</b> — ${s.days} ימים ללא עדכון <button class="btn btn-ghost btn-xs" onclick="openProject(${s.id})">פתח</button></div>`).join('')||'<div class="muted">אין רשומות ישנות.</div>';
+  }
+  el.innerHTML=`<div class="qc-detail-head">${esc(title)}</div>${html}`;
+}
+function qcApply(id,field){
+  const p=plans.find(x=>x.id==id); if(!p)return;
+  const seed=SEED_OPINIONS[String(p.tik)]; if(!seed)return;
+  const before=p[field];
+  if(field==='projectName' && seed.projectName){
+    p._qcHistory=p._qcHistory||[]; p._qcHistory.push({field,before,at:todayStr()});
+    p[field]=seed.projectName; if(typeof clearSeed==='function') clearSeed(p,field); p.updatedAt=todayStr();
+    savePlans(); toast('הערך הוחלף מהמקור'); renderQC();
+  }
+}
+function qcKeep(tik,field){ // מסמן שהסתירה נבדקה — נשמר דגל שלא יוצג שוב
+  const p=plans.find(x=>String(x.tik)===String(tik)); if(!p)return;
+  p._qcResolved=p._qcResolved||{}; p._qcResolved[field]=true; savePlans(); toast('הערך הקיים נשמר'); renderQC();
+}
+
+/* ── מסך ניהול מסמכים/תמונות/חילוץ בהגדרות ── */
+function renderDocMgmt(){
+  const el=document.getElementById('docMgmtBody'); if(!el) return;
+  const opinionsN=typeof SEED_OPINIONS!=='undefined'?Object.keys(SEED_OPINIONS).length:0;
+  const imgsN=plans.reduce((s,p)=>s+((p.visuals||[]).length),0);
+  const unclass=qcUnclassified();
+  const updated=plans.filter(p=>p._qcHistory&&p._qcHistory.length).length;
+  const conflicts=qcConflicts().length;
+  el.innerHTML=`
+    <div class="set-kv">תיקיית המקור המחוברת: <b>חוות דעת תוכניות</b> (16 קבצי החלטות ועדה)</div>
+    <div class="set-kv">חוות דעת שזוהו: <b>${opinionsN}</b> · תוכניות שעודכנו מהמקור: <b>${updated}</b> · סתירות פתוחות: <b>${conflicts}</b></div>
+    <div class="set-kv">תמונות שחולצו/הועלו: <b>${imgsN}</b> · לא מסווגות: <b>${unclass}</b></div>
+    <div class="mail-actions" style="margin-top:8px">
+      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[7]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qcBody').scrollIntoView({behavior:'smooth'})">טיפול בחריגים</button>
+    </div>
+    <div id="qcBody" style="margin-top:14px"></div>`;
+  renderQC();
+}
 
 
 // ── INIT ──
