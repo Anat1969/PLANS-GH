@@ -145,6 +145,16 @@ tbody tr:hover{background:var(--teal-pale)}
 .cf-plans{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid #eee;border-radius:8px;padding:8px;max-height:160px;overflow:auto}
 .proj-contact-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 @media(max-width:700px){ .contacts-table thead{display:none} .cf-plans{grid-template-columns:1fr} }
+.c-missing{color:#b06a00;font-size:11px;background:#fff3e0;border-radius:4px;padding:1px 6px}
+.c-src{font-size:11px;color:#777;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src-tag{background:#eef4f4;color:#3a6d6d;border-radius:4px;font-size:10px;padding:1px 6px;margin-inline-start:4px}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.set-card{border:1px solid #e2e2e2;border-radius:10px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.set-card h3{font-size:14px;color:#7a1f2b;margin:0}
+.set-desc{font-size:12px;color:#666;line-height:1.5;margin:0}
+.set-card .btn{align-self:flex-start}
+.set-kv{font-size:12px;color:#555}
+.set-badge{align-self:flex-start;background:#f0f0f0;color:#888;border-radius:12px;padding:2px 10px;font-size:11px}
 .btn-bronze{background:var(--bronze);color:white}
 .btn-bronze:hover{background:var(--bronze-deep)}
 
@@ -809,6 +819,36 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-done-ic{color:var(--ok);font-weight:700}
 .dw-done>div{flex:1}
 .dw-done-meta{font-size:11px;color:rgba(0,0,0,0.45);margin-top:2px}
+/* תוכנית עבודה — כרטיסי דחוף/חשוב */
+.dw-tier{margin-top:1rem}
+.dw-tier-head{font-family:var(--display);font-size:15px;display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:4px 10px;border-radius:8px}
+.dw-tier-urgent{background:#fdeaea;color:#9a2828}
+.dw-tier-important{background:#eef4fb;color:#2a557a}
+.dw-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+.dw-card{border:1px solid var(--fog);border-radius:10px;padding:11px 13px;background:#fff;font-size:13px;line-height:1.55}
+.dw-card.dw-high{border-inline-start:3px solid var(--err)}
+.dw-card.dw-med{border-inline-start:3px solid #4a83c4}
+.dw-card.dw-low{border-inline-start:3px solid var(--stone)}
+.dw-card-head{font-weight:600;margin-bottom:5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dw-stage{font-size:11px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:1px 8px}
+.dw-block,.dw-action{margin:3px 0}
+.dw-k{color:#8a1f2b;font-weight:600}
+.dw-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:5px 0;font-size:12px;color:#555}
+.dw-tools{display:flex;gap:5px;margin-top:8px}
+.dw-done-filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.dw-done-card{border:1px solid var(--fog);border-radius:10px;padding:10px 13px;background:#fff;font-size:13px}
+.dw-done-top{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.dw-noact{margin-top:10px;font-size:12px}
+.dw-noact summary{cursor:pointer;color:#777}
+.dw-noact>div{padding:3px 0}
+/* צ'יפ סטטוס אחיד — רקע בהיר, טקסט כהה, תמיד עם שם */
+.sc{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.sc-green{background:#e7f6ec;color:#1e6b3a;border-color:#c6e9d3}
+.sc-blue{background:#e8f1fb;color:#1f5288;border-color:#cfe1f5}
+.sc-yellow{background:#fdf6e3;color:#8a6d00;border-color:#f0e4b8}
+.sc-orange{background:#fdeede;color:#9a5a00;border-color:#f5dcbd}
+.sc-red{background:#fdeaea;color:#9a2828;border-color:#f3cccc}
+.sc-gray{background:#f0f0f0;color:#666;border-color:#e2e2e2}
 .mail-modal{max-width:640px;width:92vw;text-align:right}
 .mail-lbl{display:block;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);margin:10px 0 4px}
 .mail-modal input,.mail-modal textarea{width:100%;border:1px solid var(--stone);border-radius:6px;padding:8px;font-family:inherit;font-size:13px}
@@ -887,7 +927,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
     <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
-    <button onclick="go('contacts',this)">רשימות קשר</button>
+    <button onclick="go('settings',this)">הגדרות</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -900,8 +940,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <span class="mode-switch"><span class="mode-knob"></span></span>
     </div>
     <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">☁ מתחבר…</span>
-    <a href="https://claude.ai/code/session_01BJESVEYRci4MYmZ3FnAZuW" target="_blank" class="upgrade-btn">📋 שדרוג</a>
-    <a href="vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS" class="upgrade-btn upgrade-btn-vs" title="פתיחת הפרויקט ב-VS Code">שדרוג VS</a>
   </div>
 </div>
 </header>
@@ -1252,6 +1290,14 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="page-title">רשימות קשר</div>
   <div class="page-subtitle">מאגר מרכזי לניהול אנשי הקשר של תוכניות הבינוי והעיצוב — יזמים, אדריכלים ומנהלי פרויקט. הפרטים נשמרים פעם אחת ומשויכים לתוכניות.</div>
   <div id="contactsBody"></div>
+</div>
+
+<!-- ════════ SETTINGS PAGE (הגדרות) ════════ -->
+<div id="settings" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>הגדרות</span></div>
+  <div class="page-title">הגדרות</div>
+  <div class="page-subtitle">כלים טכניים, נתונים ותחזוקה — מרוכזים כאן ואינם מופיעים בדפי העבודה.</div>
+  <div id="settingsBody"></div>
 </div>
 
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
@@ -1633,15 +1679,16 @@ function go(id, btn) {
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
   if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
+  if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, settings:7};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1719,6 +1766,17 @@ function toast(msg) {
 function statusBadge(s) {
   return `<span class="badge ${STATUS_BADGE[s]||'badge-default'}">${s}</span>`;
 }
+/* ── מערכת סטטוס אחידה: רקע בהיר + טקסט כהה + תמיד שם הסטטוס ── */
+// ירוק=תקין/הושלם · כחול=בטיפול · צהוב=ממתין · כתום=דורש השלמה · אדום=מעוכב/חריגה · אפור=לא התחיל
+const STATUS_CHIP = {
+  'הושלם':'sc-green','אושר סופית':'sc-green','תקין':'sc-green','מאושר':'sc-green',
+  'בטיפול':'sc-blue','פעיל':'sc-blue',
+  'בהמתנה':'sc-yellow','בהמתנה ליזם':'sc-yellow','ממתין':'sc-yellow',
+  'דורש השלמה':'sc-orange','להשלמה':'sc-orange',
+  'דחוף':'sc-red','מעוכב':'sc-red','חריגה':'sc-red','סגור':'sc-red','נסגר':'sc-red','תוכנית נסגרה':'sc-red','בוטל':'sc-red',
+  'טרם עודכן':'sc-gray','לא התחיל':'sc-gray'
+};
+function statusChip(s){ if(!s) return ''; return `<span class="sc ${STATUS_CHIP[s]||'sc-gray'}">${esc(s)}</span>`; }
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -1904,7 +1962,7 @@ function renderActiveTracking(){
       <td>${esc(p.district)} ${esc(p.location||'')}</td>
       <td>${esc(p.developer||'—')}</td>
       <td>${stageLbl[p.stage||'stage_1']}</td>
-      <td>${statusBadge(p.status)}</td>
+      <td>${statusChip(p.status)}</td>
       <td style="white-space:nowrap">${fmtDate(pd)}</td>
       <td><span class="date-status ${u.cls}">${u.lbl}</span></td>
     </tr>`;
@@ -2253,7 +2311,7 @@ function renderTable() {
       <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
       <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
       <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
-      <td>${statusBadge(p.status)}</td>
+      <td>${statusChip(p.status)}</td>
     </tr>`;
   }).join('');
 
@@ -5491,32 +5549,63 @@ function planIsActive(p){ return !DONE_STATUSES.includes(p.status); }
 // ── כללי פעולות יוזמות — ניתנים לעריכה במסך הגדרות (נשמר ב-workRules) ──
 // כל כלל: { id, when(p,ctx)->bool, action, reason, urgency('high'|'med'|'low'), owner, dueOffsetDays }
 let workRules = { overrides: {} }; // overrides לפי id: {enabled, dueOffsetDays...}
+// עוזר: תאריך יעד = היום + ימים, בפורמט DD.MM.YYYY (ללא Date.now — נגזר מ-ctx.today)
+function _due(today, days){ const d=new Date(today); d.setDate(d.getDate()+days); return fmtDate(d.toISOString().slice(0,10)); }
+// עוזר: למי לפנות — נגזר מצוות היזם/מאגר אנשי הקשר של התוכנית (ללא המצאה)
+function whoToContact(p, role){
+  const rec=(typeof teamRecipients==='function')?teamRecipients(p):{to:[]};
+  if(rec.to&&rec.to.length) return rec.to[0];
+  const pc=(typeof projectContacts==='function')?projectContacts(p.tik):[];
+  const arch=pc.find(c=>c.type==='אדריכל'), dev=pc.find(c=>c.type==='יזם');
+  const pick=(role==='dev'?dev:arch)||pc[0];
+  return pick?(pick.name+(pick.email?(' · '+pick.email):(pick.phone?(' · '+pick.phone):''))):'לא נמצא איש קשר במאגר';
+}
+const stageLblMap={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+function planStageLbl(p){ return stageLblMap[p.stage||'stage_1']; }
+
 const WORK_RULES = [
-  { id:'no_arch_forum', urgency:'med', owner:'אדריכלית העיר',
-    when:(p)=>planIsActive(p) && !p.forumArchitect,
-    action:'לתאם פורום אדריכל', reason:'טרם נקבע/התקיים פורום אדריכל' },
-  { id:'no_consult_forum', urgency:'med', owner:'אדריכלית העיר',
-    when:(p)=>planIsActive(p) && p.forumArchitect && !p.forumConsultants,
-    action:'לפנות לתיאום פורום יועצים', reason:'פורום אדריכל התקיים אך פורום יועצים טרם נקבע' },
-  { id:'no_committee_prep', urgency:'med', owner:'אדריכלית העיר',
-    when:(p)=>planIsActive(p) && p.forumConsultants && !(p.datesPlan&&p.datesPlan.committeePrep),
-    action:'לקבוע מועד הכנה לוועדה', reason:'אין מועד להכנה לוועדה' },
-  { id:'committee_overdue', urgency:'high', owner:'אדריכלית העיר',
+  { id:'committee_overdue', urgency:'high', owner:'אדריכלית העיר', tool:'status',
     when:(p,c)=>{ const pd=p.datesPlan&&p.datesPlan.committeePrep; return planIsActive(p) && pd && pd<c.today; },
-    action:'בירור סטטוס — חלף מועד ההכנה לוועדה', reason:'חלף מועד הכנה לוועדה והתוכנית לא הושלמה' },
-  { id:'dev_no_reply', urgency:'high', owner:'אדריכל היזם',
-    when:(p,c)=>planIsActive(p) && p.status==='בהמתנה ליזם' && daysSince(p.updatedAt||p.date, c.today)>7,
-    action:'לשלוח תזכורת ליזם', reason:'היזם טרם השיב מעל 7 ימים' },
-  { id:'mismatch_no_explain', urgency:'high', owner:'אדריכל היזם',
+    build:(p,c)=>({ blocker:'חלף מועד ההכנה לוועדה ('+fmtDate(p.datesPlan.committeePrep)+') והתוכנית טרם הושלמה',
+      action:'לברר מול אדריכל היזם את הסטטוס ולעדכן מועד הכנה לוועדה מחדש עד '+_due(c.today,3),
+      contact:whoToContact(p,'dev'), due:_due(c.today,3) }) },
+  { id:'dev_no_reply', urgency:'high', owner:'אדריכלית העיר', tool:'mail',
+    when:(p,c)=>planIsActive(p) && (p.status==='בהמתנה ליזם'||p.status==='בהמתנה') && daysSince(p.updatedAt||p.date, c.today)>7,
+    build:(p,c)=>({ blocker:'היזם טרם השיב '+daysSince(p.updatedAt||p.date,c.today)+' ימים',
+      action:'לשלוח ליזם תזכורת בכתב עם דרישה להשיב עד '+_due(c.today,5),
+      contact:whoToContact(p,'dev'), due:_due(c.today,5) }) },
+  { id:'mismatch_no_explain', urgency:'high', owner:'אדריכל היזם', tool:'doc',
     when:(p)=>planIsActive(p) && hasUnexplainedMismatch(p),
-    action:'לפנות לאדריכל היזם להשלמת הסבר', reason:'קיימת אי־התאמה שלא הוסברה' },
-  { id:'stale', urgency:'low', owner:'אדריכלית העיר',
-    when:(p,c)=>planIsActive(p) && daysSince(p.updatedAt||p.date, c.today)>14,
-    action:'לבדוק סטטוס — אין התקדמות', reason:'התוכנית לא עודכנה מעל 14 ימים' },
-  { id:'no_opinion', urgency:'med', owner:'אדריכלית העיר',
+    build:(p,c)=>({ blocker:'קיימת אי־התאמה לדרישות שלא הוסברה',
+      action:'לקבל מאדריכל היזם הסבר/תיקון לאי־ההתאמה שסומנה, בצירוף מסמך תומך, עד '+_due(c.today,7),
+      contact:whoToContact(p,'dev'), due:_due(c.today,7) }) },
+  { id:'no_opinion', urgency:'high', owner:'אדריכלית העיר', tool:'task',
     when:(p)=>planIsActive(p) && (p.stage==='committee') && !(p.opinion&&p.opinion.recommendation),
-    action:'להשלים חוות דעת לוועדה', reason:'חסרה חוות דעת לוועדה' }
+    build:(p,c)=>({ blocker:'התוכנית בשלב הכנה לוועדה אך חסרה חוות דעת מסכמת',
+      action:'להשלים ולנסח את חוות הדעת לוועדה עד '+_due(c.today,4),
+      contact:'—', due:_due(c.today,4) }) },
+  { id:'no_arch_forum', urgency:'med', owner:'אדריכלית העיר', tool:'meeting',
+    when:(p)=>planIsActive(p) && !p.forumArchitect,
+    build:(p,c)=>({ blocker:'טרם נקבע/התקיים פורום אדריכל',
+      action:'לתאם מועד לפורום אדריכל מול היזם והאדריכל עד '+_due(c.today,10),
+      contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
+  { id:'no_consult_forum', urgency:'med', owner:'אדריכלית העיר', tool:'meeting',
+    when:(p)=>planIsActive(p) && p.forumArchitect && !p.forumConsultants,
+    build:(p,c)=>({ blocker:'פורום אדריכל התקיים ('+fmtDate(p.forumArchitect)+') אך פורום יועצים טרם נקבע',
+      action:'לתאם מועד לפורום יועצים עד '+_due(c.today,10),
+      contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
+  { id:'no_committee_prep', urgency:'med', owner:'אדריכלית העיר', tool:'task',
+    when:(p)=>planIsActive(p) && p.forumConsultants && !(p.datesPlan&&p.datesPlan.committeePrep),
+    build:(p,c)=>({ blocker:'פורום יועצים התקיים אך אין מועד להכנה לוועדה',
+      action:'לקבוע מועד הכנה לוועדה עד '+_due(c.today,14),
+      contact:'—', due:_due(c.today,14) }) },
+  { id:'stale', urgency:'med', owner:'אדריכלית העיר', tool:'status',
+    when:(p,c)=>planIsActive(p) && daysSince(p.updatedAt||p.date, c.today)>14,
+    build:(p,c)=>({ blocker:'אין התקדמות מתועדת '+daysSince(p.updatedAt||p.date,c.today)+' ימים',
+      action:'לבדוק את סטטוס התוכנית ולעדכן את השלב או הפעולה הנדרשת עד '+_due(c.today,5),
+      contact:whoToContact(p,'arch'), due:_due(c.today,5) }) }
 ];
+const TOOL_LABELS={mail:'ניסוח מייל',reminder:'יצירת תזכורת',task:'פתיחת משימה',meeting:'תיאום פגישה',doc:'בקשת מסמך',complete:'בקשת השלמה',muni:'העברה לגורם עירוני',status:'עדכון סטטוס'};
 function ruleEnabled(id){ const o=workRules.overrides&&workRules.overrides[id]; return !o || o.enabled!==false; }
 
 function daysSince(dateStr, today){ if(!dateStr) return 9999; const d=Math.round((new Date(today)-new Date(dateStr))/864e5); return isNaN(d)?9999:d; }
@@ -5539,12 +5628,16 @@ function generateTasks(){
       if(!ruleEnabled(rule.id)) return;
       let hit=false; try{ hit=rule.when(p,ctx); }catch(e){}
       if(hit){
+        let det={}; try{ det=rule.build?rule.build(p,ctx):{}; }catch(e){}
         tasks.push({ tik:p.tik, id:p.id, name:buildProjectTitle(p), rule:rule.id,
-          action:rule.action, reason:rule.reason, urgency:rule.urgency, owner:rule.owner });
+          stage:planStageLbl(p), blocker:det.blocker||'', action:det.action||'',
+          owner:rule.owner, contact:det.contact||'—', due:det.due||'',
+          daysNoProgress:daysNoProgress(p,today), tool:rule.tool||'task',
+          urgency:rule.urgency });
       }
     });
   });
-  tasks.sort((a,b)=> urgRank[a.urgency]-urgRank[b.urgency]);
+  tasks.sort((a,b)=> (urgRank[a.urgency]-urgRank[b.urgency]) || (b.daysNoProgress-a.daysNoProgress));
   return tasks;
 }
 
@@ -5599,48 +5692,113 @@ function buildReport(kind){
   out.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* ── רינדור: תוכנית עבודה יומית ── */
+/* ── רינדור: תוכנית עבודה יומית (דחוף → חשוב) ── */
+function taskCard(t){
+  return `<div class="dw-card dw-${t.urgency}">
+    <div class="dw-card-head"><b>תב/${t.tik}</b> · ${esc(t.name)} <span class="dw-stage">${esc(t.stage)}</span></div>
+    <div class="dw-block"><span class="dw-k">חסם:</span> ${esc(t.blocker)}</div>
+    <div class="dw-action"><span class="dw-k">פעולה מומלצת:</span> ${esc(t.action)}</div>
+    <div class="dw-meta">
+      <span><span class="dw-k">אחראי:</span> ${esc(t.owner)}</span>
+      <span><span class="dw-k">לפנות אל:</span> ${esc(t.contact)}</span>
+      ${t.due?`<span><span class="dw-k">יעד:</span> ${esc(t.due)}</span>`:''}
+      <span><span class="dw-k">ללא התקדמות:</span> ${t.daysNoProgress>=9999?'—':t.daysNoProgress+' ימים'}</span>
+    </div>
+    <div class="dw-tools no-print">
+      <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
+      <button class="btn btn-primary btn-sm" onclick="runTaskTool(${t.id},'${t.rule}','${t.tool}')">${TOOL_LABELS[t.tool]||'ביצוע'}</button>
+    </div>
+  </div>`;
+}
 function renderDailyWork(){
   const el = document.getElementById('dailyWork'); if(!el) return;
   const tasks = generateTasks();
-  const done = recentActions(8);
-  const urgCls = {high:'ds-red',med:'ds-orange',low:'ds-blue'};
-  const urgLbl = {high:'דחוף',med:'לטיפול',low:'מעקב'};
-  const tasksHtml = tasks.length ? tasks.slice(0,20).map(t=>`
-    <div class="dw-task dw-${t.urgency}">
-      <div class="dw-task-main">
-        <div class="dw-task-title"><b>תב/${t.tik}</b> — ${t.action}</div>
-        <div class="dw-task-reason">${esc(t.reason)} · אחראי מוצע: ${esc(t.owner)}</div>
-      </div>
-      <div class="dw-task-side">
-        <span class="date-status ${urgCls[t.urgency]}">${urgLbl[t.urgency]}</span>
-        <div class="dw-task-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר</button>
-          <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">נסח מייל</button>
-        </div>
-      </div>
-    </div>`).join('') : '<p class="muted">אין משימות פתוחות שזוהו כרגע.</p>';
-  const doneHtml = done.length ? done.map(a=>`
-    <div class="dw-done">
-      <span class="dw-done-ic">✓</span>
-      <div><b>תב/${a.tik}</b> — ${esc(actionTypeLabel(a.type))}${a.detail?(' · '+esc(a.detail)):''}
-        <div class="dw-done-meta">${esc(a.by||'')} · ${fmtDate(a.at)}</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="openProject(${a.id})">פתח</button>
-    </div>`).join('') : '<p class="muted">אין פעולות מתועדות לאחרונה.</p>';
+  const urgent = tasks.filter(t=>t.urgency==='high');
+  const important = tasks.filter(t=>t.urgency!=='high');
+  const urgentHtml = urgent.length ? urgent.map(taskCard).join('') : '<p class="muted">אין פעולות דחופות כרגע.</p>';
+  const importantHtml = important.length ? important.map(taskCard).join('') : '<p class="muted">אין פעולות בעדיפות רגילה כרגע.</p>';
   el.innerHTML = `
     <div class="section-title" style="margin-top:2.5rem">תוכנית עבודה יומית</div>
-    <div class="dw-grid">
-      <div class="dw-col">
-        <div class="dw-col-head">מה צריך להיעשות <span class="dw-count">${tasks.length}</span></div>
-        <div class="dw-list">${tasksHtml}</div>
-      </div>
-      <div class="dw-col">
-        <div class="dw-col-head">מה נעשה</div>
-        <div class="dw-list">${doneHtml}</div>
-      </div>
-    </div>`;
+    <div class="dw-tier">
+      <div class="dw-tier-head dw-tier-urgent">דחוף <span class="dw-count">${urgent.length}</span></div>
+      <div class="dw-cards">${urgentHtml}</div>
+    </div>
+    <div class="dw-tier">
+      <div class="dw-tier-head dw-tier-important">חשוב <span class="dw-count">${important.length}</span></div>
+      <div class="dw-cards">${importantHtml}</div>
+    </div>
+    <div id="dwDone"></div>`;
+  renderDoneThisMonth();
 }
-function actionTypeLabel(t){ return ({mail:'מייל נשלח/הוכן', status:'שינוי סטטוס', doc:'מסמך הועלה', note:'הערה נענתה', meeting:'פגישה', approval:'אישור התקבל', date:'מועד נקבע'})[t]||t; }
+function actionTypeLabel(t){ return ({mail:'מייל נשלח/הוכן', status:'שינוי סטטוס', doc:'מסמך הועלה', note:'הערה נענתה', meeting:'פגישה', approval:'אישור התקבל', date:'מועד נקבע', reminder:'תזכורת', task:'משימה'})[t]||t; }
+
+/* ── כלי ביצוע לכל פעולה ── */
+function runTaskTool(planId, ruleId, tool){
+  const p=plans.find(x=>x.id===planId); if(!p) return;
+  if(tool==='mail'){ composeMail(planId, ruleId); return; }
+  if(tool==='meeting'){ openProject(planId); toast('פותח את התוכנית לתיאום מועד'); return; }
+  if(tool==='doc'||tool==='complete'){ composeMail(planId, ruleId); return; }
+  if(tool==='status'){ openProject(planId); ppTabByName&&ppTabByName('info'); toast('עדכני את הסטטוס בדף התוכנית'); return; }
+  if(tool==='muni'){ go('muni',document.querySelectorAll('#mainNav button')[6]); return; }
+  // task / reminder — רישום משימה בהיסטוריה
+  const rule=WORK_RULES.find(r=>r.id===ruleId);
+  logAction(p, tool==='reminder'?'reminder':'task', rule?rule.build(p,{today:todayStr()}).action:'משימה נפתחה');
+  toast('נפתחה משימה ונרשמה בהיסטוריה'); renderDailyWork();
+}
+
+/* ── "מה נעשה" — פעולות שבוצעו בחודש הנבחר (מהנתונים האמיתיים) ── */
+let dwDoneFilter = { month:'', tik:'', type:'', by:'' };
+function monthKeyList(){
+  const set=new Set();
+  plans.forEach(p=>(p.actionLog||[]).forEach(a=>{ if(a.at) set.add(String(a.at).slice(0,7)); }));
+  return [...set].sort().reverse();
+}
+function doneActionsFor(monthKey){
+  const all=[];
+  plans.forEach(p=>{ (p.actionLog||[]).forEach(a=>{
+    all.push(Object.assign({tik:p.tik, id:p.id, name:buildProjectTitle(p), stage:planStageLbl(p), status:p.status}, a));
+  }); });
+  return all.filter(a=>{
+    if(monthKey && String(a.at||'').slice(0,7)!==monthKey) return false;
+    if(dwDoneFilter.tik && String(a.tik)!==String(dwDoneFilter.tik)) return false;
+    if(dwDoneFilter.type && a.type!==dwDoneFilter.type) return false;
+    if(dwDoneFilter.by && a.by!==dwDoneFilter.by) return false;
+    return true;
+  }).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+}
+function renderDoneThisMonth(){
+  const el=document.getElementById('dwDone'); if(!el) return;
+  const months=monthKeyList();
+  const curMonth = dwDoneFilter.month || todayStr().slice(0,7);
+  const acts=doneActionsFor(curMonth);
+  const activePlans=plans.filter(planIsActive);
+  const tiks=[...new Set(activePlans.map(p=>p.tik))];
+  const types=[...new Set(plans.flatMap(p=>(p.actionLog||[]).map(a=>a.type)).filter(Boolean))];
+  const bys=[...new Set(plans.flatMap(p=>(p.actionLog||[]).map(a=>a.by)).filter(Boolean))];
+  const monthLbl=k=>{ const [y,m]=k.split('-'); return ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'][+m]+' '+y; };
+  // תוכניות פעילות ללא פעילות החודש — הצגת המשפט הנדרש
+  const actedTiks=new Set(acts.map(a=>String(a.tik)));
+  const noActivity=activePlans.filter(p=>!actedTiks.has(String(p.tik)));
+  const rows = acts.length ? acts.map(a=>`
+    <div class="dw-done-card">
+      <div class="dw-done-top"><b>תב/${a.tik}</b> · ${esc(a.name)} ${statusChip(a.status)}</div>
+      <div class="dw-done-body">
+        <div><span class="dw-k">פעולה:</span> ${esc(actionTypeLabel(a.type))}${a.detail?(' — '+esc(a.detail)):''}</div>
+        <div class="dw-done-meta"><span class="dw-k">תאריך:</span> ${fmtDate(a.at)} · <span class="dw-k">בוצע ע״י:</span> ${esc(a.by||'—')} · <span class="dw-k">שלב:</span> ${esc(a.stage)}</div>
+      </div>
+    </div>`).join('') : '';
+  el.innerHTML=`
+    <div class="section-title" style="margin-top:2rem">מה נעשה — ${monthLbl(curMonth)}</div>
+    <div class="dw-done-filters no-print">
+      <select class="team-f" onchange="dwSetFilter('month',this.value)"><option value="${todayStr().slice(0,7)}">חודש נוכחי</option>${months.map(m=>`<option value="${m}" ${curMonth===m?'selected':''}>${monthLbl(m)}</option>`).join('')}</select>
+      <select class="team-f" onchange="dwSetFilter('tik',this.value)"><option value="">כל התוכניות</option>${tiks.map(t=>`<option value="${t}" ${String(dwDoneFilter.tik)===String(t)?'selected':''}>תב/${t}</option>`).join('')}</select>
+      <select class="team-f" onchange="dwSetFilter('type',this.value)"><option value="">כל סוגי הפעולה</option>${types.map(t=>`<option value="${t}" ${dwDoneFilter.type===t?'selected':''}>${actionTypeLabel(t)}</option>`).join('')}</select>
+      <select class="team-f" onchange="dwSetFilter('by',this.value)"><option value="">כל הגורמים</option>${bys.map(b=>`<option value="${esc(b)}" ${dwDoneFilter.by===b?'selected':''}>${esc(b)}</option>`).join('')}</select>
+    </div>
+    <div class="dw-cards">${rows||'<p class="muted">לא תועדה פעילות בחודש זה.</p>'}</div>
+    ${noActivity.length&&!dwDoneFilter.tik&&!dwDoneFilter.type&&!dwDoneFilter.by?`<details class="dw-noact"><summary>${noActivity.length} תוכניות פעילות ללא פעילות מתועדת החודש</summary>${noActivity.map(p=>`<div class="muted">תב/${p.tik} — ${esc(buildProjectTitle(p))}: לא תועדה פעילות בתוכנית זו במהלך החודש הנוכחי.</div>`).join('')}</details>`:''}`;
+}
+function dwSetFilter(k,v){ dwDoneFilter[k]=v; if(k==='month'&&v===todayStr().slice(0,7)) dwDoneFilter.month=''; renderDoneThisMonth(); }
 
 /* ══════════ צוות היזם ופרטי קשר ══════════
    מודל: p.devTeam = [{ id, name, org, title, phone, active, emails:[{addr,primary,cc,active}] }]
@@ -5765,7 +5923,7 @@ function mailPrepareSend(planId){
    השיוך נשמר על איש הקשר (plans[]). פרטי הקשר נשמרים פעם אחת במאגר;
    דף התוכנית מציג/משייך מתוך המאגר — ללא כפילות.
    ═══════════════════════════════════════════════════════════════ */
-const CONTACT_TYPES = ['יזם','אדריכל','מנהל פרויקט'];
+const CONTACT_TYPES = ['יזם','אדריכל','מנהל פרויקט','יועץ','עורך בקשה','גורם עירייה','גורם מאשר'];
 let contacts = [];
 let _contactsLoaded = false;
 
@@ -5790,19 +5948,90 @@ async function saveContacts(){
   try{ await fetch(SB_URL+'/rest/v1/ashdod_muni?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'contacts',data:payload,updated_at:new Date().toISOString()}])}); }catch(e){}
 }
 
-/* ── נתוני דוגמה (ניתנים למחיקה; מסומנים sample:true) ── */
-function seedContacts(){
-  const someTik = (plans[0]&&plans[0].tik)||'';
-  const someTik2 = (plans[1]&&plans[1].tik)||someTik;
-  contacts = [
-    {id:'c1',name:'דוגמה — יזם א׳',type:'יזם',org:'חברת בנייה לדוגמה בע״מ',title:'מנכ״ל',phone:'050-0000001',email:'sample.dev1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik?[someTik]:[],updatedAt:todayStr()},
-    {id:'c2',name:'דוגמה — יזם ב׳',type:'יזם',org:'ייזום נדל״ן לדוגמה',title:'מנהל פיתוח',phone:'050-0000002',email:'sample.dev2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik2?[someTik2]:[],updatedAt:todayStr()},
-    {id:'c3',name:'דוגמה — אדריכל א׳',type:'אדריכל',org:'סטודיו אדריכלים לדוגמה',title:'אדריכל ראשי',phone:'050-0000003',email:'sample.arch1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik?[someTik]:[],updatedAt:todayStr()},
-    {id:'c4',name:'דוגמה — אדריכל ב׳',type:'אדריכל',org:'משרד תכנון לדוגמה',title:'אדריכלית',phone:'050-0000004',email:'sample.arch2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:[],updatedAt:todayStr()},
-    {id:'c5',name:'דוגמה — מנהל פרויקט א׳',type:'מנהל פרויקט',org:'ניהול פרויקטים לדוגמה',title:'מנהל פרויקט',phone:'050-0000005',email:'sample.pm1@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:someTik2?[someTik2]:[],updatedAt:todayStr()},
-    {id:'c6',name:'דוגמה — מנהל פרויקט ב׳',type:'מנהל פרויקט',org:'פיקוח וניהול לדוגמה',title:'מנהל פיקוח',phone:'050-0000006',email:'sample.pm2@example.com',notes:'רשומת דוגמה — ניתן למחוק',tasks:'',sample:true,plans:[],updatedAt:todayStr()}
-  ];
+/* ── אנשי קשר ממקור אמת: חולצו מקבצי „חוות הדעת” (החלטות ועדה). ── */
+const REAL_CONTACTS = [
+{"tik": "1714", "name": "אבו יחיאל", "type": "יזם", "org": "אבו יחיאל חברה לבניין בע\"מ", "title": "יזם", "phone": "054-2609503", "email": "office@abultd.com", "note": "כתובת: הגדוד העברי 5 אשדוד"},
+{"tik": "1714", "name": "יואל פייגין", "type": "אדריכל", "org": "feiginarch", "title": "אדריכל", "phone": "03-6791000", "email": "feigin@feiginarch.co.il", "note": "כתובת: מעלה הצופים 19 רמת גן"},
+{"tik": "1714", "name": "מוטי אסולין", "type": "מנהל פרויקט", "org": "", "title": "איש קשר", "phone": "053-4210422", "email": "moti@top-l.co.il", "note": "איש קשר; כתובת: האורגים 29 אשדוד"},
+{"tik": "1714", "name": "יבגני", "type": "גורם מאשר", "org": "אגף תשתיות", "title": "מאשר", "phone": "", "email": "", "note": "אישור אגף תשתיות"},
+{"tik": "1714", "name": "קובי זינו", "type": "גורם מאשר", "org": "אגף תברואה", "title": "מאשר", "phone": "", "email": "", "note": "אישור אגף תברואה"},
+{"tik": "1714", "name": "מירון", "type": "גורם מאשר", "org": "אגף ניקוז", "title": "מאשר", "phone": "", "email": "", "note": "אישור אגף ניקוז"},
+{"tik": "1714", "name": "יוסי לרר", "type": "גורם מאשר", "org": "אגף נטיעות", "title": "מאשר", "phone": "", "email": "", "note": "אישור אגף נטיעות"},
+{"tik": "1714", "name": "אמיר יוחאי", "type": "גורם מאשר", "org": "אגף חשמל", "title": "מאשר", "phone": "", "email": "", "note": "אישור אגף חשמל"},
+{"tik": "1732", "name": "דני רוזן", "type": "אדריכל", "org": "", "title": "אדריכל", "phone": "", "email": "", "note": "אדריכל - נמען לכבוד"},
+{"tik": "1732", "name": "אסטנג'לוב השקעות בע\"מ", "type": "יזם", "org": "אסטנג'לוב השקעות בע\"מ", "title": "יזם", "phone": "", "email": "", "note": "יזם התכנית"},
+{"tik": "1778", "name": "אושר ורד", "type": "עורך בקשה", "org": "", "title": "עורך בקשה", "phone": "", "email": "", "note": "כתובת: הגפן 11, גן יבנה"},
+{"tik": "1778", "name": "דורון חזן", "type": "גורם עירייה", "org": "עיריית אשדוד", "title": "עורך חוות הדעת, אדר'", "phone": "", "email": "", "note": "עורך חוות הדעת"},
+{"tik": "1778", "name": "יעל שרביט", "type": "גורם עירייה", "org": "עיריית אשדוד", "title": "בודקת תכנית, אדר' נוף", "phone": "", "email": "", "note": "בודקת תכנית"},
+{"tik": "1778", "name": "טנא מרכזים מסחריים בע\"מ", "type": "יזם", "org": "טנא מרכזים מסחריים בע\"מ", "title": "מגיש התכנית", "phone": "", "email": "", "note": "מגיש התכנית"},
+{"tik": "1778", "name": "בני מגדמן-פרויקטים בע\"מ", "type": "עורך בקשה", "org": "בני מגדמן-פרויקטים בע\"מ", "title": "עורך התכנית", "phone": "", "email": "", "note": "עורך התכנית"},
+{"tik": "1778", "name": "דורית ברנשטיין", "type": "גורם עירייה", "org": "עיריית אשדוד", "title": "ע. מהנדס העיר / מנהלת ועדה מקומית", "phone": "", "email": "", "note": "העתקים"},
+{"tik": "1800", "name": "האחים ישראל בע\"מ", "type": "יזם", "org": "האחים ישראל בע\"מ", "title": "יזם", "phone": "02-6245552", "email": "office@israelbrothers.co.il", "note": "כתובת: שלומציון המלכה 18, ירושלים"},
+{"tik": "1800", "name": "עמית וינברג", "type": "אדריכל", "org": "", "title": "אדריכל", "phone": "054-6435646", "email": "amitw.arch@gmail.com", "note": "כתובת: אלוף קלמן מגן 1, תל אביב"},
+{"tik": "1800", "name": "הראל קאפח", "type": "מנהל פרויקט", "org": "האחים ישראל בע\"מ", "title": "איש קשר", "phone": "052-8389616", "email": "harelk@israelbrothers.co.il", "note": "איש קשר; כתובת: שלומציון המלכה 18, ירושלים"},
+{"tik": "1802", "name": "יורם אסרף", "type": "יזם", "org": "רשות הספורט - עיריית אשדוד", "title": "יזם", "phone": "054-6764242", "email": "", "note": ""},
+{"tik": "1802", "name": "מידד גנדלר", "type": "אדריכל", "org": "סטודיו V5", "title": "אדריכל", "phone": "052-3658752", "email": "", "note": "כתובת: שחם 1 פתח תקווה"},
+{"tik": "1802", "name": "שירה מלכה", "type": "מנהל פרויקט", "org": "א.אפשטיין 1995 בע\"מ", "title": "ניהול ופיקוח", "phone": "054-3361081", "email": "", "note": ""},
+{"tik": "1802", "name": "דורית ברנשטיין", "type": "גורם עירייה", "org": "עיריית אשדוד", "title": "ע. מהנדס העיר, מנהלת ועדה מקומית", "phone": "", "email": "", "note": "רשימת העתקים"},
+{"tik": "1811", "name": "דודו אטיאס", "type": "יזם", "org": "יצחק אטיאס חברה לבנייה בע\"מ", "title": "יזם", "phone": "0537395569", "email": "dudu@atias.co.il", "note": ""},
+{"tik": "1811", "name": "עידו דאובר", "type": "אדריכל", "org": "דאובר אדריכלים", "title": "אדריכל", "phone": "035227717", "email": "galz@dauber-arch.co.il", "note": "כתובת: שלבים 6 תל אביב-יפו"},
+{"tik": "1815", "name": "יחד הבונים ייזום ובנייה בע\"מ", "type": "יזם", "org": "יחד הבונים ייזום ובנייה בע\"מ", "title": "יזם", "phone": "08-8530996", "email": "yachad@y-hb.co.il", "note": "כתובת: האורגים 29"},
+{"tik": "1815", "name": "מוטי בניטה", "type": "אדריכל", "org": "סטודיו מוטי ב", "title": "אדריכל", "phone": "054-4291705", "email": "studiomotib@gmail.com", "note": "כתובת: האורגים 29/12"},
+{"tik": "1815", "name": "אפי כווינה", "type": "אדריכל", "org": "", "title": "אדריכל", "phone": "0522492234", "email": "effykwina@gmail.com", "note": "כתובת: האשכול 4"},
+{"tik": "1815", "name": "אלי רוז", "type": "יועץ", "org": "rozeng", "title": "איש קשר", "phone": "0544250681", "email": "Eli@rozeng.com", "note": "כתובת: האורגים 29/5"},
+{"tik": "1844", "name": "גל יוזמה מרכזי מסחר בע\"מ", "type": "יזם", "org": "גל יוזמה מרכזי מסחר בע\"מ", "title": "יזם", "phone": "", "email": "", "note": ""},
+{"tik": "1844", "name": "גיא גולדשטיין", "type": "אדריכל", "org": "גיא אדריכלים", "title": "אדריכל", "phone": "", "email": "", "note": "כתובת: בצלאל 3 רמת גן"},
+{"tik": "1844", "name": "דוד בז'רנו", "type": "יועץ", "org": "הנדסת תנועה ותחבורה", "title": "יועץ תנועה", "phone": "", "email": "", "note": ""},
+{"tik": "1844", "name": "ורד אושר", "type": "יועץ", "org": "ארט נוף", "title": "אדריכל נוף", "phone": "", "email": "", "note": ""},
+{"tik": "1844", "name": "אלאונורה פיסקון", "type": "יועץ", "org": "", "title": "יועץ ניקוז", "phone": "", "email": "", "note": ""},
+{"tik": "1844", "name": "יצחק גיל", "type": "יועץ", "org": "", "title": "יועץ איכות סביבה", "phone": "", "email": "", "note": ""},
+{"tik": "1845", "name": "רוקח חברה לבניה בע\"מ", "type": "יזם", "org": "רוקח חברה לבניה בע\"מ", "title": "יזם", "phone": "", "email": "", "note": "יזם חיים רוקח"},
+{"tik": "1845", "name": "הרן ילין", "type": "אדריכל", "org": "הרן ילין אדריכלות ובינוי ערים", "title": "אדריכל / עורך הבקשה", "phone": "", "email": "", "note": "קיבוץ יגור, מיקוד 30065"},
+{"tik": "1862", "name": "אבו יחיאל חברה לבנין בע\"מ", "type": "יזם", "org": "אבו יחיאל חברה לבנין בע\"מ", "title": "יזם", "phone": "052-9591310", "email": "shirel@abultd.com", "note": "כתובת: הגדוד העברי"},
+{"tik": "1862", "name": "גיל מינסטר", "type": "אדריכל", "org": "גיל מינסטר אדריכלים", "title": "אדריכל", "phone": "08-9362618", "email": "office@gilminster.com", "note": "כתובת: האורגים 11 אשדוד"},
+{"tik": "1871", "name": "אסנג'לוב", "type": "יזם", "org": "", "title": "יזם", "phone": "", "email": "", "note": "מרינה, מגרשים 42,43,44"},
+{"tik": "1871", "name": "דני רוזן", "type": "אדריכל", "org": "רוזן אדריכלים", "title": "אדריכל", "phone": "054-5226221", "email": "Rozen.arch@gmail.com", "note": "כתובת: גורדון 32ב גבעתיים"},
+{"tik": "1871", "name": "טל שי", "type": "יועץ", "org": "telem-eng", "title": "איש קשר", "phone": "050-5339348", "email": "TAL@telem-eng.com", "note": "כתובת: נוטמן אברהם 10, רחובות"},
+{"tik": "1871", "name": "לריסה", "type": "גורם מאשר", "org": "אגף תשתיות ותנועה", "title": "מאשר", "phone": "", "email": "", "note": "אישור 11.12.25, נספח תנועה"},
+{"tik": "1871", "name": "קובי זינו", "type": "גורם מאשר", "org": "אגף תברואה", "title": "מאשר", "phone": "", "email": "", "note": "אישור 11.11.25"},
+{"tik": "1871", "name": "מירון יעקובוב", "type": "גורם מאשר", "org": "אגף ניקוז", "title": "מאשר", "phone": "", "email": "", "note": "אישור 17.11.25"},
+{"tik": "1871", "name": "יוסי לרר", "type": "גורם מאשר", "org": "אגף נטיעות", "title": "מאשר", "phone": "", "email": "", "note": "אישור 29.12.25"},
+{"tik": "1871", "name": "איתי מירז", "type": "גורם מאשר", "org": "איכות סביבה", "title": "מאשר", "phone": "", "email": "", "note": "אישור 1.4.25"},
+{"tik": "1871", "name": "ישראל דהן", "type": "גורם מאשר", "org": "אגף חשמל", "title": "מאשר", "phone": "", "email": "", "note": "אישור 1.2.26"},
+{"tik": "1873", "name": "ש.ס. אדיר חברה ליזמות והשקעות בע\"מ", "type": "יזם", "org": "ש.ס. אדיר חברה ליזמות והשקעות בע\"מ", "title": "יזם", "phone": "050-4000742", "email": "Shaul.101a@gmail.com", "note": "לידי שאול אקב; בניין TOP SEA סי מול"},
+{"tik": "1873", "name": "וולטר שיינקמן", "type": "אדריכל", "org": "", "title": "אדריכל", "phone": "050-5271069", "email": "walter@walter.co.il", "note": "כתובת: קי טאוארס שד' ירושלים 18 אשדוד"},
+{"tik": "1876", "name": "מרים סולומון", "type": "יזם", "org": "חברת רוטשטיין", "title": "נציגת יזם", "phone": "054-4720940", "email": "miriam@rotshtein.co.il", "note": "יזם: חברת רוטשטיין"},
+{"tik": "1876", "name": "יואב אומן", "type": "אדריכל", "org": "טיטו אומן", "title": "אדריכל / עורך הבקשה", "phone": "054-4431637", "email": "yoav@tito-oman.com", "note": ""},
+{"tik": "1880", "name": "צחי אבו", "type": "יזם", "org": "אוצר בניה והשקעות בע\"מ", "title": "יזם", "phone": "0502761321", "email": "k0502761321@gmail.com", "note": "כתובת: הגדוד העברי 5"},
+{"tik": "1880", "name": "בסאם נאסר", "type": "אדריכל", "org": "", "title": "אדריכל", "phone": "0504255961", "email": "arch.bn.tira@gmail.com", "note": "כתובת: טירה 1 טירה"},
+{"tik": "1901", "name": "אדיר מלכה", "type": "יזם", "org": "", "title": "יזם הפרויקט", "phone": "050-7483784", "email": "watergoal@hotmail.com", "note": "כתובת: חוף יא 41, אשדוד"},
+{"tik": "1901", "name": "אייל לוגאסי", "type": "אדריכל", "org": "", "title": "אדריכל מתכנן", "phone": "052-3443825", "email": "eyalarch@gmail.com", "note": "כתובת: שדרות התמרים, אילת"},
+{"tik": "1910", "name": "אוריה שוהט", "type": "עורך בקשה", "org": "", "title": "עורך בקשה", "phone": "", "email": "", "note": "מופיע בכותרת לכבוד; כתובת: ארז 6, עמינדב"}
+];
+const REAL_SOURCE_FILE = tik => 'החלטת ועדה  תכנית בינוי '+tik+'.DOC';
+// בונה מאגר מאוחד: אותו אדם/חברה שמופיע בכמה תוכניות → רשומה אחת עם plans מרובות
+function buildRealContacts(){
+  const out=[]; const byKey={};
+  REAL_CONTACTS.forEach(r=>{
+    const key = (r.email&&r.email.trim()) ? _norm(r.email)
+             : (r.phone&&r.phone.trim()) ? _norm(r.phone)
+             : _norm(r.name)+'|'+_norm(r.org);
+    if(byKey[key]){
+      const c=byKey[key];
+      if(!c.plans.includes(r.tik)) c.plans.push(r.tik);
+      if(!c.sources.includes(REAL_SOURCE_FILE(r.tik))) c.sources.push(REAL_SOURCE_FILE(r.tik));
+      ['org','title','phone','email','notes'].forEach(k=>{ const v=k==='notes'?r.note:r[k]; if(!c[k]&&v) c[k]=v; });
+    } else {
+      const c={ id:'r'+(out.length+1), name:r.name, type:r.type, org:r.org, title:r.title,
+        phone:r.phone, email:r.email, notes:r.note, tasks:'', plans:[r.tik],
+        sources:[REAL_SOURCE_FILE(r.tik)], source:'חוות הדעת', updatedAt:todayStr(), real:true };
+      byKey[key]=c; out.push(c);
+    }
+  });
+  return out;
 }
+function seedContacts(){ contacts = buildRealContacts(); }
+
 
 /* ── מניעת כפילויות: מייל | טלפון | שם+חברה ── */
 function _norm(s){ return String(s||'').trim().toLowerCase().replace(/[\s\-]/g,''); }
@@ -5879,26 +6108,32 @@ function renderContactsPage(){
     const arrow=col=>v.sort===col?(v.dir>0?' ▲':' ▼'):'';
     const th=(lbl,col)=>`<th onclick="contactSort('${col}')" style="cursor:pointer">${lbl}${arrow(col)}</th>`;
     bodyHtml=`<div class="tbl-wrap"><table class="track-table contacts-table"><thead><tr>
-      <th class="no-print"></th>${th('שם','name')}${th('סוג','type')}${th('חברה/משרד','org')}${th('תפקיד','title')}<th>נייד</th><th>דוא״ל</th>${th('תוכניות','plans')}<th>הערות</th>${th('עודכן','updatedAt')}<th class="no-print">פעולות</th>
+      <th class="no-print"></th>${th('שם','name')}${th('סוג','type')}${th('חברה/משרד','org')}${th('תפקיד','title')}<th>נייד</th><th>דוא״ל</th>${th('תוכניות','plans')}<th>מקור</th>${th('עודכן','updatedAt')}<th class="no-print">פעולות</th>
     </tr></thead><tbody>${list.map(c=>contactRow(c)).join('')||'<tr><td colspan="10" class="muted">אין אנשי קשר.</td></tr>'}</tbody></table></div>`;
   }
-  const sampleNote=contacts.some(c=>c.sample)?`<div class="calc-warn-banner">מוצגות רשומות דוגמה (מסומנות „דוגמה”) — ניתן למחוק אותן. <button class="btn btn-ghost btn-xs" onclick="deleteSampleContacts()">מחק את כל רשומות הדוגמה</button></div>`:'';
-  el.innerHTML=controls+sampleNote+`<div class="muted" style="margin:6px 0 10px">${list.length} מתוך ${contacts.length} אנשי קשר</div>`+bodyHtml;
+  const realN=contacts.filter(c=>c.real).length;
+  const sampleNote=contacts.some(c=>c.sample)?`<div class="calc-warn-banner">קיימות רשומות דוגמה — <button class="btn btn-ghost btn-xs" onclick="deleteSampleContacts()">מחק את כל רשומות הדוגמה</button></div>`:'';
+  const srcNote=realN?`<div class="pd-intro">${realN} אנשי קשר נטענו ממקור אמת — קבצי „חוות הדעת” (החלטות ועדה). שדה שלא נמצא במקור מסומן „לא נמצא במקור”; לכל רשומה נשמרת הפניה לקובץ המקור. <button class="btn btn-ghost btn-xs" onclick="previewImportRealContacts()">רענון מהמקור</button></div>`:'';
+  el.innerHTML=controls+sampleNote+srcNote+`<div class="muted" style="margin:6px 0 10px">${list.length} מתוך ${contacts.length} אנשי קשר</div>`+bodyHtml;
 }
 
+// שדה חסר ברשומת-מקור מסומן במפורש „לא נמצא במקור” (לא ניחוש)
+function _missing(c){ return c.real ? '<span class="c-missing">לא נמצא במקור</span>' : '—'; }
+function _srcText(c){ return (c.sources&&c.sources.length) ? c.sources.join(' · ') : (c.source||''); }
+function contactSrcBadge(c){ return c.real?`<span class="src-tag" title="${esc(_srcText(c))}">מקור: חוות הדעת</span>`:(c.sample?'<span class="samp-tag">דוגמה</span>':''); }
 function contactRow(c){
   const v=contactView;
   const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
   return `<tr class="${c.sample?'contact-sample':''}">
     <td class="no-print"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"></td>
-    <td><strong>${esc(c.name||'—')}</strong>${c.sample?' <span class="samp-tag">דוגמה</span>':''}</td>
+    <td><strong>${esc(c.name||'—')}</strong> ${contactSrcBadge(c)}</td>
     <td>${esc(c.type||'—')}</td>
     <td>${esc(c.org||'—')}</td>
     <td>${esc(c.title||'—')}</td>
-    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">☎</a>`:'—'}</td>
-    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">✉</a>`:'—'}</td>
-    <td>${esc(plansTxt)}</td>
-    <td class="c-notes">${esc(c.notes||'')}</td>
+    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">☎</a>`:_missing(c)}</td>
+    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">✉</a>`:_missing(c)}</td>
+    <td>${plansTxt==='—'?_missing(c):esc(plansTxt)}</td>
+    <td class="c-src">${esc(_srcText(c))||'—'}</td>
     <td style="white-space:nowrap">${fmtDate(c.updatedAt)}</td>
     <td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></td>
   </tr>`;
@@ -5907,11 +6142,12 @@ function contactCard(c){
   const v=contactView;
   const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
   return `<div class="contact-card ${c.sample?'contact-sample':''}">
-    <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${c.sample?'<span class="samp-tag">דוגמה</span>':''}<span class="cc-type">${esc(c.type||'')}</span></div>
+    <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${contactSrcBadge(c)}<span class="cc-type">${esc(c.type||'')}</span></div>
     <div class="cc-line">${esc(c.org||'')}${c.title?(' · '+esc(c.title)):''}</div>
-    <div class="cc-line">${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:''} ${c.email?`· <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:''}</div>
+    <div class="cc-line">${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:_missing(c)} ${c.email?`· <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:('· '+_missing(c))}</div>
     <div class="cc-line muted">תוכניות: ${esc(plansTxt)}</div>
     ${c.notes?`<div class="cc-line muted">${esc(c.notes)}</div>`:''}
+    ${_srcText(c)?`<div class="cc-line c-src">מקור: ${esc(_srcText(c))}</div>`:''}
     <div class="cc-actions no-print"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></div>
   </div>`;
 }
@@ -5923,6 +6159,48 @@ function contactToggleSel(id,on){ contactView.selected[id]=on; renderContactsPag
 function contactClearSel(){ contactView.selected={}; renderContactsPage(); }
 function copyText(t){ navigator.clipboard.writeText(t).then(()=>toast('הועתק: '+t)); }
 function deleteSampleContacts(){ if(!confirm('למחוק את כל רשומות הדוגמה?')) return; contacts=contacts.filter(c=>!c.sample); saveContacts(); renderContactsPage(); toast('רשומות הדוגמה נמחקו'); }
+
+/* ── ייבוא מסודר ממקור אמת: זיהוי → חילוץ → אימות → תצוגה מקדימה → אישור ── */
+function previewImportRealContacts(){
+  const candidates = buildRealContacts();  // מהמקור המחולץ
+  // אימות + מיון: חדש / כפילות (כבר קיים)
+  const rows = candidates.map(c=>{
+    const dup = findDuplicate(c, c.id) || contacts.find(o=>_norm(o.email)&&_norm(o.email)===_norm(c.email));
+    return { c, status: dup?'קיים':'חדש', dup };
+  });
+  const newCount=rows.filter(r=>r.status==='חדש').length;
+  const dupCount=rows.filter(r=>r.status==='קיים').length;
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal" style="max-width:760px">
+    <h3>ייבוא אנשי קשר ממקור אמת — תצוגה מקדימה</h3>
+    <div class="pd-intro">מקור: קבצי „חוות הדעת” (החלטות ועדה). ${candidates.length} רשומות זוהו · <b>${newCount}</b> חדשות · <b>${dupCount}</b> כבר קיימות (ידולגו/יאוחדו). אין המצאת נתונים; שדה חסר נשאר ריק ומסומן „לא נמצא במקור”.</div>
+    <div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table class="track-table"><thead><tr><th>מצב</th><th>שם</th><th>סוג</th><th>חברה</th><th>נייד</th><th>דוא״ל</th><th>תוכניות</th><th>מקור</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr class="${r.status==='חדש'?'':'contact-sample'}"><td>${r.status}</td><td><b>${esc(r.c.name)}</b></td><td>${esc(r.c.type)}</td><td>${esc(r.c.org||'—')}</td><td>${esc(r.c.phone||'')||'<span class=c-missing>—</span>'}</td><td>${esc(r.c.email||'')||'<span class=c-missing>—</span>'}</td><td>${(r.c.plans||[]).map(t=>'תב/'+t).join(', ')}</td><td class="c-src">${esc((r.c.sources||[]).join(' · '))}</td></tr>`).join('')}</tbody></table></div>
+    <div class="mail-actions">
+      <button class="btn btn-primary btn-sm" onclick="confirmImportRealContacts()">אישור ייבוא (${newCount} חדשות)</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">ביטול</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function confirmImportRealContacts(){
+  const candidates=buildRealContacts();
+  let added=0, merged=0;
+  candidates.forEach(c=>{
+    const dup=findDuplicate(c,c.id);
+    if(dup){
+      // איחוד: משלים שדות ריקים + מאחד תוכניות ומקורות, שומר גרסה קודמת בהיסטוריה
+      const before={phone:dup.phone,email:dup.email,org:dup.org};
+      ['org','title','phone','email','notes'].forEach(k=>{ if(!dup[k]&&c[k]) dup[k]=c[k]; });
+      dup.plans=[...new Set([...(dup.plans||[]),...(c.plans||[])])];
+      dup.sources=[...new Set([...(dup.sources||[]),...(c.sources||[])])];
+      if(before.phone!==dup.phone||before.email!==dup.email){ dup.history=dup.history||[]; dup.history.push({at:todayStr(),before}); }
+      dup.real=true; dup.updatedAt=todayStr(); merged++;
+    } else { contacts.push(c); added++; }
+  });
+  saveContacts(); document.querySelector('.render-lightbox')?.remove(); renderContactsPage();
+  toast('יובאו '+added+' חדשות · '+merged+' אוחדו');
+}
 
 /* ── הוספה/עריכה ── */
 function contactEdit(id){
@@ -6048,6 +6326,97 @@ function projUnassign(id,tik){
   c.plans=(c.plans||[]).filter(t=>String(t)!==String(tik)); c.updatedAt=todayStr();
   saveContacts(); const p=pj(); if(p) renderProjectContacts(p); toast('השיוך הוסר');
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
+   ═══════════════════════════════════════════════════════════════ */
+const APP_VERSION = '2026.07.3';
+const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
+
+function renderSettings(){
+  const el=document.getElementById('settingsBody'); if(!el) return;
+  const plansN=plans.length, contactsN=(contacts||[]).length;
+  el.innerHTML=`
+    <div class="set-grid">
+      <div class="set-card">
+        <h3>רשימות קשר</h3>
+        <p class="set-desc">מאגר אנשי הקשר של תוכניות הבינוי (${contactsN} רשומות).</p>
+        <button class="btn btn-primary btn-sm" onclick="go('contacts',null);document.getElementById('contacts').classList.add('active');document.querySelectorAll('.page').forEach(p=>{if(p.id!=='contacts')p.classList.remove('active')});renderContactsPage&&renderContactsPage()">פתיחת רשימות הקשר</button>
+      </div>
+      <div class="set-card">
+        <h3>ייבוא וייצוא נתונים</h3>
+        <p class="set-desc">גיבוי מקומי של כל הנתונים (${plansN} תוכניות, ${contactsN} אנשי קשר) לקובץ, ושחזור ממנו.</p>
+        <button class="btn btn-ghost btn-sm" onclick="exportBackup()">ייצוא גיבוי (JSON)</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">ייבוא מגיבוי</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(this)">
+        <button class="btn btn-ghost btn-sm" onclick="exportContactsCsvAll()">ייצוא אנשי קשר (CSV)</button>
+      </div>
+      <div class="set-card">
+        <h3>סנכרון נתונים</h3>
+        <p class="set-desc">מצב חיבור לענן: <span id="setCloud">${document.getElementById('cloudStatus')?document.getElementById('cloudStatus').textContent:'—'}</span></p>
+        <button class="btn btn-ghost btn-sm" onclick="savePlans();saveContacts&&saveContacts();toast('נשלח סנכרון לענן')">סנכרון עכשיו</button>
+        <button class="btn btn-ghost btn-sm" onclick="location.reload()">טעינה מחדש מהענן</button>
+      </div>
+      <div class="set-card">
+        <h3>אנשי קשר ממקור אמת</h3>
+        <p class="set-desc">טעינת אנשי הקשר שחולצו מקבצי „חוות הדעת” (החלטות ועדה). תצוגה מקדימה ואישור לפני ייבוא; מונע כפילויות; שומר הפניה לקובץ המקור.</p>
+        <button class="btn btn-primary btn-sm" onclick="previewImportRealContacts()">ייבוא אנשי קשר מהמקור</button>
+      </div>
+      <div class="set-card">
+        <h3>ניהול הרשאות ומשתמשים</h3>
+        <p class="set-desc">תפקיד נוכחי בדף פרויקט נקבע במתג „אדריכל היזם / אדריכלית העיר”. ניהול משתמשים מלא — בפיתוח.</p>
+        <span class="set-badge">בקרוב</span>
+      </div>
+      <div class="set-card">
+        <h3>הגדרות תצוגה, צבעים ועיצוב</h3>
+        <p class="set-desc">מצב תצוגה/עריכה נשלט במתג שבסרגל. ערכת צבעים: בורדו · זהב · אפור (קבועה כרגע).</p>
+        <span class="set-badge">בקרוב</span>
+      </div>
+      <div class="set-card">
+        <h3>גיבוי ושחזור</h3>
+        <p class="set-desc">גיבוי אחרון מקומי: <span id="setLastSave">—</span></p>
+        <button class="btn btn-ghost btn-sm" onclick="exportBackup()">צור גיבוי עכשיו</button>
+      </div>
+      <div class="set-card">
+        <h3>כלים טכניים</h3>
+        <p class="set-desc">קישורים לפיתוח ותחזוקת המערכת.</p>
+        <a class="btn btn-ghost btn-sm" href="${VS_LINK}">פתיחה ב-VS Code</a>
+        <a class="btn btn-ghost btn-sm" href="https://claude.ai/code/session_01BJESVEYRci4MYmZ3FnAZuW" target="_blank">מסך שדרוג</a>
+      </div>
+      <div class="set-card">
+        <h3>פרטי גרסה</h3>
+        <p class="set-desc">אפליקציית ניהול ובדיקת תוכניות בינוי ועיצוב — עיריית אשדוד.</p>
+        <div class="set-kv">גרסה: <b>${APP_VERSION}</b></div>
+        <div class="set-kv">תוכניות: <b>${plansN}</b> · אנשי קשר: <b>${contactsN}</b></div>
+      </div>
+    </div>`;
+  try{ const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); const e=document.getElementById('setLastSave'); if(s&&s.savedAt&&e) e.textContent=new Date(s.savedAt).toLocaleString('he-IL'); }catch(e){}
+}
+
+/* ── גיבוי/שחזור ── */
+function exportBackup(){
+  const data={ app:'ashdod-plans', version:APP_VERSION, exportedAt:new Date().toISOString(),
+    plans, contacts:(contacts||[]) };
+  const blob=new Blob(['﻿'+JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ashdod-backup.json'; a.click();
+  toast('הגיבוי יוצא לקובץ');
+}
+function importBackup(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!confirm('לייבא גיבוי? '+(d.plans?d.plans.length:0)+' תוכניות ו-'+(d.contacts?d.contacts.length:0)+' אנשי קשר יוחלפו.')) return;
+      if(Array.isArray(d.plans)){ plans.length=0; d.plans.forEach(p=>plans.push(p)); savePlans(); }
+      if(Array.isArray(d.contacts)){ contacts=d.contacts; saveContacts&&saveContacts(); }
+      toast('הגיבוי יובא'); renderSettings(); applyFilters&&applyFilters();
+    }catch(e){ toast('קובץ לא תקין'); }
+  };
+  r.readAsText(f); input.value='';
+}
+function exportContactsCsvAll(){ if(typeof bulkCsv==='function'){ const keep=contactView.selected; contactView.selected={}; bulkCsv(); contactView.selected=keep; } }
 
 
 // ── INIT ──
