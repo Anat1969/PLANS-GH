@@ -467,7 +467,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #projectPage input[type=text],#projectPage input:not([type]),#projectPage input[type=date],
 #projectPage input[type=number],#projectPage textarea,#projectPage select{color:#1a56db}
 #projectPage input::placeholder,#projectPage textarea::placeholder{color:#c4c9cf;opacity:1}
-/* שדה 'מספר תיק' בלבד נשאר אפור (מסומן data-always=ro) */
+/* שדה 'מספר תוכנית בינוי' בלבד נשאר אפור (מסומן data-always=ro) */
 #projectPage input[data-always="ro"]{color:rgba(0,0,0,0.5) !important}
 @media print{#projectPage input,#projectPage textarea,#projectPage select{color:#000 !important}}
 /* ══════════ מסגרת הדמיית פרויקט (גובה ~2 שורות) ══════════ */
@@ -498,7 +498,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .guide-note-row td{background:#fff7f5;padding:8px 12px !important}
 .guide-note label{display:block;font-size:12px;color:#b91c1c;margin-bottom:4px;font-weight:600}
 .guide-note textarea{width:100%;min-height:44px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db}
-/* ══════════ כרטיס תיק עם הדמייה כרקע (50% שקיפות) ══════════ */
+/* ══════════ כרטיס תוכנית בינוי עם הדמייה כרקע (50% שקיפות) ══════════ */
 .card-render{position:relative;overflow:hidden}
 .card-render-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.5;z-index:0;pointer-events:none}
 .card-render-content{position:relative;z-index:1}
@@ -678,7 +678,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <div class="page-subtitle">40 תוכניות — סנן, מיין, חפש ועדכן סטטוס</div>
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית חדשה</button>
+      <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית בינוי חדשה</button>
     </div>
   </div>
 
@@ -702,7 +702,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <table>
       <thead>
         <tr>
-          <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>תיק</th>
+          <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>תוכנית בינוי</th>
           <th style="width:96px">הדמייה</th>
           <th onclick="sortTable(1)"><span class="sort-arrow">▼</span>רובע</th>
           <th onclick="sortTable(2)"><span class="sort-arrow">▼</span>מיקום</th>
@@ -816,17 +816,18 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <div class="modal-header">
-      <h3>הוספת תוכנית חדשה</h3>
+      <h3>הוספת תוכנית בינוי חדשה</h3>
       <button class="modal-close" onclick="closeAddModal()">✕</button>
     </div>
     <div class="modal-body">
       <div class="detail-grid">
-        <div class="detail-item"><div class="detail-label">מס' תיק</div><input id="addTik" class="status-select" style="width:100%;margin-top:4px" placeholder="1900"></div>
+        <div class="detail-item"><div class="detail-label">מס' תוכנית בינוי</div><input id="addTik" class="status-select" style="width:100%;margin-top:4px" placeholder="1900"></div>
         <div class="detail-item"><div class="detail-label">רובע</div><input id="addDistrict" class="status-select" style="width:100%;margin-top:4px" placeholder="רובע א'"></div>
         <div class="detail-item"><div class="detail-label">מס' תכנית</div><input id="addPlan" class="status-select" style="width:100%;margin-top:4px" placeholder="תב/1900"></div>
         <div class="detail-item"><div class="detail-label">שינוי לתכנית</div><input id="addChange" class="status-select" style="width:100%;margin-top:4px" placeholder="603-..."></div>
         <div class="detail-item"><div class="detail-label">יזם</div><input id="addDeveloper" class="status-select" style="width:100%;margin-top:4px" placeholder="שם היזם"></div>
         <div class="detail-item"><div class="detail-label">מגיש / עורך</div><input id="addSubmitter" class="status-select" style="width:100%;margin-top:4px" placeholder="שם האדריכל"></div>
+        <div class="detail-item"><div class="detail-label">מייל אדריכל</div><input id="addArchEmail" type="email" class="status-select" style="width:100%;margin-top:4px" placeholder="architect@example.com"></div>
         <div class="detail-item"><div class="detail-label">מיקום</div><input id="addLocation" class="status-select" style="width:100%;margin-top:4px" placeholder="רחוב, מגרש, גוש..."></div>
         <div class="detail-item"><div class="detail-label">גוש/חלקה</div><input id="addParcel" class="status-select" style="width:100%;margin-top:4px" placeholder="גוש/חלקה"></div>
         <div class="detail-item full"><div class="detail-label">שם הפרויקט</div><input id="addProjectName" class="status-select" style="width:100%;margin-top:4px" placeholder="שם הפרויקט"></div>
@@ -847,7 +848,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       </div>
       <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem">
         <button class="btn btn-ghost" onclick="closeAddModal()">ביטול</button>
-        <button class="btn btn-primary" onclick="addPlan()">הוסף תוכנית</button>
+        <button class="btn btn-primary" onclick="addPlan()">הוסף תוכנית בינוי</button>
       </div>
     </div>
   </div>
@@ -1296,7 +1297,7 @@ function lockInputs(lock){
   document.querySelectorAll(sel).forEach(el=>{
     if(el.type==='file') return;
     if(el.dataset.nolock==='1') return;              // שדות חיפוש/סינון — תמיד פעילים
-    if(el.readOnly && el.dataset.always==='ro') return; // שדות שתמיד לקריאה (מס' תיק)
+    if(el.readOnly && el.dataset.always==='ro') return; // שדות שתמיד לקריאה (מס' תוכנית בינוי)
     if(el.tagName==='SELECT') el.disabled = lock; else el.readOnly = lock;
   });
   // טקסטים עריכים (contentEditable) בכל הדפים
@@ -1369,11 +1370,11 @@ function notifyForumDate(plan, field, dateVal){
   if(!dateVal) return;
   const info = FORUM_INFO[field]; if(!info) return;
   const fmtD = fmtDate(dateVal);
-  const subject = encodeURIComponent(`נקבע תאריך ${info.label} — תיק ${plan.tik} (${plan.planNum})`);
+  const subject = encodeURIComponent(`נקבע תאריך ${info.label} — תוכנית בינוי ${plan.tik} (${plan.planNum})`);
   const body = encodeURIComponent(
     `שלום רב,\n\n` +
     `נקבע תאריך ${info.label} לתוכנית בינוי:\n\n` +
-    `• מס׳ תיק: ${plan.tik}\n` +
+    `• מס׳ תוכנית בינוי: ${plan.tik}\n` +
     `• מס׳ תכנית: ${plan.planNum}\n` +
     `• יזם: ${plan.developer || '—'}\n` +
     `• מגיש/עורך: ${plan.submitter || '—'}\n` +
@@ -1390,6 +1391,43 @@ function notifyForumDate(plan, field, dateVal){
   const recipients = FORUM_EMAIL_RECIPIENTS;
   window.open(`mailto:${recipients}?subject=${subject}&body=${body}`, '_blank');
   toast(`מייל עדכון ${info.label} נפתח`);
+}
+
+function notifyArchitectNewPlan(plan, archEmail){
+  const appUrl = window.location.origin + window.location.pathname;
+  const recipients = archEmail ? `${archEmail},${FORUM_EMAIL_RECIPIENTS}` : FORUM_EMAIL_RECIPIENTS;
+  const subject = encodeURIComponent(`תוכנית בינוי חדשה נפתחה — ${plan.tik} (${plan.planNum})`);
+  const body = encodeURIComponent(
+    `שלום רב,\n\n` +
+    `נפתחה תוכנית בינוי חדשה במערכת ונדרשת הזנת פרטים:\n\n` +
+    `══════════════════════════════\n` +
+    `פרטי תוכנית הבינוי:\n` +
+    `══════════════════════════════\n` +
+    `• מס׳ תוכנית בינוי: ${plan.tik}\n` +
+    `• מס׳ תכנית: ${plan.planNum || '—'}\n` +
+    `• שם הפרויקט: ${plan.projectName || '—'}\n` +
+    `• יזם: ${plan.developer || '—'}\n` +
+    `• מגיש/עורך: ${plan.submitter || '—'}\n` +
+    `• מיקום: ${plan.location || '—'}\n` +
+    `• רובע: ${plan.district || '—'}\n` +
+    `• גוש/חלקה: ${plan.parcel || '—'}\n\n` +
+    `══════════════════════════════\n` +
+    `קישור למערכת:\n` +
+    `══════════════════════════════\n` +
+    `${appUrl}\n\n` +
+    `נא להיכנס למערכת ולהשלים את הפרטים הנדרשים לתוכנית הבינוי:\n` +
+    `• פרטי מיקום מלאים (גוש, חלקה, כתובת)\n` +
+    `• נתוני תב"ע (זכויות בנייה, צפיפות, גובה, שימושים)\n` +
+    `• הדמיות ותשריטים\n` +
+    `• מסמכי רקע (מדידה, זכויות, תצלומי מצב)\n\n` +
+    `לאחר השלמת הפרטים, אדריכלית העיר תקבע את 3 אבני הדרך:\n` +
+    `1. פורום אדריכל העיר\n` +
+    `2. פורום יועצים\n` +
+    `3. הכנה לוועדה\n\n` +
+    `בברכה,\nמערכת תוכניות בינוי — עיריית אשדוד`
+  );
+  window.open(`mailto:${recipients}?subject=${subject}&body=${body}`, '_blank');
+  toast('מייל עדכון לאדריכל נפתח');
 }
 
 function saveForumDate(id, field, el){
@@ -1760,7 +1798,7 @@ function openDetail(id) {
   if (!p) return;
   const lights = STATUS_LIGHTS[p.status]||['#999','#999','#999'];
   const trafficCls = STATUS_TRAFFIC[p.status]||'traffic-default';
-  document.getElementById('modalTitle').textContent = `תיק ${p.tik} — ${p.district}`;
+  document.getElementById('modalTitle').textContent = `תוכנית בינוי ${p.tik} — ${p.district}`;
   document.getElementById('modalBody').innerHTML = `
     <div class="detail-dates-row">
       <div class="detail-date-cell">
@@ -1837,7 +1875,7 @@ document.getElementById('detailModal').addEventListener('click', function(e) { i
 
 function changeStatus(id, newStatus) {
   const p = plans.find(x=>x.id===id);
-  if (p) { p.status = newStatus; savePlans(); renderTable(); renderLanding(); toast(`סטטוס תיק ${p.tik} עודכן ל: ${newStatus}`); }
+  if (p) { p.status = newStatus; savePlans(); renderTable(); renderLanding(); toast(`סטטוס תוכנית בינוי ${p.tik} עודכן ל: ${newStatus}`); }
 }
 
 function cycleStatus(id) {
@@ -1858,7 +1896,7 @@ document.getElementById('addModal').addEventListener('click', function(e) { if (
 
 function addPlan() {
   const tik = document.getElementById('addTik').value.trim();
-  if (!tik) { toast('נא למלא מס\' תיק'); return; }
+  if (!tik) { toast('נא למלא מס\' תוכנית בינוי'); return; }
   const now = new Date();
   const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const newPlan = {
@@ -1888,17 +1926,19 @@ function addPlan() {
     planningData: '',
     opinion: ''
   };
+  const archEmail = document.getElementById('addArchEmail').value.trim();
   plans.push(newPlan);
   savePlans();
   populateFilters();
   applyFilters();
   renderLanding();
   closeAddModal();
-  toast(`תוכנית ${tik} נוספה בהצלחה`);
+  toast(`תוכנית בינוי ${tik} נוספה בהצלחה`);
   if(newPlan.forumArchitect) notifyForumDate(newPlan,'forumArchitect',newPlan.forumArchitect);
   if(newPlan.forumConsultants) notifyForumDate(newPlan,'forumConsultants',newPlan.forumConsultants);
   if(newPlan.committeeDate) notifyForumDate(newPlan,'committeeDate',newPlan.committeeDate);
-  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee'].forEach(id=>document.getElementById(id).value='');
+  notifyArchitectNewPlan(newPlan, archEmail);
+  ['addTik','addDistrict','addPlan','addChange','addDeveloper','addSubmitter','addLocation','addParcel','addProjectName','addApproval','addForumArch','addForumCons','addCommittee','addArchEmail'].forEach(id=>document.getElementById(id).value='');
 }
 
 // ── MAP ──
@@ -2015,7 +2055,7 @@ function initMap() {
     const marker = L.circleMarker([lat, lng], {
       radius: 11, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
     });
-    marker.bindTooltip(`<strong style="font-size:15px">תיק ${p.tik}</strong><br><span style="font-size:13px">${p.district}</span><br><span style="font-size:13px">${p.location||'—'}</span><br><span style="font-size:12px;color:#666">${p.purpose||'—'}</span>`, {direction:'top',offset:[0,-12],className:'big-tooltip'});
+    marker.bindTooltip(`<strong style="font-size:15px">תוכנית בינוי ${p.tik}</strong><br><span style="font-size:13px">${p.district}</span><br><span style="font-size:13px">${p.location||'—'}</span><br><span style="font-size:12px;color:#666">${p.purpose||'—'}</span>`, {direction:'top',offset:[0,-12],className:'big-tooltip'});
     marker.on('click', () => openDetail(p.id));
     gisLayers.plans.addLayer(marker);
   });
@@ -2309,7 +2349,7 @@ function ensureProjectData(p) {
   }
 }
 
-/** מייצר מספר תיק רץ בפורמט PROJ-שנה-רץ (FULL-ANALYSIS ח. אוטומציות) */
+/** מייצר מספר תוכנית בינוי רץ בפורמט PROJ-שנה-רץ (FULL-ANALYSIS ח. אוטומציות) */
 function genFileNumber(p) {
   const yr = p.year || new Date().getFullYear();
   const seq = String((p.id||0)+1).padStart(3,'0');
@@ -2387,9 +2427,9 @@ function renderInfoTab(p) {
       <div class="pp-card">
         <h4>אזור 1 — זיהוי הפרויקט</h4>
         <div class="pp-field"><label>הדמיית הפרויקט</label><div id="renderInfoFrame">${renderFrameHTML(p)}</div></div>
-        <div class="pp-field"><label>שם הפרויקט</label><input class="${seedClass(p,'projectName').trim()}" value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);this.classList.remove('ai-seeded');document.getElementById('ppTitle').textContent=this.value||'תיק ${p.tik}'"></div>
+        <div class="pp-field"><label>שם הפרויקט</label><input class="${seedClass(p,'projectName').trim()}" value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);this.classList.remove('ai-seeded');document.getElementById('ppTitle').textContent=this.value||'תוכנית בינוי ${p.tik}'"></div>
         <div class="pp-field"><label>מספר תוכנית בינוי (תב/----)</label><input value="${esc(p.planNum)}" onchange="pjSet('planNum',this.value)"></div>
-        <div class="pp-field"><label>מספר תיק (אוטומטי)</label><input value="${esc(p.fileNumber)}" readonly data-always="ro" style="background:var(--fog)"></div>
+        <div class="pp-field"><label>מספר תוכנית בינוי (אוטומטי)</label><input value="${esc(p.fileNumber)}" readonly data-always="ro" style="background:var(--fog)"></div>
         <div class="pp-field"><label>סוג הפרויקט</label><select onchange="mSet('projectType',this.value)"><option value="">—</option>${PROJECT_TYPES.map(t=>`<option${m.projectType===t?' selected':''}>${t}</option>`).join('')}</select></div>
         <div class="pp-cols">
           <div class="pp-field"><label>שלב נוכחי</label>
@@ -2878,7 +2918,7 @@ function removeComm(i){const p=pj();if(!p)return;p.communications.splice(i,1);sa
 
 function renderTimelineTab(p){
   const base=[];
-  if(p.date)base.push({date:p.date,desc:'פתיחת תיק',auto:true});
+  if(p.date)base.push({date:p.date,desc:'פתיחת תוכנית בינוי',auto:true});
   if(p.forumArchitect)base.push({date:p.forumArchitect,desc:'פורום אדריכל העיר',auto:true});
   if(p.forumConsultants)base.push({date:p.forumConsultants,desc:'פורום יועצים',auto:true});
   if(p.committeeDate)base.push({date:p.committeeDate,desc:'ועדה',auto:true});
@@ -2967,7 +3007,7 @@ const GUIDELINES_DATA = {
     {tag:'ops',title:'אפקטיביות תפעולית',items:['פינוי אשפה','גישה לרכב שירות וכיבוי אש','תחזוקה','מערכות טכניות','תשתיות','חיסכון תפעולי','מניעת עומס עתידי']},
   ],
   flow: [
-    {name:'פתיחת פרויקט',goal:'קליטת פרויקט חדש והקמת התיק',who:'אדריכלית העיר',docs:'שם ומספר תוכנית',outputs:'מספר תיק, גאנט ריק, רשימת מסמכים',cond:'הזנת פרטי מיקום ובעלי תפקידים',owner:'אדריכלית',note:'הכל מתחיל בפתיחה מסודרת ובקביעת 3 מועדים'},
+    {name:'פתיחת פרויקט',goal:'קליטת פרויקט חדש והקמת תוכנית הבינוי',who:'אדריכלית העיר',docs:'שם ומספר תוכנית',outputs:'מספר תוכנית בינוי, גאנט ריק, רשימת מסמכים',cond:'הזנת פרטי מיקום ובעלי תפקידים',owner:'אדריכלית',note:'הכל מתחיל בפתיחה מסודרת ובקביעת 3 מועדים'},
     {name:'קבלת מידע ראשוני',goal:'איסוף תוכנית תקפה, מדידה, זכויות ונתוני מגרש',who:'אדריכל הפרויקט',docs:'תב״ע, מדידה, זכויות בנייה, תצלומי מצב',outputs:'תיק מידע מלא',cond:'שלמות המידע הראשוני',owner:'אדריכל',note:''},
     {name:'קביעת שלושה מועדים מראש',goal:'קיבוע פורום אדריכל, פורום יועצים והכנה לוועדה',who:'אדריכלית העיר',docs:'—',outputs:'3 מועדים בגאנט',cond:'המועדים נקבעו',owner:'אדריכלית',note:'המפתח לעמידה בלוחות זמנים'},
     {name:'פורום אדריכל',goal:'בדיקה אדריכלית-עירונית',who:'אדריכלית + אדריכל',docs:'מצגת היכרות, פיתוח ראשוני, חתכים, הדמיות',outputs:'החלטה: אישור / סבב נוסף',cond:'כל 10 הקריטריונים תואם/לא רלוונטי',owner:'אדריכלית',note:''},
@@ -3786,7 +3826,7 @@ function aiSyncContext() {
   // אל תדרוס תוכן תשובה קיים — רק את מסך הפתיחה
   if (!body.dataset.hasResult) {
     if (p) {
-      const name = p.projectName || `תיק ${p.tik}`;
+      const name = p.projectName || `תוכנית בינוי ${p.tik}`;
       body.innerHTML = `<div class="ai-ctx">📂 פרויקט פעיל: <b>${aiMd(name)}</b><br>בחרי פעולה למעלה, או שאלי שאלה למטה.</div>`;
     } else {
       body.innerHTML = `<div class="ai-hint">אינך בדף פרויקט. פתחי פרויקט מהטבלה כדי להפעיל את הפעולות, או שאלי שאלה מקצועית כללית למטה.</div>`;
