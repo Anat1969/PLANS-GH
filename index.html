@@ -93,6 +93,34 @@ tbody tr:hover{background:var(--teal-pale)}
 .btn-ghost{background:none;border:1px solid var(--stone);color:var(--ink)}
 .btn-ghost:hover{border-color:var(--ink)}
 .btn-sm{padding:5px 12px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:10px}
+.team-card{border:1px solid #e2e2e2;border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#fff}
+.team-card.team-off{opacity:.55;background:#fafafa}
+.team-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.team-f{border:1px solid #d5d5d5;border-radius:6px;padding:5px 9px;font-size:12px;font-family:inherit;min-width:120px}
+.team-emails{border-top:1px dashed #e5e5e5;padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.team-email{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.team-summary{margin-top:10px;font-size:12px;color:#555;background:#f7f7f7;border-radius:8px;padding:8px 12px}
+.chk-inline{display:inline-flex;align-items:center;gap:4px;font-size:12px}
+.rep-h{font-size:14px;color:#7a1f2b;margin:1.4rem 0 .6rem;border-bottom:1px solid #eee;padding-bottom:4px}
+.rep-box{border:1px solid #e2e2e2;border-radius:10px;padding:14px 16px;background:#fff;font-size:13px;line-height:1.6}
+.rep-title{font-weight:600;margin-bottom:8px;color:#333}
+.rep-row{padding:4px 0;border-bottom:1px dashed #f0f0f0}
+.pp-body-wrap{display:flex;gap:18px;align-items:flex-start}
+.pp-panels-col{flex:1;min-width:0}
+.sec-nav{width:180px;flex:0 0 180px;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow:auto}
+.sec-nav-toggle{display:none;width:100%;border:1px solid var(--bronze,#9c7a3c);background:#fff;border-radius:8px;padding:7px;font-family:inherit;font-size:12px;cursor:pointer}
+.sec-nav-list{display:flex;flex-direction:column;gap:2px;border-right:2px solid #eee;padding-right:8px}
+.sec-link{display:block;font-size:12px;color:#666;text-decoration:none;padding:4px 8px;border-radius:6px;border-right:2px solid transparent;margin-right:-10px;line-height:1.35;transition:.12s}
+.sec-link:hover{background:#f5f5f5;color:#333}
+.sec-link.active{color:#7a1f2b;background:#fbf3f4;border-right-color:#7a1f2b;font-weight:600}
+@media(max-width:900px){
+  .pp-body-wrap{flex-direction:column}
+  .sec-nav{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
+  .sec-nav-toggle{display:block}
+  .sec-nav-list{display:none;margin-top:6px;border-right:none;padding-right:0}
+  .sec-nav.open .sec-nav-list{display:flex}
+}
 .btn-bronze{background:var(--bronze);color:white}
 .btn-bronze:hover{background:var(--bronze-deep)}
 
@@ -833,7 +861,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
-    <button onclick="go('shares',this)">שיתופים</button>
+    <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
     <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
@@ -1109,6 +1137,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-tabs" id="ppTabs">
     <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
     <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
+    <button class="pp-tab" onclick="ppTab('team',this)">צוות היזם</button>
     <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים</button>
     <button class="pp-tab" onclick="ppTab('guidelines',this)">הנחיות</button>
     <button class="pp-tab" onclick="ppTab('review',this)">בדיקה</button>
@@ -1121,8 +1150,11 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button class="pp-tab" onclick="ppTab('opinion',this)">חוות דעת</button>
   </div>
 
+  <div class="pp-body-wrap">
+  <div class="pp-panels-col">
   <div class="pp-panel active" id="panel-info"></div>
   <div class="pp-panel" id="panel-data"></div>
+  <div class="pp-panel" id="panel-team"></div>
   <div class="pp-panel" id="panel-calc"></div>
   <div class="pp-panel" id="panel-guidelines"></div>
   <div class="pp-panel" id="panel-review"></div>
@@ -1133,14 +1165,41 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-panel" id="panel-comm"></div>
   <div class="pp-panel" id="panel-timeline"></div>
   <div class="pp-panel" id="panel-opinion"></div>
+  </div>
+  <aside id="secNav" class="sec-nav no-print" aria-label="ניווט פנימי">
+    <button class="sec-nav-toggle" onclick="document.getElementById('secNav').classList.toggle('open')">☰ ניווט</button>
+    <div class="sec-nav-list" id="secNavList"></div>
+  </aside>
+  </div>
 </div>
 
 <!-- ════════ SHARES PAGE ════════ -->
 <div id="shares" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>שיתופים</span></div>
-  <div class="page-title">שיתופים ודוחות להנהלה</div>
-  <div class="page-subtitle">הפקת שיתופים מקצועיים ומותאמים למקבלי החלטות, על בסיס הנתונים העדכניים של תוכניות הבינוי.</div>
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>חוות דעת, דיווחים ושיתופים</span></div>
+  <div class="page-title">חוות דעת, דיווחים ושיתופים</div>
+  <div class="page-subtitle">מרכז ההפקה של דיווחים, דוחות מצב ושיתופים למקבלי החלטות — הכל על בסיס הנתונים העדכניים של תוכניות הבינוי.</div>
 
+  <h3 class="rep-h">דוחות מצב מיידיים (מהנתונים)</h3>
+  <div class="shares-cards" id="reportCards">
+    <div class="share-type-card">
+      <div class="stc-head"><h3>סיכום מצב תוכניות</h3></div>
+      <p class="stc-desc">תמונת מצב מרוכזת: כמה תוכניות בכל שלב, מה בטיפול, מה הושלם — מוכן להעתקה לדיווח.</p>
+      <button class="btn btn-primary" onclick="buildReport('status')">הפקה ותצוגה</button>
+    </div>
+    <div class="share-type-card">
+      <div class="stc-head"><h3>דוח תוכניות בעיכוב</h3></div>
+      <p class="stc-desc">התוכניות שממתינות לפעולה, שחלף מועדן או שאין בהן התקדמות — ממוינות לפי דחיפות.</p>
+      <button class="btn btn-primary" onclick="buildReport('delayed')">הפקה ותצוגה</button>
+    </div>
+    <div class="share-type-card">
+      <div class="stc-head"><h3>דוח פעולות שבוצעו</h3></div>
+      <p class="stc-desc">כל הפעולות המתועדות לאחרונה (מיילים, מסמכים, שינויי סטטוס) — לתיעוד ולדיווח.</p>
+      <button class="btn btn-primary" onclick="buildReport('actions')">הפקה ותצוגה</button>
+    </div>
+  </div>
+  <div id="reportOut" style="margin:1rem 0"></div>
+
+  <h3 class="rep-h">שיתופים מעוצבים (AI)</h3>
   <div class="shares-cards">
     <div class="share-type-card">
       <div class="stc-head"><h3>דוח מעקב חודשי למנכ״ל</h3></div>
@@ -2905,7 +2964,33 @@ function ppTab(name, btn) {
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='muni'){ const p=pj(); if(p) renderProjectMuni(p); }
   else { muniInProject=false; } // יציאה מהקשר פרויקט למחלקות
+  if(name==='team'){ const p=pj(); if(p) renderTeam(p); }
+  setTimeout(buildSecNav, 60);
 }
+/* ══════════ סרגל ניווט פנימי (חילוץ כותרות מהפאנל הפעיל) ══════════ */
+let _secSpy=null;
+function buildSecNav(){
+  const nav=document.getElementById('secNav'); const list=document.getElementById('secNavList');
+  if(!nav||!list) return;
+  const panel=document.querySelector('.pp-panel.active'); if(!panel){ nav.style.display='none'; return; }
+  const heads=[...panel.querySelectorAll('h2,h3,.section-title,.detail-section-title,.pd-group-title,[data-sec]')].filter(h=>h.offsetParent!==null && (h.textContent||'').trim());
+  if(heads.length<2){ nav.style.display='none'; return; }
+  nav.style.display='';
+  list.innerHTML=heads.map((h,i)=>{
+    if(!h.id) h.id='sec_'+i+'_'+(h.tagName||'x');
+    const t=(h.textContent||'').trim().slice(0,42);
+    return `<a href="#${h.id}" class="sec-link" data-target="${h.id}" onclick="secGo(event,'${h.id}')">${esc(t)}</a>`;
+  }).join('');
+  // scroll-spy: מדגיש את הכותרת הקרובה לראש התצוגה
+  if(_secSpy) window.removeEventListener('scroll',_secSpy);
+  _secSpy=()=>{
+    let cur=heads[0]&&heads[0].id;
+    heads.forEach(h=>{ if(h.getBoundingClientRect().top<=120) cur=h.id; });
+    list.querySelectorAll('.sec-link').forEach(a=>a.classList.toggle('active',a.dataset.target===cur));
+  };
+  window.addEventListener('scroll',_secSpy,{passive:true}); _secSpy();
+}
+function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('secNav').classList.remove('open'); }
 function renderStageBadge(p) {
   const map = {stage_1:['שלב 1 — פורום אדריכל','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['ועדה','st3'],approved:['מאושר','stapp']};
   const [txt,cls] = map[p.stage] || map.stage_1;
@@ -5442,6 +5527,42 @@ function logAction(p, type, detail){
   savePlans();
 }
 
+/* ══════════ דוחות מצב מיידיים (מהנתונים, ללא AI) ══════════ */
+function buildReport(kind){
+  const out=document.getElementById('reportOut'); if(!out) return;
+  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const active=plans.filter(planIsActive);
+  let title='', lines=[], html='';
+  if(kind==='status'){
+    title='סיכום מצב תוכניות בינוי — '+fmtDate(todayStr());
+    const byStage={}; active.forEach(p=>{ const s=stageLbl[p.stage||'stage_1']; byStage[s]=(byStage[s]||0)+1; });
+    const done=plans.length-active.length;
+    lines.push(`סה״כ תוכניות: ${plans.length} · בטיפול: ${active.length} · הושלמו/נסגרו: ${done}`);
+    Object.entries(byStage).forEach(([s,n])=>lines.push(`• ${s}: ${n}`));
+    html=lines.map(l=>`<div>${esc(l)}</div>`).join('');
+  } else if(kind==='delayed'){
+    title='דוח תוכניות בעיכוב — '+fmtDate(todayStr());
+    const tasks=generateTasks(); const byPlan={};
+    tasks.forEach(t=>{ (byPlan[t.tik]=byPlan[t.tik]||{name:t.name,items:[],urg:t.urgency}).items.push(t.action); });
+    const entries=Object.entries(byPlan);
+    if(!entries.length){ lines.push('אין תוכניות בעיכוב — כל הפעולות מעודכנות.'); }
+    entries.forEach(([tik,d])=>lines.push(`תב/${tik} — ${d.name}: ${[...new Set(d.items)].join('; ')}`));
+    html=entries.length?entries.map(([tik,d])=>`<div class="rep-row"><b>תב/${esc(tik)}</b> — ${esc(d.name)}<div class="muted">${[...new Set(d.items)].map(esc).join(' · ')}</div></div>`).join(''):'<div class="muted">אין עיכובים.</div>';
+  } else if(kind==='actions'){
+    title='דוח פעולות שבוצעו — '+fmtDate(todayStr());
+    const acts=recentActions(30);
+    if(!acts.length){ lines.push('אין פעולות מתועדות עדיין.'); }
+    acts.forEach(a=>lines.push(`${fmtDate(a.at)} · תב/${a.tik} · ${a.type||'פעולה'} · ${a.detail||''} (${a.by||''})`));
+    html=acts.length?acts.map(a=>`<div class="rep-row">${fmtDate(a.at)} · <b>תב/${esc(a.tik)}</b> · ${esc(a.detail||a.type||'')} <span class="muted">${esc(a.by||'')}</span></div>`).join(''):'<div class="muted">אין פעולות.</div>';
+  }
+  const text=title+'\n\n'+lines.join('\n');
+  window._lastReportText=text;
+  out.innerHTML=`<div class="rep-box"><div class="rep-title">${esc(title)}</div>${html}
+    <div class="mail-actions"><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText(window._lastReportText).then(()=>toast('הועתק ללוח'))">העתק טקסט</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button></div></div>`;
+  out.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 /* ── רינדור: תוכנית עבודה יומית ── */
 function renderDailyWork(){
   const el = document.getElementById('dailyWork'); if(!el) return;
@@ -5485,27 +5606,89 @@ function renderDailyWork(){
 }
 function actionTypeLabel(t){ return ({mail:'מייל נשלח/הוכן', status:'שינוי סטטוס', doc:'מסמך הועלה', note:'הערה נענתה', meeting:'פגישה', approval:'אישור התקבל', date:'מועד נקבע'})[t]||t; }
 
+/* ══════════ צוות היזם ופרטי קשר ══════════
+   מודל: p.devTeam = [{ id, name, org, title, phone, active, emails:[{addr,primary,cc,active}] }]
+   תאימות לאחור: איש קשר ישן בצורת {name,email,role,active} מומר בזמן קריאה. */
+function _teamNorm(p){
+  (p.devTeam||[]).forEach(m=>{
+    if(!m.emails){ m.emails = m.email ? [{addr:m.email, primary:m.role!=='cc', cc:m.role==='cc', active:m.active!==false}] : []; }
+  });
+  return p.devTeam||[];
+}
+// נמענים שנבחרו לשליחה (ללא המצאת כתובות): מחזיר {to:[...], cc:[...]}
+function teamRecipients(p){
+  const to=[], cc=[];
+  _teamNorm(p).forEach(m=>{ if(m.active===false) return;
+    (m.emails||[]).forEach(e=>{ if(!e.addr || e.active===false) return; (e.cc?cc:to).push(e.addr); });
+  });
+  return { to:[...new Set(to)], cc:[...new Set(cc)] };
+}
+function teamMailPairs(p){ // כל הכתובות הפעילות עם תווית לתצוגה בבוחר הנמענים
+  const out=[];
+  _teamNorm(p).forEach(m=>{ (m.emails||[]).forEach(e=>{ if(!e.addr||e.active===false||m.active===false) return;
+    out.push({addr:e.addr, label:(m.name||'')+(m.title?(' · '+m.title):''), cc:!!e.cc, primary:!!e.primary}); }); });
+  return out;
+}
+function renderTeam(p){
+  _teamNorm(p);
+  const el=document.getElementById('panel-team'); if(!el) return;
+  const rec=teamRecipients(p);
+  const rows=(p.devTeam||[]).map((m,i)=>`
+    <div class="team-card ${m.active===false?'team-off':''}">
+      <div class="team-head">
+        <input class="team-f" value="${esc(m.name||'')}" placeholder="שם" onchange="teamSet(${i},'name',this.value)" ${globalEdit?'':'disabled'}>
+        <input class="team-f" value="${esc(m.org||'')}" placeholder="חברה/ארגון" onchange="teamSet(${i},'org',this.value)" ${globalEdit?'':'disabled'}>
+        <input class="team-f" value="${esc(m.title||'')}" placeholder="תפקיד" onchange="teamSet(${i},'title',this.value)" ${globalEdit?'':'disabled'}>
+        <input class="team-f" value="${esc(m.phone||'')}" placeholder="טלפון" onchange="teamSet(${i},'phone',this.value)" ${globalEdit?'':'disabled'}>
+        <label class="chk-inline"><input type="checkbox" ${m.active!==false?'checked':''} onchange="teamSet(${i},'active',this.checked)" ${globalEdit?'':'disabled'}> פעיל</label>
+        ${globalEdit?`<button class="btn btn-ghost btn-sm" onclick="teamDel(${i})">מחק</button>`:''}
+      </div>
+      <div class="team-emails">
+        ${(m.emails||[]).map((e,j)=>`
+          <div class="team-email">
+            <input class="team-f" value="${esc(e.addr||'')}" placeholder="כתובת מייל" onchange="teamEmailSet(${i},${j},'addr',this.value)" ${globalEdit?'':'disabled'}>
+            <label class="chk-inline"><input type="radio" name="prim${i}" ${e.primary?'checked':''} onchange="teamEmailPrimary(${i},${j})" ${globalEdit?'':'disabled'}> ראשי</label>
+            <label class="chk-inline"><input type="checkbox" ${e.cc?'checked':''} onchange="teamEmailSet(${i},${j},'cc',this.checked)" ${globalEdit?'':'disabled'}> עותק</label>
+            <label class="chk-inline"><input type="checkbox" ${e.active!==false?'checked':''} onchange="teamEmailSet(${i},${j},'active',this.checked)" ${globalEdit?'':'disabled'}> פעיל</label>
+            ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="teamEmailDel(${i},${j})">✕</button>`:''}
+          </div>`).join('')}
+        ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="teamEmailAdd(${i})">+ הוסף מייל</button>`:''}
+      </div>
+    </div>`).join('');
+  el.innerHTML=`
+    <div class="pd-intro">צוות היזם ואנשי הקשר של התוכנית. ניתן להגדיר מספר כתובות מייל לכל איש קשר, לסמן נמען ראשי/עותק, ולהשבית נמענים. אלו הנמענים המוצעים בכל ניסוח מייל. <b>אין להזין כתובות שאינן ידועות בוודאות.</b></div>
+    ${rows||'<div class="muted">אין אנשי קשר עדיין.</div>'}
+    ${globalEdit?'<button class="btn btn-primary btn-sm" onclick="teamAdd()">+ הוסף איש קשר</button>':''}
+    <div class="team-summary">נמענים פעילים כעת — אל: <b>${rec.to.length?esc(rec.to.join(', ')):'—'}</b> · עותק: <b>${rec.cc.length?esc(rec.cc.join(', ')):'—'}</b></div>`;
+}
+function teamAdd(){ const p=pj(); if(!p) return; p.devTeam=p.devTeam||[]; p.devTeam.push({name:'',org:'',title:'',phone:'',active:true,emails:[]}); savePlans(); renderTeam(p); }
+function teamDel(i){ const p=pj(); if(!p) return; p.devTeam.splice(i,1); savePlans(); renderTeam(p); }
+function teamSet(i,k,v){ const p=pj(); if(!p) return; p.devTeam[i][k]=v; savePlans(); if(k==='active')renderTeam(p); }
+function teamEmailAdd(i){ const p=pj(); if(!p) return; _teamNorm(p); p.devTeam[i].emails.push({addr:'',primary:!p.devTeam[i].emails.length,cc:false,active:true}); savePlans(); renderTeam(p); }
+function teamEmailDel(i,j){ const p=pj(); if(!p) return; p.devTeam[i].emails.splice(j,1); savePlans(); renderTeam(p); }
+function teamEmailSet(i,j,k,v){ const p=pj(); if(!p) return; p.devTeam[i].emails[j][k]=v; savePlans(); if(k==='cc'||k==='active')renderTeam(p); }
+function teamEmailPrimary(i,j){ const p=pj(); if(!p) return; p.devTeam[i].emails.forEach((e,x)=>e.primary=(x===j)); savePlans(); renderTeam(p); }
+
 /* ── ניסוח מייל מתוך פעולה מוצעת (טיוטה בלבד, ללא שליחה אוטומטית) ── */
 function composeMail(planId, ruleId){
   const p = plans.find(x=>x.id===planId); if(!p) return;
   const rule = WORK_RULES.find(r=>r.id===ruleId) || {action:'', reason:''};
   const title = buildProjectTitle(p);
   // נמענים מוצעים מצוות היזם (ללא המצאה)
-  const team = (p.devTeam||[]).filter(m=>m.email && m.active!==false);
-  const primary = team.filter(m=>m.role!=='cc').map(m=>m.email);
+  const primary = teamRecipients(p).to;
   const subject = `תב/${p.tik} — ${rule.action}`;
   const body = `שלום,\n\nבנוגע לתוכנית הבינוי ${title}:\n\n${rule.action}.\nסיבה: ${rule.reason}.\n\n${p.forumArchitect?('פורום אדריכל: '+fmtDate(p.forumArchitect)+'\n'):''}${p.forumConsultants?('פורום יועצים: '+fmtDate(p.forumConsultants)+'\n'):''}\nנודה להתייחסותכם בהקדם.\n\nבברכה,\nאדריכלית העיר ענת דוד שטיבלמן`;
   openMailComposer(p, subject, body, primary);
 }
 function openMailComposer(p, subject, body, toList){
-  const team = (p.devTeam||[]);
+  const pairs = teamMailPairs(p);
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const noRecipient = !(toList&&toList.length);
   ov.innerHTML=`<div class="ver-modal mail-modal">
     <h3>ניסוח מייל — תב/${p.tik}</h3>
     ${noRecipient?'<div class="calc-warn-banner">⚠ אין כתובת מייל תקינה בצוות היזם — ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
     <label class="mail-lbl">נמענים</label>
-    <div class="mail-recipients">${team.length?team.map(m=>`<label class="chk-inline"><input type="checkbox" ${(toList||[]).includes(m.email)?'checked':''} data-email="${esc(m.email)}"> ${esc(m.name||m.email)} <span class="muted">${esc(m.email||'—')}</span></label>`).join(''):'<span class="muted">אין אנשי קשר — הוסיפי בטאב „צוות היזם”.</span>'}</div>
+    <div class="mail-recipients">${pairs.length?pairs.map(m=>`<label class="chk-inline"><input type="checkbox" ${((toList||[]).includes(m.addr)||m.primary)?'checked':''} data-email="${esc(m.addr)}"> ${esc(m.label||m.addr)} <span class="muted">${esc(m.addr)}${m.cc?' · עותק':''}</span></label>`).join(''):'<span class="muted">אין אנשי קשר — הוסיפי בטאב „צוות היזם”.</span>'}</div>
     <label class="mail-lbl">נושא</label><input id="mailSubject" value="${esc(subject)}">
     <label class="mail-lbl">גוף ההודעה</label><textarea id="mailBody" style="min-height:180px">${esc(body)}</textarea>
     <label class="chk-inline"><input type="checkbox" id="mailAttachLink" checked> צרף קישור לתוכנית</label>
