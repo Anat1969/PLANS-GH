@@ -680,6 +680,33 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .muni-req-meta{font-size:11px;color:rgba(0,0,0,0.45);margin-top:4px}
 @media (max-width:768px){.muni-filters{flex-direction:column}.muni-contact{flex-direction:column;align-items:flex-start}}
 @media print{.muni-filters,.mc-actions,.muni-status-sel{display:none}.muni-dept-body{display:block !important}}
+/* שדה סטטוס בצד ימין ליד הדרישה */
+.muni-req-main{display:flex;align-items:center;gap:12px}
+.muni-req-main .muni-status-sel{order:0;flex-shrink:0;min-width:120px}
+.muni-req-main .muni-req-title{order:1;flex:1}
+/* מסגרת נספחים למחלקה + מערכת מסמכים */
+.doc-frame{border:2px dashed var(--stone);border-radius:10px;padding:12px;margin-bottom:1rem;min-height:120px;transition:all .15s}
+.doc-frame.doc-dragover{border-color:var(--teal);background:#f0f7f7}
+.doc-frame-head{font-size:13px;color:rgba(0,0,0,0.6);margin-bottom:8px}
+.doc-thumbs{display:flex;gap:10px;flex-wrap:wrap}
+.doc-thumb{position:relative;width:110px}
+.doc-thumb-inner{width:110px;height:90px;border:1px solid var(--stone);border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
+.doc-thumb-inner img{width:100%;height:100%;object-fit:cover}
+.doc-ic{font-size:13px;color:var(--teal);font-weight:600;text-align:center;padding:4px}
+.doc-thumb-name{font-size:10px;color:rgba(0,0,0,0.55);margin-top:3px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-thumb-x{position:absolute;top:2px;left:2px;width:18px;height:18px;border:none;border-radius:50%;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s}
+.doc-thumb:hover .doc-thumb-x{opacity:1}
+.doc-ws-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.doc-ws-head h4{font-family:var(--display);font-size:16px;color:var(--teal)}
+/* צופה מסמך מלא — זום/הזזה */
+.doc-viewer{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:10001;display:flex;flex-direction:column}
+.dv-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(0,0,0,0.6);color:#fff}
+.dv-toolbar button,.dv-toolbar .dv-dl{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:13px;text-decoration:none}
+.dv-name{flex:1;font-size:13px;opacity:0.85}
+.dv-close{background:rgba(255,255,255,0.2) !important}
+.dv-stage{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab}
+.dv-stage:active{cursor:grabbing}
+.dv-stage img{max-width:90%;max-height:90%;transform-origin:center;transition:transform .05s;user-select:none}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -1024,6 +1051,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
     <button class="pp-tab" onclick="ppTab('guidelines',this)">הנחיות</button>
     <button class="pp-tab" onclick="ppTab('review',this)">בדיקה</button>
+    <button class="pp-tab" onclick="ppTab('muni',this)">דרישות עירייה</button>
     <button class="pp-tab" onclick="ppTab('process',this)">תהליך וגאנט</button>
     <button class="pp-tab" onclick="ppTab('graphics',this)">חומר גרפי</button>
     <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
@@ -1035,6 +1063,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-panel active" id="panel-info"></div>
   <div class="pp-panel" id="panel-guidelines"></div>
   <div class="pp-panel" id="panel-review"></div>
+  <div class="pp-panel" id="panel-muni"></div>
   <div class="pp-panel" id="panel-process"></div>
   <div class="pp-panel" id="panel-graphics"></div>
   <div class="pp-panel" id="panel-docs"></div>
@@ -1196,7 +1225,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2807,6 +2836,8 @@ function ppTab(name, btn) {
   btn.classList.add('active');
   document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
+  if(name==='muni'){ const p=pj(); if(p) renderProjectMuni(p); }
+  else { muniInProject=false; } // יציאה מהקשר פרויקט למחלקות
 }
 function renderStageBadge(p) {
   const map = {stage_1:['שלב 1 — פורום אדריכל','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['ועדה','st3'],approved:['מאושר','stapp']};
@@ -4643,15 +4674,20 @@ function muniReqActive(r){
 function muniVisibleReqs(dept){ return dept.requirements.filter(muniReqActive); }
 
 function muniCheckKey(deptId, idx){ return deptId+'::'+idx; }
-function muniGetCheck(deptId, idx){ return muniData.checks[muniCheckKey(deptId,idx)] || {status:'pending',applicantComment:'',municipalityComment:'',evidenceUrl:'',drawingReference:'',updatedBy:'',updatedAt:''}; }
+// בהקשר פרויקט משתמשים ב-p.projMuni (ספציפי לתוכנית); אחרת ב-muniData.checks (כללי)
+function _muniStore(){ if(muniInProject && currentProjectId!=null){ const p=pj(); if(p){ if(!p.projMuni)p.projMuni={}; return p.projMuni; } } return muniData.checks; }
+function _blankCheck(){ return {status:'pending',applicantComment:'',municipalityComment:'',evidenceUrl:'',drawingReference:'',updatedBy:'',updatedAt:''}; }
+function muniGetCheck(deptId, idx){ return _muniStore()[muniCheckKey(deptId,idx)] || _blankCheck(); }
 function setMuniCheck(deptId, idx, field, val){
-  const k = muniCheckKey(deptId,idx);
-  if(!muniData.checks[k]) muniData.checks[k] = {status:'pending',applicantComment:'',municipalityComment:'',evidenceUrl:'',drawingReference:'',updatedBy:'',updatedAt:''};
-  muniData.checks[k][field]=val;
-  muniData.checks[k].updatedAt=todayStr();
-  muniData.checks[k].updatedBy = projectRole==='city' ? 'אדריכלית העיר' : 'אדריכל היזם';
-  saveMuni(); renderMuniDepartments();
+  const store=_muniStore(); const k = muniCheckKey(deptId,idx);
+  if(!store[k]) store[k] = _blankCheck();
+  store[k][field]=val;
+  store[k].updatedAt=todayStr();
+  store[k].updatedBy = projectRole==='city' ? 'אדריכלית העיר' : 'אדריכל היזם';
+  if(muniInProject){ savePlans(); const el=document.getElementById('panel-muni'); if(el&&currentProjectId!=null) renderProjectMuni(pj()); }
+  else { saveMuni(); renderMuniDepartments(); }
 }
+let muniInProject = false; // דגל הקשר: האם המחלקות מוצגות בתוך פרויקט
 
 // סטטוס מחלקה: hasOpenRequired מונע 'הושלם'
 function muniDeptStatus(dept){
@@ -4707,7 +4743,7 @@ async function loadMuni(){
 }
 
 /* ── רינדור ── */
-function renderMuni(){ renderMuniFilters(); renderMuniSummary(); renderMuniDepartments(); }
+function renderMuni(){ muniInProject=false; renderMuniFilters(); renderMuniSummary(); renderMuniDepartments(); }
 function renderMuniFilters(){
   const el=document.getElementById('muniFilters'); if(!el) return;
   el.innerHTML = `
@@ -4801,10 +4837,31 @@ function renderMuniDepartments(){
         <div class="muni-resp">${esc(dept.responsibility)}</div>
         <div class="muni-contacts">${muniContactHTML(dept)}</div>
         <div class="muni-source-inline">מקור: ${MUNI_SOURCE}, ${MUNI_SOURCE_DATE}</div>
+        ${muniInProject ? deptDocFrameHTML(dept.id) : ''}
         ${body}
       </div>`:''}
     </div>`;
   }).join('');
+}
+
+/** דרישות גורמי עירייה בתוך פרויקט — ספציפי לתוכנית + מסגרות נספחים */
+function renderProjectMuni(p){
+  const el = document.getElementById('panel-muni'); if(!el) return;
+  muniInProject = true;
+  // אוטו-סינון לפי מאפייני הפרויקט (יח״ד, קומות, ייעוד, חוף, חניון)
+  const a = projectAttributes(p);
+  muniFilters = { type: (p.meta&&p.meta.designation)||'', stage:'', features: [] };
+  if(a.underground) muniFilters.features.push('חניון תת־קרקעי');
+  if(a.floors>9) muniFilters.features.push('מבנה מעל 29 מטר');
+  if(a.commercial) muniFilters.features.push('מסחר או מזון');
+  if(a.coast) muniFilters.features.push('שטח ציבורי או זיקת הנאה');
+  el.innerHTML = `
+    <div class="muni-source">מקור: ${MUNI_SOURCE}, ${MUNI_SOURCE_DATE} · <b>יש לוודא עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
+    <div id="docWorkspace"></div>
+    <div class="section-title" style="margin-top:1.5rem">דרישות גורמי עירייה — לפרויקט זה</div>
+    <div id="muniDepartments"></div>`;
+  renderDocWorkspace(p);
+  renderMuniDepartments();
 }
 
 function muniReqRow(dept, r, idx){
@@ -4813,10 +4870,10 @@ function muniReqRow(dept, r, idx){
   const needNa = (c.status==='not_applicable');
   return `<div class="muni-req muni-st-${c.status}">
     <div class="muni-req-main">
-      <div class="muni-req-title">${esc(r.title)}${r.category==='conditional'?'<span class="muni-cond-tag">מותנה</span>':''}</div>
       <select class="muni-status-sel" onchange="setMuniCheck('${dept.id}',${idx},'status',this.value)">
         ${MUNI_STATUSES.map(st=>`<option value="${st.v}"${c.status===st.v?' selected':''}>${st.l}</option>`).join('')}
       </select>
+      <div class="muni-req-title">${esc(r.title)}${r.category==='conditional'?'<span class="muni-cond-tag">מותנה</span>':''}</div>
     </div>
     ${(needComment||needNa)?`<div class="muni-req-detail">
       <label>${c.status==='non_compliant'?'⛔ לא עומד — הסבר חובה:':(c.status==='clarification_required'?'נדרש בירור — פרטי:':'לא רלוונטי — נימוק קצר:')}</label>
@@ -4842,6 +4899,128 @@ function muniExportExcel(){
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='דרישות-גורמי-עירייה.csv'; a.click();
   toast('יוצא ל-Excel');
+}
+
+/* ══════════ מערכת מסמכים — Supabase Storage (תב״ע + יזם + נספחי יועצים) ══════════ */
+const DOCS_BUCKET = 'ashdod-docs';
+const IMG_EXT = ['jpg','jpeg','png','gif','webp','bmp','svg'];
+function docExt(name){ return (name.split('.').pop()||'').toLowerCase(); }
+function docIsImage(name){ return IMG_EXT.includes(docExt(name)); }
+function docIsPdf(name){ return docExt(name)==='pdf'; }
+function docPublicUrl(path){ return SB_URL + '/storage/v1/object/public/' + DOCS_BUCKET + '/' + path; }
+
+/** מעלה קובץ ל-Storage ומחזיר את הנתיב (Promise) */
+async function uploadDoc(file, folder){
+  const safe = String(Date.now()) + '_' + (file.name||'file').replace(/[^\w.\-֐-׿]/g,'_');
+  const path = folder + '/' + safe;
+  const res = await fetch(SB_URL + '/storage/v1/object/' + DOCS_BUCKET + '/' + encodeURI(path), {
+    method:'POST',
+    headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type': file.type||'application/octet-stream', 'x-upsert':'true' },
+    body: file
+  });
+  if(!res.ok) throw new Error('upload HTTP '+res.status);
+  return { path, name:file.name, type:file.type, size:file.size };
+}
+
+/* ── ספריית מסמכים גלובלית לפרויקט (בתוך p.docsLib) ── */
+function ensureDocsLib(p){ if(!p.docsLib) p.docsLib = { taba:[], developer:[], byTopic:{} }; if(!p.docsLib.byTopic) p.docsLib.byTopic={}; return p.docsLib; }
+
+/* ── מסגרת נספח למחלקה (בתוך פרויקט): גרירה/הדבקה/העלאה ── */
+function deptDocFrameHTML(deptId){
+  const p = pj();
+  if(!p){ return ''; } // רק בהקשר פרויקט
+  ensureDocsLib(p);
+  const items = (p.docsLib.byTopic[deptId]||[]);
+  const thumbs = items.map((d,i)=>docThumbHTML(d,'dept',deptId,i)).join('');
+  return `<div class="doc-frame" ondragover="docDragOver(event)" ondragleave="docDragLeave(event)" ondrop="docDrop(event,'dept','${deptId}')" onpaste="docPaste(event,'dept','${deptId}')" tabindex="0">
+    <div class="doc-frame-head"><b>נספחים לנושא זה</b> — נספח היועץ + נספח התב״ע · גררי / הדביקי (Ctrl+V) / <button class="btn btn-ghost btn-sm" onclick="docPick('dept','${deptId}')">העלאה</button></div>
+    <div class="doc-thumbs">${thumbs || '<span class="muted">אין נספחים עדיין — גררי או העלי לכאן.</span>'}</div>
+  </div>`;
+}
+function docThumbHTML(d, scope, key, i){
+  const url = docPublicUrl(d.path);
+  const inner = docIsImage(d.name) ? `<img src="${url}">` : (docIsPdf(d.name)?'<span class="doc-ic">📄 PDF</span>':`<span class="doc-ic">📎 ${esc(docExt(d.name))}</span>`);
+  return `<div class="doc-thumb" title="${esc(d.name)}">
+    <div class="doc-thumb-inner" onclick="docOpen('${scope}','${key}',${i})">${inner}</div>
+    <div class="doc-thumb-name">${esc((d.name||'').slice(0,22))}</div>
+    <button class="doc-thumb-x" onclick="event.stopPropagation();docRemove('${scope}','${key}',${i})">✕</button>
+  </div>`;
+}
+function _docStore(scope, key, meta){
+  const p=pj(); if(!p)return; ensureDocsLib(p);
+  if(scope==='dept'){ (p.docsLib.byTopic[key]=p.docsLib.byTopic[key]||[]).push(meta); }
+  else if(scope==='taba'){ p.docsLib.taba.push(meta); }
+  else if(scope==='developer'){ p.docsLib.developer.push(meta); }
+  savePlans();
+  if(currentProjectId!=null){ renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p); }
+}
+function docPick(scope, key){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='*/*'; inp.multiple=true;
+  inp.onchange=async e=>{ for(const f of e.target.files){ try{ toast('מעלה '+f.name+'…'); const m=await uploadDoc(f, scope+'_'+key); _docStore(scope,key,m); }catch(err){ toast('שגיאת העלאה'); } } toast('הועלה'); };
+  inp.click();
+}
+function docPaste(ev, scope, key){
+  const items=(ev.clipboardData||{}).items||[];
+  for(const it of items){ if(it.type&&it.type.startsWith('image/')){ ev.preventDefault(); const f=it.getAsFile(); uploadDoc(f,scope+'_'+key).then(m=>_docStore(scope,key,m)).catch(()=>toast('שגיאה')); return; } }
+}
+function docDragOver(ev){ ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.classList.add('doc-dragover'); }
+function docDragLeave(ev){ ev.currentTarget.classList.remove('doc-dragover'); }
+function docDrop(ev, scope, key){
+  ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.classList.remove('doc-dragover');
+  const files=ev.dataTransfer.files;
+  if(files&&files.length){ (async()=>{ for(const f of files){ try{ toast('מעלה '+f.name+'…'); const m=await uploadDoc(f,scope+'_'+key); _docStore(scope,key,m); }catch(e){ toast('שגיאה'); } } toast('הועלה'); })(); }
+}
+function _docList(p, scope, key){ ensureDocsLib(p); if(scope==='dept')return p.docsLib.byTopic[key]||[]; if(scope==='taba')return p.docsLib.taba; if(scope==='developer')return p.docsLib.developer; return []; }
+function docRemove(scope, key, i){
+  const p=pj(); if(!p)return; const list=_docList(p,scope,key); const d=list[i]; if(!d)return;
+  if(!confirm('להסיר את '+d.name+'?')) return;
+  fetch(SB_URL+'/storage/v1/object/'+DOCS_BUCKET+'/'+encodeURI(d.path),{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).catch(()=>{});
+  list.splice(i,1); savePlans();
+  renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p);
+}
+
+/* ── צופה מסמך מלא: זום + הזזה ── */
+let _viewer={z:1,x:0,y:0,drag:false,sx:0,sy:0};
+function docOpen(scope, key, i){
+  const p=pj(); if(!p)return; const d=_docList(p,scope,key)[i]; if(!d)return;
+  const url=docPublicUrl(d.path);
+  if(!docIsImage(d.name)){
+    // PDF/אחר — פתיחה בכרטיסייה חדשה (צופה מובנה)
+    window.open(url,'_blank'); return;
+  }
+  _viewer={z:1,x:0,y:0,drag:false,sx:0,sy:0};
+  const ov=document.createElement('div'); ov.className='doc-viewer'; ov.id='docViewer';
+  ov.innerHTML=`<div class="dv-toolbar">
+      <button onclick="dvZoom(1.25)">＋</button><button onclick="dvZoom(0.8)">－</button><button onclick="dvReset()">איפוס</button>
+      <span class="dv-name">${esc(d.name)}</span>
+      <a href="${url}" download class="dv-dl">הורדה</a>
+      <button class="dv-close" onclick="document.getElementById('docViewer').remove()">✕</button>
+    </div>
+    <div class="dv-stage" id="dvStage"><img id="dvImg" src="${url}" draggable="false"></div>`;
+  document.body.appendChild(ov);
+  const stage=document.getElementById('dvStage');
+  stage.onwheel=e=>{ e.preventDefault(); dvZoom(e.deltaY<0?1.1:0.9); };
+  stage.onmousedown=e=>{ _viewer.drag=true; _viewer.sx=e.clientX-_viewer.x; _viewer.sy=e.clientY-_viewer.y; };
+  window.onmousemove=e=>{ if(_viewer.drag){ _viewer.x=e.clientX-_viewer.sx; _viewer.y=e.clientY-_viewer.sy; dvApply(); } };
+  window.onmouseup=()=>{ _viewer.drag=false; };
+}
+function dvApply(){ const img=document.getElementById('dvImg'); if(img) img.style.transform=`translate(${_viewer.x}px,${_viewer.y}px) scale(${_viewer.z})`; }
+function dvZoom(f){ _viewer.z=Math.max(0.2,Math.min(8,_viewer.z*f)); dvApply(); }
+function dvReset(){ _viewer={z:1,x:0,y:0,drag:false,sx:0,sy:0}; dvApply(); }
+
+/* ── סביבת עבודה: כל מסמכי התב״ע והיזם בפריסה מלאה ── */
+function renderDocWorkspace(p){
+  const el=document.getElementById('docWorkspace'); if(!el)return; ensureDocsLib(p);
+  const grid=(list,scope)=> list.length?`<div class="doc-thumbs">${list.map((d,i)=>docThumbHTML(d,scope,scope,i)).join('')}</div>`:'<span class="muted">אין מסמכים.</span>';
+  el.innerHTML=`
+    <div class="pp-card">
+      <div class="doc-ws-head"><h4>מסמכי התב״ע</h4><button class="btn btn-ghost btn-sm" onclick="docPick('taba','taba')">+ העלאה</button></div>
+      <div class="doc-frame" ondragover="docDragOver(event)" ondragleave="docDragLeave(event)" ondrop="docDrop(event,'taba','taba')">${grid(p.docsLib.taba,'taba')}</div>
+    </div>
+    <div class="pp-card">
+      <div class="doc-ws-head"><h4>מסמכי היזם</h4><button class="btn btn-ghost btn-sm" onclick="docPick('developer','developer')">+ העלאה</button></div>
+      <div class="doc-frame" ondragover="docDragOver(event)" ondragleave="docDragLeave(event)" ondrop="docDrop(event,'developer','developer')">${grid(p.docsLib.developer,'developer')}</div>
+    </div>`;
 }
 
 // ── INIT ──
