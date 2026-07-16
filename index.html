@@ -609,6 +609,35 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .t5-block-banner{background:rgba(184,64,64,0.1);border:1px solid var(--err);color:var(--err);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
 .t5-warn-banner{background:rgba(196,122,32,0.1);border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
 .t5-ok-banner{background:rgba(61,139,94,0.1);border:1px solid var(--ok);color:var(--ok);border-radius:8px;padding:10px 14px;margin-top:1rem;font-weight:600}
+/* דרישות עירוניות */
+.req-item{border:1px solid var(--fog);border-radius:8px;padding:12px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.req-item.req-met{border-inline-start:3px solid var(--ok)}
+.req-item.req-unmet{border-inline-start:3px solid var(--err);background:rgba(184,64,64,0.03)}
+.req-item.req-pending{border-inline-start:3px solid var(--stone)}
+.req-topic{font-size:14px}
+.req-body{font-size:11px;color:rgba(0,0,0,0.45);margin-inline-start:6px}
+.req-block-tag{background:var(--err);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-inline-start:6px}
+.req-text{font-size:13px;color:rgba(0,0,0,0.7);margin-top:3px}
+.req-doc{font-size:11px;color:rgba(0,0,0,0.45);margin-top:3px}
+.req-note-row{grid-column:1/-1}
+.req-note-row label{display:block;font-size:12px;color:#b91c1c;font-weight:600;margin-bottom:4px}
+.req-note-row textarea{width:100%;min-height:40px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db}
+/* 18 הנחיות מרחביות */
+.sp-item{border:1px solid var(--fog);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.sp-item.sp-yes{border-inline-start:3px solid var(--ok)}
+.sp-item.sp-no{border-inline-start:3px solid var(--err);background:rgba(184,64,64,0.03)}
+.sp-item.sp-na{border-inline-start:3px solid var(--stone)}
+.sp-q{font-size:13.5px;font-weight:500;margin-bottom:8px}
+.sp-opts{display:flex;gap:6px}
+.sp-opt{border:1px solid var(--stone);background:#fff;border-radius:6px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:inherit}
+.sp-opt.on-yes{background:var(--ok);color:#fff;border-color:var(--ok)}
+.sp-opt.on-no{background:var(--err);color:#fff;border-color:var(--err)}
+.sp-opt.on-na{background:var(--stone);color:#fff;border-color:var(--stone)}
+.sp-note-row{margin-top:8px}
+.sp-note-row label{display:block;font-size:12px;color:#b91c1c;font-weight:600;margin-bottom:4px}
+.sp-na-note label{color:rgba(0,0,0,0.5)}
+.sp-note-row textarea{width:100%;min-height:40px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db}
+.sp-na-note textarea{border-color:var(--stone)}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -1106,7 +1135,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2691,8 +2720,8 @@ function workflowStatus(p){
     info: filled(p.projectName) && filled(p.developer) && filled(p.district),
     taba: filled(m.zoningPlan) && filled(m.designation),
     proposed: (Array.isArray(p.plots) && p.plots.length>0) || filled(m.area),
-    requirements: !!(p.guideChecks && Object.keys(p.guideChecks).length),
-    design: !!(p.guideChecks && Object.values(p.guideChecks).some(g=>g && g.ok!==null)),
+    requirements: !!(p.muniChecks && Object.values(p.muniChecks).some(c=>c && c.met!==null)),
+    design: !!(p.spatialChecks && Object.values(p.spatialChecks).some(c=>c && c.ans)),
     results: filled(p.opinion && p.opinion.recommendation)
   };
   const doneCount = Object.values(stepDone).filter(Boolean).length;
@@ -2700,6 +2729,8 @@ function workflowStatus(p){
   let mismatches = 0, missing = 0;
   if (p.guideChecks) Object.values(p.guideChecks).forEach(g=>{ if(g && g.ok===false) mismatches++; });
   if (typeof table5Summary === 'function' && p.table5){ const t=table5Summary(p); mismatches += t.block + t.explain; missing += t.missing; }
+  if (typeof muniSummary === 'function'){ const mu=muniSummary(p); mismatches += mu.unmet; }
+  if (typeof spatialSummary === 'function'){ const sp=spatialSummary(p); mismatches += sp.no; }
   ['projectName','developer','district'].forEach(k=>{ if(!filled(p[k])) missing++; });
   ['zoningPlan','designation','area'].forEach(k=>{ if(!filled(m[k])) missing++; });
   return { stepDone, doneCount, mismatches, missing };
@@ -3077,6 +3108,65 @@ function setModalOpinion(id,val){const p=plans.find(x=>x.id===id);if(!p)return;i
 
 /* ══════════ טבלה 5 — מנוע חוקים: מותר מול מוצע ══════════ */
 // שדות הטבלה: כל נושא + סוג הבדיקה (info/warn/block) + סוג ערך (number/text/percent)
+/* ══════════ מאגר דרישות עירוני מרכזי — הפעלה לפי מאפייני הפרויקט ══════════ */
+// מאפייני הפרויקט הנגזרים אוטומטית לצורך הפעלת דרישות
+function projectAttributes(p){
+  const m = p.meta||{};
+  const units = _num(m.units || (p.table5&&p.table5.units&&p.table5.units.proposed)) || 0;
+  const floors = _num(p.table5&&p.table5.floors&&p.table5.floors.proposed) || 0;
+  const use = (m.designation || p.purpose || '').toString();
+  return {
+    units, floors,
+    residential: /מגור/.test(use),
+    commercial: /מסחר/.test(use),
+    employment: /תעסוק|משרד/.test(use),
+    coast: /חוף|ים|מרינה|ריבייר/.test((p.district||'')+use+(p.location||'')),
+    underground: _num(p.parking&&p.parking.underground) > 0,
+    lotArea: _num(m.area) || 0,
+    district: p.district||''
+  };
+}
+// כל דרישה: גורם, נושא, נוסח, תנאי הפעלה (פונקציה), מסמך נדרש, האם חוסמת
+const MUNI_REQUIREMENTS = [
+  { id:'bike',   body:'אגף תנועה', topic:'חדר אופניים', text:'בפרויקט מעל 50 יח״ד — נדרש חדר אופניים בשטח מינימלי מוגדר.', when:a=>a.units>50, doc:'תוכנית קומת קרקע', blocks:false },
+  { id:'trash',  body:'אגף תברואה', topic:'חדר אשפה ומיחזור', text:'נדרש פתרון אצירת אשפה ומיחזור בהתאם למספר יח״ד והשימושים.', when:a=>a.units>0||a.commercial, doc:'תוכנית תברואה', blocks:true },
+  { id:'access', body:'יועץ נגישות', topic:'נגישות (תקן 1918)', text:'נדרשת התאמת נגישות לפי תקן ישראלי 1918 לכל השימושים הציבוריים.', when:a=>true, doc:'תוכנית נגישות', blocks:true },
+  { id:'traffic',body:'אגף דרכים', topic:'נספח תנועה', text:'בפרויקט מעל 30 יח״ד או שימוש מסחרי — נדרש נספח תנועה מאושר.', when:a=>a.units>30||a.commercial||a.employment, doc:'נספח תנועה', blocks:true },
+  { id:'drain',  body:'אגף ניקוז', topic:'ניהול מי נגר', text:'נדרש פתרון ניהול מי נגר עילי וחלחול לפי ההנחיות המרחביות.', when:a=>a.lotArea>0, doc:'תוכנית ניקוז', blocks:false },
+  { id:'fire',   body:'כיבוי אש', topic:'רחבת כיבוי ודרכי מילוט', text:'בבניין רב-קומות (מעל 6 קומות) — נדרשת רחבת כיבוי אש ודרכי מילוט תקניות.', when:a=>a.floors>6, doc:'תוכנית בטיחות אש', blocks:true },
+  { id:'ev',     body:'אגף חשמל', topic:'הכנה לטעינה חשמלית', text:'נדרשת הכנה לעמדות טעינה חשמלית בחניון (20% בפועל, 100% הכנה).', when:a=>a.underground, doc:'תוכנית חשמל', blocks:false },
+  { id:'green',  body:'אגף נטיעות', topic:'צמחייה ונטיעות', text:'נדרשת תוכנית נטיעות בצמחייה מקומית וצפיפות נטיעות לפי ההנחיות.', when:a=>a.lotArea>0, doc:'תוכנית נטיעות', blocks:false },
+  { id:'coast',  body:'איכות סביבה', topic:'קרבה לחוף', text:'בפרויקט בקרבת קו החוף — נדרשת התייחסות סביבתית ותיאום עם רשות הטבע.', when:a=>a.coast, doc:'מסמך סביבתי', blocks:true },
+  { id:'trafo',  body:'חברת חשמל', topic:'חדר שנאים (טרפו)', text:'נדרש מיקום מוצנע לחדר שנאים המשרת את המתחם.', when:a=>a.units>20||a.commercial, doc:'תוכנית חשמל', blocks:false }
+];
+/** מחזיר את הדרישות הרלוונטיות לפרויקט בלבד (הפעלה אוטומטית) */
+function activeRequirements(p){
+  const a = projectAttributes(p);
+  return MUNI_REQUIREMENTS.filter(r=>{ try{ return r.when(a); }catch(e){ return false; } });
+}
+
+/* ══════════ 18 הנחיות מרחביות — צ׳ק-ליסט כן/לא/לא רלוונטי + "למה לא תואם" ══════════ */
+const SPATIAL_GUIDELINES = [
+  'מפגש מבנה-קרקע — התאמה טופוגרפית ומפלסים',
+  'חיבור הבניין לקרקע — מדורג/רציף בהתאם לשיפועים',
+  'סירקולציה — זרימת תנועה, כניסות ותח״צ',
+  'אסטרטגיית תנועה — היררכיית צירים והעדפת הולכי רגל',
+  'קומפוזיציה — קנה מידה, חלוקת מסות וקו בניין',
+  'רצף עירוני — התאמה לאופי האזור, חומרים ומרקם',
+  'שקיפות — פתיחה בקומת קרקע וקשר פנים-חוץ',
+  'חזית פעילה — חזית פעילה כלפי הרחוב',
+  'אזורי שהייה — כיכרות, מקומות מפגש ושטחים ירוקים',
+  'שבילי שיטוט — רצף ועניין לתנועת הולכי רגל',
+  'ביופיליה — צמחייה, הצללה וחדירת אור',
+  'ניהול נגר וחלחול — גינות גשם ומשטחים חדירים',
+  'חזית חמישית — גגות ירוקים/פעילים ומוצנעים',
+  'הצנעת תשתיות — שנאים, גנרטורים, גמלי מים',
+  'אצירת אשפה — דחסניות, מיחזור וגישות שירות',
+  'נגישות ובטיחות — דרכי מילוט ורחבות כיבוי',
+  'התאמה לאקלים המקומי — אוורור טבעי והצללה',
+  'איכות חומרים ועמידות — חומרי גמר לאורך זמן'
+];
+
 const TABLE5_FIELDS = [
   { key:'units',      label:'מספר יחידות דיור', type:'number',  rule:'max',   enforce:'warn'  },
   { key:'mainArea',   label:'שטח עיקרי (מ״ר)',  type:'number',  rule:'max',   enforce:'warn'  },
@@ -3174,9 +3264,75 @@ function renderTable5(p){
   </div>`;
 }
 
+/* ── מאגר דרישות: הצגת הדרישות הרלוונטיות בלבד ── */
+function ensureMuni(p){ if(!p.muniChecks) p.muniChecks={}; }
+function setMuni(id, field, val){ const p=pj(); if(!p)return; ensureMuni(p); if(!p.muniChecks[id])p.muniChecks[id]={met:null,note:''}; p.muniChecks[id][field]=val; if(field==='met'&&p.muniChecks[id].met===val){} savePlans(); renderReviewTab(p); const wb=document.getElementById('workflowBar'); if(wb)renderWorkflowBar(p); }
+function muniSummary(p){ ensureMuni(p); const reqs=activeRequirements(p); let met=0,unmet=0,pending=0,block=0; reqs.forEach(r=>{ const c=p.muniChecks[r.id]||{met:null}; if(c.met===true)met++; else if(c.met===false){unmet++; if(r.blocks)block++;} else pending++; }); return {total:reqs.length,met,unmet,pending,block}; }
+function renderRequirements(p){
+  ensureMuni(p);
+  const reqs = activeRequirements(p);
+  const sm = muniSummary(p);
+  if(!reqs.length) return '';
+  const rows = reqs.map(r=>{
+    const c = p.muniChecks[r.id] || {met:null,note:''};
+    const cls = c.met===true?'req-met':(c.met===false?'req-unmet':'req-pending');
+    return `<div class="req-item ${cls}">
+      <div class="req-main">
+        <div class="req-topic"><b>${r.topic}</b> <span class="req-body">${r.body}</span>${r.blocks?'<span class="req-block-tag">חוסם</span>':''}</div>
+        <div class="req-text">${r.text}</div>
+        <div class="req-doc">מסמך נדרש: ${r.doc}</div>
+      </div>
+      <div class="chk2 req-chk">
+        <button class="chk2-btn chk2-yes${c.met===true?' on':''}" title="מולא" onclick="setMuni('${r.id}','met',true)">✓</button>
+        <button class="chk2-btn chk2-no${c.met===false?' on':''}" title="לא מולא" onclick="setMuni('${r.id}','met',false)">✗</button>
+      </div>
+      ${c.met===false?`<div class="req-note-row"><label>${r.blocks?'⛔ חוסם — ':''}הסבר מדוע הדרישה אינה מתקיימת והפתרון:</label><textarea onchange="setMuni('${r.id}','note',this.value)" placeholder="פירוט...">${esc(c.note)}</textarea></div>`:''}
+    </div>`;
+  }).join('');
+  return `<div class="pp-card">
+    <div class="t5-head"><h4>דרישות עירוניות רלוונטיות</h4>
+      <div class="t5-summary"><span class="date-status ds-green">${sm.met} מולאו</span><span class="date-status ds-red">${sm.unmet} לא מולאו</span><span class="date-status ds-blue">${sm.pending} ממתין</span></div>
+    </div>
+    <div class="t5-note">המערכת מפעילה אוטומטית רק את הדרישות הרלוונטיות למאפייני הפרויקט (${reqs.length} דרישות). ✗ פותח שדה הסבר חובה.</div>
+    ${rows}
+    ${sm.block?`<div class="t5-block-banner">⛔ ${sm.block} דרישות חוסמות לא מולאו.</div>`:''}
+  </div>`;
+}
+
+/* ── 18 הנחיות מרחביות — כן/לא/לא רלוונטי + "למה לא תואם" ── */
+function ensureSpatial(p){ if(!p.spatialChecks) p.spatialChecks={}; }
+function setSpatial(i, field, val){ const p=pj(); if(!p)return; ensureSpatial(p); if(!p.spatialChecks[i])p.spatialChecks[i]={ans:null,note:''}; if(field==='ans'&&p.spatialChecks[i].ans===val)val=null; p.spatialChecks[i][field]=val; savePlans(); renderReviewTab(p); const wb=document.getElementById('workflowBar'); if(wb)renderWorkflowBar(p); }
+function spatialSummary(p){ ensureSpatial(p); let yes=0,no=0,na=0,pending=0; SPATIAL_GUIDELINES.forEach((_,i)=>{ const c=p.spatialChecks[i]||{ans:null}; if(c.ans==='yes')yes++; else if(c.ans==='no')no++; else if(c.ans==='na')na++; else pending++; }); return {total:SPATIAL_GUIDELINES.length,yes,no,na,pending}; }
+function renderSpatial(p){
+  ensureSpatial(p);
+  const sm = spatialSummary(p);
+  const rows = SPATIAL_GUIDELINES.map((g,i)=>{
+    const c = p.spatialChecks[i] || {ans:null,note:''};
+    return `<div class="sp-item sp-${c.ans||'pending'}">
+      <div class="sp-q">${i+1}. ${g}</div>
+      <div class="sp-opts">
+        <button class="sp-opt${c.ans==='yes'?' on-yes':''}" onclick="setSpatial(${i},'ans','yes')">כן</button>
+        <button class="sp-opt${c.ans==='no'?' on-no':''}" onclick="setSpatial(${i},'ans','no')">לא</button>
+        <button class="sp-opt${c.ans==='na'?' on-na':''}" onclick="setSpatial(${i},'ans','na')">לא רלוונטי</button>
+      </div>
+      ${(c.ans==='no')?`<div class="sp-note-row"><label>מדוע אינה תואמת ומהו הפתרון החלופי:</label><textarea onchange="setSpatial(${i},'note',this.value)" placeholder="הסבר...">${esc(c.note)}</textarea></div>`:''}
+      ${(c.ans==='na')?`<div class="sp-note-row sp-na-note"><label>נימוק קצר מדוע אינה רלוונטית:</label><textarea onchange="setSpatial(${i},'note',this.value)" placeholder="נימוק...">${esc(c.note)}</textarea></div>`:''}
+    </div>`;
+  }).join('');
+  return `<div class="pp-card">
+    <div class="t5-head"><h4>18 הנחיות מרחביות</h4>
+      <div class="t5-summary"><span class="date-status ds-green">${sm.yes} תואם</span><span class="date-status ds-red">${sm.no} לא תואם</span><span class="date-status ds-blue">${sm.na} לא רלוונטי · ${sm.pending} ממתין</span></div>
+    </div>
+    <div class="t5-note">כל הנחיה נבדקת. „לא” פותח שדה חובה — למה אינה תואמת ומהו הפתרון. „לא רלוונטי” דורש נימוק קצר.</div>
+    ${rows}
+  </div>`;
+}
+
 function renderReviewTab(p) {
   const el = document.getElementById('panel-review');
-  let html = renderTable5(p); // מנוע החוקים בראש טאב הבדיקה
+  let html = renderTable5(p);          // מנוע החוקים — מותר מול מוצע
+  html += renderRequirements(p);        // דרישות עירוניות רלוונטיות
+  html += renderSpatial(p);             // 18 הנחיות מרחביות
   if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
     html += renderStage2(p);
   } else {
