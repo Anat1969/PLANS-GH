@@ -931,6 +931,28 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .qc-src .qc-tag{background:#e7f6ec;color:#1e6b3a}
 .qc-rec{font-size:12px;color:#7a1f2b;margin:4px 0}
 .qc-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+/* ══════════ פורומים ══════════ */
+.forum-block{border:1px solid #e2e2e2;border-radius:10px;margin-bottom:12px;background:#fff;overflow:hidden}
+.forum-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:#faf7f2;border-inline-start:3px solid var(--bronze,#9c7a3c)}
+.forum-head>span:first-child{font-weight:700;color:#7a1f2b;font-size:14px}
+.forum-sub{font-size:12px;color:#777}
+.forum-body{display:none;padding:8px 12px 12px}
+.forum-block.open .forum-body{display:block}
+.forum-head::after{content:'▾';color:#999;margin-inline-start:auto}
+.forum-block.open .forum-head::after{content:'▴'}
+.fr-stage{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border:1px solid #eee;border-radius:8px;margin-top:6px;cursor:pointer;transition:.12s}
+.fr-stage:hover{background:#f7f7f7;border-color:#ddd}
+.fr-stage-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fr-stage-label{font-size:13px;font-weight:600}
+.fr-stage-hint{font-size:11px;color:#888}
+.fr-stage-side{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fr-go{font-size:11px;color:#7a1f2b}
+.fr-committee{border:1px solid #eee;border-radius:8px;padding:10px 12px;margin-top:10px;background:#fafafa}
+.fr-committee-title{font-weight:600;font-size:13px;margin-bottom:6px}
+.fr-chk{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}
+.fr-chk input{width:16px;height:16px}
+.fr-komplot{border-top:1px dashed #e5e5e5;margin-top:10px;padding-top:10px}
+.fr-komplot .btn{margin-inline-end:6px}
 .mail-modal{max-width:640px;width:92vw;text-align:right}
 .mail-lbl{display:block;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);margin:10px 0 4px}
 .mail-modal input,.mail-modal textarea{width:100%;border:1px solid var(--stone);border-radius:6px;padding:8px;font-family:inherit;font-size:13px}
@@ -1289,6 +1311,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 
   <div class="pp-tabs" id="ppTabs">
     <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
+    <button class="pp-tab" onclick="ppTab('forums',this)">פורומים</button>
     <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
     <button class="pp-tab" onclick="ppTab('team',this)">צוות היזם</button>
     <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים</button>
@@ -1306,6 +1329,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-body-wrap">
   <div class="pp-panels-col">
   <div class="pp-panel active" id="panel-info"></div>
+  <div class="pp-panel" id="panel-forums"></div>
   <div class="pp-panel" id="panel-data"></div>
   <div class="pp-panel" id="panel-team"></div>
   <div class="pp-panel" id="panel-calc"></div>
@@ -1516,7 +1540,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -3200,6 +3224,7 @@ function ppTab(name, btn) {
   if(name==='muni'){ const p=pj(); if(p) renderProjectMuni(p); }
   else { muniInProject=false; } // יציאה מהקשר פרויקט למחלקות
   if(name==='team'){ const p=pj(); if(p) renderTeam(p); }
+  if(name==='forums'){ const p=pj(); if(p) renderForumsTab(p); }
   setTimeout(buildSecNav, 60);
 }
 /* ══════════ סרגל ניווט פנימי (חילוץ כותרות מהפאנל הפעיל) ══════════ */
@@ -3225,7 +3250,7 @@ function buildSecNav(){
   };
   window.addEventListener('scroll',_secSpy,{passive:true}); _secSpy();
 }
-function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('secNav').classList.remove('open'); }
+function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el){ const fb=el.closest('.forum-block'); if(fb) fb.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); } document.getElementById('secNav').classList.remove('open'); }
 function renderStageBadge(p) {
   const map = {stage_1:['שלב 1 — פורום אדריכל','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['ועדה','st3'],approved:['מאושר','stapp']};
   const [txt,cls] = map[p.stage] || map.stage_1;
@@ -6489,7 +6514,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.5';
+const APP_VERSION = '2026.07.6';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7042,6 +7067,150 @@ function renderDocMgmt(){
     </div>
     <div id="qcBody" style="margin-top:14px"></div>`;
   renderQC();
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   טאב 'פורומים' — שלבי העבודה של כל תוכנית מאורגנים לפי שלושת הפורומים.
+   כל פורום = אקורדיון עם רשימת שלבים (סטטוס נגזר מהנתונים הקיימים) +
+   קישור לסעיף/טאב הרלוונטי. פורום הכנה לוועדה כולל צ'ק־ליסט מוכנוּת
+   (חוות דעת לפי פורמט · תוכנית דיגיטלית · תוכנית מודפסת · חוות דעת בוורד
+   להעלאה לקומפלוט).
+   ═══════════════════════════════════════════════════════════════ */
+
+// צ'ק־ליסט מוכנוּת לוועדה — נשמר על p.committeeReady
+const COMMITTEE_CHECKLIST = [
+  {id:'opinionDoc',   label:'חוות דעת לוועדה לפי פורמט חוות הדעת'},
+  {id:'digitalPlan',  label:'תוכנית דיגיטלית קיימת'},
+  {id:'printedPlan',  label:'תוכנית מודפסת קיימת'},
+  {id:'wordOpinion',  label:'חוות דעת בוורד להעלאה למערכת קומפלוט'}
+];
+function ensureCommittee(p){ if(!p.committeeReady||typeof p.committeeReady!=='object') p.committeeReady={}; }
+
+// מצב שלב: 'done' | 'partial' | 'pending' → אייקון + צ'יפ
+function forumStageChip(state){
+  const map={done:['sc-green','הושלם'],partial:['sc-orange','חלקי'],pending:['sc-gray','ממתין'],block:['sc-red','חסם']};
+  const [cls,lbl]=map[state]||map.pending; return `<span class="sc ${cls}">${lbl}</span>`;
+}
+
+// בונה את שלבי כל פורום עם סטטוס אמיתי מהנתונים
+function forumStages(p){
+  const g=(p.guideChecks)||{}; const anyGuide=Object.values(g).some(x=>x&&x.ok!=null);
+  const sp = typeof spatialSummary==='function'? spatialSummary(p):{pending:1,no:0,yes:0,total:0};
+  const t5 = (typeof table5Summary==='function'&&p.table5)? table5Summary(p):{missing:0,block:0,explain:0,ok:0,total:0};
+  const mu = typeof muniSummary==='function'? muniSummary(p):{pending:0,unmet:0,met:0,total:0,block:0};
+  const hasArchForum = !!p.forumArchitect;
+  const hasConsultForum = !!p.forumConsultants;
+  const opinion = p.opinion||{};
+  const st=(cond,partial)=> cond?'done':(partial?'partial':'pending');
+
+  return {
+    architect: [
+      {label:'הזנת נתוני הפרויקט וזיהוי', state: st((p.projectName&&p.developer&&p.district)), tab:'data', hint:'שם, יזם, רובע, גוש/חלקה'},
+      {label:'המשולש המקצועי ובעלי העניין', state:'done', tab:'guidelines', hint:'עיון בהנחיות היסוד'},
+      {label:'מטריצת הנחיות — סימון התייחסות', state: anyGuide?(Object.values(g).some(x=>x&&x.ok===false)?'partial':'done'):'pending', tab:'guidelines', hint:'סימון ✓/✗ לכל דרישה'},
+      {label:'בדיקת הנחיות מרחביות (18)', state: sp.pending>0?(sp.yes+sp.no>0?'partial':'pending'):(sp.no>0?'block':'done'), tab:'review', hint:sp.no>0?(sp.no+' אי־התאמות'):(sp.pending+' ממתינים')},
+      {label:'תיאום מועד פורום אדריכל', state: hasArchForum?'done':'pending', tab:'process', hint:hasArchForum?('נקבע: '+fmtDate(p.forumArchitect)):'טרם נקבע'}
+    ],
+    consultants: [
+      {label:'דרישות מסעיפי התב״ע (טבלה 5)', state: t5.total? (t5.block>0?'block':(t5.missing>0||t5.explain>0?'partial':'done')) : 'pending', tab:'review', hint:t5.total?((t5.block+' חסמים · '+t5.missing+' חסרים')):'טרם מולא'},
+      {label:'מחשבונים ובדיקות (חניה/נגר/תכסית…)', state:'partial', tab:'calc', hint:'השלמת נתונים וקבועים מהמקור'},
+      {label:'דרישות גורמי עירייה', state: mu.total? (mu.block>0?'block':(mu.pending>0?'partial':'done')) : 'pending', tab:'muni', hint:mu.total?(mu.met+'/'+mu.total+' טופלו'):'טרם נבדק'},
+      {label:'תיאום מועד פורום יועצים', state: hasConsultForum?'done':(hasArchForum?'pending':'pending'), tab:'process', hint:hasConsultForum?('נקבע: '+fmtDate(p.forumConsultants)):'טרם נקבע'}
+    ]
+  };
+}
+
+function renderForumsTab(p){
+  ensureCommittee(p);
+  const el=document.getElementById('panel-forums'); if(!el) return;
+  const stages=forumStages(p);
+  const stageRows = arr => arr.map(s=>`
+    <div class="fr-stage" onclick="ppTabByName('${s.tab}')">
+      <div class="fr-stage-main"><span class="fr-stage-label">${esc(s.label)}</span>
+        <span class="fr-stage-hint">${esc(s.hint||'')}</span></div>
+      <div class="fr-stage-side">${forumStageChip(s.state)}<span class="fr-go">מעבר ›</span></div>
+    </div>`).join('');
+
+  // צ'ק־ליסט ועדה
+  const chk = COMMITTEE_CHECKLIST.map(c=>{
+    const on=!!(p.committeeReady&&p.committeeReady[c.id]);
+    return `<label class="fr-chk">
+      <input type="checkbox" ${on?'checked':''} ${globalEdit?'':'disabled'} onchange="setCommitteeReady('${c.id}',this.checked)">
+      <span>${esc(c.label)}</span>${on?'<span class="sc sc-green">קיים</span>':'<span class="sc sc-gray">חסר</span>'}
+    </label>`;
+  }).join('');
+  const opinion=p.opinion||{};
+  const opinionState = opinion.recommendation ? 'done' : (opinion.summary||opinion.description ? 'partial':'pending');
+
+  el.innerHTML = `
+    <div class="detail-section-title">פורומים — שלבי התוכנית</div>
+    <div class="muted" style="font-size:12px;margin-bottom:10px">שלבי העבודה של התוכנית מאורגנים לפי שלושת הפורומים. לחיצה על שלב עוברת לסעיף המתאים. הסטטוס נגזר מהנתונים הקיימים.</div>
+
+    <div class="forum-block">
+      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
+        <span data-sec>פורום אדריכל העיר</span>
+        <span class="forum-sub">הנחיות ודרישות · ${p.forumArchitect?('מועד: '+fmtDate(p.forumArchitect)):'טרם נקבע'}</span>
+      </div>
+      <div class="forum-body">${stageRows(stages.architect)}</div>
+    </div>
+
+    <div class="forum-block">
+      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
+        <span data-sec>פורום יועצים</span>
+        <span class="forum-sub">דרישות תב״ע · מחשבונים · גורמי עירייה · ${p.forumConsultants?('מועד: '+fmtDate(p.forumConsultants)):'טרם נקבע'}</span>
+      </div>
+      <div class="forum-body">${stageRows(stages.consultants)}</div>
+    </div>
+
+    <div class="forum-block open">
+      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
+        <span data-sec>פורום הכנה לוועדה</span>
+        <span class="forum-sub">חוות דעת ומוכנוּת להגשה</span>
+      </div>
+      <div class="forum-body">
+        <div class="fr-stage" onclick="ppTabByName('opinion')">
+          <div class="fr-stage-main"><span class="fr-stage-label">חוות דעת לוועדה לפי פורמט חוות הדעת</span>
+            <span class="fr-stage-hint">${opinion.recommendation?('המלצה: '+esc(opinion.recommendation)):'לניסוח חוות הדעת'}</span></div>
+          <div class="fr-stage-side">${forumStageChip(opinionState)}<span class="fr-go">מעבר ›</span></div>
+        </div>
+        <div class="fr-committee">
+          <div class="fr-committee-title">בדיקת מוכנוּת להגשה לוועדה</div>
+          ${chk}
+        </div>
+        <div class="fr-komplot">
+          <b>חוות דעת בוורד להעלאה לקומפלוט:</b>
+          <div class="muted" style="font-size:12px;margin:4px 0">ניתן להוריד את חוות הדעת כקובץ Word ולהעלותו למערכת קומפלוט. יש לוודא סימון „חוות דעת בוורד” לעיל לאחר ההעלאה.</div>
+          <button class="btn btn-primary btn-sm" onclick="downloadOpinionWord(${p.id})">הורדת חוות דעת (Word)</button>
+          <button class="btn btn-ghost btn-sm" onclick="ppTabByName('opinion')">פתיחת חוות הדעת</button>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(buildSecNav,60);
+}
+function setCommitteeReady(id,on){ const p=pj(); if(!p)return; ensureCommittee(p); p.committeeReady[id]=on; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
+
+/* ── הורדת חוות הדעת כקובץ Word (HTML‑to‑doc, RTL) להעלאה לקומפלוט ── */
+function downloadOpinionWord(pid){
+  const p=plans.find(x=>x.id==pid)||pj(); if(!p) return;
+  const o=p.opinion||{}; const m=p.meta||{};
+  const plotRows=(p.plots||[]).map(pl=>`<tr><td>${esc(pl.num||'')}</td><td>${esc(pl.use||'')}</td><td>${esc(pl.area||'')}</td><td>${esc(pl.units||'')}</td><td>${esc(pl.floorsAbove||'')}</td><td>${esc(pl.height||'')}</td><td>${esc(pl.coverage||'')}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="utf-8"><style>body{font-family:'David','Times New Roman',serif;direction:rtl;font-size:12pt;line-height:1.6}h1{text-align:center;font-size:16pt}h2{font-size:13pt;border-bottom:1px solid #999}table{border-collapse:collapse;width:100%}td,th{border:1px solid #333;padding:4px;font-size:10pt}</style></head><body>
+  <h1>חוות דעת — תוכנית בינוי ${esc(p.planNum||('תב/'+p.tik))}</h1>
+  <p><b>יזם:</b> ${esc(p.developer||'—')} &nbsp; <b>אדריכל:</b> ${esc(p.submitter||'—')}</p>
+  <p><b>רובע:</b> ${esc(p.district||'—')} &nbsp; <b>גוש/חלקה:</b> ${esc(p.parcel||'—')}</p>
+  <p><b>תב״ע:</b> ${esc(m.zoningPlan||'—')} / ${esc(m.zoningDetailed||'—')} &nbsp; <b>ייעוד:</b> ${esc(m.designation||'—')}</p>
+  ${plotRows?`<h2>בינוי לפי מגרשים</h2><table><tr><th>מגרש</th><th>ייעוד</th><th>שטח</th><th>יח״ד</th><th>קומות</th><th>גובה</th><th>תכסית</th></tr>${plotRows}</table>`:''}
+  <h2>תיאור הפרויקט</h2><p>${esc(o.description||'—').replace(/\n/g,'<br>')}</p>
+  <h2>סיכום והמלצה</h2><p>${esc(o.summary||'—').replace(/\n/g,'<br>')}</p>
+  <p><b>המלצה סופית:</b> ${esc(o.recommendation||'—')}</p>
+  <p style="margin-top:30px">חתימה: אדריכלית העיר ענת דוד שטיבלמן &nbsp;&nbsp; תאריך: ${fmtDate(todayStr())}</p>
+  </body></html>`;
+  const blob=new Blob(['﻿'+html],{type:'application/msword'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='חוות דעת תב '+(p.tik||'')+'.doc'; a.click();
+  if(typeof logAction==='function') logAction(p,'doc','הופקה חוות דעת בוורד להעלאה לקומפלוט');
+  toast('חוות הדעת הורדה כקובץ Word');
 }
 
 
