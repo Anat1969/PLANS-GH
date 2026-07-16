@@ -731,6 +731,14 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .calc-note{font-size:12px;color:rgba(0,0,0,0.5);margin-top:0.7rem;line-height:1.5}
 .cr-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .cr-form input,.cr-form select{border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px}
+.calc-warn-banner{background:#fff7e6;border:1px solid #ffd591;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#8a5a00;margin-bottom:0.9rem;line-height:1.5}
+.const-hints{display:flex;flex-direction:column;gap:10px;padding:4px}
+.const-hint{border:1px solid var(--fog);border-radius:8px;padding:10px}
+.ch-label{font-size:13.5px;font-weight:600}
+.ch-verify{background:var(--warn);color:#fff;font-size:10px;padding:1px 7px;border-radius:99px;margin-inline-start:6px;font-weight:500}
+.ch-suggest{font-size:12.5px;color:rgba(0,0,0,0.6);margin:4px 0}
+.ch-row{display:flex;gap:6px;flex-wrap:wrap}
+.ch-row input{flex:1;min-width:160px;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -5111,22 +5119,37 @@ const CALC_SOURCE_HIERARCHY = [
   'תקן חניה ארצי','תקן חניה מקומי','הנחיות מרחביות','אוגדן עירוני','מדיניות עירונית',
   'דרישות המחלקה המקצועית','החלטה/הנחיה פרטנית לפרויקט'
 ];
+// קטלוג טווחי-קבועים מוצעים — להמחשה בלבד, טעונים אימות מול המקור הרשמי.
+// אינם נוסחאות מאושרות: מסייעים לאדריכל להזין ערך סביר, אך המשתמש מאשר/מזין את המקור.
+// ניתן לעריכה במסך הניהול. ברירת המחדל של כל כלל בפועל נשארת ריקה.
+let calcConstantHints = { hints: [
+  { calc:'parking', label:'תקן חניה — מגורים', suggest:'טווח נפוץ: כ-1:1 עד 1:2 ליח״ד לפי גודל דירה ומיקום', typical:'', verify:true },
+  { calc:'parking', label:'תקן חניה — מסחר', suggest:'טווח נפוץ: חנייה לכל 20–50 מ״ר מסחר', typical:'', verify:true },
+  { calc:'parking', label:'תקן חניה — משרדים/תעסוקה', suggest:'טווח נפוץ: חנייה לכל 30–50 מ״ר', typical:'', verify:true },
+  { calc:'parking', label:'חניות נגישות', suggest:'לרוב אחוז מסך החניות או מינימום מוגדר בתקן', typical:'', verify:true },
+  { calc:'runoff', label:'שטח מחלחל מינימלי', suggest:'לרוב מוזכר יעד של כ-15% משטח המגרש', typical:'', verify:true },
+  { calc:'planting', label:'תכסית בנויה מרבית', suggest:'נקבע בתב״ע/הוראות — משתנה לפי ייעוד', typical:'', verify:true },
+  { calc:'trash', label:'נפח אשפה ליח״ד', suggest:'נגזר מהיקף השימושים ותדירות הפינוי', typical:'', verify:true }
+]};
+function constantHintsFor(calcId){ return (calcConstantHints.hints||[]).filter(h=>h.calc===calcId); }
+
 // כללי חישוב — ריקים כברירת מחדל (נוסחה/יחס להשלמה ממקור מאושר). ניתן לעריכה במסך ניהול.
-// כלל: { id, calc, use, source, formula, unit, rounding, effectiveFrom, effectiveTo, ratioValue(null=חסר), note }
+// כלל: { id, calc, use, source, formula, unit, rounding, effectiveFrom, effectiveTo, ratioValue(null=חסר), note, verified }
 let calcRules = { rules: [] };
 function calcRulesFor(calcId){ return (calcRules.rules||[]).filter(r=>r.calc===calcId); }
 function ruleHasSource(r){ return r && r.ratioValue!==null && r.ratioValue!==undefined && r.formula; }
 
 async function loadCalcRules(){
-  try { const l=JSON.parse(localStorage.getItem('ashdod_calc_rules_v1')||'null'); if(l&&l.rules) calcRules=l; } catch(e){}
+  try { const l=JSON.parse(localStorage.getItem('ashdod_calc_rules_v1')||'null'); if(l){ if(l.rules)calcRules={rules:l.rules}; if(l.hints)calcConstantHints={hints:l.hints}; } } catch(e){}
   try {
     const res=await fetch(SB_URL+'/rest/v1/ashdod_muni?select=data&id=eq.calc_rules',{headers:SB_HEADERS});
-    if(res.ok){ const rows=await res.json(); if(rows[0]&&rows[0].data&&rows[0].data.rules) calcRules=rows[0].data; }
+    if(res.ok){ const rows=await res.json(); const d=rows[0]&&rows[0].data; if(d){ if(d.rules)calcRules={rules:d.rules}; if(d.hints)calcConstantHints={hints:d.hints}; } }
   } catch(e){}
 }
 async function saveCalcRules(){
-  try { localStorage.setItem('ashdod_calc_rules_v1', JSON.stringify(calcRules)); } catch(e){}
-  try { await fetch(SB_URL+'/rest/v1/ashdod_muni?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'calc_rules',data:calcRules,updated_at:new Date().toISOString()}])}); } catch(e){}
+  const payload={ rules:calcRules.rules||[], hints:calcConstantHints.hints||[] };
+  try { localStorage.setItem('ashdod_calc_rules_v1', JSON.stringify(payload)); } catch(e){}
+  try { await fetch(SB_URL+'/rest/v1/ashdod_muni?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'calc_rules',data:payload,updated_at:new Date().toISOString()}])}); } catch(e){}
 }
 
 /* ── מבנה אחיד למחשבון ── */
@@ -5160,13 +5183,38 @@ function renderCalcShell(p, def){
   } else {
     body = renderCalcResults(p, def, rules);
   }
+  const hints = constantHintsFor(def.id);
+  const unverified = rules.some(r=>ruleHasSource(r) && !r.verified);
   return `<div class="pp-card calc-card">
     <div class="calc-head"><h4>${def.name}</h4></div>
     <div class="calc-desc">${def.desc}</div>
+    <div class="calc-warn-banner">⚠ הערכים והנוסחאות אינם מאושרים אוטומטית — הם להמחשה בלבד וחייבים אימות מול המקור הרשמי (אוגדן/תקן/תב״ע) לפני שימוש.${unverified?' <b>יש כללים שטרם אומתו.</b>':''}</div>
     <details class="calc-sec" open><summary>נתוני קלט</summary>${inputsHtml}</details>
-    <details class="calc-sec"><summary>מקור הדרישה</summary>${renderCalcSources(rules)}</details>
+    ${hints.length?`<details class="calc-sec"><summary>קבועים אפשריים (טעונים אימות)</summary>${renderConstantHints(def.id)}</details>`:''}
+    <details class="calc-sec"><summary>מקור הדרישה והקבועים</summary>${renderCalcSources(rules)}</details>
     <div class="calc-result">${body}</div>
   </div>`;
+}
+
+/** מציג טווחי-קבועים מוצעים — מסומנים 'לאימות', עם שדה להזנת הערך שאושר + המקור */
+function renderConstantHints(calcId){
+  const hints=constantHintsFor(calcId);
+  return `<div class="const-hints">
+    ${hints.map((h,i)=>`<div class="const-hint">
+      <div class="ch-label">${esc(h.label)} ${h.verify?'<span class="ch-verify">טעון אימות</span>':''}</div>
+      <div class="ch-suggest">${esc(h.suggest)}</div>
+      <div class="ch-row">
+        <input value="${esc(h.typical||'')}" placeholder="הערך שאישרת (ריק עד לאימות)" onchange="setConstHint('${calcId}',${i},'typical',this.value)">
+        <input value="${esc(h.sourceRef||'')}" placeholder="מקור רשמי (מסמך + סעיף)" onchange="setConstHint('${calcId}',${i},'sourceRef',this.value)">
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+function setConstHint(calcId, i, field, val){
+  const list=constantHintsFor(calcId); const h=list[i]; if(!h)return;
+  // מאתר את האינדקס במערך הכולל
+  const gi=(calcConstantHints.hints||[]).indexOf(h);
+  if(gi>=0){ calcConstantHints.hints[gi][field]=val; saveCalcRules(); }
 }
 
 function renderCalcInputs(p, calcId){
@@ -5259,6 +5307,7 @@ function openCalcRulesEditor(preCalc){
       <input id="crRatio" type="number" step="any" placeholder="יחס/ערך (אם ידוע)">
       <select id="crRound"><option value="">עיגול</option><option value="up">כלפי מעלה</option><option value="down">כלפי מטה</option><option value="round">לקרוב</option></select>
       <input id="crFrom" type="date" title="תוקף מתאריך">
+      <label class="chk-inline" style="grid-column:1/-1"><input type="checkbox" id="crVerified"> אומת מול המקור הרשמי (סמני רק לאחר בדיקה)</label>
       <button class="btn btn-primary btn-sm" onclick="addCalcRule()">הוסף כלל</button>
     </div>
     <div class="tbl-wrap" style="margin-top:1rem"><table><thead><tr><th>מחשבון</th><th>שימוש</th><th>מקור</th><th>נוסחה</th><th>יחס</th><th></th></tr></thead><tbody id="crTbody">${rows||'<tr><td colspan="6" class="muted">אין כללים עדיין</td></tr>'}</tbody></table></div>
@@ -5272,7 +5321,8 @@ function addCalcRule(){
   if(!calcRules.rules) calcRules.rules=[];
   calcRules.rules.push({ calc:g('crCalc'), use:g('crUse'), source:g('crSource'), formula:g('crFormula'),
     inputKey:g('crInputKey'), inputLabel:(document.getElementById('crInputKey').selectedOptions[0]||{}).text||'',
-    op:g('crOp'), ratioValue: ratio===''?null:parseFloat(ratio), rounding:g('crRound'), effectiveFrom:g('crFrom') });
+    op:g('crOp'), ratioValue: ratio===''?null:parseFloat(ratio), rounding:g('crRound'), effectiveFrom:g('crFrom'),
+    verified: !!document.getElementById('crVerified').checked });
   saveCalcRules(); toast('כלל נוסף');
   document.querySelector('.render-lightbox')?.remove(); openCalcRulesEditor('');
   if(currentProjectId!=null && document.getElementById('panel-calc')){ const p=pj(); if(p) renderCalcTab(p); }
