@@ -598,7 +598,29 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .ds-orange{background:rgba(196,122,32,0.14);color:var(--warn)}
 .ds-red{background:rgba(184,64,64,0.14);color:var(--err)}
 .ds-blue{background:rgba(59,139,212,0.14);color:var(--info)}
-.date-input-ds-green{color:var(--ok)!important;font-weight:700}
+/* צביעת תאריכים לפי זמן אמת: עבר=כחול בהיר · הווה=כחול בינוני · עתיד=כחול כהה+לבן */
+.dt-past{background:#e8f1fb;color:#3a6ea5}
+.dt-present{background:#7ba9d8;color:#fff;font-weight:700}
+.dt-future{background:#1f4e79;color:#fff}
+.dt-none{background:transparent;color:#999}
+.date-legend{font-size:11px;color:#777;display:inline-flex;align-items:center;gap:5px;margin-inline-start:6px}
+.date-legend span{padding:1px 8px;border-radius:5px;font-size:11px}
+/* ══════════ טבלת תוכניות קומפקטית — רוחב מוגבל לכל עמודה ══════════ */
+.plans-table{table-layout:fixed;width:100%}
+.plans-table th,.plans-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.plans-table .col-tik{width:74px;max-width:74px}
+.plans-table .col-plannum{width:88px;max-width:88px;font-size:12px}
+.plans-table .col-img{width:70px;max-width:70px}
+.plans-table .col-district{width:80px;max-width:80px}
+.plans-table .col-txt{max-width:140px;min-width:80px}
+.plans-table .col-date{width:96px;max-width:96px}
+.plans-table .col-status{width:90px;max-width:90px}
+.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;font-size:11px}
+.plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:12px;padding:3px 5px;min-width:0}
+.plans-table .col-date input[type=date]{font-size:11px;padding:2px}
+.date-legend .dt-future{color:#fff}
+.date-legend .dt-past{color:#3a6ea5}
+@media(max-width:1100px){ .plans-table .col-txt{max-width:110px} }
 .date-input-ds-orange{color:var(--warn)!important;font-weight:700}
 .date-input-ds-red{color:var(--err)!important;font-weight:700}
 .date-input-ds-blue{color:var(--info)!important}
@@ -987,6 +1009,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
     <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
+    <button onclick="go('contacts',this)">רשימות קשר</button>
     <button onclick="go('settings',this)">הגדרות</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
@@ -1045,8 +1068,12 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <div class="page-title">טבלת תוכניות בינוי</div>
       <div class="page-subtitle">40 תוכניות — סנן, מיין, חפש ועדכן סטטוס</div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-ghost" id="tableViewToggle" onclick="toggleTableView()">הצג את כל התוכניות</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="tableViewMode" onchange="setTableView(this.value)" title="סינון לפי מצב התוכנית">
+        <option value="active">תוכניות פעילות</option>
+        <option value="all">כל התוכניות</option>
+        <option value="done">תוכניות שהושלמו</option>
+      </select>
       <button class="btn btn-bronze" onclick="openAddModal()">+ תוכנית בינוי חדשה</button>
     </div>
   </div>
@@ -1065,10 +1092,13 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <input type="text" id="filterSearch" placeholder="חיפוש חופשי..." oninput="applyFilters()" style="width:180px">
     <span class="filter-count" id="filterCount"></span>
     <button class="btn btn-ghost btn-sm" onclick="resetFilters()">נקה סינון</button>
+    <span class="date-legend" title="צביעת התאריכים לפי התאריך הנוכחי">
+      מקרא תאריכים: <span class="dt-past">עבר</span> <span class="dt-present">הווה</span> <span class="dt-future">עתיד</span>
+    </span>
   </div>
 
   <div class="tbl-wrap">
-    <table>
+    <table class="plans-table">
       <thead>
         <tr>
           <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>מס' סידורי</th>
@@ -1748,7 +1778,7 @@ function go(id, btn) {
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, settings:7};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7, settings:8};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1762,7 +1792,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','table','guidelines','map','trends','shares','muni'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts','settings'];
   if (routable.includes(raw)) activateNavFor(raw);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -1863,6 +1893,27 @@ function dateTrafficClass(dateStr){
   if(diff < 0) return 'ds-red';
   if(diff <= 3) return 'ds-orange';
   return 'ds-green';
+}
+/* ── צביעת תאריכים לפי זמן אמת: עבר=כחול בהיר · הווה=כחול בינוני · עתיד=כחול כהה ──
+   מתעדכן אוטומטית לפי התאריך בפועל (new Date), לא לפי ערך ידני. */
+function _todayISO(){ const t=new Date(); return new Date(t.getFullYear(),t.getMonth(),t.getDate()); }
+function dateTimeClass(dateStr){
+  if(!dateStr) return 'dt-none';
+  const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return 'dt-none';
+  const today=_todayISO();
+  const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  if(dd<today) return 'dt-past';
+  if(dd.getTime()===today.getTime()) return 'dt-present';
+  return 'dt-future';
+}
+/* טווח תאריכים: הסתיים=עבר · כולל היום=הווה · טרם התחיל=עתיד */
+function rangeTimeClass(startStr,endStr){
+  const today=_todayISO();
+  const s=startStr?new Date(startStr+'T00:00:00'):null, e=endStr?new Date(endStr+'T00:00:00'):null;
+  if(e&&!isNaN(e)&&new Date(e.getFullYear(),e.getMonth(),e.getDate())<today) return 'dt-past';
+  if(s&&!isNaN(s)&&new Date(s.getFullYear(),s.getMonth(),s.getDate())>today) return 'dt-future';
+  if(s||e) return 'dt-present';
+  return 'dt-none';
 }
 
 const FORUM_EMAIL_RECIPIENTS = 'anatdavids@ashdod.muni.il';
@@ -2060,6 +2111,8 @@ function populateFilters() {
 }
 
 function applyFilters() {
+  const vm = document.getElementById('tableViewMode');
+  if (vm && vm.value !== tableViewMode) vm.value = tableViewMode; // סנכרון הבורר עם המצב השמור
   const d = document.getElementById('filterDistrict').value;
   const y = document.getElementById('filterYear').value;
   const s = document.getElementById('filterStatus').value;
@@ -2067,11 +2120,12 @@ function applyFilters() {
   const q = document.getElementById('filterSearch').value.toLowerCase();
 
   const today = todayStr();
+  const isDone = p => ['הושלם','אושר סופית','בוטל','נסגר','תוכנית נסגרה','סגור'].includes(p.status);
   filtered = plans.filter(p => {
-    // ברירת מחדל: כל התוכניות שטרם הושלמו — ללא תלות בשלב
-    if (tableActiveOnly) {
-      if (typeof planIsActive==='function' ? !planIsActive(p) : ['הושלם','אושר סופית','בוטל','נסגר','תוכנית נסגרה','סגור'].includes(p.status)) return false;
-    }
+    // סינון לפי מצב: פעילות (ברירת מחדל) / כל / שהושלמו — לפי שדה הסטטוס
+    if (tableViewMode === 'active' && isDone(p)) return false;
+    if (tableViewMode === 'done' && !isDone(p)) return false;
+    // 'all' — ללא סינון מצב
     if (d && normalizeDistrict(p.district) !== d) return false;
     if (y && String(p.year) !== y) return false;
     if (s && (p.stage || 'stage_1') !== s) return false;
@@ -2087,14 +2141,15 @@ function applyFilters() {
   renderTable();
   document.getElementById('filterCount').textContent = `${filtered.length} מתוך ${plans.length} תוכניות`;
 }
-/** מצב ברירת מחדל: רק תוכניות בטיפול שטרם עבר תאריך ההכנה לוועדה */
-let tableActiveOnly = true;
-function toggleTableView(){
-  tableActiveOnly = !tableActiveOnly;
-  const b = document.getElementById('tableViewToggle');
-  if (b) b.textContent = tableActiveOnly ? 'הצג גם תוכניות שהושלמו' : 'הצג רק תוכניות בטיפול';
+/** מצב תצוגת הטבלה: 'active' (ברירת מחדל) · 'all' · 'done' — נשמר במהלך העבודה */
+let tableViewMode = (function(){ try{ return localStorage.getItem('ashdod_tableview')||'active'; }catch(e){ return 'active'; } })();
+function setTableView(mode){
+  tableViewMode = mode;
+  try{ localStorage.setItem('ashdod_tableview', mode); }catch(e){}
   applyFilters();
 }
+/** תאימות לאחור אם נקרא toggleTableView מאי־שם */
+function toggleTableView(){ setTableView(tableViewMode==='active'?'all':'active'); }
 
 function resetFilters() {
   document.getElementById('filterDistrict').value = '';
@@ -2346,32 +2401,32 @@ function renderTable() {
 
     if (editMode) {
       return `<tr class="${groupClass}">
-        <td><strong>${p.tik}</strong></td>
-        <td><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
-        <td>${renderFrameHTML(p)}</td>
-        <td><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
-        <td><input value="${p.location||''}" onchange="saveField(${p.id},'location',this)"></td>
-        <td><input value="${p.developer||''}" onchange="saveField(${p.id},'developer',this)"></td>
-        <td><input value="${p.submitter||''}" onchange="saveField(${p.id},'submitter',this)"></td>
-        <td><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
-        <td><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
-        <td><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
-        <td><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
+        <td class="col-tik"><strong>${p.tik}</strong></td>
+        <td class="col-plannum"><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
+        <td class="col-img">${renderFrameHTML(p)}</td>
+        <td class="col-district"><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
+        <td class="col-txt"><input value="${esc(p.location||'')}" onchange="saveField(${p.id},'location',this)"></td>
+        <td class="col-txt"><input value="${esc(p.developer||'')}" onchange="saveField(${p.id},'developer',this)"></td>
+        <td class="col-txt"><input value="${esc(p.submitter||'')}" onchange="saveField(${p.id},'submitter',this)"></td>
+        <td class="col-date"><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
+        <td class="col-date"><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
+        <td class="col-date"><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
+        <td class="col-status"><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`;
     }
 
     return `<tr class="${groupClass}" onclick="openProject(${p.id})">
-      <td><strong>${p.tik}</strong></td>
-      <td style="font-size:12px">${p.planNum}</td>
-      <td onclick="event.stopPropagation()">${renderFrameHTML(p)}</td>
-      <td>${p.district}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.location}">${p.location||'—'}</td>
-      <td>${p.developer||'—'}</td>
-      <td>${p.submitter||'—'}</td>
-      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
-      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
-      <td style="white-space:nowrap"><span class="date-status ${dateTrafficClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
-      <td>${statusChip(p.status)}</td>
+      <td class="col-tik"><strong>${p.tik}</strong></td>
+      <td class="col-plannum">${p.planNum}</td>
+      <td class="col-img" onclick="event.stopPropagation()">${renderFrameHTML(p)}</td>
+      <td class="col-district">${p.district}</td>
+      <td class="col-txt" title="${esc(p.location||'')}">${p.location||'—'}</td>
+      <td class="col-txt" title="${esc(p.developer||'')}">${p.developer||'—'}</td>
+      <td class="col-txt" title="${esc(p.submitter||'')}">${p.submitter||'—'}</td>
+      <td class="col-date"><span class="date-status ${dateTimeClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
+      <td class="col-date"><span class="date-status ${dateTimeClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
+      <td class="col-date"><span class="date-status ${dateTimeClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
+      <td class="col-status">${statusChip(p.status)}</td>
     </tr>`;
   }).join('');
 
@@ -2981,6 +3036,15 @@ function genFileNumber(p) {
 }
 
 /** 12 אבני דרך סטנדרטיות (FULL-ANALYSIS דף 3 — מבנה גאנט) */
+// ברירות מחדל לזמן משוער לכל שלב: [ערך, יחידה]
+const GANTT_DEFAULT_EST = {
+  'פתיחת פרויקט':[3,'ימים'],'שליחת הנחיות':[5,'ימים'],'קבלת מצגת מאדריכל':[3,'שבועות'],
+  'פגישת תיאום 1':[1,'שבועות'],'פגישת תיאום 2':[1,'שבועות'],'פורום אדריכל העיר':[2,'שבועות'],
+  'השלמות שלב 1':[3,'שבועות'],'פורום יועצים':[3,'שבועות'],'השלמות שלב 2':[3,'שבועות'],
+  'ניסוח חוות דעת':[1,'שבועות'],'ועדה':[1,'חודשים'],'חתימה ותיעוד':[3,'ימים']
+};
+const EST_UNITS = ['ימים','שבועות','חודשים'];
+function estToDays(val,unit){ const n=parseFloat(val)||0; return unit==='שבועות'?n*7:unit==='חודשים'?n*30:n; }
 function defaultGantt() {
   const M = [
     ['פתיחת פרויקט','אדריכלית'],['שליחת הנחיות','אדריכלית'],['קבלת מצגת מאדריכל','אדריכל'],
@@ -2988,7 +3052,26 @@ function defaultGantt() {
     ['פורום אדריכל העיר','אדריכלית'],['השלמות שלב 1','אדריכל'],['פורום יועצים','אדריכלית + יועצים'],
     ['השלמות שלב 2','אדריכל'],['ניסוח חוות דעת','אדריכלית'],['ועדה','ועדה'],['חתימה ותיעוד','אדריכלית'],
   ];
-  return M.map(([milestone,owner])=>({milestone,owner,plan:'',actual:'',status:'not_started',reason:''}));
+  return M.map(([milestone,owner])=>{ const e=GANTT_DEFAULT_EST[milestone]||[1,'שבועות'];
+    return {milestone,owner,plan:'',actual:'',status:'not_started',reason:'',est:e[0],estUnit:e[1]}; });
+}
+// משלים שדות זמן משוער בפרויקטים קיימים (ללא דריסת ערכים)
+function ensureGanttEst(p){
+  (p.gantt||[]).forEach(g=>{ if(g.est===undefined){ const e=GANTT_DEFAULT_EST[g.milestone]||[1,'שבועות']; g.est=e[0]; g.estUnit=e[1]; } });
+}
+// חישוב אוטומטי: תאריך סיום משוער + עמידה בזמן + ימי חריגה (ניתן לעדכון ידני של השדות)
+function ganttCompute(g){
+  const out={ endEst:'', onTime:null, overdue:0 };
+  if(g.plan && g.est!=='' && g.est!=null){
+    const end=new Date(g.plan+'T00:00:00');
+    end.setDate(end.getDate()+estToDays(g.est,g.estUnit||'ימים'));
+    out.endEst=end.getFullYear()+'-'+String(end.getMonth()+1).padStart(2,'0')+'-'+String(end.getDate()).padStart(2,'0');
+    const ref = g.actual ? new Date(g.actual+'T00:00:00') : _todayISO();
+    const d = Math.round((ref - end)/864e5);
+    out.overdue = d>0 ? d : 0;
+    out.onTime = d<=0;
+  }
+  return out;
 }
 
 /** שם פרויקט בנוי: תב/מספר - רובע - מגרש - יזם */
@@ -3401,17 +3484,26 @@ function setGuideNote(gi, val){
 /* ══════════ טאב תהליך וגאנט (FULL-ANALYSIS דף 3) ══════════ */
 const GANTT_STATUS = [['not_started','טרם התחיל'],['in_progress','בביצוע'],['done','הושלם'],['delayed','מעוכב']];
 function renderProcessTab(p){
+  ensureGanttEst(p);
   const rows = p.gantt.map((g,i)=>{
     let delay='';
     if(g.plan && g.actual){const d=Math.round((new Date(g.actual)-new Date(g.plan))/864e5); delay = d>0?`+${d}`:String(d);}
     else if(g.plan && !g.actual){const d=Math.round((new Date(todayStr())-new Date(g.plan))/864e5); if(d>0) delay=`+${d}`;}
     const delayCls = delay.startsWith('+')?'style="color:var(--err);font-weight:600"':'';
+    const c = ganttCompute(g);
+    const okBadge = c.onTime===null ? '<span class="muted">—</span>'
+      : c.onTime ? '<span class="sc sc-green">בזמן</span>'
+      : `<span class="sc sc-red">חריגה ${c.overdue} ימים</span>`;
     return `<tr>
       <td style="font-weight:600">${i+1}. ${g.milestone}</td>
       <td style="font-size:12px">${g.owner}</td>
       <td><input type="date" value="${esc(g.plan)}" onchange="setGantt(${i},'plan',this.value)" style="font-size:12px;padding:3px"></td>
+      <td style="white-space:nowrap"><input type="number" min="0" value="${esc(g.est)}" onchange="setGantt(${i},'est',this.value)" style="width:48px;font-size:12px;padding:3px" title="זמן משוער לשלב">
+        <select onchange="setGantt(${i},'estUnit',this.value)" style="font-size:11px;padding:2px">${EST_UNITS.map(u=>`<option${g.estUnit===u?' selected':''}>${u}</option>`).join('')}</select></td>
+      <td style="font-size:12px;white-space:nowrap"><span class="date-status ${dateTimeClass(c.endEst)}">${c.endEst?fmtDate(c.endEst):'—'}</span></td>
       <td><input type="date" value="${esc(g.actual)}" onchange="setGantt(${i},'actual',this.value)" style="font-size:12px;padding:3px"></td>
       <td><select onchange="setGantt(${i},'status',this.value)" style="font-size:12px;padding:3px">${GANTT_STATUS.map(([v,l])=>`<option value="${v}"${g.status===v?' selected':''}>${l}</option>`).join('')}</select></td>
+      <td>${okBadge}</td>
       <td ${delayCls}>${delay||'—'}</td>
       <td><input value="${esc(g.reason)}" placeholder="—" onchange="setGantt(${i},'reason',this.value)" style="font-size:12px;padding:3px"></td>
     </tr>`;
@@ -3422,12 +3514,14 @@ function renderProcessTab(p){
       <div class="chk-header"><h4 style="margin:0">גאנט — 12 אבני דרך</h4>
         <div class="progress-wrap"><span class="progress-label">${doneCount} / 12 הושלמו</span><div class="progress-bar"><div class="progress-fill" style="width:${doneCount/12*100}%"></div></div></div>
       </div>
-      <div class="tbl-wrap"><table><thead><tr><th>אבן דרך</th><th>אחראי</th><th>מתוכנן</th><th>בפועל</th><th>סטטוס</th><th>עיכוב (ימים)</th><th>סיבה / פעולה</th></tr></thead>
+      <div class="tbl-wrap"><table><thead><tr><th>אבן דרך</th><th>אחראי</th><th>מתוכנן</th><th>זמן משוער</th><th>סיום משוער</th><th>בפועל</th><th>סטטוס</th><th>עמידה בזמן</th><th>עיכוב</th><th>סיבה / פעולה</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
-      <p style="font-size:12px;color:rgba(0,0,0,0.45);margin-top:0.8rem">עיכוב מחושב אוטומטית: תאריך בפועל − תאריך מתוכנן (או היום אם טרם בוצע).</p>
+      <p style="font-size:12px;color:rgba(0,0,0,0.45);margin-top:0.8rem">סיום משוער = מתוכנן + זמן משוער. עמידה בזמן וחריגה מחושבים אוטומטית מול היום (או תאריך הביצוע בפועל). ניתן לשנות כל ערך ידנית.</p>
     </div>`;
 }
 function setGantt(i,k,v){const p=pj();if(!p)return;p.gantt[i][k]=v;if(k==='actual'&&v)p.gantt[i].status='done';savePlans();renderProcessTab(p);}
+/* עדכון ברירת המחדל הכללית לזמן משוער לפי סוג שלב (משפיע רק על שלבים ללא ערך מותאם) */
+function setDefaultEst(milestone,val,unit){ if(val!=null) GANTT_DEFAULT_EST[milestone]=[val,unit||GANTT_DEFAULT_EST[milestone][1]]; }
 
 /* ══════════ טאב חומר גרפי (FULL-ANALYSIS דף 4 — 22 פריטים) ══════════ */
 const GRAPHICS = [
@@ -6395,7 +6489,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.4';
+const APP_VERSION = '2026.07.5';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -6943,7 +7037,7 @@ function renderDocMgmt(){
     <div class="set-kv">חוות דעת שזוהו: <b>${opinionsN}</b> · תוכניות שעודכנו מהמקור: <b>${updated}</b> · סתירות פתוחות: <b>${conflicts}</b></div>
     <div class="set-kv">תמונות שחולצו/הועלו: <b>${imgsN}</b> · לא מסווגות: <b>${unclass}</b></div>
     <div class="mail-actions" style="margin-top:8px">
-      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[7]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
+      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[8]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qcBody').scrollIntoView({behavior:'smooth'})">טיפול בחריגים</button>
     </div>
     <div id="qcBody" style="margin-top:14px"></div>`;
