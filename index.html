@@ -344,7 +344,7 @@ tbody tr:hover{background:var(--teal-pale)}
 .gl-title{font-family:var(--display);font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
 .gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
 .gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
-.gl-nav{position:sticky;top:64px;z-index:80;background:var(--paper);display:flex;gap:6px;flex-wrap:wrap;padding:0.7rem 0.5rem;border-bottom:1px solid var(--stone);margin-bottom:1.5rem;box-shadow:0 4px 8px -6px rgba(0,0,0,0.15)}
+.gl-nav{position:static;background:var(--paper);display:flex;gap:6px;flex-wrap:wrap;padding:0.7rem 0.5rem;border-bottom:1px solid var(--stone);margin-bottom:1.5rem;border-radius:8px}
 .gl-nav a{font-size:13px;color:#fff;background:var(--teal);text-decoration:none;padding:7px 14px;border-radius:8px;white-space:nowrap;transition:all 0.15s;border:1px solid var(--teal);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.08);cursor:pointer}
 .gl-nav a:hover{background:var(--bronze);border-color:var(--bronze);transform:translateY(-1px)}
 .gl-section{margin-bottom:2.5rem;scroll-margin-top:120px}
@@ -1621,12 +1621,10 @@ function applyFilters() {
 
   const today = todayStr();
   filtered = plans.filter(p => {
-    // ברירת מחדל: תוכניות בטיפול שתאריך ההכנה לוועדה טרם עבר
+    // ברירת מחדל: תוכניות בטיפול (בטיפול / דחוף / בהמתנה) — אלה שדורשות עבודה כעת
     if (tableActiveOnly) {
       const active = (p.status==='בטיפול' || p.status==='דחוף' || p.status==='בהמתנה');
       if (!active) return false;
-      const pd = (p.datesPlan && p.datesPlan.committeePrep) || p.committeeDate || '';
-      if (pd && pd < today) return false; // תאריך ההכנה עבר
     }
     if (d && normalizeDistrict(p.district) !== d) return false;
     if (y && String(p.year) !== y) return false;
