@@ -638,6 +638,48 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .sp-na-note label{color:rgba(0,0,0,0.5)}
 .sp-note-row textarea{width:100%;min-height:40px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db}
 .sp-na-note textarea{border-color:var(--stone)}
+/* ══════════ דרישות גורמי עירייה ══════════ */
+.muni-source{background:#fff7e6;border:1px solid #ffd591;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#8a5a00;margin-bottom:1.2rem}
+.muni-filters{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;background:#fafafa;border:1px solid var(--fog);border-radius:8px;padding:12px;margin-bottom:1rem}
+.muni-filter-group{display:flex;flex-direction:column;gap:4px}
+.muni-filter-group>label{font-size:12px;color:rgba(0,0,0,0.55);font-weight:600}
+.muni-filter-group select{border:1px solid var(--stone);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px}
+.muni-features{flex:1;min-width:280px}
+.muni-feat-chips{display:flex;gap:6px;flex-wrap:wrap}
+.muni-chip{border:1px solid var(--stone);background:#fff;border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .12s}
+.muni-chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.muni-summary{margin-bottom:1rem}
+.muni-topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.muni-export{display:flex;gap:6px;margin-bottom:1rem}
+.muni-sum-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:rgba(0,0,0,0.7);background:#fff;border:1px solid var(--stone);border-radius:8px;padding:10px 14px}
+.muni-dept{border:1px solid var(--stone);border-radius:8px;margin-bottom:10px;overflow:hidden;background:#fff}
+.muni-dept .acc-head{gap:10px}
+.muni-dept-count{font-size:12px;color:rgba(0,0,0,0.5);background:var(--fog);padding:2px 8px;border-radius:99px}
+.muni-dept-body{padding:1rem 1.2rem;border-top:1px solid var(--fog)}
+.muni-resp{font-size:13.5px;color:rgba(0,0,0,0.7);margin-bottom:0.9rem;line-height:1.5}
+.muni-contacts{display:flex;flex-direction:column;gap:8px;margin-bottom:0.6rem}
+.muni-contact{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#f6f8f8;border-radius:8px;padding:8px 12px}
+.mc-info{font-size:13px}
+.mc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.muni-source-inline{font-size:11px;color:rgba(0,0,0,0.4);margin-bottom:1rem}
+.muni-cat{margin-bottom:1rem}
+.muni-cat-title{font-family:var(--display);font-size:14px;color:var(--teal);border-bottom:1px solid var(--fog);padding-bottom:4px;margin-bottom:8px}
+.muni-req{padding:8px 0;border-bottom:1px solid var(--fog)}
+.muni-req-main{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.muni-req-title{font-size:13.5px;flex:1}
+.muni-cond-tag{background:var(--bronze);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-inline-start:6px}
+.muni-status-sel{border:1px solid var(--stone);border-radius:6px;padding:4px 8px;font-family:inherit;font-size:12px}
+.muni-st-compliant{background:rgba(61,139,94,0.04)}
+.muni-st-non_compliant{background:rgba(184,64,64,0.05)}
+.muni-st-clarification_required{background:rgba(196,122,32,0.05)}
+.muni-req-detail{margin-top:6px;padding:8px;background:#fff7f0;border-radius:6px}
+.muni-req-detail label{display:block;font-size:12px;font-weight:600;color:#b45309;margin-bottom:4px}
+.muni-req-detail textarea{width:100%;min-height:38px;border:1px solid #fca5a5;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;color:#1a56db}
+.muni-req-fields{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.muni-req-fields input{flex:1;min-width:140px;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:12px}
+.muni-req-meta{font-size:11px;color:rgba(0,0,0,0.45);margin-top:4px}
+@media (max-width:768px){.muni-filters{flex-direction:column}.muni-contact{flex-direction:column;align-items:flex-start}}
+@media print{.muni-filters,.mc-actions,.muni-status-sel{display:none}.muni-dept-body{display:block !important}}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -709,6 +751,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">שיתופים</button>
+    <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -1025,6 +1068,24 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <!-- מציג שיתוף בודד (דוח/חזיתות) -->
 <div id="shareView" class="page">
   <div id="shareViewInner"></div>
+</div>
+
+<!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
+<div id="muni" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>דרישות גורמי עירייה</span></div>
+  <div class="page-title">דרישות גורמי עירייה לתוכנית בינוי ועיצוב</div>
+  <div class="page-subtitle">צ׳ק־ליסט מקדים להכנת התוכנית, הנספחים והתיאומים הנדרשים מול גורמי העירייה.</div>
+  <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
+
+  <div class="muni-filters" id="muniFilters"></div>
+  <div class="muni-topbar">
+    <div class="muni-summary" id="muniSummary" style="flex:1"></div>
+    <div class="muni-export no-print">
+      <button class="btn btn-ghost btn-sm" onclick="muniExportExcel()">ייצוא Excel</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
+    </div>
+  </div>
+  <div id="muniDepartments"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1367,6 +1428,7 @@ async function initCloud() {
   }
 }
 initCloud();
+loadMuni();
 
 let filtered = [...plans];
 let currentPage = 1;
@@ -1381,15 +1443,16 @@ function go(id, btn) {
   if (id === 'map' && !window._mapInit) { setTimeout(initMap, 150); window._mapInit = true; }
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
+  if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1403,7 +1466,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','table','guidelines','map','trends','shares'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni'];
   if (routable.includes(raw)) activateNavFor(raw);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -4317,6 +4380,468 @@ function copyShareEmail(){
   const tmp=doc.cloneNode(true); tmp.querySelectorAll('.no-print').forEach(e=>e.remove());
   const text=tmp.innerText.replace(/\n{3,}/g,'\n\n').trim();
   navigator.clipboard.writeText(text).then(()=>toast('הועתק ללוח — הדבק במייל')).catch(()=>toast('העתקה נכשלה'));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   מודול דרישות גורמי עירייה — צ׳ק-ליסט מקדים לאדריכל היזם
+   מקור: אוגדן עיריית אשדוד, 30.06.2025
+   ══════════════════════════════════════════════════════════════ */
+const MUNI_SOURCE = 'אוגדן עיריית אשדוד';
+const MUNI_SOURCE_DATE = '30.06.2025';
+const MUNI_TABLE = 'ashdod_muni';
+
+// סוגי פרויקט
+const MUNI_PROJECT_TYPES = ['מגורים','בנייה רוויה','מסחר','תעסוקה','תעשייה','מבנה ציבור','שימושים מעורבים','התחדשות עירונית','צמודי קרקע','מלונאות','מוסד חינוך'];
+// מאפייני פרויקט (תנאי הפעלה לדרישות מותנות)
+const MUNI_FEATURES = ['חניון תת־קרקעי','מבנה מעל 29 מטר','מסחר או מזון','עצים בוגרים','הריסה','אסבסט','קרקע חשודה בזיהום','פחות מ־15% חלחול','גנרטור','חדר שנאים','יותר מ־75 חניות','עירוב שימושים','שטח ציבורי או זיקת הנאה','פינוי אשפה תפעולי','עבודות בתחום הציבורי'];
+// שלבים
+const MUNI_STAGES = ['הכנת תוכנית בינוי ועיצוב','בקרה מרחבית','תכן','אישור תחילת עבודות','תעודת גמר'];
+
+const MUNI_STATUSES = [
+  {v:'pending',l:'לא התחיל'},{v:'compliant',l:'עומד'},{v:'non_compliant',l:'לא עומד'},
+  {v:'clarification_required',l:'נדרש בירור'},{v:'not_applicable',l:'לא רלוונטי'}
+];
+const MUNI_STATUS_CLS = {pending:'ds-blue',compliant:'ds-green',non_compliant:'ds-red',clarification_required:'ds-orange',not_applicable:'ds-blue'};
+
+// ── מבנה המחלקות והדרישות (מזוקק מהאוגדן) ──
+// c = category: docs|design|operational|conditional ; feat = מאפיין מפעיל (לדרישות מותנות)
+function req(title, c, opts){ return Object.assign({title, category:c||'design', isRequired:true}, opts||{}); }
+const MUNI_DEPARTMENTS = [
+  {
+    id:'licensing', name:'מחלקת רישוי בנייה',
+    responsibility:'בדיקת התאמת הבקשה לתוכניות החלות, להנחיות המרחביות, למדיניות הוועדה, להיתרים קודמים ולחוק התכנון והבנייה.',
+    contacts:[{name:'ג׳ני רוזנבלט', role:'מנהלת אגף ומנהלת מחלקת רישוי', phone:'08-8545322', email:'geni@ashdod.muni.il'}],
+    regionalContacts:true,
+    requirements:[
+      req('הוגדרה מהות הבקשה באופן מלא','docs'),
+      req('הוגדרו כל ההקלות או השימושים החורגים','design'),
+      req('תוכנית הבינוי תואמת לתב״ע החלה','design'),
+      req('הנתונים תואמים לטבלה 5 ולהוראות התוכנית','design'),
+      req('הוצגו כל הקומות, החזיתות והחתכים','design'),
+      req('סומנו גבול מגרש וקווי בניין','design'),
+      req('הוצגו מפלסים, גבהים וחומרי גמר','design'),
+      req('הוצגו מתקנים טכניים, מיזוג, גז, מים, חשמל ואוורור','design'),
+      req('הוצגו רכיבי נגישות','design'),
+      req('הוצג פתרון מיגון','design'),
+      req('התוכנית הוכנה כקובץ דיגיטלי ולא סרוקה','docs'),
+      req('נבדקה התאמה להיתרים קודמים','design'),
+      req('צורפו כל הנספחים הנדרשים','docs')
+    ]
+  },
+  {
+    id:'traffic', name:'מחלקת תכנון כבישים, תנועה וחניה',
+    responsibility:'בדיקת נספחי תנועה, חניה, פיתוח, מפלסים, רמפות, גישה תפעולית והשפעת התכנון על המרחב הציבורי.',
+    contacts:[
+      {name:'לריסה קגנוב', role:'מנהלת מחלקת תכנון כבישים', phone:'08-8545290', email:'larisak@ashdod.muni.il'},
+      {name:'דימיטרי שנדיבין', role:'מנהל מחלקת תנועה וחניה', phone:'08-9238964', email:'dimitrysh@ashdod.muni.il'}
+    ],
+    requirements:[
+      req('הוגש נספח תנועה וחניה','docs'),
+      req('הוגש נספח פיתוח שטח','docs'),
+      req('המדידה כוללת כביש, מדרכה ומגרשים גובלים','design'),
+      req('הוצגו כניסות ויציאות למגרש','design'),
+      req('הכניסה מאפשרת כניסה ויציאה קדמית','design'),
+      req('הוצג תמרון לרכב אשפה, כיבוי או תפעולי','operational'),
+      req('הוצגו מידות חניות, מעברים ורדיוסי סיבוב','design'),
+      req('הוצג מאזן חניה','design'),
+      req('החניות ממוספרות','design'),
+      req('הוצגו חניות נגישות','design'),
+      req('הוצגו חתכי רמפות וגובה גבריט','design'),
+      req('שערים נפתחים לתוך המגרש בלבד','design'),
+      req('הוצגו מפלסי כביש ומדרכה בכניסה','design'),
+      req('הוצגו שיפועים ופתרון ניקוז עילי','design'),
+      req('תוכננה תשתית טעינה לכל החניות הפרטיות','operational'),
+      req('במסחר תוכננו עמדות טעינה ל־20% מהחניות','conditional',{feat:'מסחר או מזון'}),
+      req('אין חניה טורית, למעט חריג מאושר','design'),
+      req('בשימושים מעורבים — גישות נפרדות למגורים, מסחר ותפעול','conditional',{feat:'עירוב שימושים'}),
+      req('נשמר משולש ראות בכניסה למגרש','design'),
+      req('התכנון אינו פוגע בתשתיות, תחנות אוטובוס, תאורה או רכוש ציבורי','operational')
+    ]
+  },
+  {
+    id:'drainage', name:'מחלקת ניקוז ונחלים',
+    responsibility:'בדיקת פתרון הניקוז, חיבור לרשת העירונית, ניקוז גגות, מרפסות, חניונים ובורות חלחול.',
+    contacts:[{name:'מירון יעקובוב', role:'סגן מנהל אגף, ניקוז ונחלים', phone:'08-8545956', email:'miron@ashdod.muni.il'}],
+    requirements:[
+      req('הוגש נספח ניקוז על רקע תוכנית עדכנית','docs'),
+      req('סומנו קטרים, שיפועים ומפלסים','design'),
+      req('הוצגו תאי הבקרה העירוניים לפני החיבור ואחריו','design'),
+      req('הוצג חתך אורך של מערכת הניקוז','design'),
+      req('הוצגו חציות עם מערכות אחרות','design'),
+      req('הוצג פתרון לניקוז גגות ומרפסות','design'),
+      req('הוצגו בורות חלחול וחישובי ספיקה, ככל שנדרשו','conditional',{feat:'פחות מ־15% חלחול'}),
+      req('עודפי בורות החלחול מחוברים לרשת עירונית או בור שאיבה','operational'),
+      req('מערכת הניקוז אינה מחוברת לביוב, למעט מקרים מותרים','design'),
+      req('צורף נספח סניטרי','docs'),
+      req('בבקשות מזון/תעשייה — צורפו דרישות משרד הבריאות','conditional',{feat:'מסחר או מזון'})
+    ]
+  },
+  {
+    id:'planting', name:'אגף נטיעות ופיתוח ופקיד היערות',
+    responsibility:'בדיקת פיתוח סביבתי, צמחייה, השקיה, עצים בוגרים, הצללה, קירות, גדרות והמפגש עם המרחב הציבורי.',
+    contacts:[
+      {name:'יוסי לרר', role:'מנהל אגף נטיעות ופיתוח ופקיד היערות', phone:'08-8545251', email:'yosil@ashdod.muni.il'},
+      {name:'יוסי סבן', role:'מנהל מחלקת פיתוח סביבתי', phone:'08-8545248', email:'yossisa@ashdod.muni.il'}
+    ],
+    requirements:[
+      req('הוגש נספח פיתוח סביבתי','docs'),
+      req('הוגשה תוכנית גינון','docs'),
+      req('הוגשה תוכנית השקיה','docs'),
+      req('הוצגו סוגי הצמחייה, הכמויות ומרווחי השתילה','design'),
+      req('הוצגו עצים מוצעים, קיימים, לשימור, להעתקה או לכריתה','design'),
+      req('הוצג סקר עצים, ככל שנדרש','conditional',{feat:'עצים בוגרים'}),
+      req('הוצג רישיון כריתה או העתקה, ככל שנדרש','conditional',{feat:'עצים בוגרים'}),
+      req('נשמר מרחק עבודה מעצים בוגרים','conditional',{feat:'עצים בוגרים'}),
+      req('הוטמעו הנחיות שימור עצים בתוכנית ההתארגנות','conditional',{feat:'עצים בוגרים'}),
+      req('הוצג ראש מערכת השקיה במיקום נגיש לתפעול','operational'),
+      req('תוכננה צמחייה חסכונית במים','design'),
+      req('נבחרו עצים המתאימים לקרבה לים, לרוחות ולתנאי אשדוד','design'),
+      req('לא תוכננו עצים אלרגניים או דקלים שאינם מאושרים','design'),
+      req('המדשאות תוכננו רק במקומות שימושיים','design'),
+      req('אין ניקוז משטח הפרויקט אל גינון עירוני','operational'),
+      req('אין גישת עבודה או רחבת כיבוי דרך גן ציבורי','operational'),
+      req('תוכננה הצללה נופית','design'),
+      req('הוצגו בתי גידול מספקים לעצים','design')
+    ]
+  },
+  {
+    id:'electricity', name:'אגף החשמל, המאור ואחזקת רמזורים',
+    responsibility:'בדיקת תאורה, תשתיות חשמל עירוניות, חדרי שנאים, גנרטורים, קרינה והשפעת הפרויקט על המרחב הציבורי.',
+    contacts:[
+      {name:'אמיר יוחאי', role:'מנהל אגף החשמל', phone:'08-8545340', email:'amiry@ashdod.muni.il'},
+      {name:'ויקטור אלפרד', role:'סגן מנהל מחלקת מאור ואחזקת רמזורים', phone:'08-9568146', email:'victoral@ashdod.muni.il'}
+    ],
+    requirements:[
+      req('הוגש נספח פיתוח הכולל תאורה קיימת ומוצעת','docs'),
+      req('הוצגו עמודי תאורה בתחום המגרש ובסביבתו','design'),
+      req('התקבל סיכום טכני מחברת החשמל','docs'),
+      req('נקבע האם נדרש חדר שנאים','design'),
+      req('הוצג מיקום חדר השנאים','conditional',{feat:'חדר שנאים'}),
+      req('הוצגה הצהרת יועץ קרינה, ככל שנדרשה','conditional',{feat:'חדר שנאים'}),
+      req('הוצג פתרון תאורה לכניסות, רמפות, מדרגות, חניה ואשפה','design'),
+      req('הוצגה תשתית טעינה לכל החניות הפרטיות','operational'),
+      req('במסחר הוצגו עמדות טעינה בפועל ל־20% מהחניות','conditional',{feat:'מסחר או מזון'}),
+      req('במבנה מעל 29 מטר הוצג גנרטור','conditional',{feat:'מבנה מעל 29 מטר'}),
+      req('הוצג מיקום גנרטור, גישה לתחזוקה ופתרון אקוסטי','conditional',{feat:'גנרטור'}),
+      req('הוצגה תאורת חירום','design'),
+      req('הוצג גוף תאורה מואר עם שם הרחוב ומספר הבית','design'),
+      req('נעשה שימוש בתאורת LED חסכונית','design'),
+      req('התכנון אינו פוגע בתשתיות חשמל ותאורה עירוניות','operational'),
+      req('כל שינוי בתשתית עירונית סומן ותומחר באחריות היזם','operational')
+    ]
+  },
+  {
+    id:'sanitation', name:'מחלקת בקרה ורישוי כלי אצירה – תברואה',
+    responsibility:'בדיקת פתרונות אצירת אשפה, מחזור, חדרי אשפה, דחסנים, טמוני קרקע וגישה לרכב פינוי.',
+    contacts:[
+      {name:'קובי זינו', role:'מנהל מחלקת בקרה טכנולוגית, רישוי ופיקוח כלי אצירה', phone:'08-8634863', email:'kobi@ashdod.muni.il'},
+      {name:'עופר עמר', role:'מנהל מחלקת אשפה ומחזור', phone:'08-8634887', email:'oferamar@ashdod.muni.il'}
+    ],
+    requirements:[
+      req('הוגש נספח תברואה בקנה מידה מתאים','docs'),
+      req('הוצג חישוב נפח אשפה לפי סוג המבנה והשימושים','design'),
+      req('הוצג חישוב זרמי מחזור','design'),
+      req('הוצגו סוג, כמות ומיקום כלי האצירה','design'),
+      req('הוצג חדר אשפה או חדר דחסנית','design'),
+      req('הוצגו מים, ניקוז, חשמל, אוורור ותאורה בחדר','design'),
+      req('הוצג מסלול הוצאת כלי האצירה ללא הזזת כלים אחרים','operational'),
+      req('הוצג מסלול ותמרון משאית פינוי','operational'),
+      req('הוצג מיקום משאית מנוף','operational'),
+      req('מרחק ההנפה מטמון הקרקע אינו עולה על 5 מטרים','operational'),
+      req('טמון קרקע מרוחק לפחות 10 מטרים מפתחי בניין','operational'),
+      req('אין הנפה מעל רכב או חניה','operational'),
+      req('כלי האצירה נמצאים בתחום המגרש','design'),
+      req('כלי האצירה מרוכזים ככל האפשר','design'),
+      req('קיימת הפרדה בין אשפה של מגורים, מסחר ותעשייה','conditional',{feat:'עירוב שימושים'}),
+      req('הוצגו פתרונות לנייר, קרטון, אריזות וזכוכית לפי הצורך','design'),
+      req('בבנייה רוויה הוצג משטח לגזם וגרוטאות','conditional',{feat:'פינוי אשפה תפעולי'}),
+      req('חדר הדחסנים ממוקם בקומת הקרקע ככל האפשר','design'),
+      req('נשמר גובה תפעולי מתאים לדחסנית','operational'),
+      req('הוצגו תשתיות עיליות ותת־קרקעיות העלולות להגביל פינוי','operational'),
+      req('תוכנן פתרון נגיש, תפעולי ונקי שאינו פוגע בחזית','design')
+    ]
+  },
+  {
+    id:'water', name:'תאגיד המים "יובלים"',
+    responsibility:'בדיקת מערכות מים וביוב, חיבור לרשת העירונית, מדי מים, מאגרים, משאבות ומערכת סניטרית.',
+    contacts:[{name:'מקסים פטליס', role:'מהנדס מחלקת תכנון', phone:'08-8628914', email:'maxim@yuvallim.co.il'}],
+    requirements:[
+      req('הוגש נספח סניטרי','docs'),
+      req('הוצגו חיבורי מים וביוב קיימים ומוצעים','design'),
+      req('הוצגו מפלסי תאי ביוב','design'),
+      req('הוצגו קווי מים וביוב','design'),
+      req('הוצגו קטרים, שיפועים ואורכי קווים','design'),
+      req('הוצג פרט חיבור לרשת המים העירונית','design'),
+      req('הוצגו מדי מים ראשיים ומשניים','design'),
+      req('הוצגה מערכת כיבוי אש','design'),
+      req('הוצגו מאגר מים וחדר משאבות, ככל שנדרשו','conditional',{feat:'מבנה מעל 29 מטר'}),
+      req('הוצג חישוב הידראולי','design'),
+      req('הוצגה מערכת סולרית על הגג','design'),
+      req('הוצגו קולטנים ומערכת סניקה','design'),
+      req('צורף אפיון רשת עדכני','docs'),
+      req('צורף אישור משרד הבריאות בפרויקט מזון/תעשייה','conditional',{feat:'מסחר או מזון'}),
+      req('צורף אישור כיבוי אש או נספח בטיחות','docs')
+    ]
+  },
+  {
+    id:'environment', name:'איגוד ערים לאיכות הסביבה אשדוד–חבל יבנה',
+    responsibility:'בדיקת קרקע, רעש, אסבסט, נגר, קרינה, איכות אוויר, הריסה, חניונים, מיקרו־אקלים ובנייה ירוקה.',
+    contacts:[{name:'ד״ר איתי מירז', role:'רכז תכנון סביבתי', phone:'08-8519500', email:'eitay@env.org.il'}],
+    requirements:[
+      req('נבדק האם הקרקע חשודה בזיהום','design'),
+      req('הוגש סקר היסטורי, ככל שנדרש','conditional',{feat:'קרקע חשודה בזיהום'}),
+      req('הוגש מאזן חפירה ומילוי','conditional',{feat:'הריסה'}),
+      req('נבדקה נוכחות אסבסט','conditional',{feat:'אסבסט'}),
+      req('סומנו רכיבי אסבסט בתוכנית','conditional',{feat:'אסבסט'}),
+      req('הוגש דו״ח אקוסטי, ככל שנדרש','conditional',{feat:'גנרטור'}),
+      req('הוצגו מקורות רעש ומיגון אקוסטי','design'),
+      req('הוצג חדר גנרטור וחתך ארובה','conditional',{feat:'גנרטור'}),
+      req('הוצג פתרון לנגר עילי','design'),
+      req('נשמרו לפחות 15% שטחים מחלחלים','conditional',{feat:'פחות מ־15% חלחול'}),
+      req('הוגש נספח הידרולוגי, ככל שנדרש','conditional',{feat:'פחות מ־15% חלחול'}),
+      req('הוגש סקר קרינה, ככל שנדרש','conditional',{feat:'חדר שנאים'}),
+      req('נבדק צורך בדו״ח מיקרו־אקלים','conditional',{feat:'מבנה מעל 29 מטר'}),
+      req('הוצגו הצללה והשפעת רוחות','design'),
+      req('הוצגו פתחי אוורור לחניון','conditional',{feat:'חניון תת־קרקעי'}),
+      req('נשמר מרחק בין פליטת אוויר מחניון לפתחי המבנה','conditional',{feat:'חניון תת־קרקעי'}),
+      req('הוטמעו דרישות למניעת חדירת ראדון','design'),
+      req('הוצגה עמידה בדרישות בנייה ירוקה','design'),
+      req('הוצג פתרון חזית חמישית','design'),
+      req('בגג רלוונטי שולבו גג ירוק/כחול/סולארי/פעיל בשטח הנדרש','design')
+    ]
+  },
+  {
+    id:'supervision', name:'מחלקת פיקוח על הבנייה',
+    responsibility:'פיקוח על התאמת הביצוע להיתר, אישור תחילת עבודות, התארגנות אתר ותעודת גמר.',
+    contacts:[{name:'כרמית סיני', role:'מנהלת מחלקת פיקוח', phone:'08-8545320', email:'karmitsi@ashdod.muni.il'}],
+    requirements:[
+      req('הוגשה תוכנית גידור והתארגנות אתר','docs'),
+      req('הוצגו כניסות ויציאות לאתר','design'),
+      req('הוצגו אזורי אחסון','design'),
+      req('הוצגו אמצעי בטיחות','operational'),
+      req('הוצגו פתרונות להגנת הציבור','operational'),
+      req('הוצגו הגנות לעצים ולתשתיות','conditional',{feat:'עצים בוגרים'}),
+      req('עבודות האתר נשארות בתוך התחום המגודר','operational'),
+      req('הוצג פתרון לפינוי פסולת בניין','operational'),
+      req('הוצגו אמצעים לצמצום רעש ואבק','operational'),
+      req('לא תבוצע עבודה לפני אישור תחילת עבודות','operational')
+    ]
+  }
+];
+
+// ── מנוע סינון + נתונים ──
+let muniData = { departments: null, checks: {} }; // departments = override/עריכת מנהל ; checks = סימוני משתמש
+let muniFilters = { type:'', features:[], stage:'' };
+
+function muniDepartments(){ return muniData.departments || MUNI_DEPARTMENTS; }
+// דרישה נכללת אם: לא מותנית, או שמאפיין ההפעלה שלה נבחר במסננים
+function muniReqActive(r){
+  if (r.category!=='conditional' && !r.feat) return true;
+  if (r.feat) return muniFilters.features.includes(r.feat);
+  return true;
+}
+function muniVisibleReqs(dept){ return dept.requirements.filter(muniReqActive); }
+
+function muniCheckKey(deptId, idx){ return deptId+'::'+idx; }
+function muniGetCheck(deptId, idx){ return muniData.checks[muniCheckKey(deptId,idx)] || {status:'pending',applicantComment:'',municipalityComment:'',evidenceUrl:'',drawingReference:'',updatedBy:'',updatedAt:''}; }
+function setMuniCheck(deptId, idx, field, val){
+  const k = muniCheckKey(deptId,idx);
+  if(!muniData.checks[k]) muniData.checks[k] = {status:'pending',applicantComment:'',municipalityComment:'',evidenceUrl:'',drawingReference:'',updatedBy:'',updatedAt:''};
+  muniData.checks[k][field]=val;
+  muniData.checks[k].updatedAt=todayStr();
+  muniData.checks[k].updatedBy = projectRole==='city' ? 'אדריכלית העיר' : 'אדריכל היזם';
+  saveMuni(); renderMuniDepartments();
+}
+
+// סטטוס מחלקה: hasOpenRequired מונע 'הושלם'
+function muniDeptStatus(dept){
+  const reqs = muniVisibleReqs(dept);
+  let compliant=0, open=0, na=0, needClar=0, nonComp=0;
+  reqs.forEach((r,i)=>{
+    const idx = dept.requirements.indexOf(r);
+    const c = muniGetCheck(dept.id, idx);
+    if(c.status==='compliant')compliant++;
+    else if(c.status==='not_applicable')na++;
+    else if(c.status==='non_compliant'){nonComp++; if(r.isRequired)open++;}
+    else if(c.status==='clarification_required'){needClar++; if(r.isRequired)open++;}
+    else open++;
+  });
+  const total = reqs.length;
+  const settled = compliant+na;
+  let label='not_started', cls='ds-blue';
+  if (settled===0 && nonComp===0 && needClar===0) { label='לא התחיל'; cls='ds-blue'; }
+  else if (open>0 || nonComp>0 || needClar>0) { label = (nonComp||needClar)?'חסרים פרטים':'בבדיקה'; cls = (nonComp||needClar)?'ds-orange':'ds-blue'; }
+  if (total>0 && settled===total) { label='הושלם'; cls='ds-green'; }
+  if (total>0 && na===total) { label='לא רלוונטי'; cls='ds-blue'; }
+  return { total, compliant, settled, open, nonComp, needClar, na, label, cls, done: (total>0 && settled===total) };
+}
+
+function muniOverallSummary(){
+  let total=0, settled=0, openReq=0, missingDocs=0;
+  muniDepartments().forEach(d=>{
+    const s = muniDeptStatus(d);
+    total+=s.total; settled+=s.settled; openReq+=s.open;
+    muniVisibleReqs(d).forEach(r=>{ if(r.category==='docs'){ const idx=d.requirements.indexOf(r); const c=muniGetCheck(d.id,idx); if(c.status!=='compliant'&&c.status!=='not_applicable') missingDocs++; } });
+  });
+  return { total, settled, openReq, missingDocs, pct: total? Math.round(settled/total*100):0 };
+}
+
+/* ── שמירה/טעינה גלובלית (Supabase) ── */
+async function saveMuni(){
+  try { localStorage.setItem('ashdod_muni_v1', JSON.stringify(muniData)); } catch(e){}
+  try {
+    await fetch(SB_URL + '/rest/v1/' + MUNI_TABLE + '?on_conflict=id', {
+      method:'POST', headers:{ ...SB_HEADERS, 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([{ id:'global', data:muniData, updated_at:new Date().toISOString() }])
+    });
+  } catch(e){ console.warn('muni save failed', e); }
+}
+async function loadMuni(){
+  try { const l=JSON.parse(localStorage.getItem('ashdod_muni_v1')||'null'); if(l) muniData=l; } catch(e){}
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/' + MUNI_TABLE + '?select=data&id=eq.global', { headers: SB_HEADERS });
+    if(res.ok){ const rows=await res.json(); if(rows[0]&&rows[0].data) muniData=rows[0].data; }
+  } catch(e){ console.warn('muni load failed', e); }
+  if(!muniData.checks) muniData.checks={};
+  renderMuni();
+}
+
+/* ── רינדור ── */
+function renderMuni(){ renderMuniFilters(); renderMuniSummary(); renderMuniDepartments(); }
+function renderMuniFilters(){
+  const el=document.getElementById('muniFilters'); if(!el) return;
+  el.innerHTML = `
+    <div class="muni-filter-group">
+      <label>סוג הפרויקט</label>
+      <select onchange="muniFilters.type=this.value;renderMuni()"><option value="">כל הסוגים</option>${MUNI_PROJECT_TYPES.map(t=>`<option${muniFilters.type===t?' selected':''}>${t}</option>`).join('')}</select>
+    </div>
+    <div class="muni-filter-group">
+      <label>שלב</label>
+      <select onchange="muniFilters.stage=this.value;renderMuni()"><option value="">כל השלבים</option>${MUNI_STAGES.map(s=>`<option${muniFilters.stage===s?' selected':''}>${s}</option>`).join('')}</select>
+    </div>
+    <div class="muni-filter-group muni-features">
+      <label>מאפייני הפרויקט (מפעילים דרישות מותנות)</label>
+      <div class="muni-feat-chips">${MUNI_FEATURES.map(f=>`<button class="muni-chip${muniFilters.features.includes(f)?' on':''}" onclick="toggleMuniFeature('${f.replace(/'/g,"\\'")}')">${f}</button>`).join('')}</div>
+    </div>`;
+}
+function toggleMuniFeature(f){
+  const i=muniFilters.features.indexOf(f);
+  if(i>=0) muniFilters.features.splice(i,1); else muniFilters.features.push(f);
+  renderMuni();
+}
+function renderMuniSummary(){
+  const el=document.getElementById('muniSummary'); if(!el) return;
+  const s=muniOverallSummary();
+  el.innerHTML = `<div class="muni-sum-bar">
+    <span>מוכנות כוללת: <b>${s.pct}%</b></span><span class="wf-sep">·</span>
+    <span class="wf-warn">${s.openReq} דרישות פתוחות</span><span class="wf-sep">·</span>
+    <span class="wf-miss">${s.missingDocs} מסמכים חסרים</span>
+    <div class="wf-bar"><div class="wf-bar-fill" style="width:${s.pct}%"></div></div>
+  </div>`;
+}
+let _muniOpen = {};
+function toggleMuniDept(id){ _muniOpen[id]=!_muniOpen[id]; renderMuniDepartments(); }
+
+function muniContactHTML(dept){
+  return dept.contacts.map((c,ci)=>`<div class="muni-contact">
+    <div class="mc-info">
+      <b class="${muniIsAdmin()?'ai-seeded':''}">${esc(c.name)}</b> — ${esc(c.role)}<br>
+      <span dir="ltr">${esc(c.phone)}</span> · <span dir="ltr">${esc(c.email)}</span>
+    </div>
+    <div class="mc-actions no-print">
+      <button class="btn btn-ghost btn-sm" onclick="copyMuniEmail('${c.email}')">📋 העתק מייל</button>
+      <a class="btn btn-ghost btn-sm" href="mailto:${c.email}">✉ שלח מייל</a>
+      ${muniIsAdmin()?`<button class="btn btn-ghost btn-sm" onclick="editMuniContact('${dept.id}',${ci})">✎ עריכה</button>`:''}
+    </div>
+  </div>`).join('');
+}
+function muniIsAdmin(){ return projectRole==='city' || globalEdit; }
+function copyMuniEmail(email){ navigator.clipboard.writeText(email).then(()=>toast('המייל הועתק')).catch(()=>toast(email)); }
+function editMuniContact(deptId, ci){
+  const dept = muniDepartments().find(d=>d.id===deptId); if(!dept) return;
+  const c = dept.contacts[ci];
+  const name = prompt('שם איש הקשר:', c.name); if(name===null) return;
+  const role = prompt('תפקיד:', c.role); if(role===null) return;
+  const phone = prompt('טלפון:', c.phone); if(phone===null) return;
+  const email = prompt('דוא״ל:', c.email); if(email===null) return;
+  // ודא שיש override מלא לפני עריכה
+  if(!muniData.departments) muniData.departments = JSON.parse(JSON.stringify(MUNI_DEPARTMENTS));
+  const d2 = muniData.departments.find(d=>d.id===deptId);
+  d2.contacts[ci] = {name,role,phone,email};
+  saveMuni(); renderMuniDepartments(); toast('פרטי הקשר עודכנו');
+}
+
+function renderMuniDepartments(){
+  const el=document.getElementById('muniDepartments'); if(!el) return;
+  // הצג קודם מחלקות עם דרישות פתוחות
+  const depts = muniDepartments().slice().sort((a,b)=>{
+    const oa=muniDeptStatus(a).open, ob=muniDeptStatus(b).open;
+    return ob-oa;
+  });
+  el.innerHTML = depts.map(dept=>{
+    const reqs = muniVisibleReqs(dept);
+    const s = muniDeptStatus(dept);
+    const open = _muniOpen[dept.id];
+    const catLabel = {docs:'מסמכים ונספחים', design:'דרישות לתוכנית הבינוי והעיצוב', operational:'דרישות תפעוליות', conditional:'דרישות מותנות'};
+    // קבץ לפי קטגוריה
+    const byCat = {};
+    reqs.forEach(r=>{ (byCat[r.category]=byCat[r.category]||[]).push(r); });
+    const catOrder = ['docs','design','operational','conditional'];
+    const body = catOrder.filter(c=>byCat[c]).map(c=>`
+      <div class="muni-cat"><div class="muni-cat-title">${catLabel[c]}</div>
+      ${byCat[c].map(r=>{ const idx=dept.requirements.indexOf(r); return muniReqRow(dept,r,idx); }).join('')}</div>`).join('');
+    return `<div class="muni-dept${open?' open':''}">
+      <div class="acc-head" onclick="toggleMuniDept('${dept.id}')">
+        <span style="flex:1">${esc(dept.name)}</span>
+        <span class="muni-dept-count">${s.settled}/${s.total}</span>
+        <span class="date-status ${s.cls}">${s.label}</span>
+        <span class="flow-chevron">▾</span>
+      </div>
+      ${open?`<div class="muni-dept-body">
+        <div class="muni-resp">${esc(dept.responsibility)}</div>
+        <div class="muni-contacts">${muniContactHTML(dept)}</div>
+        <div class="muni-source-inline">מקור: ${MUNI_SOURCE}, ${MUNI_SOURCE_DATE}</div>
+        ${body}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function muniReqRow(dept, r, idx){
+  const c = muniGetCheck(dept.id, idx);
+  const needComment = (c.status==='non_compliant'||c.status==='clarification_required');
+  const needNa = (c.status==='not_applicable');
+  return `<div class="muni-req muni-st-${c.status}">
+    <div class="muni-req-main">
+      <div class="muni-req-title">${esc(r.title)}${r.category==='conditional'?'<span class="muni-cond-tag">מותנה</span>':''}</div>
+      <select class="muni-status-sel" onchange="setMuniCheck('${dept.id}',${idx},'status',this.value)">
+        ${MUNI_STATUSES.map(st=>`<option value="${st.v}"${c.status===st.v?' selected':''}>${st.l}</option>`).join('')}
+      </select>
+    </div>
+    ${(needComment||needNa)?`<div class="muni-req-detail">
+      <label>${c.status==='non_compliant'?'⛔ לא עומד — הסבר חובה:':(c.status==='clarification_required'?'נדרש בירור — פרטי:':'לא רלוונטי — נימוק קצר:')}</label>
+      <textarea onchange="setMuniCheck('${dept.id}',${idx},'applicantComment',this.value)" placeholder="הערה...">${esc(c.applicantComment)}</textarea>
+      <div class="muni-req-fields">
+        <input value="${esc(c.drawingReference)}" placeholder="מיקום בתוכנית/מסמך" onchange="setMuniCheck('${dept.id}',${idx},'drawingReference',this.value)">
+        <input value="${esc(c.evidenceUrl)}" placeholder="קישור/צירוף (URL)" onchange="setMuniCheck('${dept.id}',${idx},'evidenceUrl',this.value)">
+      </div>
+      ${c.updatedBy?`<div class="muni-req-meta">עודכן ע״י ${esc(c.updatedBy)} · ${fmtDate(c.updatedAt)}</div>`:''}
+    </div>`:''}
+  </div>`;
+}
+
+/* ── ייצוא ── */
+function muniExportExcel(){
+  let csv='מחלקה,נושא,קטגוריה,סטטוס,הערה,מיקום\n';
+  muniDepartments().forEach(d=>{
+    muniVisibleReqs(d).forEach(r=>{ const idx=d.requirements.indexOf(r); const c=muniGetCheck(d.id,idx);
+      const st=(MUNI_STATUSES.find(s=>s.v===c.status)||{}).l||'';
+      csv+=[d.name,r.title,r.category,st,(c.applicantComment||'').replace(/,/g,';'),(c.drawingReference||'')].map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')+'\n';
+    });
+  });
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='דרישות-גורמי-עירייה.csv'; a.click();
+  toast('יוצא ל-Excel');
 }
 
 // ── INIT ──
