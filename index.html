@@ -707,6 +707,30 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dv-stage{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab}
 .dv-stage:active{cursor:grabbing}
 .dv-stage img{max-width:90%;max-height:90%;transform-origin:center;transition:transform .05s;user-select:none}
+/* ══════════ נתוני פרויקט + מחשבונים ══════════ */
+.pd-intro{background:#f0f7f7;border:1px solid #cfe3e3;border-radius:8px;padding:10px 14px;font-size:13px;color:#2a5f5f;margin-bottom:1.2rem;line-height:1.5}
+.pd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.calc-manage-bar{margin-bottom:1rem}
+.calc-card{margin-bottom:1.4rem}
+.calc-head h4{font-family:var(--display);font-size:17px;color:var(--teal)}
+.calc-desc{font-size:13px;color:rgba(0,0,0,0.6);margin:4px 0 0.8rem}
+.calc-sec{border:1px solid var(--fog);border-radius:8px;margin-bottom:0.8rem;overflow:hidden}
+.calc-sec>summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:13px;background:#fafafa;user-select:none}
+.calc-sec>summary:hover{background:var(--fog)}
+.calc-inputs,.calc-sec .tbl-wrap{padding:10px 12px}
+.calc-input-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--fog);font-size:13px}
+.calc-input-row.calc-miss b{color:var(--err);font-weight:500}
+.calc-missing-src{background:#fff7e6;border:1px solid #ffd591;border-radius:8px;padding:12px 14px;font-size:13px;color:#8a5a00;line-height:1.6}
+.calc-missing-src>div{margin:6px 0}
+.calc-todo{color:var(--err);font-size:12px;font-style:italic}
+.calc-table th{background:var(--teal)}
+.calc-formula{font-size:12px;color:rgba(0,0,0,0.7)}
+.calc-st-missing td{background:rgba(59,139,212,0.05)}
+.calc-st-fail td{background:rgba(184,64,64,0.05)}
+.calc-st-ok td{background:rgba(61,139,94,0.04)}
+.calc-note{font-size:12px;color:rgba(0,0,0,0.5);margin-top:0.7rem;line-height:1.5}
+.cr-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cr-form input,.cr-form select{border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -1049,6 +1073,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 
   <div class="pp-tabs" id="ppTabs">
     <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
+    <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
+    <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים</button>
     <button class="pp-tab" onclick="ppTab('guidelines',this)">הנחיות</button>
     <button class="pp-tab" onclick="ppTab('review',this)">בדיקה</button>
     <button class="pp-tab" onclick="ppTab('muni',this)">דרישות עירייה</button>
@@ -1061,6 +1087,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   </div>
 
   <div class="pp-panel active" id="panel-info"></div>
+  <div class="pp-panel" id="panel-data"></div>
+  <div class="pp-panel" id="panel-calc"></div>
   <div class="pp-panel" id="panel-guidelines"></div>
   <div class="pp-panel" id="panel-review"></div>
   <div class="pp-panel" id="panel-muni"></div>
@@ -1225,7 +1253,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -1458,6 +1486,7 @@ async function initCloud() {
 }
 initCloud();
 loadMuni();
+loadCalcRules();
 
 let filtered = [...plans];
 let currentPage = 1;
@@ -2731,7 +2760,7 @@ function openProject(id) {
   document.querySelectorAll('#ppTabs .pp-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
   document.getElementById('panel-info').classList.add('active');
-  renderInfoTab(p); renderGuidelinesTab(p); renderReviewTab(p); renderProcessTab(p);
+  renderInfoTab(p); renderDataTab(p); renderCalcTab(p); renderGuidelinesTab(p); renderReviewTab(p); renderProcessTab(p);
   renderGraphicsTab(p); renderDocsTab(p); renderCommTab(p); renderTimelineTab(p); renderOpinionTab(p);
   go('projectPage', null);
   lockInputs(!globalEdit); // כבד את מצב התצוגה/עריכה על השדות שנוצרו כעת
@@ -5022,6 +5051,233 @@ function renderDocWorkspace(p){
       <div class="doc-frame" ondragover="docDragOver(event)" ondragleave="docDragLeave(event)" ondrop="docDrop(event,'developer','developer')">${grid(p.docsLib.developer,'developer')}</div>
     </div>`;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   מערכת מחשבונים ובדיקות — תשתית: נתוני פרויקט + כללים + מעטפת אחידה
+   עיקרון: לא ממציאים נוסחאות/ערכים. חסר מקור → מקום להשלמה.
+   ══════════════════════════════════════════════════════════════ */
+
+// ── טופס נתוני פרויקט משותף — מקור אחד לכל המחשבונים ──
+const PROJECT_DATA_FIELDS = [
+  { group:'זיהוי', fields:[
+    ['planNumber','מספר תוכנית','text'], ['plotNumber','מספר מגרש','text'], ['address','כתובת','text'],
+    ['landUse','ייעודי הקרקע','text']
+  ]},
+  { group:'שטחים', fields:[
+    ['lotArea','שטח המגרש (מ״ר)','number'], ['mainArea','שטחים עיקריים (מ״ר)','number'],
+    ['serviceArea','שטחי שירות (מ״ר)','number'], ['areaByUse','שטחים לפי שימוש','text'],
+    ['commercialArea','שטחי מסחר (מ״ר)','number'], ['employmentArea','שטחי תעסוקה (מ״ר)','number'],
+    ['publicArea','שטחי ציבור (מ״ר)','number'], ['basementArea','שטחי מרתפים (מ״ר)','number'],
+    ['roofArea','שטחי גגות (מ״ר)','number']
+  ]},
+  { group:'יחידות ובינוי', fields:[
+    ['units','מספר יחידות דיור','number'], ['unitMix','התפלגות יחידות לפי גודל','text'],
+    ['floors','מספר קומות','number'], ['height','גובה מבנים (מ׳)','number'],
+    ['buildings','מספר מבנים','number'], ['levels','מפלסים','text'], ['specialUses','שימושים מיוחדים','text']
+  ]},
+  { group:'תפוסה', fields:[
+    ['occupancy','מספר משתמשים צפוי','number'], ['workers','מספר עובדים','number'],
+    ['visitors','מספר מבקרים','number'], ['seats','מספר מקומות ישיבה','number']
+  ]},
+  { group:'שטחים פתוחים וסביבה', fields:[
+    ['openArea','שטחים פתוחים (מ״ר)','number'], ['permeableArea','שטחים מחלחלים (מ״ר)','number'],
+    ['gardenArea','שטחי גינון (מ״ר)','number'], ['plantingArea','שטחי נטיעות (מ״ר)','number']
+  ]}
+];
+function ensureProjectData2(p){ if(!p.projectData) p.projectData={}; return p.projectData; }
+function pdGet(p, key){ ensureProjectData2(p); const v=p.projectData[key]; return (v===undefined||v===null)?'':v; }
+function pdSet(key, val){ const p=pj(); if(!p)return; ensureProjectData2(p); p.projectData[key]=val; savePlans(); toast('נשמר'); }
+function pdNum(p, key){ const v=pdGet(p,key); const n=parseFloat(String(v).replace(/[^\d.\-]/g,'')); return isNaN(n)?null:n; }
+
+function renderDataTab(p){
+  ensureProjectData2(p);
+  const groups = PROJECT_DATA_FIELDS.map(g=>`
+    <div class="pp-card">
+      <h4>${g.group}</h4>
+      <div class="pd-grid">${g.fields.map(([k,label,type])=>`
+        <div class="pp-field"><label>${label}</label>
+          <input type="${type==='number'?'number':'text'}" value="${esc(pdGet(p,k))}" onchange="pdSet('${k}',this.value)">
+        </div>`).join('')}</div>
+    </div>`).join('');
+  document.getElementById('panel-data').innerHTML = `
+    <div class="pd-intro">טופס נתוני הפרויקט — מזינים פעם אחת, וכל המחשבונים והבדיקות שואבים מכאן ללא הקלדה חוזרת.</div>
+    ${groups}`;
+}
+
+/* ── מנגנון כללים ומקורות (קונפיג נטען — ניתן לעריכה, לא בקוד) ── */
+// היררכיית מקורות (מהחלש למחמיר בהצגה; אין בחירה אוטומטית בסתירה)
+const CALC_SOURCE_HIERARCHY = [
+  'הוראות התוכנית החלה','טבלה 5','תוכניות והוראות משלימות','תקנות ארציות',
+  'תקן חניה ארצי','תקן חניה מקומי','הנחיות מרחביות','אוגדן עירוני','מדיניות עירונית',
+  'דרישות המחלקה המקצועית','החלטה/הנחיה פרטנית לפרויקט'
+];
+// כללי חישוב — ריקים כברירת מחדל (נוסחה/יחס להשלמה ממקור מאושר). ניתן לעריכה במסך ניהול.
+// כלל: { id, calc, use, source, formula, unit, rounding, effectiveFrom, effectiveTo, ratioValue(null=חסר), note }
+let calcRules = { rules: [] };
+function calcRulesFor(calcId){ return (calcRules.rules||[]).filter(r=>r.calc===calcId); }
+function ruleHasSource(r){ return r && r.ratioValue!==null && r.ratioValue!==undefined && r.formula; }
+
+async function loadCalcRules(){
+  try { const l=JSON.parse(localStorage.getItem('ashdod_calc_rules_v1')||'null'); if(l&&l.rules) calcRules=l; } catch(e){}
+  try {
+    const res=await fetch(SB_URL+'/rest/v1/ashdod_muni?select=data&id=eq.calc_rules',{headers:SB_HEADERS});
+    if(res.ok){ const rows=await res.json(); if(rows[0]&&rows[0].data&&rows[0].data.rules) calcRules=rows[0].data; }
+  } catch(e){}
+}
+async function saveCalcRules(){
+  try { localStorage.setItem('ashdod_calc_rules_v1', JSON.stringify(calcRules)); } catch(e){}
+  try { await fetch(SB_URL+'/rest/v1/ashdod_muni?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'calc_rules',data:calcRules,updated_at:new Date().toISOString()}])}); } catch(e){}
+}
+
+/* ── מבנה אחיד למחשבון ── */
+const CALC_STATUS = {
+  ok:{cls:'ds-green',l:'תקין'}, attention:{cls:'ds-orange',l:'נדרשת תשומת לב'},
+  fail:{cls:'ds-red',l:'לא תקין'}, missing:{cls:'ds-blue',l:'חסר מידע'}, approval:{cls:'ds-orange',l:'נדרש אישור'}
+};
+// רשומת מחשבון: מיישמת את המבנה האחיד. calcFn מקבל p ומחזיר { rows, note } או { missing:['שם נתון'] }
+const CALCULATORS = [
+  { id:'rights',  name:'זכויות, שטחים ורישוי', desc:'השוואה בין המותר, הנדרש והמוצע לפי מקורות הדרישה.' },
+  { id:'parking', name:'חניה ותנועה',          desc:'חישוב מקומות החניה הנדרשים לכל שימוש בפרויקט.' },
+  { id:'trash',   name:'אשפה ותברואה',         desc:'חישוב מערך האצירה הנדרש לפי היקף וסוגי השימושים.' },
+  { id:'runoff',  name:'נגר וניקוז',           desc:'עמידת הפרויקט בדרישות ניהול מי נגר (כלי עזר).' },
+  { id:'planting',name:'נטיעות, הצללה ותכסיות',desc:'היקף הנטיעות, השטחים הפתוחים והתכסית.' },
+  { id:'fees',    name:'אגרות והיטלים',        desc:'אומדן בלבד עד לקבלת חישוב רשמי.' }
+];
+
+/** מעטפת אחידה: הסבר · קלט · מקור · חישוב · תוצאה · בדיקה עצמית · פעולה */
+function renderCalcShell(p, def){
+  const rules = calcRulesFor(def.id);
+  // נתוני קלט רלוונטיים (נגזר מהטופס)
+  const inputsHtml = renderCalcInputs(p, def.id);
+  const hasRules = rules.some(ruleHasSource);
+  let body;
+  if (!rules.length || !hasRules){
+    body = `<div class="calc-missing-src">
+      <b>אין מקור/נוסחה מאושרים למחשבון זה עדיין.</b>
+      <div>לפי מדיניות המערכת, לא מוזנות נוסחאות מקצועיות ללא מקור מאושר. יש להזין את כללי החישוב במסך ניהול הכללים (מקור, נוסחה, יחס, יחידה, עיגול ותוקף).</div>
+      <button class="btn btn-ghost btn-sm no-print" onclick="openCalcRulesEditor('${def.id}')">הזנת כללים למחשבון</button>
+    </div>`;
+  } else {
+    body = renderCalcResults(p, def, rules);
+  }
+  return `<div class="pp-card calc-card">
+    <div class="calc-head"><h4>${def.name}</h4></div>
+    <div class="calc-desc">${def.desc}</div>
+    <details class="calc-sec" open><summary>נתוני קלט</summary>${inputsHtml}</details>
+    <details class="calc-sec"><summary>מקור הדרישה</summary>${renderCalcSources(rules)}</details>
+    <div class="calc-result">${body}</div>
+  </div>`;
+}
+
+function renderCalcInputs(p, calcId){
+  // אילו שדות רלוונטיים לכל מחשבון (מהטופס המשותף)
+  const map = {
+    rights:['lotArea','mainArea','serviceArea','units','floors','height','commercialArea','publicArea'],
+    parking:['units','commercialArea','employmentArea','workers','seats','occupancy'],
+    trash:['units','commercialArea','occupancy','workers'],
+    runoff:['lotArea','roofArea','permeableArea','gardenArea'],
+    planting:['lotArea','openArea','permeableArea','gardenArea','plantingArea'],
+    fees:['mainArea','serviceArea','basementArea','commercialArea']
+  };
+  const keys = map[calcId]||[];
+  const labelFor = k => { for(const g of PROJECT_DATA_FIELDS){ const f=g.fields.find(x=>x[0]===k); if(f)return f[1]; } return k; };
+  return `<div class="calc-inputs">${keys.map(k=>{
+    const v=pdGet(p,k); const has=String(v).trim()!=='';
+    return `<div class="calc-input-row ${has?'':'calc-miss'}"><span>${labelFor(k)}</span><b>${has?esc(v):'חסר — יש להשלים בטאב נתוני פרויקט'}</b></div>`;
+  }).join('')}</div>`;
+}
+function renderCalcSources(rules){
+  if(!rules.length) return '<div class="muted">לא הוגדרו מקורות עדיין.</div>';
+  return `<div class="tbl-wrap"><table><thead><tr><th>שימוש</th><th>מקור</th><th>נוסחה</th><th>יחס</th><th>תוקף</th></tr></thead><tbody>${
+    rules.map(r=>`<tr><td>${esc(r.use||'')}</td><td>${esc(r.source||'—')}</td><td>${esc(r.formula||'—')}</td><td>${r.ratioValue==null?'<span class="calc-todo">להשלמה</span>':esc(r.ratioValue)}</td><td>${esc(r.effectiveFrom||'')}${r.effectiveTo?(' – '+esc(r.effectiveTo)):''}</td></tr>`).join('')
+  }</tbody></table></div>`;
+}
+function renderCalcResults(p, def, rules){
+  // בשלב התשתית: מציג את מנוע החישוב הגנרי לפי כללים שהוזנו; אם חסר קלט → הודעת חוסר
+  const rows = rules.map(r=>{
+    // נגזר בסיס החיוב מהטופס לפי r.inputKey (אם הוגדר)
+    const base = r.inputKey ? pdNum(p, r.inputKey) : null;
+    if (r.inputKey && base===null){
+      return `<tr class="calc-st-missing"><td>${esc(r.use||'')}</td><td colspan="5">לא ניתן להשלים את החישוב — חסר הנתון: ${esc(r.inputLabel||r.inputKey)}</td></tr>`;
+    }
+    if (!ruleHasSource(r)){
+      return `<tr class="calc-st-missing"><td>${esc(r.use||'')}</td><td colspan="5"><span class="calc-todo">חסרה נוסחה/יחס מאושרים — להשלמה במסך ניהול</span></td></tr>`;
+    }
+    const required = calcApplyFormula(base, r); // חישוב לפי הנוסחה שהוזנה
+    const proposed = r.proposedKey ? pdNum(p, r.proposedKey) : null;
+    const gap = (required!=null && proposed!=null) ? (proposed - required) : null;
+    const stat = gap==null ? 'missing' : (gap>=0 ? 'ok' : 'fail');
+    const s = CALC_STATUS[stat];
+    return `<tr class="calc-st-${stat}">
+      <td>${esc(r.use||'')}</td>
+      <td>${esc(r.source||'')}</td>
+      <td class="calc-formula">${esc(r.formula||'')} = <b>${required!=null?required:'—'}</b></td>
+      <td>${proposed!=null?proposed:'—'}</td>
+      <td>${gap!=null?(gap>=0?'+':'')+gap:'—'}</td>
+      <td><span class="date-status ${s.cls}">${s.l}</span></td>
+    </tr>`;
+  }).join('');
+  return `<div class="tbl-wrap"><table class="calc-table"><thead><tr><th>שימוש</th><th>מקור</th><th>חישוב</th><th>מוצע</th><th>פער</th><th>סטטוס</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="calc-note">כל תוצאה מוצגת עם החישוב המלא. לביצוע בדיקה עצמית — שנו נתוני ניסיון בטאב נתוני פרויקט ובדקו כיצד התוצאה משתנה.</div>`;
+}
+// יישום נוסחה בסיסי לפי כלל שהוזן (חלוקה/הכפלה ביחס + עיגול מוגדר). אין הנחות — רק מה שהוגדר.
+function calcApplyFormula(base, r){
+  if(base==null || r.ratioValue==null) return null;
+  let v;
+  if(r.op==='div') v = base / r.ratioValue;
+  else if(r.op==='mul') v = base * r.ratioValue;
+  else v = base; // ללא פעולה מוגדרת — מחזיר את הבסיס
+  if(r.rounding==='up') v=Math.ceil(v); else if(r.rounding==='down') v=Math.floor(v); else if(r.rounding==='round') v=Math.round(v);
+  return v;
+}
+
+function renderCalcTab(p){
+  const el=document.getElementById('panel-calc'); if(!el) return;
+  el.innerHTML = `
+    <div class="pd-intro">מחשבונים ובדיקות עצמיות — כל מחשבון שואב מנתוני הפרויקט ומציג את החישוב המלא, המקור והפער. חסר נתון/מקור מוצג במפורש ואינו מנוחש.</div>
+    <div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>
+    ${CALCULATORS.map(def=>renderCalcShell(p,def)).join('')}`;
+}
+
+/* ── מסך ניהול כללים (בסיסי — הוספה/עריכה) ── */
+function openCalcRulesEditor(preCalc){
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const rows = (calcRules.rules||[]).map((r,i)=>`<tr>
+    <td>${esc(r.calc||'')}</td><td>${esc(r.use||'')}</td><td>${esc(r.source||'')}</td><td>${esc(r.formula||'')}</td>
+    <td>${r.ratioValue==null?'<span class="calc-todo">חסר</span>':esc(r.ratioValue)}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="delCalcRule(${i})">מחק</button></td></tr>`).join('');
+  ov.innerHTML=`<div class="ver-modal" style="max-width:760px">
+    <h3>ניהול כללים ומקורות</h3>
+    <p class="muted">אין להטמיע נוסחאות/תעריפים בקוד. הזינו כאן כלל עם מקור, נוסחה, יחס ותוקף. חסר יחס → יוצג „להשלמה”.</p>
+    <div class="cr-form">
+      <select id="crCalc">${CALCULATORS.map(c=>`<option value="${c.id}"${preCalc===c.id?' selected':''}>${c.name}</option>`).join('')}</select>
+      <input id="crUse" placeholder="שימוש (למשל: מסחר)">
+      <input id="crSource" placeholder="מקור (מסמך + סעיף)">
+      <input id="crFormula" placeholder="נוסחה (מלל, למשל: שטח מסחר ÷ יחס)">
+      <select id="crInputKey"><option value="">בסיס החיוב (שדה)</option>${PROJECT_DATA_FIELDS.flatMap(g=>g.fields).map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('')}</select>
+      <select id="crOp"><option value="">פעולה</option><option value="div">חלוקה ÷</option><option value="mul">הכפלה ×</option></select>
+      <input id="crRatio" type="number" step="any" placeholder="יחס/ערך (אם ידוע)">
+      <select id="crRound"><option value="">עיגול</option><option value="up">כלפי מעלה</option><option value="down">כלפי מטה</option><option value="round">לקרוב</option></select>
+      <input id="crFrom" type="date" title="תוקף מתאריך">
+      <button class="btn btn-primary btn-sm" onclick="addCalcRule()">הוסף כלל</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:1rem"><table><thead><tr><th>מחשבון</th><th>שימוש</th><th>מקור</th><th>נוסחה</th><th>יחס</th><th></th></tr></thead><tbody id="crTbody">${rows||'<tr><td colspan="6" class="muted">אין כללים עדיין</td></tr>'}</tbody></table></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:1rem" onclick="this.closest('.render-lightbox').remove()">סגור</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function addCalcRule(){
+  const g=id=>document.getElementById(id).value;
+  const ratio=g('crRatio');
+  if(!calcRules.rules) calcRules.rules=[];
+  calcRules.rules.push({ calc:g('crCalc'), use:g('crUse'), source:g('crSource'), formula:g('crFormula'),
+    inputKey:g('crInputKey'), inputLabel:(document.getElementById('crInputKey').selectedOptions[0]||{}).text||'',
+    op:g('crOp'), ratioValue: ratio===''?null:parseFloat(ratio), rounding:g('crRound'), effectiveFrom:g('crFrom') });
+  saveCalcRules(); toast('כלל נוסף');
+  document.querySelector('.render-lightbox')?.remove(); openCalcRulesEditor('');
+  if(currentProjectId!=null && document.getElementById('panel-calc')){ const p=pj(); if(p) renderCalcTab(p); }
+}
+function delCalcRule(i){ if(!confirm('למחוק כלל זה?'))return; calcRules.rules.splice(i,1); saveCalcRules(); document.querySelector('.render-lightbox')?.remove(); openCalcRulesEditor(''); if(currentProjectId!=null){const p=pj();if(p)renderCalcTab(p);} }
 
 // ── INIT ──
 populateFilters();
