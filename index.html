@@ -569,6 +569,25 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .lib-count{background:var(--teal);color:#fff;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px}
 .share-lib .shares-grid{margin-top:0.8rem}
 .share-note{background:#f0f7f7;border:1px solid #cfe3e3;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#2a5f5f;margin-bottom:1rem}
+/* ══════════ מסלול עבודה + מצב צפייה ══════════ */
+.role-toggle{display:inline-flex;border:1px solid var(--stone);border-radius:8px;overflow:hidden}
+.role-btn{border:none;background:#fff;color:var(--ink);font-size:12px;padding:6px 12px;cursor:pointer;font-family:inherit}
+.role-btn.active{background:var(--teal);color:#fff}
+#workflowBar{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:1rem 1.2rem;margin:1rem 0;box-shadow:var(--shadow)}
+.wf-progress{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:rgba(0,0,0,0.7);margin-bottom:0.9rem}
+.wf-sep{color:rgba(0,0,0,0.25)}
+.wf-warn{color:var(--warn);font-weight:600}
+.wf-miss{color:var(--err);font-weight:600}
+.wf-bar{flex-basis:100%;height:6px;background:var(--fog);border-radius:99px;overflow:hidden;margin-top:4px}
+.wf-bar-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
+.wf-path{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.wf-step{display:flex;align-items:center;gap:6px;border:1px solid var(--stone);background:#fafafa;border-radius:8px;padding:7px 12px;cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s}
+.wf-step:hover{border-color:var(--teal);background:#f0f7f7}
+.wf-step.done{border-color:var(--ok);background:rgba(61,139,94,0.08)}
+.wf-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--stone);color:#fff;font-size:11px;font-weight:700}
+.wf-step.done .wf-num{background:var(--ok)}
+.wf-arrow{color:rgba(0,0,0,0.3);font-size:14px}
+@media (max-width:768px){.wf-label{display:none}.wf-arrow{display:none}}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
 .share-type-card .btn{align-self:flex-start}
 .shares-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
@@ -897,9 +916,16 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
     <div class="pp-actions">
       <span id="ppStageBadge"></span>
+      <div class="role-toggle" id="roleToggle">
+        <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')">אדריכל היזם</button>
+        <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
+      </div>
       <button class="btn btn-ghost btn-sm" onclick="closeProject()">חזרה לטבלה</button>
     </div>
   </div>
+
+  <!-- מסלול עבודה רציף (מצב אדריכל היזם) -->
+  <div id="workflowBar"></div>
 
   <div class="pp-tabs" id="ppTabs">
     <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
@@ -2567,9 +2593,94 @@ function openProject(id) {
   renderGraphicsTab(p); renderDocsTab(p); renderCommTab(p); renderTimelineTab(p); renderOpinionTab(p);
   go('projectPage', null);
   lockInputs(!globalEdit); // כבד את מצב התצוגה/עריכה על השדות שנוצרו כעת
+  renderWorkflowBar(p);
+  applyProjectRole(); // מיישם את מצב הצפייה (אדריכל/עיר)
   // אם פאנל הסייען פתוח — רענן את ההקשר לפרויקט החדש
   const aip = document.getElementById('aiPanel');
   if (aip && aip.classList.contains('open')) { const b=document.getElementById('aiBody'); if(b) delete b.dataset.hasResult; aiSyncContext(); }
+}
+
+/* ══════════ מסלול עבודה רציף + מצב צפייה (אדריכל היזם / אדריכלית העיר) ══════════ */
+let projectRole = 'architect'; // 'architect' | 'city'
+// מיפוי שלבי המסלול לכרטיסיות הקיימות
+const WORKFLOW_STEPS = [
+  { key:'info',       label:'פרטי הפרויקט',      tab:'info' },
+  { key:'taba',       label:'הוראות התב״ע',      tab:'info' },
+  { key:'proposed',   label:'נתוני התכנון המוצע', tab:'review' },
+  { key:'requirements',label:'דרישות עירוניות',   tab:'review' },
+  { key:'design',     label:'עיצוב',             tab:'guidelines' },
+  { key:'results',    label:'תוצאות והגשה',       tab:'opinion' }
+];
+// כרטיסיות שמוצגות רק לאדריכלית העיר (ניהול/תהליך/תקשורת)
+const CITY_ONLY_TABS = ['process','comm','timeline'];
+
+function setProjectRole(role){
+  projectRole = role;
+  try { localStorage.setItem('ashdod_proj_role', role); } catch(e){}
+  document.querySelectorAll('#roleToggle .role-btn').forEach(b=>b.classList.toggle('active', b.dataset.role===role));
+  applyProjectRole();
+}
+/** מיישם את מצב הצפייה: אדריכל היזם רואה מסלול נקי; אדריכלית העיר רואה הכל */
+function applyProjectRole(){
+  try { projectRole = localStorage.getItem('ashdod_proj_role') || projectRole; } catch(e){}
+  document.querySelectorAll('#roleToggle .role-btn').forEach(b=>b.classList.toggle('active', b.dataset.role===projectRole));
+  const isArch = projectRole==='architect';
+  // מסלול העבודה מוצג רק לאדריכל היזם
+  const wb = document.getElementById('workflowBar'); if(wb) wb.style.display = isArch ? 'block' : 'none';
+  // כרטיסיות ניהול מוסתרות לאדריכל היזם
+  document.querySelectorAll('#ppTabs .pp-tab').forEach(btn=>{
+    const name = (btn.getAttribute('onclick')||'').match(/ppTab\('(\w+)'/);
+    if(!name) return;
+    const t = name[1];
+    const hide = isArch && CITY_ONLY_TABS.includes(t);
+    btn.style.display = hide ? 'none' : '';
+  });
+}
+
+/** פס התקדמות + מסלול 6 שלבים */
+function renderWorkflowBar(p){
+  const el = document.getElementById('workflowBar'); if(!el) return;
+  const st = workflowStatus(p);
+  const steps = WORKFLOW_STEPS.map((s,i)=>{
+    const done = st.stepDone[s.key];
+    return `<button class="wf-step${done?' done':''}" onclick="ppTabByName('${s.tab}')">
+      <span class="wf-num">${done?'✓':(i+1)}</span><span class="wf-label">${s.label}</span>
+    </button>`;
+  }).join('<span class="wf-arrow">←</span>');
+  el.innerHTML = `
+    <div class="wf-progress">
+      <span>הושלמו <b>${st.doneCount}</b> מתוך 6 נושאים</span>
+      <span class="wf-sep">·</span>
+      <span class="wf-warn">${st.mismatches} אי־התאמות</span>
+      <span class="wf-sep">·</span>
+      <span class="wf-miss">${st.missing} פרטים חסרים</span>
+      <div class="wf-bar"><div class="wf-bar-fill" style="width:${st.doneCount/6*100}%"></div></div>
+    </div>
+    <div class="wf-path">${steps}</div>`;
+}
+function ppTabByName(name){
+  const btn = [...document.querySelectorAll('#ppTabs .pp-tab')].find(b=>(b.getAttribute('onclick')||'').includes("ppTab('"+name+"'"));
+  if(btn) ppTab(name, btn);
+}
+/** חישוב מצב המסלול מהנתונים (ללא AI) */
+function workflowStatus(p){
+  const m = p.meta||{};
+  const filled = v => v!==undefined && v!==null && String(v).trim()!=='';
+  const stepDone = {
+    info: filled(p.projectName) && filled(p.developer) && filled(p.district),
+    taba: filled(m.zoningPlan) && filled(m.designation),
+    proposed: (Array.isArray(p.plots) && p.plots.length>0) || filled(m.area),
+    requirements: !!(p.guideChecks && Object.keys(p.guideChecks).length),
+    design: !!(p.guideChecks && Object.values(p.guideChecks).some(g=>g && g.ok!==null)),
+    results: filled(p.opinion && p.opinion.recommendation)
+  };
+  const doneCount = Object.values(stepDone).filter(Boolean).length;
+  // אי־התאמות: סעיפי בדיקה שסומנו 'לא תואם'
+  let mismatches = 0, missing = 0;
+  if (p.guideChecks) Object.values(p.guideChecks).forEach(g=>{ if(g && g.ok===false) mismatches++; });
+  ['projectName','developer','district'].forEach(k=>{ if(!filled(p[k])) missing++; });
+  ['zoningPlan','designation','area'].forEach(k=>{ if(!filled(m[k])) missing++; });
+  return { stepDone, doneCount, mismatches, missing };
 }
 function closeProject() {
   currentProjectId = null;
