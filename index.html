@@ -1256,7 +1256,10 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .role-chip .rc-out{cursor:pointer;opacity:.75;font-size:11px;text-decoration:underline}
 .lock-banner{background:rgba(42,95,95,0.07);border:1px solid rgba(42,95,95,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--teal,#2a5f5f);display:flex;gap:8px;align-items:center}
 body.role-developer .pp-panel.sec-locked input,body.role-developer .pp-panel.sec-locked textarea,
-body.role-developer .pp-panel.sec-locked select,body.role-developer .pp-panel.sec-locked button{pointer-events:none;opacity:.55}
+body.role-developer .pp-panel.sec-locked select,body.role-developer .pp-panel.sec-locked button,
+body.role-developer .pp-panel.sec-locked .img-box,body.role-developer .pp-panel.sec-locked .render-frame,
+body.role-developer .pp-panel.sec-locked .vm-cat,body.role-developer .pp-panel.sec-locked .harm-drop,
+body.role-developer .pp-panel.sec-locked [ondrop],body.role-developer .pp-panel.sec-locked [onpaste]{pointer-events:none;opacity:.55}
 .dev-code-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,0.05);border:1px dashed rgba(0,0,0,0.25);border-radius:8px;padding:3px 8px;font-size:12px;cursor:pointer}
 .arch-only{display:none !important}
 body.role-architect .arch-only{display:inline-flex !important}
@@ -3133,6 +3136,13 @@ function openDetail(id) {
     </div>
   `;
   document.getElementById('detailModal').classList.add('open');
+  // מודאל הפרטים במפה/טבלה — עריכה לאדריכלית העיר בלבד; לשאר המשתמשים כל הפקדים ננעלים
+  if (!isArchitect()) {
+    document.querySelectorAll('#detailModal input, #detailModal textarea, #detailModal select').forEach(el=>{
+      if (el.tagName === 'SELECT') el.disabled = true; else el.readOnly = true;
+    });
+    document.querySelectorAll('#detailModal [onclick*="cycleStatus"], #detailModal [onclick*="changeStatus"]').forEach(el=>{ el.style.pointerEvents = 'none'; });
+  }
 }
 
 function closeModal() { document.getElementById('detailModal').classList.remove('open'); }
@@ -8578,7 +8588,7 @@ const ROLE_LABELS = { architect:'אדריכלית העיר — עריכה מלא
 // הסעיפים שהיזם רשאי לערוך בתוכנית שלו (מפתח = מזהה פאנל בדף הפרויקט)
 const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ועקרונות', muni:'דרישות עירייה', data:'נתוני פרויקט', team:'צוות היזם', calc:'מחשבונים והשוואה', review:'בדיקת התאמה', graphics:'חומר גרפי', docs:'מסמכים' };
 // שדות שהיזם לעולם אינו עורך גם בסעיפים המותרים (סטטוס, שלב, מטפל, פורומים, החלטות, חוו"ד, גאנט)
-const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(/;
+const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose|approvalDate)'|oSet\('(datesPlan|summary)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(|cycleStatus|changeStatus|setCommitteeReady/;
 // אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
   architect: ['landing','exec','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'],
@@ -9009,23 +9019,29 @@ function renderDevHome(){
   ['saveField','addPlan','setDecision','setDecisionField','setGantt','setOpinion','setModalOpinion',
    'saveForumDate','addForumEvent','setForumEvent','delForumEvent','onStageChange','removeComm',
    'saveGlOverride','saveMuni','saveCalcRules','saveContacts','importBackup','confirmVisualsImport',
-   'toggleLock','setRoleCode','saveRoleCodes'].forEach(n=>wrap(n, archOnly));
+   'toggleLock','setRoleCode','saveRoleCodes',
+   'addComm','addTlEvent','setCommitteeReady','changeStatus','cycleStatus','setStatus'].forEach(n=>wrap(n, archOnly));
   // שמירה כללית — חסומה בשקט להנהלה/אורח (אדריכלית ויזם שומרים)
   ['savePlans','saveShares','cloudSaveNow','scheduleCloudSave'].forEach(n=>wrap(n, ()=> !isManager(), true));
   // עריכת סעיפי פרויקט — לפי בעלות היזם ונעילות האישור
-  wrap('pjSet', (field)=> canEditSection(pj(),'info') && (!isDeveloper() || !/^(status|stage|handler|opinion|date|purpose)$/.test(field)));
+  wrap('pjSet', (field)=> canEditSection(pj(),'info') && (!isDeveloper() || !/^(status|stage|handler|opinion|date|purpose|approvalDate)$/.test(field)));
   wrap('mSet', secCheck('info'));
-  wrap('oSet', ()=> isArchitect() || (devOwns(pj()) && !sectionLocked(pj(),'__all')));
+  // datesPlan (מועדים מתוכננים) ו-summary (החלטת ועדה, הערות האדריכלית) — לאדריכלית בלבד
+  wrap('oSet', (obj)=> isArchitect() || (devOwns(pj()) && !sectionLocked(pj(),'__all') && !/^(datesPlan|summary)$/.test(obj)));
   wrap('setChk', secCheck('review'));
   wrap('setSpatial', secCheck('review'));
   wrap('setGuide', secCheck('guidelines'));
   wrap('setGuideNote', secCheck('guidelines'));
   wrap('setMuni', secCheck('muni'));
   ['addPlot','removePlot','setPlot','pdSet'].forEach(n=>wrap(n, secCheck('data')));
-  ['teamAdd','teamSet','teamDel','teamEmailSet'].forEach(n=>wrap(n, secCheck('team')));
+  wrap('setTable5', secCheck('review'));
+  ['teamAdd','teamSet','teamDel','teamEmailSet','teamEmailAdd','teamEmailDel','teamEmailPrimary'].forEach(n=>wrap(n, secCheck('team')));
   wrap('uploadDoc', secCheck('docs'));
   wrap('removeDoc', secCheck('docs'));
   wrap('setGraphic', secCheck('graphics'));
+  // אזורי גרירת/הדבקת תמונות — divs שאינם נתפסים ע"י נעילת שדות רגילה
+  ['genStore','genClear'].forEach(n=>wrap(n, secCheck('info')));
+  ['vmAddFile','vmSetCat','vmDelete','harmDelete'].forEach(n=>wrap(n, secCheck('graphics')));
   // רענון נעילות אחרי רינדור מחדש של פאנלים (השדות נוצרים מחדש פתוחים)
   function postWrap(name){
     const orig=window[name]; if(typeof orig!=='function') return;
@@ -9036,7 +9052,8 @@ function renderDevHome(){
     };
   }
   ['ppTab','renderInfoTab','renderDataTab','renderReviewTab','renderGuidelinesTab','renderProjectMuni',
-   'renderDocsTab','renderGraphicsTab','renderTeam','renderCalcTab','renderForumsTab','renderProcessTab'].forEach(postWrap);
+   'renderDocsTab','renderGraphicsTab','renderTeam','renderCalcTab','renderForumsTab','renderProcessTab',
+   'renderTimelineTab','renderCommTab','renderOpinionTab','renderVisualMaterial','renderHarmonica'].forEach(postWrap);
 })();
 
 // ── INIT ──
