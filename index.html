@@ -1254,7 +1254,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .login-err{width:100%;text-align:center;color:#a33;font-size:13px;min-height:18px}
 .role-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(42,95,95,0.08);border:1px solid rgba(42,95,95,0.25);color:var(--teal,#2a5f5f);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap}
 .role-chip .rc-out{cursor:pointer;opacity:.75;font-size:11px;text-decoration:underline}
-.lock-banner{background:rgba(42,95,95,0.07);border:1px solid rgba(42,95,95,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--teal,#2a5f5f);display:flex;gap:8px;align-items:center}
+.lock-banner,.ro-banner{background:rgba(42,95,95,0.07);border:1px solid rgba(42,95,95,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--teal,#2a5f5f);display:flex;gap:8px;align-items:center}
 body.role-developer .pp-panel.sec-locked input,body.role-developer .pp-panel.sec-locked textarea,
 body.role-developer .pp-panel.sec-locked select,body.role-developer .pp-panel.sec-locked button,
 body.role-developer .pp-panel.sec-locked .img-box,body.role-developer .pp-panel.sec-locked .render-frame,
@@ -1389,6 +1389,56 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 .dh-contact{font-size:13px;color:var(--muted);border-top:1px solid var(--stone);padding-top:12px}
 /* מיקום 'תמונת מצב' ראשון בסרגל להנהלה */
 .role-manager #mainNav [data-nav="exec"]{order:-1}
+/* ══════════ דף עזרה ומדריך ══════════ */
+#help{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 3rem}
+.hp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;margin-top:1.2rem}
+@media(max-width:760px){.hp-grid{grid-template-columns:1fr}}
+.hp-sec{background:var(--surface);border:1px solid var(--stone);border-radius:12px;padding:1.3rem}
+.hp-sec.hp-wide{grid-column:1/-1}
+.hp-sec h3{font-family:var(--display);font-size:17px;margin-bottom:10px;color:var(--ink)}
+.hp-sec p{font-size:13.5px;line-height:1.75;color:var(--ink)}
+.hp-role-tip{background:rgba(42,95,95,0.06);border:1px solid rgba(42,95,95,0.25);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.7;margin-bottom:4px}
+.hp-roles{display:flex;flex-direction:column;gap:10px}
+.hp-roles > div{font-size:13px;line-height:1.6}
+.hp-roles b{display:block;margin-bottom:1px}
+.hp-roles span{color:var(--muted)}
+.hp-flow{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.hp-step{flex:1;min-width:140px;border:1px solid var(--stone);border-radius:10px;padding:10px;text-align:center;font-size:12px}
+.hp-step .n{display:inline-flex;width:26px;height:26px;border-radius:50%;color:#fff;align-items:center;justify-content:center;font-weight:700;margin-bottom:6px}
+.hp-step b{display:block;font-size:13px;margin-bottom:3px}
+.hp-step span{color:var(--muted);line-height:1.5}
+.hp-arrow{align-self:center;color:var(--muted)}
+@media(max-width:760px){.hp-arrow{display:none}}
+.hp-gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px 20px}
+.hp-gloss dt{font-weight:600;font-size:13px;color:var(--teal)}
+.hp-gloss dd{font-size:12.5px;color:var(--ink);line-height:1.6;margin:1px 0 6px}
+.hp-faq > div{margin-bottom:10px;font-size:13px;line-height:1.6}
+.hp-faq b{display:block}
+.hp-faq span{color:var(--muted)}
+/* ══════════ סיור היכרות ══════════ */
+#tourOverlay{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px}
+.tour-box{background:#fff;border-radius:14px;max-width:440px;width:100%;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.tour-box h3{font-family:var(--display);font-size:19px;margin-bottom:8px}
+.tour-box p{font-size:13.5px;line-height:1.7;color:var(--ink)}
+.tour-nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px}
+.tour-nav > span:last-child{display:flex;gap:8px}
+.tour-dots i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--stone);margin-inline-end:5px}
+.tour-dots i.on{background:var(--teal)}
+.login-hint{width:100%;text-align:center;font-size:12px;color:rgba(0,0,0,0.5);line-height:1.5}
+/* ══════════ הדפסת תמונת המצב ══════════ */
+@media print{
+  #exec .ex-grid,#exec .ex-funnel{grid-template-columns:1fr 1fr !important}
+  #exec{padding:0}
+  .ex-kpi:hover,.ex-plan-chip:hover{background:none}
+  .ex-fcol-h{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .role-chip,.mode-toggle,.cloud-status,#globalBack{display:none !important}
+}
+/* ══════════ מובייל: סרגל ניווט נגלל במקום עטוף ══════════ */
+@media(max-width:900px){
+  .toolbar-nav{flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;max-width:100%}
+  .toolbar-nav button{flex:0 0 auto}
+  .plans-table-wrap,.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 </style>
 </head>
 <body>
@@ -1402,15 +1452,16 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
     <button data-nav="exec" onclick="go('exec',this)">תמונת מצב</button>
     <button data-nav="devhome" onclick="go('devhome',this)" style="display:none">דף הבית</button>
     <button data-nav="table" onclick="go('table',this)">טבלת תוכניות</button>
-    <button data-nav="guidelines" onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
+    <button data-nav="guidelines" onclick="go('guidelines',this)">הנחיות להגשת תוכנית</button>
     <button data-nav="map" onclick="go('map',this)">מפה</button>
     <button data-nav="trends" onclick="go('trends',this)">מגמות וסיכום</button>
     <button data-nav="shares" onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
-    <button data-nav="muni" onclick="go('muni',this)">אוגדן</button>
-    <button data-nav="spatial" onclick="go('spatial',this)">הנחיות מרחביות 18</button>
+    <button data-nav="muni" onclick="go('muni',this)">אוגדן דרישות העירייה</button>
+    <button data-nav="spatial" onclick="go('spatial',this)">הנחיות מרחביות (מהדורה 18)</button>
     <button data-nav="calchub" onclick="go('calchub',this)">מחשבונים</button>
     <button data-nav="contacts" onclick="go('contacts',this)">רשימות קשר</button>
     <button data-nav="settings" onclick="go('settings',this)">הגדרות</button>
+    <button data-nav="help" onclick="go('help',this)">❓ עזרה ומדריך</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -1461,12 +1512,14 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
     <div class="login-form" id="lfManager">
       <input type="password" id="liMgrCode" placeholder="קוד גישה" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('manager')">
       <button class="btn btn-primary" onclick="loginSubmit('manager')">כניסה</button>
+      <div class="login-hint">את קוד הגישה מוסרת לשכת אדריכלית העיר</div>
       <div class="login-err" id="liErrManager"></div>
     </div>
     <div class="login-form" id="lfDeveloper">
-      <input type="text" id="liDevTik" placeholder="מס׳ תוכנית (תיק)" style="min-width:140px" inputmode="numeric" data-nolock="1">
-      <input type="text" id="liDevCode" placeholder="קוד גישה שקיבלתם" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('developer')">
+      <input type="text" id="liDevTik" placeholder="מס׳ תוכנית (למשל 1714)" style="min-width:150px" inputmode="numeric" data-nolock="1">
+      <input type="text" id="liDevCode" placeholder="קוד גישה" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('developer')">
       <button class="btn btn-primary" onclick="loginSubmit('developer')">כניסה</button>
+      <div class="login-hint">מספר התוכנית וקוד הגישה נשלחו אליכם מלשכת אדריכלית העיר — בדרך כלל כקישור כניסה ישיר. לא קיבלתם? פנו ללשכה.</div>
       <div class="login-err" id="liErrDeveloper"></div>
     </div>
     </div>
@@ -1488,6 +1541,9 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 
 <!-- ════════ תמונת מצב — דשבורד הנהלה ════════ -->
 <div id="exec" class="page"><div id="execBody"></div></div>
+
+<!-- ════════ עזרה ומדריך למשתמש ════════ -->
+<div id="help" class="page"><div id="helpBody"></div></div>
 
 <!-- ════════ דף הבית של היזם ════════ -->
 <div id="devhome" class="page"><div id="devhomeBody"></div></div>
@@ -1531,7 +1587,7 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
     <div>
       <div class="page-title">טבלת תוכניות בינוי</div>
-      <div class="page-subtitle">40 תוכניות — סנן, מיין, חפש ועדכן סטטוס</div>
+      <div class="page-subtitle" id="tableSubtitle">כל תוכניות הבינוי — סינון, מיון וחיפוש · שלב = היכן בתהליך האישור, סטטוס = מצב הטיפול</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <select id="tableViewMode" onchange="setTableView(this.value)" title="סינון לפי מצב התוכנית">
@@ -1739,9 +1795,10 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
         <button class="btn btn-primary" onclick="addPlan()">הוסף תוכנית בינוי</button>
       </div>
       <div id="addPlanLinkRow" style="display:none;margin-top:0.8rem;padding:0.8rem;background:#f0f7f7;border:1px solid #cfe3e3;border-radius:8px">
-        <div style="font-size:13px;color:#2a5f5f;margin-bottom:6px">התוכנית נוספה. שלחי ליזם/אדריכל קישור למילוי שדות הבקשה:</div>
+        <div style="font-size:13px;color:#2a5f5f;margin-bottom:6px">התוכנית נוספה. שלחי ליזם/אדריכל קישור כניסה (כולל קוד גישה) למילוי שדות הבקשה:</div>
+        <div id="addPlanDevCode" style="font-size:13px;margin-bottom:6px"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="copyFillLink()">📋 העתק קישור למילוי שדות</button>
+          <button class="btn btn-primary btn-sm" onclick="copyFillLink()">📋 העתק קישור כניסה ליזם</button>
           <button class="btn btn-ghost btn-sm" onclick="openFillLink()">פתח את דף הפרויקט</button>
         </div>
       </div>
@@ -1798,7 +1855,7 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
       <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
       <button class="pp-tab" onclick="ppTab('team',this)">צוות היזם</button>
       <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים והשוואה</button>
-      <button class="pp-tab" onclick="ppTab('review',this)">בדיקת התאמה</button>
+      <button class="pp-tab" onclick="ppTab('review',this)">בדיקת התאמה לדרישות</button>
       <div class="pp-rail-grp">חומרים ותוצרים</div>
       <button class="pp-tab" onclick="ppTab('graphics',this)">חומר גרפי</button>
       <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
@@ -2453,7 +2510,7 @@ let sortCol = -1, sortDir = 1;
 let _navHistory = [];
 const PAGE_LABELS = {landing:'הדף הראשי', exec:'תמונת המצב', devhome:'דף הבית', table:'טבלת התוכניות', guidelines:'ההנחיות', map:'המפה',
   trends:'מגמות', shares:'דיווחים ושיתופים', muni:'דרישות עירייה', contacts:'רשימות קשר',
-  settings:'הגדרות', projectPage:'תוכנית בינוי'};
+  settings:'הגדרות', help:'העזרה', projectPage:'תוכנית בינוי'};
 function currentPageId(){ const a=document.querySelector('.page.active'); return a?a.id:null; }
 function pushNav(fromId){ if(fromId){ if(_navHistory[_navHistory.length-1]!==fromId) _navHistory.push(fromId); if(_navHistory.length>50) _navHistory.shift(); } }
 function updateBackBtn(){
@@ -2491,9 +2548,10 @@ function go(id, btn, isBack) {
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   if (id === 'exec' && typeof renderExecDash === 'function') { renderExecDash(); }
   if (id === 'devhome' && typeof renderDevHome === 'function') { renderDevHome(); }
+  if (id === 'help' && typeof renderHelp === 'function') { renderHelp(); }
   if (id === 'table') { syncTableEditMode(); } // רענון מצב עריכת הטבלה אחרי ניווט (המצב אולי הוחלף בדף אחר)
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
+  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -2514,7 +2572,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
+  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(raw)) {
     const allow = session ? NAV_VISIBLE[session.role] : null;
     if (allow && !allow.includes(raw)) return; // דף שאינו זמין לתפקיד הנוכחי
@@ -2793,7 +2851,7 @@ function renderActiveTracking(){
     d<=7 ? {cls:'ds-red',lbl:'דחוף · '+d+' ימים'} :
     d<=21 ? {cls:'ds-orange',lbl:d+' ימים ליעד'} :
     {cls:'ds-green',lbl:d+' ימים ליעד'};
-  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
 
   const actedCount = list.filter(x=>x.acted).length;
   const urgentCount = list.filter(x=>x.days!=null && x.days<=7).length;
@@ -3359,6 +3417,7 @@ function addPlan() {
     opinion: ''
   };
   const archEmail = document.getElementById('addArchEmail').value.trim();
+  newPlan.devCode = genDevCode(); // קוד גישה ליזם — נוצר מיד כדי שיוכל להתחבר עוד לפני פתיחת דף התוכנית
   plans.push(newPlan);
   savePlans();
   populateFilters();
@@ -3372,6 +3431,7 @@ function addPlan() {
   // הצגת קישור למילוי שדות (במקום סגירה מיידית)
   _addedPlanTik = newPlan.tik;
   const lr = document.getElementById('addPlanLinkRow'); if(lr) lr.style.display='block';
+  const dc = document.getElementById('addPlanDevCode'); if(dc) dc.innerHTML = 'קוד הגישה של היזם (למסירה בטלפון): <b style="letter-spacing:2px">'+newPlan.devCode+'</b>';
 }
 let _addedPlanTik = null;
 /** קישור עמוק לדף הפרויקט למילוי שדות ע"י היזם/אדריכל */
@@ -4114,7 +4174,7 @@ function buildSecNav(){
 }
 function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el){ const fb=el.closest('.forum-block'); if(fb) fb.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); } document.getElementById('secNav').classList.remove('open'); }
 function renderStageBadge(p) {
-  const map = {stage_1:['שלב 1 — פורום אדריכל','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['ועדה','st3'],approved:['מאושר','stapp']};
+  const map = {stage_1:['שלב 1 — פורום אדריכל העיר','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['הכנה לוועדה','st3'],approved:['מאושר','stapp']};
   const [txt,cls] = map[p.stage] || map.stage_1;
   document.getElementById('ppStageBadge').innerHTML = `<span class="stage-badge ${cls}">${txt}</span>`;
 }
@@ -4271,7 +4331,7 @@ function oSet(obj, field, val) { const p=pj(); if(!p)return; p[obj][field]=val; 
 /** מעבר שלב — מעדכן badge, בדיקה, גאנט, ומוסיף אירוע לציר זמן (אוטומציה FULL-ANALYSIS) */
 function onStageChange(val){
   const p=pj(); if(!p)return;
-  const labels={stage_1:'מעבר לשלב 1 — פורום אדריכל',stage_2:'מעבר לשלב 2 — פורום יועצים',committee:'מעבר לוועדה',approved:'אושר'};
+  const labels={stage_1:'מעבר לשלב 1 — פורום אדריכל העיר',stage_2:'מעבר לשלב 2 — פורום יועצים',committee:'מעבר להכנה לוועדה',approved:'אושר'};
   if(p.stage!==val){ p.timeline.push({date:todayStr(),desc:labels[val]||'שינוי שלב',auto:true}); }
   p.stage=val; savePlans();
   renderStageBadge(p); renderReviewTab(p); renderProcessTab(p); renderTimelineTab(p);
@@ -4460,6 +4520,7 @@ function renderOpinionTab(p){
   const plotsTable = p.plots.length ? `<div class="tbl-wrap"><table><thead><tr><th>מגרש</th><th>ייעוד</th><th>שטח</th><th>יח״ד</th><th>קומות</th><th>גובה</th><th>תכסית</th></tr></thead>
     <tbody>${p.plots.map(pl=>`<tr><td>${pl.num||'—'}</td><td>${pl.use||'—'}</td><td>${pl.area||'—'}</td><td>${pl.units||'—'}</td><td>${pl.floorsAbove||'—'}</td><td>${pl.height||'—'}</td><td>${pl.coverage||'—'}</td></tr>`).join('')}</tbody></table></div>` : '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מגרשים.</p>';
   document.getElementById('panel-opinion').innerHTML = `
+    ${isDeveloper()?'<div class="ro-banner">חוות הדעת נכתבת על ידי אדריכלית העיר — עמוד זה לצפייה בלבד עבורכם</div>':''}
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
       <div style="font-size:13px;color:rgba(0,0,0,0.5)">שדות אפורים מתמלאים אוטומטית מנתוני הפרויקט.</div>
       <button class="btn btn-primary" onclick="window.print()">ייצוא ל-PDF (הדפסה)</button>
@@ -4634,7 +4695,7 @@ function renderTable5(p){
   }).join('');
   return `<div class="pp-card t5-card">
     <div class="t5-head">
-      <h4>טבלה 5 — מותר מול מוצע</h4>
+      <h4>טבלה 5 — השוואת המותר בתב״ע מול המוצע בתוכנית</h4>
       <div class="t5-summary">
         <span class="date-status ds-green">${sm.ok} תואם</span>
         <span class="date-status ds-orange">${sm.explain} דורש הסבר</span>
@@ -4757,7 +4818,8 @@ function renderSpatialChecks(p){
 
 function renderReviewTab(p) {
   const el = document.getElementById('panel-review');
-  let html = renderTable5(p);          // מנוע החוקים — מותר מול מוצע
+  let html = '<div class="t5-note" style="margin-bottom:10px">בדיקת ההתאמה משווה את <b>המוצע בתוכנית</b> מול <b>המותר והנדרש</b>: הוראות התב״ע, דרישות העירייה וההנחיות המרחביות. כל אי-התאמה מחייבת הסבר ופתרון.</div>';
+  html += renderTable5(p);          // מנוע החוקים — מותר מול מוצע
   html += renderRequirements(p);        // דרישות עירוניות רלוונטיות
   html += renderSpatialChecks(p);       // 18 הנחיות מרחביות
   if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
@@ -5476,7 +5538,7 @@ function ceoSelectedPlans(s){
 /** בונה טבלת סטטוס תמציתית לדוח */
 function ceoStatusTable(list){
   if(!list.length) return '<p class="muted">אין תוכניות התואמות את הסינון.</p>';
-  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
   const risk = p => (p.status==='דחוף'?'<span class="date-status ds-red">גבוה</span>':(p.status==='בהמתנה'?'<span class="date-status ds-orange">בינוני</span>':'<span class="date-status ds-green">נמוך</span>'));
   return `<div class="tbl-wrap"><table><thead><tr>
     <th>תוכנית</th><th>מגרש</th><th>יזם</th><th>אדריכל</th><th>שלב</th><th>יעד</th><th>סיכון</th></tr></thead><tbody>${
@@ -5513,7 +5575,7 @@ function autoSection(s, key){
   const pr = s.reportingPeriod || {month:nowMonth(), year:nowYear()};
   const ym = String(pr.year)+'-'+String(pr.month).padStart(2,'0');
   const today = todayStr();
-  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
   const newThis = list.filter(p=>(p.date||'').slice(0,7)===ym);
   const doneThis = plans.filter(p=>p.status==='הושלם' && (p.committeeDate||'').slice(0,7)===ym);
   const urgent = list.filter(p=>{ const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate; if(!pd)return false; const d=Math.round((new Date(pd)-new Date(today))/864e5); return d>=0&&d<=14; });
@@ -5681,7 +5743,7 @@ function facadeAltHTML(a,i){
 function shareDataPayload(s){
   if (s.shareType==='monthly-ceo-report'){
     const list = ceoSelectedPlans(s);
-    const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+    const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
     return {
       audience: 'ceo',
       period: s.reportingPeriod,
@@ -7017,7 +7079,7 @@ function whoToContact(p, role){
   const pick=(role==='dev'?dev:arch)||pc[0];
   return pick?(pick.name+(pick.email?(' · '+pick.email):(pick.phone?(' · '+pick.phone):''))):'לא נמצא איש קשר במאגר';
 }
-const stageLblMap={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+const stageLblMap={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
 function planStageLbl(p){ return stageLblMap[p.stage||'stage_1']; }
 
 const WORK_RULES = [
@@ -7148,7 +7210,7 @@ function requestNewReport(){
 }
 function buildReport(kind){
   const out=document.getElementById('reportOut'); if(!out) return;
-  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
   const active=plans.filter(planIsActive);
   let title='', lines=[], html='';
   if(kind==='status'){
@@ -7820,7 +7882,6 @@ function projUnassign(id,tik){
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
 const APP_VERSION = '2026.07.26';
-const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
   const el=document.getElementById('settingsBody'); if(!el) return;
@@ -7868,12 +7929,6 @@ function renderSettings(){
         <button class="btn btn-ghost btn-sm" onclick="exportBackup()">צור גיבוי עכשיו</button>
       </div>
       <div class="set-card">
-        <h3>כלים טכניים</h3>
-        <p class="set-desc">קישורים לפיתוח ותחזוקת המערכת.</p>
-        <a class="btn btn-ghost btn-sm" href="${VS_LINK}">פתיחה ב-VS Code</a>
-        <a class="btn btn-ghost btn-sm" href="https://claude.ai/code/session_01BJESVEYRci4MYmZ3FnAZuW" target="_blank">מסך שדרוג</a>
-      </div>
-      <div class="set-card">
         <h3>פרטי גרסה</h3>
         <p class="set-desc">אפליקציית ניהול ובדיקת תוכניות בינוי ועיצוב — עיריית אשדוד.</p>
         <div class="set-kv">גרסה: <b>${APP_VERSION}</b></div>
@@ -7895,7 +7950,11 @@ function renderSettings(){
 /* ── גיבוי/שחזור ── */
 function exportBackup(){
   const data={ app:'ashdod-plans', version:APP_VERSION, exportedAt:new Date().toISOString(),
-    plans, contacts:(contacts||[]) };
+    plans, contacts:(contacts||[]),
+    shares:(typeof shares!=='undefined'&&Array.isArray(shares))?shares:[],
+    muniData:(typeof muniData!=='undefined')?muniData:null,
+    calcRules:(typeof calcRules!=='undefined')?{rules:calcRules.rules||[],hints:(typeof calcConstantHints!=='undefined'&&calcConstantHints.hints)||[]}:null,
+    roleCodes:(typeof roleCodes!=='undefined')?roleCodes:null };
   const blob=new Blob(['﻿'+JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ashdod-backup.json'; a.click();
   toast('הגיבוי יוצא לקובץ');
@@ -7911,7 +7970,11 @@ function importBackup(input){
       if(!confirm('לייבא גיבוי? '+(d.plans?d.plans.length:0)+' תוכניות ו-'+(d.contacts?d.contacts.length:0)+' אנשי קשר יוחלפו.')) return;
       if(Array.isArray(d.plans)){ plans.length=0; d.plans.forEach(p=>plans.push(p)); savePlans(); }
       if(Array.isArray(d.contacts)){ contacts=d.contacts; saveContacts&&saveContacts(); }
-      toast('הגיבוי יובא'); renderSettings(); applyFilters&&applyFilters();
+      if(Array.isArray(d.shares)&&typeof shares!=='undefined'){ shares=d.shares; typeof saveShares==='function'&&saveShares(); }
+      if(d.muniData&&typeof muniData!=='undefined'){ muniData=d.muniData; typeof saveMuni==='function'&&saveMuni(); }
+      if(d.calcRules&&typeof calcRules!=='undefined'){ if(d.calcRules.rules)calcRules={rules:d.calcRules.rules}; if(d.calcRules.hints&&typeof calcConstantHints!=='undefined')calcConstantHints={hints:d.calcRules.hints}; typeof saveCalcRules==='function'&&saveCalcRules(); }
+      if(d.roleCodes&&d.roleCodes.architect&&typeof roleCodes!=='undefined'){ roleCodes={...roleCodes,...d.roleCodes}; typeof saveRoleCodes==='function'&&saveRoleCodes(); }
+      toast('הגיבוי יובא במלואו'); renderSettings(); applyFilters&&applyFilters();
     }catch(e){ toast('קובץ לא תקין'); }
   };
   r.readAsText(f); input.value='';
@@ -8740,9 +8803,9 @@ const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ו
 const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose|approvalDate)'|oSet\('(datesPlan|summary)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(|cycleStatus|changeStatus|setCommitteeReady/;
 // אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
-  architect: ['landing','exec','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'],
-  manager: ['exec','landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts'],
-  developer: ['devhome','table','guidelines','muni','spatial','calchub']
+  architect: ['landing','exec','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'],
+  manager: ['exec','landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','help'],
+  developer: ['devhome','table','guidelines','muni','spatial','calchub','help']
 };
 
 function isArchitect(){ return !!session && session.role==='architect'; }
@@ -8831,7 +8894,8 @@ function loginSubmit(role){
   if(!tik||!code) return loginErr('developer','נא למלא מס׳ תוכנית וקוד גישה');
   const p=plans.find(x=>String(x.tik)===String(tik));
   if(!p) return loginErr('developer','תוכנית לא נמצאה');
-  if(!p.devCode || String(p.devCode).toUpperCase()!==code) return loginErr('developer','קוד גישה שגוי — פנו לאדריכלית העיר');
+  if(!p.devCode) return loginErr('developer','טרם הופק קוד גישה לתוכנית זו — פנו ללשכת אדריכלית העיר');
+  if(String(p.devCode).toUpperCase()!==code) return loginErr('developer','קוד גישה שגוי — בדקו את הקוד שקיבלתם או פנו ללשכה');
   startSession({role:'developer', tiks:[String(p.tik)]});
 }
 function startSession(s){
@@ -8852,6 +8916,7 @@ function startSession(s){
   }
   if(isManager()) activateNavFor('exec');
   toast('ברוכים הבאים — '+(ROLE_LABELS[session.role]||''));
+  setTimeout(maybeShowTour, 700); // סיור היכרות בכניסה ראשונה
 }
 function logoutRole(){
   try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
@@ -8890,6 +8955,7 @@ function initRoles(){
     if(isManager()) setTimeout(()=>activateNavFor('exec'),0);
     else if(isDeveloper()) setTimeout(()=>activateNavFor('devhome'),0);
   }
+  if(session) setTimeout(maybeShowTour, 900); // סיור היכרות גם למשתמש קיים שטרם ראה אותו
 }
 /** מיישם את מגבלות התפקיד על הממשק כולו */
 function applyRoleUI(){
@@ -9034,7 +9100,10 @@ function renderExecDash(){
   el.innerHTML=`
     <div class="ex-head">
       <div class="ex-title">תמונת מצב — תוכניות בינוי</div>
-      <div class="ex-date">נכון ל-${new Date().toLocaleDateString('he-IL')} · לשכת אדריכלית העיר</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="ex-date">נכון ל-${new Date().toLocaleDateString('he-IL')} · לשכת אדריכלית העיר · תב/ = מספר התוכנית בעירייה</div>
+        <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="הדפסת הדוח או שמירה כ-PDF">🖨 הדפסת דוח</button>
+      </div>
     </div>
     <div class="ex-sub"><b>${active.length}</b> תוכניות פעילות בטיפול · <b>${stuck.length}</b> ללא התקדמות מעל שבועיים · <b>${doneYear.length}</b> הושלמו השנה · <b>${upcoming.length}</b> פורומים ב-14 הימים הקרובים.</div>
     <div class="ex-kpis">
@@ -9048,7 +9117,7 @@ function renderExecDash(){
       <div>
         <div class="ex-sec">
           <div class="ex-sec-h">צנרת התוכניות לפי שלב</div>
-          <div class="ex-sec-sub">כל תוכנית פעילה נמצאת באחד משלושת שלבי האישור — לחיצה על תוכנית פותחת אותה</div>
+          <div class="ex-sec-sub">מסלול האישור: פורום אדריכל העיר ← פורום יועצים ← הכנה לוועדה ← אישור. לחיצה על תוכנית פותחת אותה</div>
           <div class="ex-funnel">${funnelHtml}</div>
         </div>
         <div class="ex-sec">
@@ -9087,6 +9156,129 @@ function renderExecDash(){
     </div>`;
 }
 
+/* ══════════ עזרה ומדריך למשתמש — לכל התפקידים ══════════ */
+const GLOSSARY = [
+  ['תב/ (מספר תיק)','המספר המזהה של כל תוכנית בינוי במערכת — למשל תב/1714. זה המספר שמופיע בכל טבלה, דוח וקישור.'],
+  ['תב״ע','תוכנית בניין עיר — המסמך הסטטוטורי שקובע מה מותר לבנות במגרש: ייעוד, זכויות בנייה, גובה וקווי בניין. תוכנית הבינוי חייבת להתאים לתב״ע.'],
+  ['תוכנית בינוי ועיצוב','התוכנית המפורטת שהיזם מגיש לאישור אדריכלית העיר: איך המבנים יושבים במגרש, חזיתות, פיתוח, חניה ותשתיות.'],
+  ['פורום אדריכל העיר (שלב 1)','המפגש הראשון: אדריכלית העיר בוחנת את התפיסה התכנונית מול ההנחיות והתב״ע. תוכנית שעוברת — ממשיכה לשלב 2.'],
+  ['פורום יועצים (שלב 2)','בחינה מקצועית מעמיקה עם יועצי העירייה (תנועה, תשתיות, נוף ועוד) על בסיס חומרים מלאים.'],
+  ['ועדה','ועדת התכנון שמאשרת סופית את התוכנית. לפניה נבדקת „מוכנות לוועדה” — צ׳ק-ליסט חומרים.'],
+  ['הנחיות מרחביות (18)','מסמך ההנחיות העירוני המחייב — 18 עקרונות תכנון לכל תוכנית בעיר. זמין במלואו בתפריט.'],
+  ['אוגדן','ריכוז הדרישות של כל מחלקות העירייה (תברואה, תנועה, נגישות ועוד) — מה כל גורם דורש מהתוכנית.'],
+  ['טבלה 5 — מותר מול מוצע','השוואה שורה-שורה בין מה שהתב״ע מתירה לבין מה שהיזם מציע. פערים מסומנים ודורשים הסבר.'],
+  ['בדיקת התאמה','הצ׳ק-ליסטים שהיזם ממלא: התאמה להנחיות, לדרישות העירייה ולהנחיות המרחביות. „לא תואם” מחייב נימוק ופתרון.'],
+  ['חוות דעת','המסמך הרשמי שאדריכלית העיר מנסחת בסוף הבדיקה — ההמלצה לוועדה.'],
+  ['אישור ונעילה','כשאדריכלית העיר מאשרת סעיף בתוכנית — הוא ננעל, והיזם אינו יכול לשנותו עוד. כך אישור נשאר אישור.'],
+  ['קוד גישה','לכל תוכנית קוד אישי (🔑) שאדריכלית העיר מוסרת ליזם. איתו נכנסים למערכת ורואים את התוכנית שלכם בלבד.'],
+  ['ללא התקדמות','מספר הימים שעברו מאז הפעולה המתועדת האחרונה בתוכנית — המדד המרכזי לזיהוי תוכניות תקועות.'],
+];
+function renderHelp(){
+  const el=document.getElementById('helpBody'); if(!el) return;
+  const role = session ? session.role : null;
+  const roleGuide = {
+    manager: `<div class="hp-role-tip"><b>המדריך המהיר שלך:</b> דף <b>„תמונת מצב”</b> נפתח אוטומטית ועונה על הכל בשניות —
+      כמה תוכניות פעילות, מה תקוע ולמה, מה קצב העבודה ומה קרה לאחרונה. לחיצה על כל תוכנית פותחת את התיק המלא שלה.
+      הכל לצפייה — אי אפשר לשנות שום נתון בטעות. לעומק: „טבלת תוכניות” לרשימה המלאה, „מגמות וסיכום” לניתוחים, „חוות דעת ודיווחים” לדוחות מוכנים.</div>`,
+    developer: `<div class="hp-role-tip"><b>המדריך המהיר שלך:</b> „דף הבית” מציג את התוכנית שלך, את ההתקדמות ואת <b>הצעדים הבאים</b> —
+      התחילו שם. לפני שמתכננים: קראו את „הנחיות להגשת תוכנית”, את „האוגדן” ואת „הנחיות מרחביות 18” — הם חלים על כל תוכנית בעיר,
+      ובדקו חניה ואשפה ב„מחשבונים”. בתוך התוכנית מלאו את נתוני הפרויקט ואת „בדיקת ההתאמה”; סעיף שאושר ע״י אדריכלית העיר יינעל ויסומן.</div>`,
+    architect: `<div class="hp-role-tip"><b>תזכורת מהירה:</b> „דף ראשי” — תוכנית העבודה היומית לפי חסמים. „תמונת מצב” — מה שההנהלה רואה.
+      בכל תוכנית: 🔑 קוד היזם להעתקה, ו„🔒 אישורים ונעילה” לנעילת סעיפים שאושרו. קודי הגישה מנוהלים ב„הגדרות”.</div>`
+  }[role] || '';
+  el.innerHTML = `
+    <div class="ex-head"><div class="ex-title">עזרה ומדריך למשתמש</div></div>
+    <div class="ex-sub">מערכת ניהול תוכניות הבינוי של אדריכלית העיר אשדוד — מה יש כאן, איך התהליך עובד, ומה כל מונח אומר.</div>
+    ${roleGuide}
+    <div class="hp-grid">
+      <section class="hp-sec">
+        <h3>מה המערכת הזו?</h3>
+        <p>כלי אחד שמרכז את כל תוכניות הבינוי בעיר: מעקב אחר כל תוכנית משלב ההגשה ועד האישור, הדרישות שהיזם צריך לעמוד בהן,
+        המסמכים, הפורומים וחוות הדעת. המטרה — <b>לקצר את תהליך האישור</b>: היזם יודע מראש בדיוק מה להגיש, האדריכלית בודקת בצורה שיטתית, וההנהלה רואה תמונת מצב בכל רגע.</p>
+      </section>
+      <section class="hp-sec">
+        <h3>שלושת המשתמשים</h3>
+        <div class="hp-roles">
+          <div><b>👩‍💼 אדריכלית העיר</b><span>רואה ועורכת הכל, מאשרת ונועלת סעיפים, מנהלת את קודי הגישה.</span></div>
+          <div><b>🏛️ הנהלת העירייה</b><span>מנכ״ל וראש העיר — רואים את כל הנתונים והדוחות, ללא יכולת עריכה.</span></div>
+          <div><b>🏗️ יזמים</b><span>כל יזם רואה ועורך רק את התוכנית שלו. סעיף שאושר — ננעל לשינויים.</span></div>
+        </div>
+      </section>
+      <section class="hp-sec hp-wide">
+        <h3>מסלול תוכנית בינוי — מהגשה ועד אישור</h3>
+        <div class="hp-flow">
+          <div class="hp-step"><span class="n" style="background:var(--stage-1)">1</span><b>הגשה ותיאום ציפיות</b><span>היזם מקבל קוד גישה, ממלא את נתוני הפרויקט ולומד את ההנחיות</span></div>
+          <div class="hp-arrow">←</div>
+          <div class="hp-step"><span class="n" style="background:var(--stage-1)">2</span><b>פורום אדריכל העיר</b><span>בחינת התפיסה התכנונית — שלב 1</span></div>
+          <div class="hp-arrow">←</div>
+          <div class="hp-step"><span class="n" style="background:var(--stage-2)">3</span><b>פורום יועצים</b><span>בדיקה מקצועית עם יועצי העירייה — שלב 2</span></div>
+          <div class="hp-arrow">←</div>
+          <div class="hp-step"><span class="n" style="background:var(--stage-3)">4</span><b>הכנה לוועדה</b><span>השלמת חומרים, טיוטת חוות דעת</span></div>
+          <div class="hp-arrow">←</div>
+          <div class="hp-step"><span class="n" style="background:var(--approved)">✓</span><b>אישור</b><span>הוועדה מאשרת — התוכנית ממשיכה להיתרי בנייה</span></div>
+        </div>
+      </section>
+      <section class="hp-sec hp-wide">
+        <h3>מילון מונחים</h3>
+        <dl class="hp-gloss">
+          ${GLOSSARY.map(([t,d])=>`<div><dt>${t}</dt><dd>${d}</dd></div>`).join('')}
+        </dl>
+      </section>
+      <section class="hp-sec hp-wide">
+        <h3>שאלות נפוצות</h3>
+        <div class="hp-faq">
+          <div><b>איפה משיגים קוד גישה ליזם?</b><span>אדריכלית העיר שולחת לכל יזם קישור כניסה אישי עם הקוד. אבד? פנו ללשכת אדריכלית העיר.</span></div>
+          <div><b>ערכתי משהו — איפה כפתור השמירה?</b><span>אין צורך — כל שינוי נשמר אוטומטית ומסונכרן לענן. חיווי „☁ נשמר אונליין” בסרגל העליון מאשר.</span></div>
+          <div><b>למה אני לא מצליח לערוך שדה מסוים?</b><span>או שהשדה שייך לעירייה (סטטוס, מועדי פורומים, החלטות), או שהסעיף כבר אושר וננעל — יופיע באנר ✔ מעל הסעיף.</span></div>
+          <div><b>שני אנשים עורכים במקביל — מה קורה?</b><span>המערכת מסנכרנת כל דקה. כל אחד עורך תוכניות שלו; עריכה שלך לעולם לא נדרסת על ידי רענון.</span></div>
+          <div><b>איך מפיקים דוח למנכ״ל?</b><span>דף „תמונת מצב” ניתן להדפסה ישירות (כפתור 🖨), ודוחות מפורטים יותר בדף „חוות דעת, דיווחים ושיתופים”.</span></div>
+        </div>
+      </section>
+    </div>`;
+}
+
+/* ══════════ סיור היכרות בכניסה ראשונה — לפי תפקיד ══════════ */
+const TOUR_KEY = 'ashdod_tour_v1';
+const TOURS = {
+  manager: [
+    { t:'ברוכים הבאים לתמונת המצב', d:'הדף שנפתח עכשיו עונה על השאלות המרכזיות: כמה תוכניות בטיפול, מה תקוע ולמה, ומה קצב העבודה — הכל מתעדכן אוטומטית מהנתונים החיים.' },
+    { t:'הכל בלחיצה אחת', d:'כל מספר, תוכנית או חסם — לחיצים. לחיצה על תוכנית פותחת את התיק המלא שלה: נתונים, מסמכים, בדיקות וחוות דעת.' },
+    { t:'צפייה בלבד — בלי חשש', d:'החשבון שלכם רואה הכל אך אינו יכול לשנות דבר. אפשר ללחוץ על כל דבר בחופשיות. מדריך מלא — בכפתור „❓ עזרה ומדריך” בתפריט.' },
+  ],
+  developer: [
+    { t:'ברוכים הבאים', d:'זהו דף הבית של התוכנית שלכם: ההתקדמות בתהליך האישור, והצעדים הבאים שעליכם להשלים — מסודרים לפי החשיבות.' },
+    { t:'קראו לפני שמתכננים', d:'ארבעת המדריכים (הנחיות הגשה, אוגדן, הנחיות מרחביות 18, מחשבונים) חלים על כל תוכנית בעיר. קריאה מוקדמת חוסכת סבבי תיקונים ומזרזת את האישור שלכם.' },
+    { t:'מילוי ושמירה', d:'כל מה שתמלאו נשמר אוטומטית ונראה לאדריכלית העיר. סעיף שהיא אישרה — ננעל ומסומן ✔. שדות של העירייה (סטטוס, מועדים) אינם פתוחים לעריכה.' },
+    { t:'עזרה', d:'מדריך מלא ומילון מונחים — בכפתור „❓ עזרה ומדריך” בתפריט העליון. שאלות? לשכת אדריכלית העיר.' },
+  ],
+  architect: [
+    { t:'מה חדש במערכת', d:'נוספו: מסך כניסה עם שלושה סוגי משתמשים, דשבורד „תמונת מצב” להנהלה, דף בית ליזם, אישור ונעילת סעיפים, וסנכרון רב-משתמשים בטוח.' },
+    { t:'קודי הגישה', d:'בכל דף תוכנית: 🔑 קוד היזם (לחיצה מעתיקה קישור כניסה לשליחה), ו„🔒 אישורים ונעילה” לנעילת סעיפים שאושרו. שינוי קודים — ב„הגדרות”.' },
+  ],
+};
+function maybeShowTour(){
+  if(!session) return;
+  let seen={}; try{ seen=JSON.parse(localStorage.getItem(TOUR_KEY)||'{}'); }catch(e){}
+  if(seen[session.role]) return;
+  const steps=TOURS[session.role]; if(!steps||!steps.length) return;
+  let i=0;
+  const ov=document.createElement('div'); ov.id='tourOverlay';
+  ov.innerHTML=`<div class="tour-box"><div class="tour-body" id="tourBody"></div>
+    <div class="tour-nav"><span class="tour-dots" id="tourDots"></span>
+    <span><button class="btn btn-ghost btn-sm" id="tourSkip">דילוג</button>
+    <button class="btn btn-primary btn-sm" id="tourNext">הבא ←</button></span></div></div>`;
+  document.body.appendChild(ov);
+  const paint=()=>{
+    document.getElementById('tourBody').innerHTML='<h3>'+steps[i].t+'</h3><p>'+steps[i].d+'</p>';
+    document.getElementById('tourDots').innerHTML=steps.map((_,j)=>'<i class="'+(j===i?'on':'')+'"></i>').join('');
+    document.getElementById('tourNext').textContent = i===steps.length-1 ? 'סיום ✓' : 'הבא ←';
+  };
+  const done=()=>{ try{ seen[session.role]=1; localStorage.setItem(TOUR_KEY, JSON.stringify(seen)); }catch(e){} ov.remove(); };
+  ov.querySelector('#tourSkip').onclick=done;
+  ov.querySelector('#tourNext').onclick=()=>{ if(i<steps.length-1){ i++; paint(); } else done(); };
+  paint();
+}
+
 /* ══════════ דף הבית של היזם ══════════ */
 function devGoTab(tab){
   const p=plans.find(x=>devOwns(x)); if(!p) return;
@@ -9103,7 +9295,7 @@ function renderDevHome(){
   const next=[...(stages.architect||[]),...(stages.consultants||[])].filter(s=>s.state!=='done').slice(0,5);
   const stIcon={block:'✕',partial:'◐',pending:'○'};
   const locksN=Object.keys(p.locks||{}).length;
-  const stageLbl={stage_1:'שלב 1 — פורום אדריכל העיר',stage_2:'שלב 2 — פורום יועצים',committee:'הכנה לוועדה',approved:'מאושרת'}[p.stage||'stage_1'];
+  const stageLbl={stage_1:'שלב 1 — פורום אדריכל העיר',stage_2:'שלב 2 — פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'}[p.stage||'stage_1'];
   el.innerHTML=`
     <div class="dh-hero">
       <div class="dh-hello">שלום, ${esc(p.developer||'יזם התוכנית')} · ${stageLbl}</div>
@@ -9112,7 +9304,7 @@ function renderDevHome(){
       <div class="dh-progress">
         <div class="dh-prog"><div class="lbl"><span>פורום אדריכל העיר</span><span>${pa.done}/${pa.total}</span></div><div class="track"><div class="fill" style="width:${pa.pct}%"></div></div></div>
         <div class="dh-prog"><div class="lbl"><span>פורום יועצים</span><span>${pc.done}/${pc.total}</span></div><div class="track"><div class="fill" style="width:${pc.pct}%"></div></div></div>
-        <div class="dh-prog"><div class="lbl"><span>מוכנות לוועדה</span><span>${pv.done}/${pv.total}</span></div><div class="track"><div class="fill" style="width:${pv.pct}%"></div></div></div>
+        <div class="dh-prog"><div class="lbl"><span>הכנה לוועדה</span><span>${pv.done}/${pv.total}</span></div><div class="track"><div class="fill" style="width:${pv.pct}%"></div></div></div>
       </div>
       <button class="btn btn-primary" onclick="devGoTab('')">מעבר לדף התוכנית המלא ←</button>
       ${locksN?`<div style="font-size:12px;color:var(--muted);margin-top:8px">🔒 ${locksN===1?'סעיף אחד אושר וננעל':locksN+' סעיפים אושרו וננעלו'} על ידי אדריכלית העיר</div>`:''}
@@ -9232,13 +9424,20 @@ const AI_API_BASE = (location.hostname.endsWith('vercel.app') || location.hostna
   ? '' : 'https://gh-deploy-xi.vercel.app';
 
 async function callAssistant(actionId, payload) {
-  const res = await fetch(AI_API_BASE + '/api/assistant', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action_id: actionId, payload })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || data.error || 'שגיאה');
+  let res;
+  try {
+    res = await fetch(AI_API_BASE + '/api/assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action_id: actionId, payload })
+    });
+  } catch (e) {
+    throw new Error('מנוע הבדיקה אינו זמין כרגע — בדקי את חיבור האינטרנט ונסי שוב');
+  }
+  let data;
+  try { data = await res.json(); }
+  catch (e) { throw new Error('מנוע הבדיקה החזיר תשובה לא צפויה (' + res.status + ') — נסי שוב בעוד רגע'); }
+  if (!res.ok) throw new Error(data.detail || data.error || ('שגיאת שירות (' + res.status + ')'));
   return data.response || {};
 }
 
