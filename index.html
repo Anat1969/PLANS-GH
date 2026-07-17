@@ -1276,6 +1276,114 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 #locksModal .lk-row{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(0,0,0,0.06);gap:10px}
 #locksModal .lk-name{font-size:14px}
 #locksModal .lk-meta{font-size:11.5px;color:rgba(0,0,0,0.5)}
+/* ══════════ נגישות בסיס ══════════ */
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}}
+/* ══════════ מסך כניסה — מראה ממלכתי ══════════ */
+.login-box{padding:0;overflow:hidden}
+.login-head{background:var(--bordeaux-deep);color:#fff;padding:1.6rem 2rem 1.4rem;text-align:center}
+.login-head .lh-city{font-size:13px;letter-spacing:2px;color:var(--bronze-gold);margin-bottom:6px}
+.login-head .login-title{color:#fff;margin-bottom:2px}
+.login-head .login-sub{color:rgba(255,255,255,0.75);margin-bottom:0}
+.login-inner{padding:1.6rem 2rem 2rem}
+.login-card{display:block;width:100%}
+.login-card .lc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.login-card .lc-icon{font-size:22px;margin-bottom:0;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--fog);flex:0 0 auto}
+.login-card.sel .lc-icon{background:rgba(42,95,95,0.12)}
+.login-foot{text-align:center;font-size:11.5px;color:rgba(0,0,0,0.4);padding:0 2rem 1.2rem}
+@media (prefers-reduced-motion: no-preference){
+  .login-box{animation:loginIn .45s cubic-bezier(0.16,1,0.3,1)}
+  @keyframes loginIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+}
+/* ══════════ תמונת מצב — דשבורד הנהלה ══════════ */
+#exec{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
+.ex-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.ex-title{font-family:var(--display);font-size:30px;color:var(--ink)}
+.ex-date{font-size:13px;color:var(--muted)}
+.ex-sub{font-size:14.5px;color:var(--muted);margin-bottom:1.6rem;max-width:70ch}
+.ex-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-block:1px solid var(--stone);margin-bottom:2rem}
+.ex-kpi{padding:1.1rem 1rem;text-align:center;cursor:pointer;transition:background .15s}
+.ex-kpi:hover{background:var(--fog)}
+.ex-kpi + .ex-kpi{border-inline-start:1px solid var(--stone)}
+@media (max-width:760px){.ex-kpi + .ex-kpi{border-inline-start:none;border-top:1px solid var(--fog)}}
+.ex-kpi .xk-num{font-family:var(--display);font-size:34px;line-height:1.1;color:var(--ink)}
+.ex-kpi.xk-alert .xk-num{color:var(--err)}
+.ex-kpi.xk-ok .xk-num{color:var(--ok)}
+.ex-kpi .xk-lbl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.ex-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:2rem;align-items:start}
+@media (max-width:900px){.ex-grid{grid-template-columns:1fr}}
+.ex-sec{margin-bottom:2rem}
+.ex-sec-h{font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:2px}
+.ex-sec-sub{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.ex-funnel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:640px){.ex-funnel{grid-template-columns:repeat(2,1fr)}}
+.ex-fcol{background:var(--surface);border:1px solid var(--stone);border-radius:10px;overflow:hidden}
+.ex-fcol-h{padding:8px 10px;color:#fff;font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.ex-fcol-h .n{font-family:var(--display);font-size:20px}
+.ex-fcol-list{padding:8px;display:flex;flex-direction:column;gap:5px;min-height:60px}
+.ex-plan-chip{font-size:12px;background:var(--fog);border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s}
+.ex-plan-chip:hover{background:var(--stone)}
+.ex-plan-chip b{color:var(--teal)}
+.ex-more{font-size:11.5px;color:var(--muted);padding:2px 8px}
+.ex-empty{font-size:12px;color:var(--muted);padding:8px;text-align:center}
+.ex-pace{display:flex;align-items:flex-end;gap:8px;height:150px;padding:8px 4px 0;border-bottom:1px solid var(--stone)}
+.ex-pace .pc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.ex-pace .pc .bar{width:100%;max-width:44px;background:var(--teal);border-radius:4px 4px 0 0;min-height:2px;transition:height .3s}
+.ex-pace .pc.cur .bar{background:var(--bronze)}
+.ex-pace .pc .v{font-size:12px;font-weight:600;color:var(--ink)}
+.ex-pace-lbls{display:flex;gap:8px;padding:6px 4px 0}
+.ex-pace-lbls span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.ex-att-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--stone);border-radius:10px;background:var(--surface);cursor:pointer;transition:border-color .12s}
+.ex-att-row:hover{border-color:var(--teal)}
+.ex-att-row.hot{background:rgba(184,64,64,0.04);border-color:rgba(184,64,64,0.35)}
+.ex-att-list{display:flex;flex-direction:column;gap:8px}
+.ex-att-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ex-att-top b{font-size:13.5px}
+.ex-att-days{font-size:11.5px;font-weight:600;color:var(--err);white-space:nowrap}
+.ex-att-blocker{font-size:12.5px;color:var(--ink)}
+.ex-att-action{font-size:12px;color:var(--muted)}
+.ex-week-row,.ex-feed-row{display:flex;gap:10px;padding:8px 2px;border-bottom:1px solid var(--fog);font-size:13px;align-items:baseline}
+.ex-week-date{font-weight:600;color:var(--teal);white-space:nowrap;font-size:12.5px}
+.ex-feed-date{color:var(--muted);white-space:nowrap;font-size:11.5px}
+.ex-feed-by{color:var(--muted);font-size:11.5px}
+/* ══════════ דף הבית של היזם ══════════ */
+#devhome{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 3rem}
+.dh-hero{background:var(--surface);border:1px solid var(--stone);border-radius:12px;padding:1.5rem;margin-bottom:1.6rem}
+.dh-hello{font-size:13px;color:var(--muted);margin-bottom:2px}
+.dh-title{font-family:var(--display);font-size:24px;color:var(--ink);margin-bottom:4px}
+.dh-loc{font-size:13.5px;color:var(--muted);margin-bottom:12px}
+.dh-progress{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:14px 0}
+.dh-prog{font-size:12.5px}
+.dh-prog .lbl{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--ink)}
+.dh-prog .track{height:8px;background:var(--fog);border-radius:4px;overflow:hidden}
+.dh-prog .fill{height:100%;border-radius:4px;background:var(--teal);transition:width .4s}
+.dh-next{margin-bottom:1.6rem}
+.dh-step{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border:1px solid var(--stone);border-radius:10px;background:var(--surface);margin-bottom:7px;cursor:pointer;transition:border-color .12s}
+.dh-step:hover{border-color:var(--teal)}
+.dh-step .st{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;background:var(--fog);color:var(--muted)}
+.dh-step.block .st{background:rgba(184,64,64,0.12);color:var(--err)}
+.dh-step.partial .st{background:rgba(196,122,32,0.14);color:var(--warn)}
+.dh-step .tx b{font-size:13.5px;display:block}
+.dh-step .tx span{font-size:12px;color:var(--muted)}
+.dh-guides{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:1.6rem}
+.dh-guide{background:var(--surface);border:1px solid var(--stone);border-radius:10px;padding:1rem;cursor:pointer;transition:border-color .12s, transform .12s}
+.dh-guide:hover{border-color:var(--teal);transform:translateY(-1px)}
+.dh-guide .gi{font-size:20px;margin-bottom:6px}
+.dh-guide b{display:block;font-size:14px;margin-bottom:3px}
+.dh-guide span{font-size:12px;color:var(--muted);line-height:1.5}
+.dh-rules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.6rem}
+@media (max-width:640px){.dh-rules{grid-template-columns:1fr}}
+.dh-rule-col{background:var(--surface);border:1px solid var(--stone);border-radius:10px;padding:1rem}
+.dh-rule-col h4{font-size:14px;margin-bottom:8px}
+.dh-rule-col.do h4{color:var(--ok)}
+.dh-rule-col.dont h4{color:var(--err)}
+.dh-rule-col li{font-size:12.5px;color:var(--ink);margin-bottom:6px;list-style:none;position:relative;padding-inline-start:18px}
+.dh-rule-col li::before{position:absolute;inset-inline-start:0}
+.dh-rule-col.do li::before{content:'✓';color:var(--ok)}
+.dh-rule-col.dont li::before{content:'✕';color:var(--err)}
+.dh-contact{font-size:13px;color:var(--muted);border-top:1px solid var(--stone);padding-top:12px}
+/* מיקום 'תמונת מצב' ראשון בסרגל להנהלה */
+.role-manager #mainNav [data-nav="exec"]{order:-1}
 </style>
 </head>
 <body>
@@ -1286,6 +1394,8 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
   <!-- קבוצת ניווט/מידע -->
   <nav id="mainNav" class="toolbar-nav">
     <button class="active" data-nav="landing" onclick="go('landing',this)">דף ראשי</button>
+    <button data-nav="exec" onclick="go('exec',this)">תמונת מצב</button>
+    <button data-nav="devhome" onclick="go('devhome',this)" style="display:none">דף הבית</button>
     <button data-nav="table" onclick="go('table',this)">טבלת תוכניות</button>
     <button data-nav="guidelines" onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button data-nav="map" onclick="go('map',this)">מפה</button>
@@ -1317,20 +1427,25 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 <!-- ══════════ מסך כניסה — בחירת סוג משתמש ══════════ -->
 <div id="loginOverlay">
   <div class="login-box">
-    <div class="login-title">אשדוד — תוכניות בינוי</div>
-    <div class="login-sub">בחרו סוג משתמש כדי להיכנס למערכת</div>
+    <div class="login-head">
+      <div class="lh-city">עיריית אשדוד</div>
+      <div class="login-title">תוכניות בינוי ועיצוב</div>
+      <div class="login-sub">מנהלת תהליכי הבדיקה והאישור של אדריכלית העיר</div>
+    </div>
+    <div class="login-inner">
+    <div class="login-sub">בחרו סוג משתמש כדי להיכנס</div>
     <div class="login-cards">
       <button class="login-card" onclick="loginPick('architect')">
-        <div class="lc-icon">👩‍💼</div><h4>אדריכלית העיר</h4>
+        <div class="lc-top"><div class="lc-icon">👩‍💼</div><h4>אדריכלית העיר</h4></div>
         <p>ענת דוד שטיבלמן — צפייה ועריכה מלאה, אישור ונעילת סעיפים</p>
       </button>
       <button class="login-card" onclick="loginPick('manager')">
-        <div class="lc-icon">🏛️</div><h4>הנהלת העירייה</h4>
-        <p>מנכ״ל העירייה / ראש העיר — צפייה בלבד בכל הנתונים והדוחות</p>
+        <div class="lc-top"><div class="lc-icon">🏛️</div><h4>הנהלת העירייה</h4></div>
+        <p>מנכ״ל העירייה / ראש העיר — תמונת מצב מלאה, צפייה בלבד</p>
       </button>
       <button class="login-card" onclick="loginPick('developer')">
-        <div class="lc-icon">🏗️</div><h4>יזם / נציג יזם</h4>
-        <p>צפייה ועריכה בתוכנית שלכם בלבד — סעיף שאושר על ידי אדריכלית העיר ננעל</p>
+        <div class="lc-top"><div class="lc-icon">🏗️</div><h4>יזם / נציג יזם</h4></div>
+        <p>הפרויקט שלכם, המדריכים ומה נדרש להגיש — סעיף שאושר ננעל לעריכה</p>
       </button>
     </div>
     <div class="login-form" id="lfArchitect">
@@ -1349,6 +1464,8 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
       <button class="btn btn-primary" onclick="loginSubmit('developer')">כניסה</button>
       <div class="login-err" id="liErrDeveloper"></div>
     </div>
+    </div>
+    <div class="login-foot">מערכת פנימית — לשכת אדריכלית העיר, עיריית אשדוד</div>
   </div>
 </div>
 
@@ -1363,6 +1480,12 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
     </div>
   </div>
 </div>
+
+<!-- ════════ תמונת מצב — דשבורד הנהלה ════════ -->
+<div id="exec" class="page"><div id="execBody"></div></div>
+
+<!-- ════════ דף הבית של היזם ════════ -->
+<div id="devhome" class="page"><div id="devhomeBody"></div></div>
 
 <!-- ════════ LANDING ════════ -->
 <div id="landing" class="page active">
@@ -2191,7 +2314,7 @@ let sortCol = -1, sortDir = 1;
 
 /* ── היסטוריית ניווט לכפתור חזרה גלובלי ── */
 let _navHistory = [];
-const PAGE_LABELS = {landing:'הדף הראשי', table:'טבלת התוכניות', guidelines:'ההנחיות', map:'המפה',
+const PAGE_LABELS = {landing:'הדף הראשי', exec:'תמונת המצב', devhome:'דף הבית', table:'טבלת התוכניות', guidelines:'ההנחיות', map:'המפה',
   trends:'מגמות', shares:'דיווחים ושיתופים', muni:'דרישות עירייה', contacts:'רשימות קשר',
   settings:'הגדרות', projectPage:'תוכנית בינוי'};
 function currentPageId(){ const a=document.querySelector('.page.active'); return a?a.id:null; }
@@ -2229,8 +2352,10 @@ function go(id, btn, isBack) {
   if (id === 'calchub' && typeof renderCalcHub === 'function') { renderCalcHub(); }
   if (id === 'spatial' && typeof renderSpatial === 'function') { renderSpatial(); }
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
+  if (id === 'exec' && typeof renderExecDash === 'function') { renderExecDash(); }
+  if (id === 'devhome' && typeof renderDevHome === 'function') { renderDevHome(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
+  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -2238,9 +2363,8 @@ function go(id, btn, isBack) {
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, spatial:7, calchub:8, contacts:9, settings:10};
-  const btns = document.querySelectorAll('#mainNav button');
-  const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
+  const btn = document.querySelector('#mainNav button[data-nav="'+id+'"]');
+  go(id, btn || null);
 }
 
 /** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
@@ -2252,7 +2376,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
+  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
   if (routable.includes(raw)) {
     const allow = session ? NAV_VISIBLE[session.role] : null;
     if (allow && !allow.includes(raw)) return; // דף שאינו זמין לתפקיד הנוכחי
@@ -3773,9 +3897,8 @@ function workflowStatus(p){
 }
 function closeProject() {
   currentProjectId = null;
-  const dest = _projectOrigin || 'table';
-  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, spatial:7, calchub:8, contacts:9, settings:10};
-  const btn = navMap[dest]!=null ? document.querySelectorAll('#mainNav button')[navMap[dest]] : null;
+  const dest = _projectOrigin || (isDeveloper() ? 'devhome' : 'table');
+  const btn = document.querySelector('#mainNav button[data-nav="'+dest+'"]');
   go(dest, btn);
 }
 /** תווית כפתור החזרה לפי מקור הכניסה */
@@ -8442,11 +8565,11 @@ const ROLE_LABELS = { architect:'אדריכלית העיר — עריכה מלא
 const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ועקרונות', muni:'דרישות עירייה', data:'נתוני פרויקט', team:'צוות היזם', calc:'מחשבונים והשוואה', review:'בדיקת התאמה', graphics:'חומר גרפי', docs:'מסמכים' };
 // שדות שהיזם לעולם אינו עורך גם בסעיפים המותרים (סטטוס, שלב, מטפל, פורומים, החלטות, חוו"ד, גאנט)
 const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(/;
-// אילו דפים ראשיים זמינים לכל תפקיד (null = הכל)
+// אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
-  architect: null,
-  manager: ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts'],
-  developer: ['table','guidelines','muni','spatial','calchub']
+  architect: ['landing','exec','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'],
+  manager: ['exec','landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts'],
+  developer: ['devhome','table','guidelines','muni','spatial','calchub']
 };
 
 function isArchitect(){ return !!session && session.role==='architect'; }
@@ -8545,9 +8668,16 @@ function startSession(s){
   applyRoleUI();
   populateFilters(); applyFilters(); renderLanding();
   if(isDeveloper()){
-    const p=plans.find(x=>String(x.tik)===String((session.tiks||[])[0]));
-    if(p) openProject(p.id); else activateNavFor('table');
+    const raw=(location.hash||'').replace('#','');
+    let opened=false;
+    if(raw.startsWith('project=')){
+      const tik=new URLSearchParams(raw).get('project');
+      const p=plans.find(x=>String(x.tik)===String(tik));
+      if(p && devOwns(p)){ openProject(p.id); opened=true; }
+    }
+    if(!opened) activateNavFor('devhome');
   }
+  if(isManager()) activateNavFor('exec');
   toast('ברוכים הבאים — '+(ROLE_LABELS[session.role]||''));
 }
 function logoutRole(){
@@ -8581,10 +8711,11 @@ function initRoles(){
   if(!session && !_pendingDevLink){ const ov=document.getElementById('loginOverlay'); if(ov)ov.classList.add('open'); }
   applyRoleUI();
   if(session){ applyFilters(); } // רענון סינון לפי התפקיד (יזם רואה רק את תוכניותיו)
-  // יזם מחובר ללא קישור ישיר — פתיחת התוכנית שלו אחרי סיום האתחול
-  if(isDeveloper() && !(location.hash||'').includes('project=')){
-    const p=plans.find(x=>String(x.tik)===String((session.tiks||[])[0]));
-    if(p) setTimeout(()=>openProject(p.id),0);
+  // דף פתיחה לפי תפקיד כשאין יעד מפורש בכתובת
+  const hashTarget=(location.hash||'').replace('#','');
+  if(session && !hashTarget){
+    if(isManager()) setTimeout(()=>activateNavFor('exec'),0);
+    else if(isDeveloper()) setTimeout(()=>activateNavFor('devhome'),0);
   }
 }
 /** מיישם את מגבלות התפקיד על הממשק כולו */
@@ -8654,6 +8785,197 @@ function applyLocksUI(p){
   });
   const btn=document.getElementById('ppLocksBtn');
   if(btn){ const L=p.locks||{}; const n=Object.keys(L).length; btn.textContent='🔒 אישורים ונעילה'+(n?(' ('+(L.__all?'הכל':n)+')'):''); }
+}
+
+/* ══════════ תמונת מצב — דשבורד הנהלה (מנכ"ל / ראש העיר) ══════════ */
+const EXEC_STAGES = [
+  { key:'stage_1',  label:'פורום אדריכל העיר', color:'var(--stage-1)' },
+  { key:'stage_2',  label:'פורום יועצים',      color:'var(--stage-2)' },
+  { key:'committee',label:'הכנה לוועדה',        color:'var(--stage-3)' },
+];
+function execUpcoming(days){
+  const today=todayStr(); const limit=new Date(); limit.setDate(limit.getDate()+days);
+  const lim=limit.toISOString().slice(0,10);
+  const out=[];
+  plans.forEach(p=>{
+    [['forumArchitect','פורום אדריכל העיר'],['forumConsultants','פורום יועצים'],['committeeDate','ועדה']].forEach(([f,lbl])=>{
+      const d=p[f];
+      if(d && d>=today && d<=lim) out.push({date:d,label:lbl,tik:p.tik,name:p.projectName||p.location||'',id:p.id});
+    });
+  });
+  return out.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function execFeed(limit){
+  const feed=[];
+  plans.forEach(p=>{
+    (p.actionLog||[]).forEach(a=>{ if(a&&a.at) feed.push({at:String(a.at).slice(0,10), txt:(typeof actionTypeLabel==='function'?actionTypeLabel(a.type):a.type)+(a.detail?(' — '+a.detail):''), by:a.by||'', tik:p.tik, id:p.id}); });
+    (p.timeline||[]).forEach(t=>{ if(t&&t.date&&t.desc) feed.push({at:t.date, txt:t.desc, by:'', tik:p.tik, id:p.id}); });
+  });
+  return feed.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,limit);
+}
+function renderExecDash(){
+  const el=document.getElementById('execBody'); if(!el) return;
+  const today=todayStr();
+  const active=plans.filter(p=>typeof planIsActive==='function'?planIsActive(p):true);
+  const stuck=active.filter(p=>daysNoProgress(p,today)>=14);
+  const doneYear=plans.filter(p=>{
+    const done=['הושלם','אושר סופית','מאושר'].includes(p.status)||p.stage==='approved';
+    const y=(p.approvalDate||p.committeeDate||p.date||'').slice(0,4);
+    return done && y===String(new Date().getFullYear());
+  });
+  const upcoming=execUpcoming(14);
+  const tasks=(typeof generateTasks==='function'?generateTasks():[]);
+  const urgent=tasks.filter(t=>t.urgency==='high');
+  const fd=d=>{const [y,m,dd]=d.split('-');return dd+'.'+m;};
+
+  // צנרת לפי שלבים
+  const cols=EXEC_STAGES.map(s=>{
+    const list=active.filter(p=>(p.stage||'stage_1')===s.key);
+    return {label:s.label,color:s.color,list};
+  });
+  cols.push({label:'הושלמו ב-'+new Date().getFullYear(),color:'var(--approved)',list:doneYear});
+  const funnelHtml=cols.map(c=>`
+    <div class="ex-fcol">
+      <div class="ex-fcol-h" style="background:${c.color}"><span>${c.label}</span><span class="n">${c.list.length}</span></div>
+      <div class="ex-fcol-list">
+        ${c.list.slice(0,5).map(p=>`<div class="ex-plan-chip" onclick="openProject(${p.id})" title="${esc(p.projectName||p.location||'')}"><b>תב/${p.tik}</b> ${esc((p.projectName||p.location||'').slice(0,26))}</div>`).join('')||'<div class="ex-empty">אין תוכניות בשלב זה</div>'}
+        ${c.list.length>5?`<div class="ex-more">+ ${c.list.length-5} נוספות</div>`:''}
+      </div>
+    </div>`).join('');
+
+  // קצב — פעולות מתועדות ב-6 החודשים האחרונים
+  const months=[]; const now=new Date();
+  for(let i=5;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push(d.toISOString().slice(0,7)); }
+  const counts=Object.fromEntries(months.map(m=>[m,0]));
+  plans.forEach(p=>{
+    (p.actionLog||[]).forEach(a=>{const k=String(a.at||'').slice(0,7); if(k in counts)counts[k]++;});
+    (p.timeline||[]).forEach(t=>{const k=String(t.date||'').slice(0,7); if(k in counts)counts[k]++;});
+    ['forumArchitect','forumConsultants','committeeDate'].forEach(f=>{const k=String(p[f]||'').slice(0,7); if(k in counts)counts[k]++;});
+  });
+  const maxC=Math.max(1,...months.map(m=>counts[m]));
+  const HE_M=['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+  const mLbl=m=>HE_M[parseInt(m.slice(5,7),10)-1]||m;
+  const paceBars=months.map((m,i)=>`<div class="pc${i===months.length-1?' cur':''}"><span class="v">${counts[m]}</span><div class="bar" style="height:${Math.round(counts[m]/maxC*100)}%"></div></div>`).join('');
+  const paceLbls=months.map(m=>`<span>${mLbl(m)}</span>`).join('');
+
+  el.innerHTML=`
+    <div class="ex-head">
+      <div class="ex-title">תמונת מצב — תוכניות בינוי</div>
+      <div class="ex-date">נכון ל-${new Date().toLocaleDateString('he-IL')} · לשכת אדריכלית העיר</div>
+    </div>
+    <div class="ex-sub"><b>${active.length}</b> תוכניות פעילות בטיפול · <b>${stuck.length}</b> ללא התקדמות מעל שבועיים · <b>${doneYear.length}</b> הושלמו השנה · <b>${upcoming.length}</b> פורומים ב-14 הימים הקרובים.</div>
+    <div class="ex-kpis">
+      <div class="ex-kpi" onclick="activateNavFor('table')"><div class="xk-num">${active.length}</div><div class="xk-lbl">תוכניות פעילות בטיפול</div></div>
+      <div class="ex-kpi ${stuck.length?'xk-alert':''}" onclick="activateNavFor('table')"><div class="xk-num">${stuck.length}</div><div class="xk-lbl">ללא התקדמות מעל 14 יום</div></div>
+      <div class="ex-kpi"><div class="xk-num">${urgent.length}</div><div class="xk-lbl">משימות דחופות לטיפול</div></div>
+      <div class="ex-kpi"><div class="xk-num">${upcoming.length}</div><div class="xk-lbl">פורומים ב-14 יום</div></div>
+      <div class="ex-kpi xk-ok" onclick="activateNavFor('trends')"><div class="xk-num">${doneYear.length}</div><div class="xk-lbl">הושלמו ב-${new Date().getFullYear()}</div></div>
+    </div>
+    <div class="ex-grid">
+      <div>
+        <div class="ex-sec">
+          <div class="ex-sec-h">צנרת התוכניות לפי שלב</div>
+          <div class="ex-sec-sub">כל תוכנית פעילה נמצאת באחד משלושת שלבי האישור — לחיצה על תוכנית פותחת אותה</div>
+          <div class="ex-funnel">${funnelHtml}</div>
+        </div>
+        <div class="ex-sec">
+          <div class="ex-sec-h">קצב עבודה — חצי שנה אחרונה</div>
+          <div class="ex-sec-sub">פעולות מתועדות בכל חודש: פורומים שקוימו, עדכוני שלב, מיילים ומסמכים</div>
+          <div class="ex-pace">${paceBars}</div>
+          <div class="ex-pace-lbls">${paceLbls}</div>
+        </div>
+        <div class="ex-sec">
+          <div class="ex-sec-h">פעילות אחרונה</div>
+          <div class="ex-sec-sub">מה נעשה במערכת — לפי יומני הפעולות של התוכניות</div>
+          ${execFeed(9).map(f=>`<div class="ex-feed-row"><span class="ex-feed-date">${fd(f.at)}</span><span style="cursor:pointer" onclick="openProject(${f.id})"><b>תב/${f.tik}</b> — ${esc(f.txt)}</span>${f.by?`<span class="ex-feed-by">${esc(f.by)}</span>`:''}</div>`).join('')||'<div class="ex-empty">אין פעילות מתועדת עדיין</div>'}
+        </div>
+      </div>
+      <div>
+        <div class="ex-sec">
+          <div class="ex-sec-h">דורש תשומת לב</div>
+          <div class="ex-sec-sub">חסמים לפי כללי העבודה — הדחוף ביותר תחילה</div>
+          <div class="ex-att-list">
+            ${tasks.slice(0,6).map(t=>{
+              const pl=plans.find(x=>String(x.tik)===String(t.tik));
+              return `<div class="ex-att-row ${t.urgency==='high'?'hot':''}" onclick="openProject(${pl?pl.id:0})">
+                <div class="ex-att-top"><b>תב/${t.tik} · ${esc((t.name||'').slice(0,30))}</b><span class="ex-att-days">${t.daysNoProgress?t.daysNoProgress+' ימים':''}</span></div>
+                <div class="ex-att-blocker">${esc(t.blocker||'')}</div>
+                <div class="ex-att-action">→ ${esc(t.action||'')}</div>
+              </div>`;
+            }).join('')||'<div class="ex-empty">אין חסמים פתוחים 🎉</div>'}
+          </div>
+        </div>
+        <div class="ex-sec">
+          <div class="ex-sec-h">לוח הפורומים הקרוב</div>
+          <div class="ex-sec-sub">14 הימים הקרובים</div>
+          ${upcoming.slice(0,8).map(u=>`<div class="ex-week-row"><span class="ex-week-date">${fd(u.date)}</span><span style="cursor:pointer" onclick="openProject(${u.id})">${u.label} — <b>תב/${u.tik}</b> ${esc((u.name||'').slice(0,24))}</span></div>`).join('')||'<div class="ex-empty">אין מועדים קבועים בטווח הקרוב — נקודה לשיפור בקצב</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ══════════ דף הבית של היזם ══════════ */
+function devGoTab(tab){
+  const p=plans.find(x=>devOwns(x)); if(!p) return;
+  openProject(p.id);
+  if(tab) setTimeout(()=>ppTabByName(tab),80);
+}
+function renderDevHome(){
+  const el=document.getElementById('devhomeBody'); if(!el) return;
+  const p=plans.find(x=>devOwns(x));
+  if(!p){ el.innerHTML='<div class="pp-card">לא נמצאה תוכנית משויכת. פנו לאדריכלית העיר לקבלת קישור כניסה.</div>'; return; }
+  const fp=k=>{ try{ return forumProgress(p,k); }catch(e){ return {done:0,total:1,pct:0}; } };
+  const pa=fp('architect'), pc=fp('consultants'), pv=fp('committee');
+  const stages=(typeof forumStages==='function')?forumStages(p):{architect:[],consultants:[]};
+  const next=[...(stages.architect||[]),...(stages.consultants||[])].filter(s=>s.state!=='done').slice(0,5);
+  const stIcon={block:'✕',partial:'◐',pending:'○'};
+  const locksN=Object.keys(p.locks||{}).length;
+  const stageLbl={stage_1:'שלב 1 — פורום אדריכל העיר',stage_2:'שלב 2 — פורום יועצים',committee:'הכנה לוועדה',approved:'מאושרת'}[p.stage||'stage_1'];
+  el.innerHTML=`
+    <div class="dh-hero">
+      <div class="dh-hello">שלום, ${esc(p.developer||'יזם התוכנית')} · ${stageLbl}</div>
+      <div class="dh-title">תב/${p.tik} — ${esc(p.projectName||p.location||'התוכנית שלך')}</div>
+      <div class="dh-loc">${esc([p.district,p.location,p.parcel].filter(Boolean).join(' · '))}</div>
+      <div class="dh-progress">
+        <div class="dh-prog"><div class="lbl"><span>פורום אדריכל העיר</span><span>${pa.done}/${pa.total}</span></div><div class="track"><div class="fill" style="width:${pa.pct}%"></div></div></div>
+        <div class="dh-prog"><div class="lbl"><span>פורום יועצים</span><span>${pc.done}/${pc.total}</span></div><div class="track"><div class="fill" style="width:${pc.pct}%"></div></div></div>
+        <div class="dh-prog"><div class="lbl"><span>מוכנות לוועדה</span><span>${pv.done}/${pv.total}</span></div><div class="track"><div class="fill" style="width:${pv.pct}%"></div></div></div>
+      </div>
+      <button class="btn btn-primary" onclick="devGoTab('')">מעבר לדף התוכנית המלא ←</button>
+      ${locksN?`<div style="font-size:12px;color:var(--muted);margin-top:8px">🔒 ${locksN===1?'סעיף אחד אושר וננעל':locksN+' סעיפים אושרו וננעלו'} על ידי אדריכלית העיר</div>`:''}
+    </div>
+    <div class="dh-next">
+      <div class="ex-sec-h">מה עליך להשלים עכשיו</div>
+      <div class="ex-sec-sub">הצעדים הבאים בתהליך האישור — לחיצה מובילה ישירות למסך המתאים</div>
+      ${next.map(s=>`<div class="dh-step ${s.state}" onclick="devGoTab('${s.tab||''}')"><span class="st">${stIcon[s.state]||'○'}</span><span class="tx"><b>${esc(s.label)}</b><span>${esc(s.hint||'')}</span></span></div>`).join('')||'<div class="dh-step"><span class="st">✓</span><span class="tx"><b>כל הצעדים הושלמו</b><span>ממתינים לאישור אדריכלית העיר</span></span></div>'}
+    </div>
+    <div>
+      <div class="ex-sec-h">המדריכים והכלים — חשוב להכיר</div>
+      <div class="ex-sec-sub">התכנים האלו חלים על כל תוכנית בעיר, ללא קשר לפרויקט שלך — קריאה מוקדמת חוסכת סבבי תיקונים</div>
+      <div class="dh-guides">
+        <div class="dh-guide" onclick="activateNavFor('guidelines')"><div class="gi">📘</div><b>הנחיות להגשת תוכנית</b><span>תהליך האישור המלא, לוחות זמנים, חומרי ההגשה הנדרשים ושאלות נפוצות</span></div>
+        <div class="dh-guide" onclick="activateNavFor('muni')"><div class="gi">🏛️</div><b>אוגדן דרישות העירייה</b><span>הדרישות והתיאומים מול כל מחלקות העירייה, לפי גורם אחראי</span></div>
+        <div class="dh-guide" onclick="activateNavFor('spatial')"><div class="gi">🗺️</div><b>הנחיות מרחביות 18</b><span>מסמך ההנחיות המרחביות המלא של העיר — מה מותר ומה אסור בתכנון</span></div>
+        <div class="dh-guide" onclick="activateNavFor('calchub')"><div class="gi">🧮</div><b>מחשבונים</b><span>חניה, אשפה, זכויות בנייה — בדקו את המספרים שלכם לפני ההגשה</span></div>
+      </div>
+    </div>
+    <div class="dh-rules">
+      <div class="dh-rule-col do"><h4>מומלץ — מזרז את האישור</h4><ul>
+        <li>קראו את ההנחיות להגשה לפני תחילת התכנון</li>
+        <li>בדקו חניה ואשפה במחשבונים מראש</li>
+        <li>מלאו את בדיקת ההתאמה ונמקו כל אי-התאמה</li>
+        <li>העלו את כל המסמכים לפני מועד הפורום</li>
+        <li>השיבו לפניות לשכת האדריכלית בתוך 7 ימים</li>
+      </ul></div>
+      <div class="dh-rule-col dont"><h4>מעכב — הימנעו</h4><ul>
+        <li>הגשת חומרים חלקיים לפורום</li>
+        <li>שינוי סעיף שכבר אושר וננעל</li>
+        <li>דילוג על שלב תיאום הציפיות</li>
+        <li>הסתמכות על זכויות שאינן בתב״ע</li>
+        <li>אי-התאמה שנותרה ללא הסבר ופתרון חלופי</li>
+      </ul></div>
+    </div>
+    <div class="dh-contact">לשאלות ותיאום מועדים: לשכת אדריכלית העיר אשדוד — ענת דוד שטיבלמן, באמצעות פרטי הקשר שנמסרו לכם עם קוד הגישה.</div>`;
 }
 
 /* ── שכבת הגנה שנייה: עטיפת פונקציות כתיבה לפי הרשאה ──
