@@ -94,6 +94,10 @@ tbody tr:hover{background:var(--teal-pale)}
 .btn-ghost:hover{border-color:var(--ink)}
 .btn-sm{padding:5px 12px;font-size:11px}
 .btn-xs{padding:2px 7px;font-size:10px}
+/* כפתור חזרה — גדול ומואר */
+.back-btn{background:var(--bronze,#9c7a3c);color:#fff;font-size:14px;font-weight:700;padding:10px 22px;border-radius:10px;box-shadow:0 2px 10px rgba(156,122,60,0.35);letter-spacing:0.4px}
+.back-btn:hover{background:var(--bronze-deep,#7a5f2e);transform:translateY(-1px);box-shadow:0 4px 16px rgba(156,122,60,0.5)}
+.back-btn:focus-visible{outline:3px solid rgba(156,122,60,0.5);outline-offset:2px}
 .team-card{border:1px solid #e2e2e2;border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#fff}
 .team-card.team-off{opacity:.55;background:#fafafa}
 .team-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
@@ -1302,7 +1306,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')">אדריכל היזם</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeProject()">חזרה לטבלה</button>
+      <button class="btn back-btn" id="ppBackBtn" onclick="closeProject()">‹ חזרה לטבלת התוכניות</button>
     </div>
   </div>
 
@@ -1445,16 +1449,30 @@ const STATUS_LIGHTS = {'טרם עודכן':['#999','#999','#999'],'בטיפול'
 // Normalize district names to canonical form
 function normalizeDistrict(d) {
   if (!d) return '';
+  d = String(d).trim();
   const map = {
-    'רובע א':'רובע א', 'רובע א\'':'רובע א', 'א':'רובע א', 'א\'':'רובע א',
-    'רובע ב\'':'רובע ב\'', 'ב\'':'רובע ב\'',
-    'רובע ג\'':'רובע ג\'', 'ג\'':'רובע ג\'', 'רובע  ג':'רובע ג\'',
-    'רובע ד\'':'רובע ד\'', 'ד\'':'רובע ד\'',
-    'רובע ה\'':'רובע ה\'', 'רובע ה':'רובע ה\'', 'ה\'':'רובע ה\'', 'ה':'רובע ה\'',
+    // רובעים אותיות — כל הווריאציות (עם/בלי "רובע", עם/בלי גרש) לצורה אחת
+    'רובע א':'רובע א\'', 'רובע א\'':'רובע א\'', 'א':'רובע א\'', 'א\'':'רובע א\'',
+    'רובע ב':'רובע ב\'', 'רובע ב\'':'רובע ב\'', 'ב':'רובע ב\'', 'ב\'':'רובע ב\'',
+    'רובע ג':'רובע ג\'', 'רובע ג\'':'רובע ג\'', 'ג':'רובע ג\'', 'ג\'':'רובע ג\'', 'רובע  ג':'רובע ג\'',
+    'רובע ד':'רובע ד\'', 'רובע ד\'':'רובע ד\'', 'ד':'רובע ד\'', 'ד\'':'רובע ד\'',
+    'רובע ה':'רובע ה\'', 'רובע ה\'':'רובע ה\'', 'ה':'רובע ה\'', 'ה\'':'רובע ה\'',
     'רובע ו':'רובע ו\'', 'רובע ו\'':'רובע ו\'', 'ו':'רובע ו\'', 'ו\'':'רובע ו\'',
-    'רובע ז\'':'רובע ז\'',
-    'רובע ח\'':'רובע ח\'', 'ח\'':'רובע ח\'',
-    'רובע ט\'':'רובע ט\'', 'רובע ט':'רובע ט\'', 'ט':'רובע ט\'',
+    'רובע ז':'רובע ז\'', 'רובע ז\'':'רובע ז\'', 'ז':'רובע ז\'', 'ז\'':'רובע ז\'',
+    'רובע ח':'רובע ח\'', 'רובע ח\'':'רובע ח\'', 'ח':'רובע ח\'', 'ח\'':'רובע ח\'',
+    'רובע ט':'רובע ט\'', 'רובע ט\'':'רובע ט\'', 'ט':'רובע ט\'', 'ט\'':'רובע ט\'',
+    'רובע טו':'רובע ט"ו', 'רובע טו\'':'רובע ט"ו', 'טו':'רובע ט"ו', 'טו\'':'רובע ט"ו', 'ט"ו':'רובע ט"ו',
+    // אזורים בשם — איחוד וריאציות
+    'מער דרום':'מע"ר דרום', 'מע"ר דרום':'מע"ר דרום', 'מע\\':'מע"ר דרום', 'מער':'מע"ר דרום',
+    'רובע סיטי':'סיטי', 'סיטי':'סיטי',
+    'רובע מיוחד':'רובע מיוחד', 'מיוחד':'רובע מיוחד',
+    'ריביירה':'ריביירה', 'ריבירה':'ריביירה',
+    'פארק לכיש':'פארק לכיש',
+    'מרינה':'מרינה',
+    'עורף הנמל':'עורף הנמל', 'חנ\\':'עורף הנמל',
+    'חוף יא':'חוף יא\'', 'חוף יא\'':'חוף יא\'',
+    'חוף הים':'חוף הים',
+    'אחד העם':'אחד העם',
   };
   return map[d] || d;
 }
@@ -2413,6 +2431,10 @@ function renderTable() {
   const tbody = document.getElementById('tableBody');
   const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','forumArchitect','forumConsultants','committeeDate','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
+  // מספר סידורי כמותי: 1..N לפי סדר עולה של מספר התב (הקטן=1) — יציב ללא תלות במיון/סינון
+  const serialMap = {};
+  [...plans].sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0))
+    .forEach((p,i)=>{ serialMap[p.id]=i+1; });
 
   let prevGroupVal = null;
   let groupIdx = 0;
@@ -2432,7 +2454,7 @@ function renderTable() {
 
     if (editMode) {
       return `<tr class="${groupClass}">
-        <td class="col-tik"><strong>${p.tik}</strong></td>
+        <td class="col-tik"><strong>${serialMap[p.id]}</strong></td>
         <td class="col-plannum"><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
         <td class="col-img">${renderFrameHTML(p)}</td>
         <td class="col-district"><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
@@ -2447,7 +2469,7 @@ function renderTable() {
     }
 
     return `<tr class="${groupClass}" onclick="openProject(${p.id})">
-      <td class="col-tik"><strong>${p.tik}</strong></td>
+      <td class="col-tik"><strong>${serialMap[p.id]}</strong></td>
       <td class="col-plannum">${p.planNum}</td>
       <td class="col-img" onclick="event.stopPropagation()">${renderFrameHTML(p)}</td>
       <td class="col-district">${p.district}</td>
@@ -3101,9 +3123,13 @@ function buildProjectTitle(p){
   const tav = p.planNum ? (String(p.planNum).includes('תב') ? p.planNum : ('תב/'+p.planNum)) : ('תב/'+p.tik);
   return [tav, p.district, p.location, (p.developer||p.submitter)].filter(Boolean).join(' - ');
 }
+let _projectOrigin = 'table'; // הדף שממנו נכנסו לפרויקט — לחזרה מדויקת
 function openProject(id) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
+  // זכור מהיכן הגענו (הדף הפעיל כרגע), כדי לחזור אליו
+  const active = document.querySelector('.page.active');
+  if (active && active.id && active.id !== 'projectPage') _projectOrigin = active.id;
   ensureProjectData(p);
   currentProjectId = id;
   const title = buildProjectTitle(p);
@@ -3111,6 +3137,7 @@ function openProject(id) {
   document.getElementById('ppTitle').textContent = title;
   document.getElementById('ppSub').textContent = p.projectName || '—';
   renderStageBadge(p);
+  const backBtn=document.getElementById('ppBackBtn'); if(backBtn) backBtn.textContent='‹ '+backButtonLabel();
   document.querySelectorAll('#ppTabs .pp-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
   document.getElementById('panel-info').classList.add('active');
@@ -3212,7 +3239,17 @@ function workflowStatus(p){
 }
 function closeProject() {
   currentProjectId = null;
-  go('table', document.querySelectorAll('#mainNav button')[1]);
+  const dest = _projectOrigin || 'table';
+  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7, settings:8};
+  const btn = navMap[dest]!=null ? document.querySelectorAll('#mainNav button')[navMap[dest]] : null;
+  go(dest, btn);
+}
+/** תווית כפתור החזרה לפי מקור הכניסה */
+function backButtonLabel(){
+  const labels = {landing:'חזרה לדף הראשי', table:'חזרה לטבלת התוכניות', guidelines:'חזרה להנחיות',
+    map:'חזרה למפה', trends:'חזרה למגמות', shares:'חזרה לדיווחים', muni:'חזרה לדרישות עירייה',
+    contacts:'חזרה לרשימות קשר', settings:'חזרה להגדרות'};
+  return labels[_projectOrigin] || 'חזרה למסך הקודם';
 }
 function ppTab(name, btn) {
   document.querySelectorAll('#ppTabs .pp-tab').forEach(b=>b.classList.remove('active'));
@@ -6512,7 +6549,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.8';
+const APP_VERSION = '2026.07.9';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
