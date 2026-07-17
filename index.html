@@ -818,6 +818,19 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .muni-cat{margin-bottom:1rem}
 .muni-cat-title{font-family:var(--display);font-size:14px;color:var(--teal);border-bottom:1px solid var(--fog);padding-bottom:4px;margin-bottom:8px}
 .muni-req{padding:8px 0;border-bottom:1px solid var(--fog)}
+.muni-req-info{padding:5px 0}
+.muni-req-info .muni-req-main{display:flex;align-items:flex-start;gap:8px}
+.muni-req-info .muni-bullet{color:var(--bronze,#9c7a3c);font-size:16px;line-height:1.2}
+.muni-req-info .muni-req-title{font-size:13px}
+/* מרכז המחשבונים */
+.calchub-picker{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 14px}
+.calchub-item{margin-bottom:18px}
+.chub-meta{background:#faf7f2;border:1px solid var(--stone,#e5ded4);border-inline-start:3px solid var(--bronze,#9c7a3c);border-radius:10px 10px 0 0;padding:12px 14px;font-size:13px;line-height:1.7}
+.chub-meta>div{margin:2px 0}
+.chub-topic{font-family:var(--display);font-size:16px;font-weight:700;color:var(--bordeaux,#7a1f2b)}
+.chub-k{color:var(--bronze,#9c7a3c);font-weight:700;margin-inline-end:4px}
+.chub-insight{color:#2a6f6f}
+.calchub-item .calc-card{border-radius:0 0 10px 10px;margin-top:-1px}
 .muni-req-main{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .muni-req-title{font-size:13.5px;flex:1}
 .muni-cond-tag{background:var(--bronze);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-inline-start:6px}
@@ -1123,7 +1136,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('map',this)">מפה</button>
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
-    <button onclick="go('muni',this)">דרישות גורמי עירייה</button>
+    <button onclick="go('muni',this)">אוגדן</button>
+    <button onclick="go('calchub',this)">מחשבונים</button>
     <button onclick="go('contacts',this)">רשימות קשר</button>
     <button onclick="go('settings',this)">הגדרות</button>
   </nav>
@@ -1543,11 +1557,25 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div id="settingsBody"></div>
 </div>
 
+<!-- ════════ CALCULATORS HUB PAGE (מחשבונים) ════════ -->
+<div id="calchub" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>מחשבונים</span></div>
+  <div class="page-title">מחשבונים לתהליך האישור</div>
+  <div class="page-subtitle">כל סוגי המחשבונים המשרתים את תהליך האישור מול הגורמים השונים. לכל מחשבון: נושא, מקור, משתנים, קבועים, הסברים, חישוב, קלט, פלט ותובנות.</div>
+  <div class="calc-warn-banner" style="margin-bottom:12px">⚠ הערכים והנוסחאות להמחשה בלבד — יש לאמת מול המקור הרשמי (אוגדן / תקן / תב״ע) לפני שימוש. נוסחאות מקצועיות מוזנות רק ממקור מאושר.</div>
+  <div class="calchub-picker no-print">
+    <label style="font-size:13px;font-weight:600">הרצה על תוכנית:</label>
+    <select id="calchubPlan" onchange="renderCalcHub()" style="font-size:13px;padding:5px 10px;border:1px solid var(--stone);border-radius:6px"></select>
+    <span class="muted" style="font-size:12px">— בחירת תוכנית שואבת את נתוני הקלט אליה. ללא בחירה מוצג מבנה המחשבון בלבד.</span>
+  </div>
+  <div id="calchubBody" style="margin-top:14px"></div>
+</div>
+
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
 <div id="muni" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>דרישות גורמי עירייה</span></div>
-  <div class="page-title">דרישות גורמי עירייה לתוכנית בינוי ועיצוב</div>
-  <div class="page-subtitle">צ׳ק־ליסט מקדים להכנת התוכנית, הנספחים והתיאומים הנדרשים מול גורמי העירייה.</div>
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>אוגדן</span></div>
+  <div class="page-title">אוגדן — דרישות גורמי העירייה לתוכנית בינוי ועיצוב</div>
+  <div class="page-subtitle">מידע כללי: הנספחים, הדרישות והתיאומים הנדרשים מול גורמי העירייה, לפי מחלקות.</div>
   <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
 
   <div class="muni-filters" id="muniFilters"></div>
@@ -1970,9 +1998,10 @@ function go(id, btn, isBack) {
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
   if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
+  if (id === 'calchub' && typeof renderCalcHub === 'function') { renderCalcHub(); }
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts','settings'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','calchub','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -1980,7 +2009,7 @@ function go(id, btn, isBack) {
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7, settings:8};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, calchub:7, contacts:8, settings:9};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -1994,7 +2023,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts','settings'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','calchub','contacts','settings'];
   if (routable.includes(raw)) activateNavFor(raw);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -3436,7 +3465,7 @@ function workflowStatus(p){
 function closeProject() {
   currentProjectId = null;
   const dest = _projectOrigin || 'table';
-  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, contacts:7, settings:8};
+  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, calchub:7, contacts:8, settings:9};
   const btn = navMap[dest]!=null ? document.querySelectorAll('#mainNav button')[navMap[dest]] : null;
   go(dest, btn);
 }
@@ -5508,6 +5537,11 @@ function toggleMuniFeature(f){
 }
 function renderMuniSummary(){
   const el=document.getElementById('muniSummary'); if(!el) return;
+  if(!muniInProject){
+    const depts=muniDepartments(); const total=depts.reduce((n,d)=>n+muniVisibleReqs(d).length,0);
+    el.innerHTML = `<div class="muni-sum-bar"><span><b>${depts.length}</b> מחלקות · <b>${total}</b> דרישות — מידע כללי מהאוגדן</span></div>`;
+    return;
+  }
   const s=muniOverallSummary();
   el.innerHTML = `<div class="muni-sum-bar">
     <span>מוכנות כוללת: <b>${s.pct}%</b></span><span class="wf-sep">·</span>
@@ -5570,8 +5604,8 @@ function renderMuniDepartments(){
     return `<div class="muni-dept${open?' open':''}">
       <div class="acc-head" onclick="toggleMuniDept('${dept.id}')">
         <span style="flex:1">${esc(dept.name)}</span>
-        <span class="muni-dept-count">${s.settled}/${s.total}</span>
-        <span class="date-status ${s.cls}">${s.label}</span>
+        ${muniInProject?`<span class="muni-dept-count">${s.settled}/${s.total}</span>
+        <span class="date-status ${s.cls}">${s.label}</span>`:`<span class="muni-dept-count">${reqs.length} דרישות</span>`}
         <span class="flow-chevron">▾</span>
       </div>
       ${open?`<div class="muni-dept-body">
@@ -5609,6 +5643,15 @@ function muniReqRow(dept, r, idx){
   const c = muniGetCheck(dept.id, idx);
   const needComment = (c.status==='non_compliant'||c.status==='clarification_required');
   const needNa = (c.status==='not_applicable');
+  // בדף האוגדן הכללי (לא בתוך פרויקט) — מידע בלבד, ללא בוררי סטטוס
+  if(!muniInProject){
+    return `<div class="muni-req muni-req-info">
+      <div class="muni-req-main">
+        <span class="muni-bullet">•</span>
+        <div class="muni-req-title">${esc(r.title)}${r.category==='conditional'?'<span class="muni-cond-tag">מותנה</span>':''}</div>
+      </div>
+    </div>`;
+  }
   return `<div class="muni-req muni-st-${c.status}">
     <div class="muni-req-main">
       <select class="muni-status-sel" onchange="setMuniCheck('${dept.id}',${idx},'status',this.value)">
@@ -5989,6 +6032,44 @@ function renderCalcTab(p){
     <div class="pd-intro">מחשבונים ובדיקות עצמיות — כל מחשבון שואב מנתוני הפרויקט ומציג את החישוב המלא, המקור והפער. חסר נתון/מקור מוצג במפורש ואינו מנוחש.</div>
     <div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>
     ${CALCULATORS.map(def=>renderCalcShell(p,def)).join('')}`;
+}
+
+/* ── תוספת מידע לכל מחשבון: נושא, משתנים, הסבר, תובנות (מטא-מידע קבוע) ── */
+const CALC_INFO = {
+  rights:  {topic:'זכויות בנייה, שטחים ורישוי', vars:'שטח מגרש, אחוזי בנייה, שטח עיקרי/שירות, יח״ד, קומות, גובה, תכסית', explain:'משווה בין הזכויות המותרות בתב״ע לבין המבוקש/המוצע, ומאתר חריגות הדורשות הקלה או תיקון.', insight:'חריגה בזכויות עלולה לחסום הגשה — נדרשת הקלה מאושרת או תיאום מול הוועדה.'},
+  parking: {topic:'חניה ותנועה', vars:'יח״ד לפי גודל, שטחי מסחר/תעסוקה, מיקום, חניות נגישות', explain:'מחשב את מספר מקומות החניה הנדרשים לכל שימוש לפי תקן החניה החל, ומשווה למוצע.', insight:'גירעון חניה מחייב פתרון (חניון תת-קרקעי/הסדר) לפני פורום יועצים.'},
+  trash:   {topic:'אשפה ותברואה', vars:'יח״ד, שטחי מסחר, תדירות פינוי, סוגי אצירה', explain:'מחשב את נפח האצירה ומספר מתקני האשפה הנדרשים לפי היקף וסוגי השימושים.', insight:'תיאום מוקדם עם אגף התברואה חוסך תיקונים בשלב מתקדם.'},
+  runoff:  {topic:'ניהול מי נגר וניקוז', vars:'שטח מגרש, שטח אטום/מחלחל, יעד חלחול', explain:'בודק עמידה בדרישות ניהול נגר עילי — שיעור השטח המחלחל והסדרי הניקוז.', insight:'מומלץ יעד חלחול מינימלי; יש לאמת מול דרישת אגף הניקוז.'},
+  planting:{topic:'נטיעות, הצללה ותכסית', vars:'שטח מגרש, תכסית בנויה, שטח פתוח, מספר עצים', explain:'מחשב את היקף הנטיעות, השטחים הפתוחים והתכסית המרבית מול המותר.', insight:'הצללה ונטיעות תורמות להפחתת אי-חום עירוני ולאיכות המרחב.'},
+  fees:    {topic:'אגרות והיטלים', vars:'שטחי בנייה, ייעוד, תעריפים', explain:'אומדן ראשוני של אגרות והיטלים; אינו מחליף חישוב רשמי.', insight:'אומדן בלבד — החישוב המחייב מתקבל מהגורם הרשמי.'}
+};
+function renderCalcHubShell(p, def){
+  const info = CALC_INFO[def.id] || {};
+  const shell = renderCalcShell(p, def); // כולל קלט/מקור/חישוב/תוצאה/פעולה
+  return `<div class="calchub-item">
+    <div class="chub-meta">
+      <div class="chub-topic"><span class="chub-k">נושא:</span> ${esc(info.topic||def.name)}</div>
+      ${info.vars?`<div><span class="chub-k">משתנים:</span> ${esc(info.vars)}</div>`:''}
+      ${info.explain?`<div><span class="chub-k">הסבר:</span> ${esc(info.explain)}</div>`:''}
+      ${info.insight?`<div class="chub-insight"><span class="chub-k">תובנה:</span> ${esc(info.insight)}</div>`:''}
+    </div>
+    ${shell}
+  </div>`;
+}
+function renderCalcHub(){
+  const el=document.getElementById('calchubBody'); if(!el) return;
+  const sel=document.getElementById('calchubPlan');
+  // אכלוס בורר התוכניות
+  if(sel && !sel.dataset.filled){
+    const opts=plans.slice().sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0))
+      .map(p=>`<option value="${p.id}">תב/${esc(p.tik)} — ${esc(p.district||'')} ${esc(p.location||'')}</option>`).join('');
+    sel.innerHTML='<option value="">— מבנה המחשבון בלבד —</option>'+opts; sel.dataset.filled='1';
+  }
+  const pid = sel? sel.value : '';
+  let p = pid? plans.find(x=>x.id==pid) : null;
+  if(!p){ p = {tik:'—',meta:{},plots:[],table5:{},parking:{},projectData:{}}; if(typeof ensureProjectData==='function'){ try{ ensureProjectData(p); }catch(e){} } }
+  el.innerHTML = `<div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>`
+    + CALCULATORS.map(def=>renderCalcHubShell(p,def)).join('');
 }
 
 /* ── מסך ניהול כללים (בסיסי — הוספה/עריכה) ── */
@@ -6858,7 +6939,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.13';
+const APP_VERSION = '2026.07.14';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7406,7 +7487,7 @@ function renderDocMgmt(){
     <div class="set-kv">חוות דעת שזוהו: <b>${opinionsN}</b> · תוכניות שעודכנו מהמקור: <b>${updated}</b> · סתירות פתוחות: <b>${conflicts}</b></div>
     <div class="set-kv">תמונות שחולצו/הועלו: <b>${imgsN}</b> · לא מסווגות: <b>${unclass}</b></div>
     <div class="mail-actions" style="margin-top:8px">
-      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[8]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
+      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[9]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qcBody').scrollIntoView({behavior:'smooth'})">טיפול בחריגים</button>
     </div>
     <div id="qcBody" style="margin-top:14px"></div>`;
