@@ -6288,7 +6288,7 @@ function renderCalcHubShell(p, def){
 function _fmtNum(n){ if(n==null||isNaN(n)) return '—'; return Number(n).toLocaleString('he-IL',{maximumFractionDigits:2}); }
 // מפת ערכים נוכחית — נבנית ב-runICalc מהשדות או מברירות המחדל, כדי לא להיות תלוי בתזמון DOM
 let _ICALC_VALS = {};
-function _val(id){
+function _ival(id){
   if(_ICALC_VALS[id]!=null) return _ICALC_VALS[id];
   const el=document.getElementById(id); if(!el) return 0;
   let raw = el.value; if(raw===''||raw==null) raw = el.getAttribute('value')||'';
@@ -6307,7 +6307,7 @@ const ICALC = {
       {id:'ic_commRatio',label:'תקן מסחר (להמחשה)',def:0.02,unit:'חניות למ״ר'}
     ],
     compute(){
-      const units=_val('ic_units'), ratio=_val('ic_ratio'), comm=_val('ic_commercial'), cr=_val('ic_commRatio');
+      const units=_ival('ic_units'), ratio=_ival('ic_ratio'), comm=_ival('ic_commercial'), cr=_ival('ic_commRatio');
       const resid=Math.ceil(units*ratio);
       const commercial=Math.ceil(comm*cr);
       const base=resid+commercial;
@@ -6336,7 +6336,7 @@ const ICALC = {
       {id:'ic_roof',label:'שטח גגות (אטום)',def:0,unit:'מ״ר'}
     ],
     compute(){
-      const lot=_val('ic_lot'), perm=_val('ic_perm'), roof=_val('ic_roof');
+      const lot=_ival('ic_lot'), perm=_ival('ic_perm'), roof=_ival('ic_roof');
       const need=Math.round(lot*perm/100);
       const sealed=roof;
       return {rows:[
@@ -6356,7 +6356,7 @@ const ICALC = {
       {id:'ic_treeRatio',label:'עץ לכל X מ״ר פתוח (להמחשה)',def:100,unit:'מ״ר/עץ'}
     ],
     compute(){
-      const lot=_val('ic_lot2'), cover=_val('ic_cover'), tr=_val('ic_treeRatio');
+      const lot=_ival('ic_lot2'), cover=_ival('ic_cover'), tr=_ival('ic_treeRatio');
       const built=Math.round(lot*cover/100);
       const open=lot-built;
       const trees=tr>0?Math.floor(open/tr):0;
@@ -6376,7 +6376,7 @@ const ICALC = {
       {id:'ic_floors',label:'מספר קומות',def:12,unit:'קומות'}
     ],
     compute(){
-      const floors=_val('ic_floors'), units=_val('ic_tunits');
+      const floors=_ival('ic_floors'), units=_ival('ic_tunits');
       let sol,sec;
       if(floors<=9){ sol='מיכל טמון קרקע (5 מ״ק) לפי חישוב זרם האשפה'; sec='סעיף 15א (עמ׳ 21)'; }
       else if(floors<=14){ sol='שוט אחד + דחסנית אחת לזרם האשפה; שוט נפרד לפחים כתומים (3 מ״ק)'; sec='סעיף 15ב (עמ׳ 21)'; }
@@ -6398,7 +6398,7 @@ const ICALC = {
       {id:'ic_svc',label:'שיעור שטחי שירות (להמחשה)',def:15,unit:'%'}
     ],
     compute(){
-      const lot=_val('ic_rlot'), far=_val('ic_far'), svc=_val('ic_svc');
+      const lot=_ival('ic_rlot'), far=_ival('ic_far'), svc=_ival('ic_svc');
       const total=Math.round(lot*far/100);
       const service=Math.round(total*svc/100);
       const main=total-service;
@@ -6421,7 +6421,7 @@ const ICALC = {
       {id:'ic_permitFee',label:'אגרת בנייה (להמחשה)',def:35,unit:'₪/מ״ר'}
     ],
     compute(){
-      const a=_val('ic_area'), dev=_val('ic_devLevy'), sew=_val('ic_sewLevy'), wat=_val('ic_waterLevy'), per=_val('ic_permitFee');
+      const a=_ival('ic_area'), dev=_ival('ic_devLevy'), sew=_ival('ic_sewLevy'), wat=_ival('ic_waterLevy'), per=_ival('ic_permitFee');
       const devT=a*dev, sewT=a*sew, watT=a*wat, perT=a*per;
       const total=devT+sewT+watT+perT;
       return {rows:[
@@ -7404,7 +7404,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.25';
+const APP_VERSION = '2026.07.26';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
