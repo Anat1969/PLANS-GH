@@ -48,7 +48,7 @@ const documentShim = {
 };
 // fetch מקומי: כתובות יחסיות (seed-data.json, spatial18.json) נקראות מהדיסק כמו בשרת סטטי
 const localFetch = (url, opts) => {
-  if (typeof url === 'string' && !/^https?:/.test(url)) {
+  if (typeof url === 'string' && !/^(https?:|data:)/.test(url)) {
     const p = path.join(__dirname, '..', String(url).split('?')[0]);
     try {
       const data = fs.readFileSync(p, 'utf8');
