@@ -110,6 +110,25 @@ tbody tr:hover{background:var(--teal-pale)}
 .mast-back .gb-arrow{font-size:16px;line-height:1}
 @media print{.mast-back{display:none !important}}
 #boxZoomBtn.active{background:var(--bordeaux);color:#fff;border-color:var(--bordeaux)}
+/* מחשבון אינטראקטיבי */
+.itc-card{padding:4px}
+.itc-title{font-family:var(--display);font-size:15px;font-weight:700;color:var(--bordeaux);margin-bottom:10px}
+.itc-inputs{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px}
+.itc-inputs label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+.itc-inputs input{border:1px solid var(--stone);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:14px;width:130px}
+.itc-out{margin:8px 0}
+.itc-result{background:#f2fbf5;border:1px solid #c6e9d3;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.7}
+.itc-line{margin:3px 0}
+.itc-k{color:var(--bronze);font-weight:700;margin-inline-end:4px}
+.itc-src{font-size:11.5px;color:#777;margin-top:6px}
+.itc-note{font-size:12px;color:#9a6300;background:#fdf6e3;border:1px solid #f0e4b8;border-radius:8px;padding:8px 12px;margin-top:8px}
+.itc-info{margin-top:12px;border-top:1px dashed var(--stone);padding-top:10px}
+.itc-info-t{font-size:12.5px;font-weight:700;color:var(--bordeaux);margin:6px 0 3px}
+.itc-info ul{margin:0;padding-inline-start:18px;font-size:12.5px;line-height:1.6}
+.itc-parkrules{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.itc-pr{display:grid;grid-template-columns:180px 1fr;gap:10px;border:1px solid var(--fog);border-radius:8px;padding:8px 10px;font-size:13px}
+.itc-pr-k{font-weight:700;color:var(--bordeaux)}
+@media(max-width:700px){.itc-pr{grid-template-columns:1fr}}
 /* מקרא מפה */
 .map-legend{font-size:12px;line-height:1.9;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 12px}
 .map-legend .ml-group{font-weight:700;font-size:11px;color:var(--bronze,var(--bronze));letter-spacing:0.5px;margin-bottom:2px}
@@ -6212,6 +6231,7 @@ function renderCalcHub(){
         ${info.explain?`<div><span class="chub-k">הסבר:</span> ${esc(info.explain)}</div>`:''}
         ${info.insight?`<div class="chub-insight"><span class="chub-k">תובנה:</span> ${esc(info.insight)}</div>`:''}
       </div>
+      ${interactiveCalcBlock(def.id) ? `<div class="pp-card calc-card">${interactiveCalcBlock(def.id)}</div>` : ''}
       <div class="pp-card calc-card">${calcExampleHTML(def.id)}</div>
     </div>`;
   }
@@ -7087,7 +7107,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.17';
+const APP_VERSION = '2026.07.18';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7818,6 +7838,94 @@ function downloadOpinionWord(pid){
   a.download='חוות דעת תב '+(p.tik||'')+'.doc'; a.click();
   if(typeof logAction==='function') logAction(p,'doc','הופקה חוות דעת בוורד להעלאה לקומפלוט');
   toast('חוות הדעת הורדה כקובץ Word');
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   מחשבונים אינטראקטיביים — קלט→פלט חי, מבוסס נתוני האוגדן (מקור אמת).
+   כל כלל/ערך שאינו במקור מסומן במפורש; אין המצאה.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* נתוני אשפה מהאוגדן (סעיפים 6,14,15,24; עמ' 19-21) */
+const AOGDAN_TRASH = {
+  source:'אוגדן עיריית אשדוד, נוסח 30/06/2025',
+  byFloors:[
+    {max:9,  label:'מתחת ל-10 קומות', solution:'מיכל טמון קרקע (5 מ״ק) לפי חישוב זרם האשפה', section:'סעיף 15א (עמ׳ 21)'},
+    {max:14, label:'10–14 קומות',      solution:'שוט אחד + דחסנית אחת לזרם האשפה; שוט נפרד לפחים כתומים (3 מ״ק) לזרם המחזור', section:'סעיף 15ב (עמ׳ 21)'},
+    {max:999,label:'15 קומות ומעלה',   solution:'שני דחסנים ושני שוטים — לזרם האשפה ולזרם מחזור האריזות. נפח דחסנית 12–22 מ״ק לפי זרם האשפה', section:'סעיף 15ג (עמ׳ 21)'}
+  ],
+  bins:[
+    {name:'מיכל פלסטיק ירוק',   vol:'360 ליטר'},
+    {name:'מיכל מתכת',          vol:'1,100 ליטר'},
+    {name:'טמון קרקע דגם אשדוד',vol:'5 מ״ק'},
+    {name:'מכולה',              vol:'6 / 8 / 12 מ״ק'},
+    {name:'דחסן אשפה נתיק',     vol:'12–22 מ״ק (לפי זרם)'},
+    {name:'פח כתום (אריזות)',   vol:'2.5 מ״ק'},
+    {name:'רוטוניב (נייר)',     vol:'1,500 ליטר'}
+  ],
+  businessBySqm:'עסק/מסחר: התאמת מכבש/דחסן לפי סוג עסק וגודל שטח — לדוגמה אולם שמחות/מרכולים/קניונים: עד 100 מ״ר=מכבש 5 טון · 100–300 מ״ר=8 טון · 300+ מ״ר=10 טון או דחסנית קרטון (סעיף 24, עמ׳ 21).'
+};
+
+/* נתוני חניה מהאוגדן (סעיפים 2–11; עמ׳ 9-10) — יחסים מספריים ליח״ד מופנים לתב״ע/משרד התחבורה */
+const AOGDAN_PARKING = {
+  source:'אוגדן עיריית אשדוד, סעיפים 2–11 (עמ׳ 9-10)',
+  rules:[
+    {label:'רכב פרטי ותפעולי', val:'לפי התקן בתב״ע המפורטת ובכפוף להנחיות משרד התחבורה (מידות תא, מעברים, רדיוסים). האוגדן אינו קובע יחס מספרי ליח״ד.'},
+    {label:'חניות נכים / נגישות', val:'בנוסף לסך החניות הנדרשות. לא תותר הצמדת חניית נכים ליח״ד אלא באישור ועדת התמרור. תכנון באחריות יועץ נגישות.'},
+    {label:'תפעול (פריקה/פינוי)', val:'גישת משאיות פינוי — כניסה/יציאה עם חזית הרכב בלבד. מספר תאי תפעול אינו נקוב במקור.'},
+    {label:'רכב חשמלי — חניות פרטיות', val:'תשתית הכנה לעמדות טעינה ל-100% מהחניות הפרטיות.'},
+    {label:'רכב חשמלי — מסחר', val:'20% מהחניות עם עמדות טעינה בפועל.'},
+    {label:'רמת שירות', val:'רמת שירות 1 (במבנה קיים ניתן לשקול רמת שירות 2).'},
+    {label:'חניות טוריות (רכב אחרי רכב)', val:'עד 10% מסך החניות הנדרש, במקרים חריגים בלבד, מוצמדות ליח״ד אחת.'},
+    {label:'אורחים / רכב גבוה / רכב נמוך / אופניים', val:'אינם נקובים כיחס נפרד באוגדן — נקבעים בתב״ע/בתקן החניה החל.'}
+  ]
+};
+
+/* ── מחשבון אשפה אינטראקטיבי ── */
+function interactiveTrash(){
+  const units = parseFloat(document.getElementById('itUnits')?.value)||0;
+  const floors = parseFloat(document.getElementById('itFloors')?.value)||0;
+  const out = document.getElementById('itTrashOut'); if(!out) return;
+  if(!units && !floors){ out.innerHTML='<div class="muted">הזיני מספר יח״ד ומספר קומות לקבלת המלצת אצירה מהאוגדן.</div>'; return; }
+  const tier = AOGDAN_TRASH.byFloors.find(t=>floors<=t.max) || AOGDAN_TRASH.byFloors[AOGDAN_TRASH.byFloors.length-1];
+  out.innerHTML = `
+    <div class="itc-result">
+      <div class="itc-line"><span class="itc-k">קלט:</span> ${units||'—'} יח״ד · ${floors||'—'} קומות</div>
+      <div class="itc-line"><span class="itc-k">מדרג לפי קומות:</span> <b>${esc(tier.label)}</b></div>
+      <div class="itc-line"><span class="itc-k">פתרון אצירה נדרש:</span> ${esc(tier.solution)}</div>
+      <div class="itc-src">מקור: ${esc(tier.section)} · ${esc(AOGDAN_TRASH.source)}</div>
+      <div class="itc-note">הנפח המדויק נגזר מ„חישוב זרם האשפה” לפי תקנות אצירת אשפה — האוגדן אינו נותן נוסחת ליטר-ליום ליח״ד; יש להשלים מול התקנות. הנתונים כאן ממקור מאושר בלבד.</div>
+    </div>`;
+}
+
+/* ── עזר: רינדור בלוק המחשבון האינטראקטיבי לפי סוג ── */
+function interactiveCalcBlock(calcId){
+  if(calcId==='trash'){
+    return `<div class="itc-card">
+      <div class="itc-title">מחשבון אשפה — הזיני נתונים וקבלי פתרון אצירה</div>
+      <div class="itc-inputs">
+        <label>מספר יח״ד <input type="number" min="0" id="itUnits" oninput="interactiveTrash()" placeholder="לדוגמה 40"></label>
+        <label>מספר קומות <input type="number" min="0" id="itFloors" oninput="interactiveTrash()" placeholder="לדוגמה 12"></label>
+      </div>
+      <div id="itTrashOut" class="itc-out"></div>
+      <div class="itc-info">
+        <div class="itc-info-t">כלי אצירה באוגדן:</div>
+        <ul>${AOGDAN_TRASH.bins.map(b=>`<li>${esc(b.name)} — ${esc(b.vol)}</li>`).join('')}</ul>
+        <div class="itc-info-t">עסק/מסחר לפי שטח:</div>
+        <div class="muted" style="font-size:12px">${esc(AOGDAN_TRASH.businessBySqm)}</div>
+      </div>
+    </div>`;
+  }
+  if(calcId==='parking'){
+    return `<div class="itc-card">
+      <div class="itc-title">חניה — כל הכללים מהאוגדן (נכים · תפעול · חשמלי · טוריות ועוד)</div>
+      <div class="itc-parkrules">${AOGDAN_PARKING.rules.map(r=>`
+        <div class="itc-pr"><div class="itc-pr-k">${esc(r.label)}</div><div class="itc-pr-v">${esc(r.val)}</div></div>`).join('')}</div>
+      <div class="itc-src">מקור: ${esc(AOGDAN_PARKING.source)}</div>
+      <div class="itc-note">היחס המספרי של חניות ליח״ד/מסחר/אורחים נקבע בתב״ע ובתקן החניה החל (משרד התחבורה) — לא באוגדן. לחישוב פרטני יש להזין את התקן במסך ניהול הכללים.</div>
+    </div>`;
+  }
+  return '';
 }
 
 
