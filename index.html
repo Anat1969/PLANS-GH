@@ -1459,6 +1459,16 @@ function normalizeDistrict(d) {
   return map[d] || d;
 }
 
+// ברירות מחדל לזמן משוער לכל שלב בגאנט: [ערך, יחידה]. מוגדר מוקדם כי defaultGantt נקרא בזמן טעינת ה-seed.
+const GANTT_DEFAULT_EST = {
+  'פתיחת פרויקט':[3,'ימים'],'שליחת הנחיות':[5,'ימים'],'קבלת מצגת מאדריכל':[3,'שבועות'],
+  'פגישת תיאום 1':[1,'שבועות'],'פגישת תיאום 2':[1,'שבועות'],'פורום אדריכל העיר':[2,'שבועות'],
+  'השלמות שלב 1':[3,'שבועות'],'פורום יועצים':[3,'שבועות'],'השלמות שלב 2':[3,'שבועות'],
+  'ניסוח חוות דעת':[1,'שבועות'],'ועדה':[1,'חודשים'],'חתימה ותיעוד':[3,'ימים']
+};
+const EST_UNITS = ['ימים','שבועות','חודשים'];
+function estToDays(val,unit){ const n=parseFloat(val)||0; return unit==='שבועות'?n*7:unit==='חודשים'?n*30:n; }
+
 const RAW_DATA = [
 [1714,"טו'","תב/1714","603-0262121","אד' יואל פייגין","מגרש 18","תוכנית בינוי","2024-11-26","ענת שטיבלמן","הושלם",2024,"נובמבר"],
 [1732,"מרינה","תב/ 1732","112/101/02/3","אד' דני רוזן","מגרש מרינה","תוכנית בינוי","2024-05-15","ענת שטיבלמן","הושלם",2024,"מאי"],
@@ -1774,10 +1784,7 @@ async function initCloud() {
     cloudSaveNow();
   }
 }
-initCloud();
-loadMuni();
-loadCalcRules();
-
+// initCloud/loadMuni/loadCalcRules מופעלים בסוף האתחול (INIT) אחרי שכל ההגדרות קיימות
 let filtered = [...plans];
 let currentPage = 1;
 const PAGE_SIZE = 30;
@@ -3060,15 +3067,6 @@ function genFileNumber(p) {
 }
 
 /** 12 אבני דרך סטנדרטיות (FULL-ANALYSIS דף 3 — מבנה גאנט) */
-// ברירות מחדל לזמן משוער לכל שלב: [ערך, יחידה]
-const GANTT_DEFAULT_EST = {
-  'פתיחת פרויקט':[3,'ימים'],'שליחת הנחיות':[5,'ימים'],'קבלת מצגת מאדריכל':[3,'שבועות'],
-  'פגישת תיאום 1':[1,'שבועות'],'פגישת תיאום 2':[1,'שבועות'],'פורום אדריכל העיר':[2,'שבועות'],
-  'השלמות שלב 1':[3,'שבועות'],'פורום יועצים':[3,'שבועות'],'השלמות שלב 2':[3,'שבועות'],
-  'ניסוח חוות דעת':[1,'שבועות'],'ועדה':[1,'חודשים'],'חתימה ותיעוד':[3,'ימים']
-};
-const EST_UNITS = ['ימים','שבועות','חודשים'];
-function estToDays(val,unit){ const n=parseFloat(val)||0; return unit==='שבועות'?n*7:unit==='חודשים'?n*30:n; }
 function defaultGantt() {
   const M = [
     ['פתיחת פרויקט','אדריכלית'],['שליחת הנחיות','אדריכלית'],['קבלת מצגת מאדריכל','אדריכל'],
@@ -6514,7 +6512,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.7';
+const APP_VERSION = '2026.07.8';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7221,6 +7219,10 @@ renderLanding();
 loadContactView();
 loadContacts();
 loadShares();
+// טעינות ענן/עירייה/מחשבונים — מופעלות כאן אחרי שכל ההגדרות (MUNI_TABLE, muniData, calcRules) קיימות
+initCloud();
+loadMuni();
+loadCalcRules();
 (function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
 // שחזור דף מ-hash (כתובת ישירה / רענון ללא 404)
 if (location.hash) routeFromHash();
