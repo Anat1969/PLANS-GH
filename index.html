@@ -582,7 +582,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #aiInputRow button{background:var(--teal);color:#fff;border:none;padding:0 16px;border-radius:8px;cursor:pointer;font-size:13px}
 @media print{#aiFab,#aiPanel{display:none !important}}
 /* ══════════ ארגון סרגלים: ניווט/מידע נפרד מניהול ══════════ */
-.masthead-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.masthead-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;height:auto;min-height:56px;padding-top:6px;padding-bottom:6px}
 .toolbar-nav{display:flex;gap:2px;flex-wrap:wrap}
 .toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15)}
 @media (max-width:900px){.toolbar-manage{margin-inline-start:0;border-inline-start:none;padding-inline-start:0;width:100%;justify-content:flex-start}}
@@ -6514,7 +6514,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.6';
+const APP_VERSION = '2026.07.7';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
