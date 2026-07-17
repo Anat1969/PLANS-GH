@@ -98,6 +98,41 @@ tbody tr:hover{background:var(--teal-pale)}
 .back-btn{background:var(--bronze,#9c7a3c);color:#fff;font-size:14px;font-weight:700;padding:10px 22px;border-radius:10px;box-shadow:0 2px 10px rgba(156,122,60,0.35);letter-spacing:0.4px}
 .back-btn:hover{background:var(--bronze-deep,#7a5f2e);transform:translateY(-1px);box-shadow:0 4px 16px rgba(156,122,60,0.5)}
 .back-btn:focus-visible{outline:3px solid rgba(156,122,60,0.5);outline-offset:2px}
+/* כפתור חזרה גלובלי — קבוע, גדול ומואר, בכל הדפים */
+.global-back{position:fixed;top:70px;inset-inline-start:18px;z-index:900;display:inline-flex;align-items:center;gap:6px;
+  background:var(--bronze,#9c7a3c);color:#fff;border:none;border-radius:24px;padding:9px 18px 9px 14px;
+  font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 3px 14px rgba(156,122,60,0.4);
+  transition:all .18s;letter-spacing:0.3px}
+.global-back:hover{background:var(--bronze-deep,#7a5f2e);transform:translateY(-1px);box-shadow:0 5px 20px rgba(156,122,60,0.55)}
+.global-back:focus-visible{outline:3px solid rgba(156,122,60,0.55);outline-offset:2px}
+.global-back .gb-arrow{font-size:20px;line-height:1;margin-top:-2px}
+@media(max-width:640px){.global-back{top:auto;bottom:16px;inset-inline-start:16px;padding:10px 16px}}
+@media print{.global-back{display:none !important}}
+/* מקרא מפה */
+.map-legend{font-size:12px;line-height:1.9;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 12px}
+.map-legend .ml-group{font-weight:700;font-size:11px;color:var(--bronze,#9c7a3c);letter-spacing:0.5px;margin-bottom:2px}
+.map-legend .ml-row{display:flex;align-items:center;gap:8px}
+.map-legend .ml-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.1)}
+.map-legend .ml-sq{width:13px;height:13px;border-radius:3px;flex-shrink:0;opacity:0.7}
+/* חוות דעת — שלושה כפתורים ראשיים */
+.primary-reports{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:1.5rem 0}
+.pr-card{text-align:right;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-top:4px solid var(--bordeaux,#7a1f2b);border-radius:14px;padding:20px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:6px;transition:all .18s;box-shadow:var(--shadow,0 1px 3px rgba(0,0,0,0.06))}
+.pr-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(122,31,43,0.15);border-top-color:var(--bronze,#9c7a3c)}
+.pr-title{font-family:var(--display);font-size:21px;font-weight:700;color:var(--bordeaux,#7a1f2b)}
+.pr-sub{font-size:13px;font-weight:600;color:var(--bronze,#9c7a3c)}
+.pr-desc{font-size:13px;color:var(--muted,#6b6259);line-height:1.5;flex:1}
+.pr-go{font-size:13px;font-weight:600;color:var(--teal,#2a6f6f);margin-top:4px}
+/* דוחות נוספים / ספריות — נפתחים בבחירה */
+.more-reports,.share-libs-wrap{margin:1.2rem 0;border:1px solid var(--stone,#e5ded4);border-radius:12px;background:var(--surface,#fff);overflow:hidden}
+.more-reports>summary,.share-libs-wrap>summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:14px;color:var(--bordeaux,#7a1f2b);list-style:none;user-select:none}
+.more-reports>summary::-webkit-details-marker,.share-libs-wrap>summary::-webkit-details-marker{display:none}
+.more-reports>summary::before,.share-libs-wrap>summary::before{content:'▾ ';color:var(--bronze,#9c7a3c)}
+.more-reports[open]>summary::before,.share-libs-wrap[open]>summary::before{content:'▴ '}
+.mr-grid{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 14px}
+.mr-btn{border:1px solid var(--stone,#e5ded4);background:var(--paper,#faf9f7);border-radius:8px;padding:8px 16px;font-family:inherit;font-size:13px;cursor:pointer;color:var(--ink,#211d1a);transition:.15s}
+.mr-btn:hover{border-color:var(--bronze,#9c7a3c);background:#fff}
+.mr-btn.mr-new{color:var(--teal,#2a6f6f);font-weight:600}
+.share-libs-wrap>#sharesList{padding:0 16px 14px}
 .team-card{border:1px solid #e2e2e2;border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#fff}
 .team-card.team-off{opacity:.55;background:#fafafa}
 .team-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
@@ -410,9 +445,22 @@ tbody tr:hover{background:var(--teal-pale)}
 .gl-title{font-family:var(--display);font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
 .gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
 .gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
-.gl-nav{position:static;background:var(--paper);display:flex;gap:6px;flex-wrap:wrap;padding:0.7rem 0.5rem;border-bottom:1px solid var(--stone);margin-bottom:1.5rem;border-radius:8px}
-.gl-nav a{font-size:13px;color:#fff;background:var(--teal);text-decoration:none;padding:7px 14px;border-radius:8px;white-space:nowrap;transition:all 0.15s;border:1px solid var(--teal);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.08);cursor:pointer}
-.gl-nav a:hover{background:var(--bronze);border-color:var(--bronze);transform:translateY(-1px)}
+/* דף הנחיות — פריסה עם סרגל צד קבוע (sticky) */
+.gl-layout{display:flex;gap:18px;align-items:flex-start}
+.gl-layout #gl-body{flex:1;min-width:0}
+.gl-rail{width:200px;flex:0 0 200px;position:sticky;top:78px;max-height:calc(100vh - 96px);overflow:auto}
+.gl-rail-toggle{display:none;width:100%;border:1px solid var(--bronze,#9c7a3c);background:#fff;border-radius:8px;padding:8px;font-family:inherit;font-size:12px;cursor:pointer;margin-bottom:8px}
+.gl-nav{display:flex;flex-direction:column;gap:5px;background:var(--paper);padding:0.6rem;border:1px solid var(--stone);border-radius:10px}
+.gl-nav a{font-size:12.5px;color:#fff;background:var(--teal);text-decoration:none;padding:8px 12px;border-radius:8px;transition:all 0.15s;border:1px solid var(--teal);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.08);cursor:pointer;text-align:right;line-height:1.3}
+.gl-nav a:hover{background:var(--bronze);border-color:var(--bronze)}
+.gl-nav a.gl-active{background:var(--bronze);border-color:var(--bronze)}
+@media(max-width:820px){
+  .gl-layout{flex-direction:column}
+  .gl-rail{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
+  .gl-rail-toggle{display:block}
+  .gl-nav{display:none;flex-direction:row;flex-wrap:wrap}
+  .gl-rail.open .gl-nav{display:flex}
+}
 .gl-section{margin-bottom:2.5rem;scroll-margin-top:120px}
 .gl-h2{font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);padding-bottom:0.4rem;border-bottom:2px solid var(--teal);display:inline-block;margin-bottom:0.3rem}
 .gl-sub2{font-size:13.5px;color:rgba(0,0,0,0.5);margin-bottom:1.2rem;line-height:1.6}
@@ -479,7 +527,6 @@ tbody tr:hover{background:var(--teal-pale)}
 .role-card li{font-size:12.5px;padding:3px 0;color:rgba(0,0,0,0.72)}
 @media (max-width:768px){
   #guidelines{padding:1rem}
-  .gl-nav{top:52px}
   .tri-3,.goals-grid,.dates-grid{grid-template-columns:1fr}
   .g-label{width:110px}
   .flow-detail{padding-right:1rem}
@@ -617,11 +664,14 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table .col-img{width:70px;max-width:70px}
 .plans-table .col-district{width:80px;max-width:80px}
 .plans-table .col-txt{max-width:140px;min-width:80px}
-.plans-table .col-date{width:96px;max-width:96px}
+.plans-table .col-date{width:118px;max-width:118px}
 .plans-table .col-status{width:90px;max-width:90px}
 .plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;font-size:11px}
 .plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:12px;padding:3px 5px;min-width:0}
-.plans-table .col-date input[type=date]{font-size:11px;padding:2px}
+/* בורר תאריך בטבלה — רחב מספיק, אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
+.plans-table .col-date input[type=date]{font-size:12px;padding:4px 4px;direction:ltr;text-align:center;cursor:pointer}
+.plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;padding:2px;margin:0;opacity:.75;filter:invert(20%)}
+.plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .date-legend .dt-future{color:#fff}
 .date-legend .dt-past{color:#3a6ea5}
 @media(max-width:1100px){ .plans-table .col-txt{max-width:110px} }
@@ -1053,6 +1103,11 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 </div>
 </header>
 
+<!-- כפתור חזרה גלובלי — קבוע בכל הדפים, חוזר לדף האחרון -->
+<button id="globalBack" class="global-back no-print" onclick="goBack()" style="display:none" title="חזרה לדף הקודם">
+  <span class="gb-arrow">‹</span><span class="gb-label">חזרה</span>
+</button>
+
 <!-- ════════ LANDING ════════ -->
 <div id="landing" class="page active">
   <div class="hero hero-bg">
@@ -1170,11 +1225,27 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
           <div class="layer-name">דרכים ותשתיות</div>
           <div class="layer-toggle on" data-layer="roads"></div>
         </div>
+        <div class="layer-item" onclick="toggleGIS(this,'landuse')">
+          <div class="layer-swatch" style="background:#c9a227"></div>
+          <div class="layer-name">ייעודי קרקע — GIS ארצי</div>
+          <div class="layer-toggle" data-layer="landuse"></div>
+        </div>
         <div class="layer-item" onclick="toggleGIS(this,'green')">
           <div class="layer-swatch" style="background:var(--ok)"></div>
-          <div class="layer-name">שטחים ירוקים (מתוכניות)</div>
+          <div class="layer-name">שטחים ירוקים ופארקים</div>
           <div class="layer-toggle on" data-layer="green"></div>
         </div>
+      </div>
+      <div class="section-title" style="margin-top:1.5rem">מקרא</div>
+      <div class="map-legend" id="mapLegend">
+        <div class="ml-group">סטטוס תוכנית</div>
+        <div class="ml-row"><span class="ml-dot" style="background:#c47a20"></span>בטיפול</div>
+        <div class="ml-row"><span class="ml-dot" style="background:#3d8b5e"></span>הושלם</div>
+        <div class="ml-row"><span class="ml-dot" style="background:#b84040"></span>דחוף / נסגר</div>
+        <div class="ml-row"><span class="ml-dot" style="background:#3b8bd4"></span>ממתין / טרם עודכן</div>
+        <div class="ml-group" style="margin-top:8px">שכבות</div>
+        <div class="ml-row"><span class="ml-dot" style="background:#3d8b5e"></span>שטח ירוק / פארק</div>
+        <div class="ml-row"><span class="ml-sq" style="background:#c9a227"></span>ייעודי קרקע (GIS ארצי)</div>
       </div>
       <div class="section-title" style="margin-top:1.5rem">סטטיסטיקה</div>
       <div id="mapStats" style="font-size:12px;line-height:2"></div>
@@ -1288,8 +1359,13 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <!-- ════════ GUIDELINES PAGE (דף הנחיות כללי — GuidelinesPage) ════════ -->
 <div id="guidelines" class="page">
   <div id="gl-hero"></div>
-  <nav id="gl-nav" class="gl-nav"></nav>
-  <div id="gl-body"></div>
+  <div class="gl-layout">
+    <aside class="gl-rail no-print">
+      <button class="gl-rail-toggle" onclick="this.parentNode.classList.toggle('open')">☰ ניווט</button>
+      <nav id="gl-nav" class="gl-nav"></nav>
+    </aside>
+    <div id="gl-body"></div>
+  </div>
 </div>
 
 <!-- ════════ PROJECT PAGE ════════ -->
@@ -1360,41 +1436,45 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="page-title">חוות דעת, דיווחים ושיתופים</div>
   <div class="page-subtitle">מרכז ההפקה של דיווחים, דוחות מצב ושיתופים למקבלי החלטות — הכל על בסיס הנתונים העדכניים של תוכניות הבינוי.</div>
 
-  <h3 class="rep-h">דוחות מצב מיידיים (מהנתונים)</h3>
-  <div class="shares-cards" id="reportCards">
-    <div class="share-type-card">
-      <div class="stc-head"><h3>סיכום מצב תוכניות</h3></div>
-      <p class="stc-desc">תמונת מצב מרוכזת: כמה תוכניות בכל שלב, מה בטיפול, מה הושלם — מוכן להעתקה לדיווח.</p>
-      <button class="btn btn-primary" onclick="buildReport('status')">הפקה ותצוגה</button>
-    </div>
-    <div class="share-type-card">
-      <div class="stc-head"><h3>דוח תוכניות בעיכוב</h3></div>
-      <p class="stc-desc">התוכניות שממתינות לפעולה, שחלף מועדן או שאין בהן התקדמות — ממוינות לפי דחיפות.</p>
-      <button class="btn btn-primary" onclick="buildReport('delayed')">הפקה ותצוגה</button>
-    </div>
-    <div class="share-type-card">
-      <div class="stc-head"><h3>דוח פעולות שבוצעו</h3></div>
-      <p class="stc-desc">כל הפעולות המתועדות לאחרונה (מיילים, מסמכים, שינויי סטטוס) — לתיעוד ולדיווח.</p>
-      <button class="btn btn-primary" onclick="buildReport('actions')">הפקה ותצוגה</button>
-    </div>
+  <!-- שלושת הכפתורים הראשיים -->
+  <div class="primary-reports">
+    <button class="pr-card" onclick="openCommitteeOpinion()">
+      <div class="pr-title">חוות דעת לתוכנית בינוי</div>
+      <div class="pr-sub">למהנדס הוועדה</div>
+      <div class="pr-desc">חוות הדעת המקצועית לפי פורמט, מוכנה להגשה לוועדה ולהעלאה לקומפלוט.</div>
+      <span class="pr-go">בחירת תוכנית ›</span>
+    </button>
+    <button class="pr-card" onclick="newShare('monthly-ceo-report')">
+      <div class="pr-title">דוח ניהולי</div>
+      <div class="pr-sub">למנכ״ל</div>
+      <div class="pr-desc">דוח מעקב חודשי — התקדמות, עיכובים, סיכונים והחלטות נדרשות.</div>
+      <span class="pr-go">יצירת דוח ›</span>
+    </button>
+    <button class="pr-card" onclick="newShare('mayor-facade-review')">
+      <div class="pr-title">שיתוף עיצוב</div>
+      <div class="pr-sub">לראש העיר</div>
+      <div class="pr-desc">שיתוף חזותי ותמציתי של הצעות עיצוב חזיתות והמלצת אדריכלית העיר.</div>
+      <span class="pr-go">יצירת שיתוף ›</span>
+    </button>
   </div>
+
+  <!-- דוחות נוספים מובנים — מוצגים בבחירה -->
+  <details class="more-reports">
+    <summary>דוחות נוספים מובנים</summary>
+    <div class="mr-grid">
+      <button class="mr-btn" onclick="buildReport('status')">סיכום מצב תוכניות</button>
+      <button class="mr-btn" onclick="buildReport('delayed')">תוכניות בעיכוב</button>
+      <button class="mr-btn" onclick="buildReport('actions')">פעולות שבוצעו</button>
+      <button class="mr-btn mr-new" onclick="requestNewReport()">+ בקשת דוח חדש</button>
+    </div>
+  </details>
   <div id="reportOut" style="margin:1rem 0"></div>
 
-  <h3 class="rep-h">שיתופים מעוצבים (AI)</h3>
-  <div class="shares-cards">
-    <div class="share-type-card">
-      <div class="stc-head"><h3>דוח מעקב חודשי למנכ״ל</h3></div>
-      <p class="stc-desc">דוח חודשי מקצועי, ישיר ומשכנע המסכם את מצב תוכניות הבינוי בשלב עבודה — התקדמות, עיכובים, סיכונים והחלטות נדרשות.</p>
-      <button class="btn btn-primary" onclick="newShare('monthly-ceo-report')">+ יצירת שיתוף חדש</button>
-    </div>
-    <div class="share-type-card">
-      <div class="stc-head"><h3>שיתוף עיצוב חזיתות לראש העיר</h3></div>
-      <p class="stc-desc">שיתוף חזותי, עירוני ותמציתי של הצעות לעיצוב חזיתות, חלופות תכנון, משמעות עירונית והמלצת אדריכלית העיר.</p>
-      <button class="btn btn-primary" onclick="newShare('mayor-facade-review')">+ יצירת שיתוף חדש</button>
-    </div>
-  </div>
-
-  <div id="sharesList" style="margin-top:1.5rem"></div>
+  <!-- ספריות שיתופים — מוצגות בבחירה, קומפקטיות -->
+  <details class="share-libs-wrap">
+    <summary>ספריות שיתופים שמורים</summary>
+    <div id="sharesList" style="margin-top:1rem"></div>
+  </details>
 </div>
 
 <!-- מציג שיתוף בודד (דוח/חזיתות) -->
@@ -1808,7 +1888,33 @@ let currentPage = 1;
 const PAGE_SIZE = 30;
 let sortCol = -1, sortDir = 1;
 
-function go(id, btn) {
+/* ── היסטוריית ניווט לכפתור חזרה גלובלי ── */
+let _navHistory = [];
+const PAGE_LABELS = {landing:'הדף הראשי', table:'טבלת התוכניות', guidelines:'ההנחיות', map:'המפה',
+  trends:'מגמות', shares:'דיווחים ושיתופים', muni:'דרישות עירייה', contacts:'רשימות קשר',
+  settings:'הגדרות', projectPage:'תוכנית בינוי'};
+function currentPageId(){ const a=document.querySelector('.page.active'); return a?a.id:null; }
+function pushNav(fromId){ if(fromId){ if(_navHistory[_navHistory.length-1]!==fromId) _navHistory.push(fromId); if(_navHistory.length>50) _navHistory.shift(); } }
+function updateBackBtn(){
+  const btn=document.getElementById('globalBack'); if(!btn) return;
+  const cur=currentPageId();
+  if(_navHistory.length===0 || cur==='landing'){ btn.style.display='none'; return; }
+  const prev=_navHistory[_navHistory.length-1];
+  btn.style.display='';
+  btn.querySelector('.gb-label').textContent='חזרה ל'+(PAGE_LABELS[prev]||'דף הקודם');
+}
+function goBack(){
+  if(!_navHistory.length){ return; }
+  const prev=_navHistory.pop();
+  if(prev==='projectPage' && _lastProjectId!=null){ openProject(_lastProjectId, true); }
+  else { const navMap={landing:0,table:1,guidelines:2,map:3,trends:4,shares:5,muni:6,contacts:7,settings:8};
+    const b=navMap[prev]!=null?document.querySelectorAll('#mainNav button')[navMap[prev]]:null;
+    go(prev,b,true); }
+}
+let _lastProjectId=null;
+function go(id, btn, isBack) {
+  const from=currentPageId();
+  if(!isBack && from && from!==id) pushNav(from);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
@@ -1823,6 +1929,7 @@ function go(id, btn) {
   const routable = ['landing','table','guidelines','map','trends','shares','muni','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
+  updateBackBtn();
 }
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
@@ -2725,9 +2832,25 @@ function initMap() {
     attribution: '© CartoDB © OpenStreetMap', maxZoom: 19
   }).addTo(gisMap);
 
-  // Land designation layer - Using better WMS source
+  // ייעודי קרקע — טלאים לפי רובע (המחשה מקומית)
   gisLayers.parcels = L.tileLayer.wms('https://services.arcgisonline.com/arcgis/services/World_Imagery/MapServer/WmsServer', {
     layers: '0', format: 'image/png', transparent: true, opacity: 0.25, attribution: 'Esri'
+  });
+
+  // ייעודי קרקע — שכבת GIS ארצית (govmap / ממ"ג xplan תב"עות מאושרות)
+  gisLayers.landuse = L.tileLayer.wms('https://open.govmap.gov.il/geoserver/opendata/wms', {
+    layers: 'opendata:PARCEL_ALL', format: 'image/png', transparent: true, opacity: 0.5,
+    version: '1.1.1', attribution: 'ממ"ג / govmap'
+  });
+  // גיבוי: אם ה-WMS הארצי לא נטען, ניתן להדליק שכבת landcover של OSM
+  gisLayers.landuse.on('tileerror', function(){
+    if(!gisLayers._landuseFallback){
+      gisLayers._landuseFallback = true;
+      gisMap.removeLayer(gisLayers.landuse);
+      gisLayers.landuse = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {maxZoom:19, opacity:0.55, attribution:'CyclOSM'});
+      const t=document.querySelector('.layer-toggle[data-layer=landuse]');
+      if(t && t.classList.contains('on')) gisLayers.landuse.addTo(gisMap);
+    }
   });
 
   gisLayers.roads = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
@@ -2735,24 +2858,20 @@ function initMap() {
   });
   gisLayers.roads.addTo(gisMap);
 
-  // Green spaces layer - Using OpenStreetMap with better styling
-  gisLayers.green = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, opacity: 0.4, attribution: '© OpenStreetMap contributors'
+  // שטחים ירוקים ופארקים — שכבת OSM (leisure=park/forest/grass) דרך WMS ציבורי + מרקרים מהתוכניות
+  const greenWms = L.tileLayer.wms('https://ows.mundialis.de/services/service', {
+    layers: 'OSM-Overlay-WMS', format:'image/png', transparent:true, opacity:0.45, attribution:'mundialis / OSM'
   });
-
-  // Add green spaces markers based on plan data
   const greenSpaces = L.layerGroup();
+  greenSpaces.addLayer(greenWms);
+  // מרקרים לתוכניות ירוקות/פארקים (אם קיימות)
   plans.forEach(p => {
-    if (p.purpose && (p.purpose.includes('ירוק') || p.purpose.includes('פארק') || p.purpose.includes('גן'))) {
+    if (p.purpose && (p.purpose.includes('ירוק') || p.purpose.includes('פארק') || p.purpose.includes('גן') || p.purpose.includes('נוף') || p.purpose.includes('ספורט'))) {
       let lat = p.lat, lng = p.lng;
-      if (!lat || !lng) {
-        const coords = ASHDOD_DISTRICTS[p.district];
-        if (coords) { lat = coords[0]; lng = coords[1]; }
-      }
+      if (!lat || !lng) { const c = ASHDOD_DISTRICTS[p.district]; if (c) { lat=c[0]; lng=c[1]; } }
       if (lat && lng) {
-        L.circleMarker([lat, lng], {
-          radius: 8, fillColor: '#3d8b5e', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.6
-        }).bindTooltip(`🌳 ${p.purpose}`, {direction:'top'}).addTo(greenSpaces);
+        L.circleMarker([lat, lng], { radius: 9, fillColor:'#3d8b5e', color:'#fff', weight:2, opacity:1, fillOpacity:0.7 })
+          .bindTooltip(`🌳 תב/${p.tik} — ${p.purpose}`, {direction:'top'}).addTo(greenSpaces);
       }
     }
   });
@@ -3124,12 +3243,13 @@ function buildProjectTitle(p){
   return [tav, p.district, p.location, (p.developer||p.submitter)].filter(Boolean).join(' - ');
 }
 let _projectOrigin = 'table'; // הדף שממנו נכנסו לפרויקט — לחזרה מדויקת
-function openProject(id) {
+function openProject(id, isBack) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
   // זכור מהיכן הגענו (הדף הפעיל כרגע), כדי לחזור אליו
   const active = document.querySelector('.page.active');
-  if (active && active.id && active.id !== 'projectPage') _projectOrigin = active.id;
+  if (active && active.id && active.id !== 'projectPage'){ _projectOrigin = active.id; if(!isBack) pushNav(active.id); }
+  _lastProjectId = id;
   ensureProjectData(p);
   currentProjectId = id;
   const title = buildProjectTitle(p);
@@ -4468,7 +4588,7 @@ function dupShare(id){
 }
 
 /* ── רשימת שיתופים ── */
-let _libOpen = { 'monthly-ceo-report': true, 'mayor-facade-review': true };
+let _libOpen = { 'monthly-ceo-report': false, 'mayor-facade-review': false };
 function toggleLib(type){ _libOpen[type] = !_libOpen[type]; renderSharesList(); }
 function shareItemHTML(s){
   const typeLbl = s.shareType==='monthly-ceo-report' ? 'דוח מנכ״ל' : 'שיתוף חזיתות';
@@ -5875,6 +5995,38 @@ function logAction(p, type, detail){
 }
 
 /* ══════════ דוחות מצב מיידיים (מהנתונים, ללא AI) ══════════ */
+/* ── חוות דעת למהנדס הוועדה: בחירת תוכנית → פתיחת חוות הדעת שלה ── */
+function openCommitteeOpinion(){
+  const active = plans.filter(p=>typeof planIsActive==='function'?planIsActive(p):true)
+    .sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0));
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal" style="max-width:520px">
+    <h3>חוות דעת לתוכנית בינוי — למהנדס הוועדה</h3>
+    <div class="pd-intro">בחרי את התוכנית שעבורה להפיק את חוות הדעת. תיפתח חוות הדעת המלאה (לפי הפורמט), עם אפשרות הורדה כקובץ Word לקומפלוט.</div>
+    <label class="mail-lbl">תוכנית בינוי</label>
+    <select id="coPick" class="team-f">${active.map(p=>`<option value="${p.id}">תב/${esc(p.tik)} — ${esc(p.district||'')} ${esc(p.location||'')}</option>`).join('')}</select>
+    <div class="mail-actions">
+      <button class="btn btn-primary btn-sm" onclick="const id=+document.getElementById('coPick').value;this.closest('.render-lightbox').remove();openProject(id);setTimeout(()=>ppTabByName('opinion'),150)">פתיחת חוות הדעת</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">ביטול</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+/* ── בקשת דוח חדש (מובנה) ── */
+function requestNewReport(){
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal mail-modal" style="max-width:520px">
+    <h3>בקשת דוח חדש</h3>
+    <div class="pd-intro">תארי את הדוח הרצוי (נושא, קהל יעד, נתונים לכלול). הבקשה תיפתח כטיוטת דוח מבוססת נתונים.</div>
+    <label class="mail-lbl">נושא הדוח</label><input id="rnTitle" class="team-f" placeholder="למשל: דוח תוכניות לקראת ועדה ברבעון הקרוב">
+    <label class="mail-lbl">מה לכלול</label><textarea id="rnBody" class="team-f" style="min-height:80px" placeholder="פירוט הנתונים והחתכים הרצויים"></textarea>
+    <div class="mail-actions">
+      <button class="btn btn-primary btn-sm" onclick="const t=document.getElementById('rnTitle').value||'דוח מותאם';buildReport('status');this.closest('.render-lightbox').remove();toast('נפתחה טיוטת דוח — '+t)">הפקת טיוטה</button>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">ביטול</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
 function buildReport(kind){
   const out=document.getElementById('reportOut'); if(!out) return;
   const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
@@ -6549,7 +6701,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.9';
+const APP_VERSION = '2026.07.10';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
