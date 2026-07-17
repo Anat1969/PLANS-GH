@@ -5069,7 +5069,7 @@ function renderCeoReport(s){
       <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
       <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
       <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="generateShareContent()" title="ניסוח משכנע יותר בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
+      <button class="btn btn-primary btn-sm" onclick="draftShareFromData()" title="טיוטה מהנתונים ללא שימוש ב-AI">טיוטה מהנתונים</button> <button class="btn btn-ghost btn-sm" onclick="generateShareContent()" title="ניסוח משכנע יותר בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
       <button class="btn btn-ghost btn-sm" onclick="exportShareWord()">Word</button>
       <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
@@ -5122,7 +5122,7 @@ function renderMayorShare(s){
       <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
       <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
       <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="generateShareContent()" title="ניסוח בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
+      <button class="btn btn-primary btn-sm" onclick="draftShareFromData()" title="טיוטה מהנתונים ללא שימוש ב-AI">טיוטה מהנתונים</button> <button class="btn btn-ghost btn-sm" onclick="generateShareContent()" title="ניסוח בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
       <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
     </div>
@@ -5221,6 +5221,36 @@ const SECTION_TITLES = {
   opening:'פתיח', urban:'ההקשר העירוני', recommendation:'המלצת אדריכלית העיר', decision:'החלטה מבוקשת'
 };
 
+/** טיוטת סעיף מהנתונים בלבד — ללא קריאת API (חוסך שימוש ב-AI) */
+function dataDraftSection(s, key, payload){
+  const P = payload||shareDataPayload(s);
+  const plans_ = P.plans||[];
+  const active = plans_.filter(p=>p && !['הושלם','אושר סופית','בוטל','נסגר'].includes(p.status));
+  const byStage = {}; active.forEach(p=>{ const st=p.stageLbl||p.stage||'—'; byStage[st]=(byStage[st]||0)+1; });
+  const line = o => Object.entries(o).map(([k,v])=>`• ${k}: ${v}`).join('\n');
+  switch(key){
+    case 'executive': return `נכון ל-${fmtDate(todayStr())}: ${plans_.length} תוכניות בינוי במעקב, מתוכן ${active.length} בטיפול פעיל.\n${line(byStage)}`;
+    case 'events': { const acts=(typeof recentActions==='function')?recentActions(8):[]; return acts.length? acts.map(a=>`• ${fmtDate(a.at)} — תב/${a.tik}: ${a.detail||a.type||''}`).join('\n') : 'לא תועדו אירועים מרכזיים החודש.'; }
+    case 'attention': { const t=(typeof generateTasks==='function')?generateTasks().filter(x=>x.urgency==='high'):[]; return t.length? t.slice(0,8).map(x=>`• תב/${x.tik} — ${x.blocker||x.action}`).join('\n') : 'אין תוכניות הדורשות תשומת לב חריגה החודש.'; }
+    case 'achievements': { const done=plans_.filter(p=>['הושלם','אושר סופית'].includes(p.status)); return done.length? done.map(p=>`• תב/${p.tik} — ${p.status}`).join('\n') : 'טרם נרשמו השלמות החודש.'; }
+    case 'decisions': { const t=(typeof generateTasks==='function')?generateTasks().filter(x=>x.owner&&x.owner.includes('עיר')):[]; return t.length? t.slice(0,6).map(x=>`• תב/${x.tik}: ${x.action}`).join('\n') : 'אין החלטות פתוחות הדורשות הכרעת מנכ״ל.'; }
+    case 'nextmonth': return 'נמשיך בקידום התוכניות בטיפול פעיל, השלמת חוות דעת לוועדות הקרובות, וסגירת אי-התאמות פתוחות.';
+    case 'opening': { const pr=P.project; return pr? `תוכנית בינוי תב/${pr.tik} — ${pr.district||''} ${pr.location||''}. יזם: ${pr.developer||'—'}, אדריכל: ${pr.submitter||'—'}.` : ''; }
+    case 'urban': { const pr=P.project; return pr? `ההקשר העירוני: ${pr.district||'—'}. ${pr.purpose||''}` : ''; }
+    case 'recommendation': { const pr=P.project; return (pr&&pr.opinion&&pr.opinion.recommendation)? ('המלצת אדריכלית העיר: '+pr.opinion.recommendation) : 'לניסוח המלצה לאחר השלמת הבדיקה.'; }
+    case 'decision': return 'מתבקשת התייחסות ראש העיר להצעת העיצוב.';
+    default: return '';
+  }
+}
+/** טיוטה מהנתונים לכל הסעיפים — ללא API */
+function draftShareFromData(){
+  const s=sh(); if(!s)return;
+  const payload=shareDataPayload(s);
+  const secs = SHARE_SECTIONS[s.shareType].filter(k=>!isLocked(s,k));
+  if(!s.generatedContent) s.generatedContent={};
+  secs.forEach(key=>{ s.generatedContent[key]=dataDraftSection(s,key,payload); });
+  s.updatedAt=todayStr(); saveShares(); openShare(s.id); toast('טיוטה הופקה מהנתונים (ללא AI)');
+}
 /** מפיק את כל הסעיפים הלא-נעולים דרך ה-backend של הסייען */
 async function generateShareContent(){
   const s=sh(); if(!s)return;
@@ -7107,7 +7137,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.18';
+const APP_VERSION = '2026.07.19';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
