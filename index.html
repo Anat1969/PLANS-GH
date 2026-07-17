@@ -129,6 +129,30 @@ tbody tr:hover{background:var(--teal-pale)}
 .itc-pr{display:grid;grid-template-columns:180px 1fr;gap:10px;border:1px solid var(--fog);border-radius:8px;padding:8px 10px;font-size:13px}
 .itc-pr-k{font-weight:700;color:var(--bordeaux)}
 @media(max-width:700px){.itc-pr{grid-template-columns:1fr}}
+/* הנחיות מרחביות 18 — מקרא היררכי + חיפוש */
+.sp-search{display:flex;align-items:center;gap:10px;margin:12px 0;background:var(--surface);border:1px solid var(--stone);border-radius:10px;padding:8px 12px}
+.sp-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;background:transparent}
+.sp-layout{display:flex;gap:18px;align-items:flex-start}
+.sp-toc{width:250px;flex:0 0 250px;position:sticky;top:70px;max-height:calc(100vh - 90px);overflow:auto;background:var(--surface);border:1px solid var(--stone);border-radius:12px;padding:12px}
+.sp-toc-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--bordeaux);line-height:1.3}
+.sp-toc-date{font-size:11px;color:var(--muted);margin-bottom:8px}
+.sp-chap{margin-top:6px}
+.sp-chap-head{font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;padding:5px 4px;border-radius:6px;display:flex;gap:5px;align-items:flex-start;line-height:1.3}
+.sp-chap-head:hover{background:#f5f2ec}
+.sp-chev{color:var(--bronze)}
+.sp-chap-secs{display:flex;flex-direction:column;gap:1px;padding-inline-start:14px}
+.sp-toc-sec{font-size:12px;color:#555;text-decoration:none;padding:4px 6px;border-radius:6px;cursor:pointer;border-inline-start:2px solid transparent;line-height:1.35}
+.sp-toc-sec:hover{background:#f5f5f5;color:var(--bordeaux);border-inline-start-color:var(--bronze)}
+.sp-content{flex:1;min-width:0}
+.sp-chapter{margin-bottom:1.5rem}
+.sp-h2{font-family:var(--display);font-size:21px;color:var(--bordeaux);border-bottom:2px solid var(--bronze);padding-bottom:6px;margin-bottom:12px}
+.sp-section{margin-bottom:1rem;border:1px solid var(--fog);border-radius:10px;padding:12px 14px;background:var(--surface)}
+.sp-h3{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.sp-clauses{display:flex;flex-direction:column;gap:6px}
+.sp-clause{display:flex;gap:8px;font-size:13.5px;line-height:1.7;align-items:flex-start}
+.sp-num{flex-shrink:0;font-weight:700;color:var(--bronze);min-width:42px;font-variant-numeric:tabular-nums}
+.sp-hit{background:#fde68a;color:#000;border-radius:2px;padding:0 1px}
+@media(max-width:820px){.sp-layout{flex-direction:column}.sp-toc{position:static;width:100%;flex:none;max-height:none;order:-1}}
 /* מקרא מפה */
 .map-legend{font-size:12px;line-height:1.9;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 12px}
 .map-legend .ml-group{font-weight:700;font-size:11px;color:var(--bronze,var(--bronze));letter-spacing:0.5px;margin-bottom:2px}
@@ -1186,6 +1210,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <button onclick="go('trends',this)">מגמות וסיכום</button>
     <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
     <button onclick="go('muni',this)">אוגדן</button>
+    <button onclick="go('spatial',this)">הנחיות מרחביות 18</button>
     <button onclick="go('calchub',this)">מחשבונים</button>
     <button onclick="go('contacts',this)">רשימות קשר</button>
     <button onclick="go('settings',this)">הגדרות</button>
@@ -1624,6 +1649,21 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div id="calchubBody" style="margin-top:14px"></div>
 </div>
 
+<!-- ════════ SPATIAL GUIDELINES 18 PAGE ════════ -->
+<div id="spatial" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>הנחיות מרחביות 18</span></div>
+  <div class="page-title">הנחיות מרחביות לעיר אשדוד — מהדורה 18</div>
+  <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח.</div>
+  <div class="sp-search no-print">
+    <input type="text" id="spSearch" placeholder="חיפוש מילת מפתח בכל ההנחיות…" oninput="spatialSearch(this.value)">
+    <span id="spSearchCount" class="muted"></span>
+  </div>
+  <div class="sp-layout">
+    <aside class="sp-toc no-print" id="spToc"></aside>
+    <div class="sp-content" id="spContent"></div>
+  </div>
+</div>
+
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
 <div id="muni" class="page">
   <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>אוגדן</span></div>
@@ -2052,9 +2092,10 @@ function go(id, btn, isBack) {
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
   if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
   if (id === 'calchub' && typeof renderCalcHub === 'function') { renderCalcHub(); }
+  if (id === 'spatial' && typeof renderSpatial === 'function') { renderSpatial(); }
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','calchub','contacts','settings'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -2062,7 +2103,7 @@ function go(id, btn, isBack) {
 
 /** מסמן את כפתור הניווט הראשי המתאים ל-id (לשחזור מצב מ-hash) */
 function activateNavFor(id) {
-  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, calchub:7, contacts:8, settings:9};
+  const map = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, spatial:7, calchub:8, contacts:9, settings:10};
   const btns = document.querySelectorAll('#mainNav button');
   const i = map[id]; if (i!=null && btns[i]) go(id, btns[i]);
 }
@@ -2076,7 +2117,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','table','guidelines','map','trends','shares','muni','calchub','contacts','settings'];
+  const routable = ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
   if (routable.includes(raw)) activateNavFor(raw);
 }
 window.addEventListener('hashchange', routeFromHash);
@@ -3575,7 +3616,7 @@ function workflowStatus(p){
 function closeProject() {
   currentProjectId = null;
   const dest = _projectOrigin || 'table';
-  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, calchub:7, contacts:8, settings:9};
+  const navMap = {landing:0, table:1, guidelines:2, map:3, trends:4, shares:5, muni:6, spatial:7, calchub:8, contacts:9, settings:10};
   const btn = navMap[dest]!=null ? document.querySelectorAll('#mainNav button')[navMap[dest]] : null;
   go(dest, btn);
 }
@@ -7137,7 +7178,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.19';
+const APP_VERSION = '2026.07.20';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7685,7 +7726,7 @@ function renderDocMgmt(){
     <div class="set-kv">חוות דעת שזוהו: <b>${opinionsN}</b> · תוכניות שעודכנו מהמקור: <b>${updated}</b> · סתירות פתוחות: <b>${conflicts}</b></div>
     <div class="set-kv">תמונות שחולצו/הועלו: <b>${imgsN}</b> · לא מסווגות: <b>${unclass}</b></div>
     <div class="mail-actions" style="margin-top:8px">
-      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[9]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
+      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[10]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qcBody').scrollIntoView({behavior:'smooth'})">טיפול בחריגים</button>
     </div>
     <div id="qcBody" style="margin-top:14px"></div>`;
@@ -7956,6 +7997,84 @@ function interactiveCalcBlock(calcId){
     </div>`;
   }
   return '';
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   הנחיות מרחביות 18 — מקרא היררכי (פרקים→סעיפים→תת-סעיפים) + חיפוש
+   הנתונים בקובץ spatial18.json (חולץ מהמסמך המקורי, טקסט מילולי).
+   ═══════════════════════════════════════════════════════════════ */
+let _spatialData = null;
+let _spOpenChapters = {};
+async function loadSpatial(){
+  if(_spatialData) return _spatialData;
+  const res = await fetch('spatial18.json', {cache:'no-store'});
+  if(!res.ok) throw new Error('spatial json missing');
+  _spatialData = await res.json();
+  return _spatialData;
+}
+async function renderSpatial(){
+  const toc=document.getElementById('spToc'); const content=document.getElementById('spContent');
+  if(!toc||!content) return;
+  let d; try{ d=await loadSpatial(); }catch(e){ content.innerHTML='<div class="calc-warn-banner">לא ניתן לטעון את מסמך ההנחיות המרחביות.</div>'; return; }
+  // סרגל תוכן היררכי
+  toc.innerHTML = `<div class="sp-toc-title">${esc(d.title||'הנחיות מרחביות')}</div>${(d.date?('<div class="sp-toc-date">'+esc(d.date)+'</div>'):'')}`
+    + (d.chapters||[]).map(ch=>{
+      const open=_spOpenChapters[ch.id]!==false; // פתוח כברירת מחדל
+      return `<div class="sp-chap">
+        <div class="sp-chap-head" onclick="spToggleChap('${esc(ch.id)}')"><span class="sp-chev">${open?'▾':'▸'}</span>${esc(ch.title)}</div>
+        ${open?`<div class="sp-chap-secs">${(ch.sections||[]).map(sec=>
+          `<a class="sp-toc-sec" onclick="spJump('${esc(ch.id)}','${esc(sec.id)}')">${esc(sec.title||sec.id)}</a>`).join('')}</div>`:''}
+      </div>`;
+    }).join('');
+  // תוכן מלא (כל הפרקים/סעיפים/סעיפים)
+  content.innerHTML = (d.chapters||[]).map(ch=>`
+    <section class="sp-chapter" id="spc_${esc(ch.id)}">
+      <h2 class="sp-h2">${esc(ch.title)}</h2>
+      ${(ch.sections||[]).map(sec=>`
+        <div class="sp-section" id="sps_${esc(ch.id)}_${esc(sec.id)}">
+          <h3 class="sp-h3">${esc(sec.title||sec.id)}</h3>
+          <div class="sp-clauses">${(sec.clauses||[]).map(cl=>`
+            <div class="sp-clause">${cl.num?`<span class="sp-num">${esc(cl.num)}</span>`:''}<span class="sp-text">${esc(cl.text||'')}</span></div>`).join('')}</div>
+        </div>`).join('')}
+    </section>`).join('');
+}
+function spToggleChap(id){ _spOpenChapters[id]=(_spOpenChapters[id]===false); renderSpatial(); }
+function spJump(chId,secId){
+  const el=document.getElementById('sps_'+chId+'_'+secId);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+/* ── חיפוש מילת מפתח: מדגיש בטקסט המקורי ומקפיץ למופע הראשון ── */
+function spatialSearch(q){
+  const content=document.getElementById('spContent'); const cnt=document.getElementById('spSearchCount');
+  if(!content) return;
+  q=(q||'').trim();
+  // נקה הדגשות קודמות
+  content.querySelectorAll('.sp-hit').forEach(h=>{ h.replaceWith(document.createTextNode(h.textContent)); });
+  content.normalize();
+  if(!q){ if(cnt)cnt.textContent=''; content.querySelectorAll('.sp-clause').forEach(c=>c.style.display=''); content.querySelectorAll('.sp-section,.sp-chapter').forEach(s=>s.style.display=''); return; }
+  let hits=0; const rx=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  content.querySelectorAll('.sp-clause').forEach(clause=>{
+    const txtEl=clause.querySelector('.sp-text'); if(!txtEl) return;
+    const t=txtEl.textContent;
+    if(rx.test(t)){
+      hits++;
+      txtEl.innerHTML=esc(t).replace(rx,'<mark class="sp-hit">$1</mark>');
+      clause.style.display='';
+    } else { clause.style.display='none'; }
+    rx.lastIndex=0;
+  });
+  // הסתר סעיפים/פרקים ריקים
+  content.querySelectorAll('.sp-section').forEach(sec=>{
+    const vis=[...sec.querySelectorAll('.sp-clause')].some(c=>c.style.display!=='none');
+    sec.style.display=vis?'':'none';
+  });
+  content.querySelectorAll('.sp-chapter').forEach(ch=>{
+    const vis=[...ch.querySelectorAll('.sp-section')].some(s=>s.style.display!=='none');
+    ch.style.display=vis?'':'none';
+  });
+  if(cnt) cnt.textContent = hits? (hits+' מופעים') : 'לא נמצאו מופעים';
+  const first=content.querySelector('.sp-hit'); if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 
