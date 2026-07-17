@@ -1232,6 +1232,50 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .acted-dot{color:var(--ok);font-size:12px}
 .track-table th{background:var(--teal)}
 .track-table tbody tr:hover{background:rgba(42,95,95,0.05)}
+/* ══════════ מערכת תפקידים והרשאות ══════════ */
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#faf7f2,#efe9df);display:none;align-items:center;justify-content:center;padding:20px}
+#loginOverlay.open{display:flex}
+.login-box{background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.12);max-width:860px;width:100%;padding:2rem}
+.login-title{font-family:var(--display);font-size:26px;margin-bottom:4px;text-align:center}
+.login-sub{text-align:center;color:rgba(0,0,0,0.55);font-size:14px;margin-bottom:1.6rem}
+.login-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.login-cards{grid-template-columns:1fr}}
+.login-card{border:1.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:1.1rem;cursor:pointer;transition:all .15s;background:#fff;text-align:right;font-family:inherit}
+.login-card:hover{border-color:var(--teal,#2a5f5f);box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+.login-card.sel{border-color:var(--teal,#2a5f5f);background:rgba(42,95,95,0.04)}
+.login-card .lc-icon{font-size:26px;margin-bottom:6px}
+.login-card h4{margin:0 0 4px;font-size:16px}
+.login-card p{margin:0;font-size:12.5px;color:rgba(0,0,0,0.55);line-height:1.5}
+.login-form{margin-top:1.2rem;display:none;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+.login-form.open{display:flex}
+.login-form input{padding:9px 12px;border:1px solid rgba(0,0,0,0.2);border-radius:8px;font-size:14px;min-width:180px}
+.login-err{width:100%;text-align:center;color:#a33;font-size:13px;min-height:18px}
+.role-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(42,95,95,0.08);border:1px solid rgba(42,95,95,0.25);color:var(--teal,#2a5f5f);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap}
+.role-chip .rc-out{cursor:pointer;opacity:.75;font-size:11px;text-decoration:underline}
+.lock-banner{background:rgba(42,95,95,0.07);border:1px solid rgba(42,95,95,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--teal,#2a5f5f);display:flex;gap:8px;align-items:center}
+body.role-developer .pp-panel.sec-locked input,body.role-developer .pp-panel.sec-locked textarea,
+body.role-developer .pp-panel.sec-locked select,body.role-developer .pp-panel.sec-locked button{pointer-events:none;opacity:.55}
+.dev-code-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,0.05);border:1px dashed rgba(0,0,0,0.25);border-radius:8px;padding:3px 8px;font-size:12px;cursor:pointer}
+.arch-only{display:none !important}
+body.role-architect .arch-only{display:inline-flex !important}
+body.role-manager .mode-toggle,body.role-developer .mode-toggle{display:none !important}
+body.role-manager .role-toggle,body.role-developer .role-toggle{display:none !important}
+body.role-manager [onclick*="openAddModal"],body.role-developer [onclick*="openAddModal"],
+body.role-manager [onclick*="openCalcRulesEditor"],body.role-developer [onclick*="openCalcRulesEditor"],
+body.role-manager [onclick*="toggleAi"],body.role-developer [onclick*="toggleAi"],
+body.role-manager [onclick*="previewVisualsImport"],body.role-manager [onclick*="previewImportRealContacts"],
+body.role-manager [onclick*="importBackup"],body.role-manager [onclick*="docPick"],
+body.role-manager [onclick*="addPlot"],body.role-manager [onclick*="removePlot"],
+body.role-manager [onclick*="teamAdd"],body.role-manager [onclick*="teamDel"],
+body.role-manager [onclick*="addForumEvent"],body.role-manager [onclick*="delForumEvent"],
+body.role-manager [onclick*="renderClear"],body.role-manager [onclick*="removeDoc"],
+body.role-manager [onclick*="removeComm"]{display:none !important}
+#locksModal{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center}
+#locksModal.open{display:flex}
+.locks-box{background:#fff;border-radius:12px;padding:1.4rem;max-width:560px;width:92vw;max-height:80vh;overflow:auto}
+#locksModal .lk-row{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(0,0,0,0.06);gap:10px}
+#locksModal .lk-name{font-size:14px}
+#locksModal .lk-meta{font-size:11.5px;color:rgba(0,0,0,0.5)}
 </style>
 </head>
 <body>
@@ -1241,17 +1285,17 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="logo" onclick="go('landing',this)">אשדוד <span>תוכניות בינוי</span></div>
   <!-- קבוצת ניווט/מידע -->
   <nav id="mainNav" class="toolbar-nav">
-    <button class="active" onclick="go('landing',this)">דף ראשי</button>
-    <button onclick="go('table',this)">טבלת תוכניות</button>
-    <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
-    <button onclick="go('map',this)">מפה</button>
-    <button onclick="go('trends',this)">מגמות וסיכום</button>
-    <button onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
-    <button onclick="go('muni',this)">אוגדן</button>
-    <button onclick="go('spatial',this)">הנחיות מרחביות 18</button>
-    <button onclick="go('calchub',this)">מחשבונים</button>
-    <button onclick="go('contacts',this)">רשימות קשר</button>
-    <button onclick="go('settings',this)">הגדרות</button>
+    <button class="active" data-nav="landing" onclick="go('landing',this)">דף ראשי</button>
+    <button data-nav="table" onclick="go('table',this)">טבלת תוכניות</button>
+    <button data-nav="guidelines" onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
+    <button data-nav="map" onclick="go('map',this)">מפה</button>
+    <button data-nav="trends" onclick="go('trends',this)">מגמות וסיכום</button>
+    <button data-nav="shares" onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
+    <button data-nav="muni" onclick="go('muni',this)">אוגדן</button>
+    <button data-nav="spatial" onclick="go('spatial',this)">הנחיות מרחביות 18</button>
+    <button data-nav="calchub" onclick="go('calchub',this)">מחשבונים</button>
+    <button data-nav="contacts" onclick="go('contacts',this)">רשימות קשר</button>
+    <button data-nav="settings" onclick="go('settings',this)">הגדרות</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -1265,9 +1309,60 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <span class="mode-switch"><span class="mode-knob"></span></span>
     </div>
     <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">☁ מתחבר…</span>
+    <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-out" onclick="logoutRole()">החלפת משתמש</span></span>
   </div>
 </div>
 </header>
+
+<!-- ══════════ מסך כניסה — בחירת סוג משתמש ══════════ -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-title">אשדוד — תוכניות בינוי</div>
+    <div class="login-sub">בחרו סוג משתמש כדי להיכנס למערכת</div>
+    <div class="login-cards">
+      <button class="login-card" onclick="loginPick('architect')">
+        <div class="lc-icon">👩‍💼</div><h4>אדריכלית העיר</h4>
+        <p>ענת דוד שטיבלמן — צפייה ועריכה מלאה, אישור ונעילת סעיפים</p>
+      </button>
+      <button class="login-card" onclick="loginPick('manager')">
+        <div class="lc-icon">🏛️</div><h4>הנהלת העירייה</h4>
+        <p>מנכ״ל העירייה / ראש העיר — צפייה בלבד בכל הנתונים והדוחות</p>
+      </button>
+      <button class="login-card" onclick="loginPick('developer')">
+        <div class="lc-icon">🏗️</div><h4>יזם / נציג יזם</h4>
+        <p>צפייה ועריכה בתוכנית שלכם בלבד — סעיף שאושר על ידי אדריכלית העיר ננעל</p>
+      </button>
+    </div>
+    <div class="login-form" id="lfArchitect">
+      <input type="password" id="liArchCode" placeholder="קוד גישה" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('architect')">
+      <button class="btn btn-primary" onclick="loginSubmit('architect')">כניסה</button>
+      <div class="login-err" id="liErrArchitect"></div>
+    </div>
+    <div class="login-form" id="lfManager">
+      <input type="password" id="liMgrCode" placeholder="קוד גישה" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('manager')">
+      <button class="btn btn-primary" onclick="loginSubmit('manager')">כניסה</button>
+      <div class="login-err" id="liErrManager"></div>
+    </div>
+    <div class="login-form" id="lfDeveloper">
+      <input type="text" id="liDevTik" placeholder="מס׳ תוכנית (תיק)" style="min-width:140px" inputmode="numeric" data-nolock="1">
+      <input type="text" id="liDevCode" placeholder="קוד גישה שקיבלתם" data-nolock="1" onkeydown="if(event.key==='Enter')loginSubmit('developer')">
+      <button class="btn btn-primary" onclick="loginSubmit('developer')">כניסה</button>
+      <div class="login-err" id="liErrDeveloper"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ חלונית אישור ונעילת סעיפים (אדריכלית העיר) ══════════ -->
+<div id="locksModal" onclick="if(event.target===this)closeLocksModal()">
+  <div class="locks-box">
+    <h3 style="font-family:var(--display);margin-bottom:4px">אישור ונעילת סעיפים</h3>
+    <p style="font-size:13px;color:rgba(0,0,0,0.55);margin-bottom:12px">סעיף שאושר ננעל לעריכה עבור היזם — כדי שלא ישונה לאחר האישור. ניתן לבטל אישור בכל עת.</p>
+    <div id="locksBody"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeLocksModal()">סגירה</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════ LANDING ════════ -->
 <div id="landing" class="page active">
@@ -1546,6 +1641,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     </div>
     <div class="pp-actions">
       <span id="ppStageBadge"></span>
+      <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
+      <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
       <div class="role-toggle" id="roleToggle">
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
@@ -1852,7 +1949,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2149,14 +2246,18 @@ function activateNavFor(id) {
 /** ניתוב לפי ה-hash בטעינה ובשינוי (URL ישיר) */
 function routeFromHash() {
   const raw = (location.hash||'').replace('#','');
-  // קישור ישיר לתוכנית: #project=1910  → פותח דף פרויקט לפי מס' תיק
+  // קישור ישיר לתוכנית: #project=1910 או #project=1910&code=ABC123 → פותח דף פרויקט לפי מס' תיק
   if (raw.startsWith('project=')) {
-    const tik = raw.split('=')[1];
+    const tik = new URLSearchParams(raw).get('project');
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
   const routable = ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
-  if (routable.includes(raw)) activateNavFor(raw);
+  if (routable.includes(raw)) {
+    const allow = session ? NAV_VISIBLE[session.role] : null;
+    if (allow && !allow.includes(raw)) return; // דף שאינו זמין לתפקיד הנוכחי
+    activateNavFor(raw);
+  }
 }
 window.addEventListener('hashchange', routeFromHash);
 
@@ -2186,8 +2287,10 @@ function applyGlobalMode(){
   setGuidelinesEditable(globalEdit);
   syncTableEditMode();
 }
-/** נועל/משחרר כל שדות הקלט הניתנים לעריכה (מלבד חיפוש/סינון/העלאת קבצים) */
+/** נועל/משחרר כל שדות הקלט הניתנים לעריכה (מלבד חיפוש/סינון/העלאת קבצים) — מודע לתפקיד המשתמש */
 function lockInputs(lock){
+  const role = session ? session.role : null;
+  if(role==='manager' || role===null) lock = true;   // הנהלה / לא מחובר — קריאה בלבד תמיד
   // כל שדות התוכן בכל הדפים (מלבד חיפוש/סינון/העלאה) — נעילה/שחרור לפי מצב עריכה
   const sel = '#projectPage input, #projectPage textarea, #projectPage select,' +
               '#guidelines input, #guidelines textarea';
@@ -2195,12 +2298,16 @@ function lockInputs(lock){
     if(el.type==='file') return;
     if(el.dataset.nolock==='1') return;              // שדות חיפוש/סינון — תמיד פעילים
     if(el.readOnly && el.dataset.always==='ro') return; // שדות שתמיד לקריאה (מס' תוכנית בינוי)
-    if(el.tagName==='SELECT') el.disabled = lock; else el.readOnly = lock;
+    let l = lock;
+    if(role==='developer') l = !devFieldEditable(el); // יזם — עריכה רק בסעיפים שלו שטרם אושרו
+    if(el.tagName==='SELECT') el.disabled = l;
+    else { el.readOnly = l; if(role==='developer') el.disabled = l; } // תבניות שמרנדרות disabled — שחרור ליזם בשדות מותרים
   });
-  // טקסטים עריכים (contentEditable) בכל הדפים
+  // טקסטים עריכים (contentEditable) — טקסטים גלובליים לאדריכלית העיר בלבד
   document.querySelectorAll('.gl-editable, [data-editable="1"]').forEach(el=>{
-    el.contentEditable = lock ? 'false' : 'true';
+    el.contentEditable = (role==='architect' && !lock) ? 'true' : 'false';
   });
+  if(role==='manager'||role===null){ document.querySelectorAll('#shareView [contenteditable="true"], .share-doc [contenteditable="true"]').forEach(el=>el.contentEditable='false'); }
 }
 /** הופך את טקסטי דף ההנחיות לעריכים במצב עריכה */
 function setGuidelinesEditable(on){
@@ -2485,6 +2592,8 @@ function applyFilters() {
   const today = todayStr();
   const isDone = p => ['הושלם','אושר סופית','בוטל','נסגר','תוכנית נסגרה','סגור'].includes(p.status);
   filtered = plans.filter(p => {
+    // יזם — רואה רק את התוכניות שלו (וללא סינון פעילות/הושלמו, כדי שתמיד יראה אותן)
+    if (isDeveloper()) return devOwns(p);
     // סינון לפי מצב: פעילות (ברירת מחדל) / כל / שהושלמו — לפי שדה הסטטוס
     if (tableViewMode === 'active' && isDone(p)) return false;
     if (tableViewMode === 'done' && !isDone(p)) return false;
@@ -2561,7 +2670,7 @@ function updateSortArrows(){
 let editMode = false;
 /** מסנכרן את מצב עריכת הטבלה למצב הגלובלי (כפתור עריכה יחיד) */
 function syncTableEditMode() {
-  editMode = globalEdit;
+  editMode = globalEdit && isArchitect(); // עריכת טבלה — לאדריכלית העיר בלבד
   const tbl = document.querySelector('.tbl-wrap table');
   if (tbl) tbl.classList.toggle('edit-mode', editMode);
   const tp = document.getElementById('table');
@@ -2974,7 +3083,11 @@ function addPlan() {
 }
 let _addedPlanTik = null;
 /** קישור עמוק לדף הפרויקט למילוי שדות ע"י היזם/אדריכל */
-function fillLinkFor(tik){ return location.origin + location.pathname + '#project=' + encodeURIComponent(tik); }
+function fillLinkFor(tik){
+  const p = plans.find(x=>String(x.tik)===String(tik));
+  const code = p ? devCodeFor(p) : '';
+  return location.origin + location.pathname + '#project=' + encodeURIComponent(tik) + (code ? '&code='+code : '');
+}
 function copyFillLink(){
   if(_addedPlanTik==null){ toast('הוסיפי תוכנית תחילה'); return; }
   const url = fillLinkFor(_addedPlanTik);
@@ -3540,6 +3653,7 @@ let _projectOrigin = 'table'; // הדף שממנו נכנסו לפרויקט —
 function openProject(id, isBack) {
   const p = plans.find(x=>x.id===id);
   if (!p) return;
+  if (isDeveloper() && !devOwns(p)) { toast('אין הרשאה לצפות בתוכנית זו'); return; }
   // זכור מהיכן הגענו (הדף הפעיל כרגע), כדי לחזור אליו
   const active = document.querySelector('.page.active');
   if (active && active.id && active.id !== 'projectPage'){ _projectOrigin = active.id; if(!isBack) pushNav(active.id); }
@@ -3561,6 +3675,9 @@ function openProject(id, isBack) {
   lockInputs(!globalEdit); // כבד את מצב התצוגה/עריכה על השדות שנוצרו כעת
   renderWorkflowBar(p);
   applyProjectRole(); // מיישם את מצב הצפייה (אדריכל/עיר)
+  applyLocksUI(p);    // באנרים וחסימות של סעיפים שאושרו וננעלו
+  const dc=document.getElementById('devCodeChip');
+  if(dc && isArchitect()) dc.textContent='🔑 קוד יזם: '+devCodeFor(p);
   // אם פאנל הסייען פתוח — רענן את ההקשר לפרויקט החדש
   const aip = document.getElementById('aiPanel');
   if (aip && aip.classList.contains('open')) { const b=document.getElementById('aiBody'); if(b) delete b.dataset.hasResult; aiSyncContext(); }
@@ -3589,6 +3706,9 @@ function setProjectRole(role){
 /** מיישם את מצב הצפייה: אדריכל היזם רואה מסלול נקי; אדריכלית העיר רואה הכל */
 function applyProjectRole(){
   try { projectRole = localStorage.getItem('ashdod_proj_role') || projectRole; } catch(e){}
+  // תפקיד האפליקציה גובר: יזם רואה את מבט "נציג היזם"; הנהלה את מבט אדריכלית העיר
+  if (isDeveloper()) projectRole = 'architect';
+  else if (isManager()) projectRole = 'city';
   document.querySelectorAll('#roleToggle .role-btn').forEach(b=>b.classList.toggle('active', b.dataset.role===projectRole));
   const isArch = projectRole==='architect';
   // מסלול העבודה מוצג רק לאדריכל היזם
@@ -4317,7 +4437,7 @@ function renderRequirements(p){
 function ensureSpatial(p){ if(!p.spatialChecks) p.spatialChecks={}; }
 function setSpatial(i, field, val){ const p=pj(); if(!p)return; ensureSpatial(p); if(!p.spatialChecks[i])p.spatialChecks[i]={ans:null,note:''}; if(field==='ans'&&p.spatialChecks[i].ans===val)val=null; p.spatialChecks[i][field]=val; savePlans(); renderReviewTab(p); const wb=document.getElementById('workflowBar'); if(wb)renderWorkflowBar(p); }
 function spatialSummary(p){ ensureSpatial(p); let yes=0,no=0,na=0,pending=0; SPATIAL_GUIDELINES.forEach((_,i)=>{ const c=p.spatialChecks[i]||{ans:null}; if(c.ans==='yes')yes++; else if(c.ans==='no')no++; else if(c.ans==='na')na++; else pending++; }); return {total:SPATIAL_GUIDELINES.length,yes,no,na,pending}; }
-function renderSpatial(p){
+function renderSpatialChecks(p){
   ensureSpatial(p);
   const sm = spatialSummary(p);
   const rows = SPATIAL_GUIDELINES.map((g,i)=>{
@@ -4346,7 +4466,7 @@ function renderReviewTab(p) {
   const el = document.getElementById('panel-review');
   let html = renderTable5(p);          // מנוע החוקים — מותר מול מוצע
   html += renderRequirements(p);        // דרישות עירוניות רלוונטיות
-  html += renderSpatial(p);             // 18 הנחיות מרחביות
+  html += renderSpatialChecks(p);       // 18 הנחיות מרחביות
   if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
     html += renderStage2(p);
   } else {
@@ -5786,7 +5906,7 @@ function muniContactHTML(dept){
     </div>
   </div>`).join('');
 }
-function muniIsAdmin(){ return projectRole==='city' || globalEdit; }
+function muniIsAdmin(){ return isArchitect() && (projectRole==='city' || globalEdit); }
 function copyMuniEmail(email){ navigator.clipboard.writeText(email).then(()=>toast('המייל הועתק')).catch(()=>toast(email)); }
 function editMuniContact(deptId, ci){
   const dept = muniDepartments().find(d=>d.id===deptId); if(!dept) return;
@@ -6904,29 +7024,29 @@ function renderTeam(p){
   const rows=(p.devTeam||[]).map((m,i)=>`
     <div class="team-card ${m.active===false?'team-off':''}">
       <div class="team-head">
-        <input class="team-f" value="${esc(m.name||'')}" placeholder="שם" onchange="teamSet(${i},'name',this.value)" ${globalEdit?'':'disabled'}>
-        <input class="team-f" value="${esc(m.org||'')}" placeholder="חברה/ארגון" onchange="teamSet(${i},'org',this.value)" ${globalEdit?'':'disabled'}>
-        <input class="team-f" value="${esc(m.title||'')}" placeholder="תפקיד" onchange="teamSet(${i},'title',this.value)" ${globalEdit?'':'disabled'}>
-        <input class="team-f" value="${esc(m.phone||'')}" placeholder="טלפון" onchange="teamSet(${i},'phone',this.value)" ${globalEdit?'':'disabled'}>
-        <label class="chk-inline"><input type="checkbox" ${m.active!==false?'checked':''} onchange="teamSet(${i},'active',this.checked)" ${globalEdit?'':'disabled'}> פעיל</label>
-        ${globalEdit?`<button class="btn btn-ghost btn-sm" onclick="teamDel(${i})">מחק</button>`:''}
+        <input class="team-f" value="${esc(m.name||'')}" placeholder="שם" onchange="teamSet(${i},'name',this.value)" ${uiCanEdit('team')?'':'disabled'}>
+        <input class="team-f" value="${esc(m.org||'')}" placeholder="חברה/ארגון" onchange="teamSet(${i},'org',this.value)" ${uiCanEdit('team')?'':'disabled'}>
+        <input class="team-f" value="${esc(m.title||'')}" placeholder="תפקיד" onchange="teamSet(${i},'title',this.value)" ${uiCanEdit('team')?'':'disabled'}>
+        <input class="team-f" value="${esc(m.phone||'')}" placeholder="טלפון" onchange="teamSet(${i},'phone',this.value)" ${uiCanEdit('team')?'':'disabled'}>
+        <label class="chk-inline"><input type="checkbox" ${m.active!==false?'checked':''} onchange="teamSet(${i},'active',this.checked)" ${uiCanEdit('team')?'':'disabled'}> פעיל</label>
+        ${uiCanEdit('team')?`<button class="btn btn-ghost btn-sm" onclick="teamDel(${i})">מחק</button>`:''}
       </div>
       <div class="team-emails">
         ${(m.emails||[]).map((e,j)=>`
           <div class="team-email">
-            <input class="team-f" value="${esc(e.addr||'')}" placeholder="כתובת מייל" onchange="teamEmailSet(${i},${j},'addr',this.value)" ${globalEdit?'':'disabled'}>
-            <label class="chk-inline"><input type="radio" name="prim${i}" ${e.primary?'checked':''} onchange="teamEmailPrimary(${i},${j})" ${globalEdit?'':'disabled'}> ראשי</label>
-            <label class="chk-inline"><input type="checkbox" ${e.cc?'checked':''} onchange="teamEmailSet(${i},${j},'cc',this.checked)" ${globalEdit?'':'disabled'}> עותק</label>
-            <label class="chk-inline"><input type="checkbox" ${e.active!==false?'checked':''} onchange="teamEmailSet(${i},${j},'active',this.checked)" ${globalEdit?'':'disabled'}> פעיל</label>
-            ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="teamEmailDel(${i},${j})">✕</button>`:''}
+            <input class="team-f" value="${esc(e.addr||'')}" placeholder="כתובת מייל" onchange="teamEmailSet(${i},${j},'addr',this.value)" ${uiCanEdit('team')?'':'disabled'}>
+            <label class="chk-inline"><input type="radio" name="prim${i}" ${e.primary?'checked':''} onchange="teamEmailPrimary(${i},${j})" ${uiCanEdit('team')?'':'disabled'}> ראשי</label>
+            <label class="chk-inline"><input type="checkbox" ${e.cc?'checked':''} onchange="teamEmailSet(${i},${j},'cc',this.checked)" ${uiCanEdit('team')?'':'disabled'}> עותק</label>
+            <label class="chk-inline"><input type="checkbox" ${e.active!==false?'checked':''} onchange="teamEmailSet(${i},${j},'active',this.checked)" ${uiCanEdit('team')?'':'disabled'}> פעיל</label>
+            ${uiCanEdit('team')?`<button class="btn btn-ghost btn-xs" onclick="teamEmailDel(${i},${j})">✕</button>`:''}
           </div>`).join('')}
-        ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="teamEmailAdd(${i})">+ הוסף מייל</button>`:''}
+        ${uiCanEdit('team')?`<button class="btn btn-ghost btn-xs" onclick="teamEmailAdd(${i})">+ הוסף מייל</button>`:''}
       </div>
     </div>`).join('');
   el.innerHTML=`
     <div class="pd-intro">צוות היזם ואנשי הקשר של התוכנית. ניתן להגדיר מספר כתובות מייל לכל איש קשר, לסמן נמען ראשי/עותק, ולהשבית נמענים. אלו הנמענים המוצעים בכל ניסוח מייל. <b>אין להזין כתובות שאינן ידועות בוודאות.</b></div>
     ${rows||'<div class="muted">אין אנשי קשר עדיין.</div>'}
-    ${globalEdit?'<button class="btn btn-primary btn-sm" onclick="teamAdd()">+ הוסף איש קשר</button>':''}
+    ${uiCanEdit('team')?'<button class="btn btn-primary btn-sm" onclick="teamAdd()">+ הוסף איש קשר</button>':''}
     <div class="team-summary">נמענים פעילים כעת — אל: <b>${rec.to.length?esc(rec.to.join(', ')):'—'}</b> · עותק: <b>${rec.cc.length?esc(rec.cc.join(', ')):'—'}</b></div>`;
 }
 function teamAdd(){ const p=pj(); if(!p) return; p.devTeam=p.devTeam||[]; p.devTeam.push({name:'',org:'',title:'',phone:'',active:true,emails:[]}); savePlans(); renderTeam(p); }
@@ -7437,9 +7557,9 @@ function renderSettings(){
         <button class="btn btn-primary btn-sm" onclick="previewImportRealContacts()">ייבוא אנשי קשר מהמקור</button>
       </div>
       <div class="set-card">
-        <h3>ניהול הרשאות ומשתמשים</h3>
-        <p class="set-desc">תפקיד נוכחי בדף פרויקט נקבע במתג „אדריכל היזם / אדריכלית העיר”. ניהול משתמשים מלא — בפיתוח.</p>
-        <span class="set-badge">בקרוב</span>
+        <h3>משתמשים והרשאות</h3>
+        <p class="set-desc">שלושה סוגי משתמשים: <b>אדריכלית העיר</b> — עריכה מלאה ואישור/נעילת סעיפים · <b>הנהלת העירייה</b> (מנכ״ל/ראש העיר) — צפייה בלבד · <b>יזמים</b> — עריכת התוכנית שלהם בלבד, עד לאישור.</p>
+        <div id="roleAdminBody"></div>
       </div>
       <div class="set-card">
         <h3>הגדרות תצוגה, צבעים ועיצוב</h3>
@@ -7473,6 +7593,7 @@ function renderSettings(){
     </div>`;
   try{ const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); const e=document.getElementById('setLastSave'); if(s&&s.savedAt&&e) e.textContent=new Date(s.savedAt).toLocaleString('he-IL'); }catch(e){}
   if(typeof renderDocMgmt==='function') renderDocMgmt();
+  if(typeof renderRoleAdmin==='function') renderRoleAdmin();
 }
 
 /* ── גיבוי/שחזור ── */
@@ -7597,11 +7718,11 @@ function renderVisualMaterial(p){
   const catBlocks = VIS_CATS.map(c=>{
     const items=visualsByCat(p,c.id);
     const thumbs = items.map(v=>`
-      <div class="vm-thumb" draggable="${globalEdit?'true':'false'}" data-vid="${v.id}"
+      <div class="vm-thumb" draggable="${uiCanEdit('graphics')?'true':'false'}" data-vid="${v.id}"
            ondragstart="vmDragStart(event,'${v.id}')" title="${esc(v.title||'')}">
         <img src="${v.src}" alt="${esc(v.title||'')}" loading="lazy" onclick="openViewer(${p.id},'${v.id}')">
         <div class="vm-thumb-meta">${esc(v.title||VIS_CAT_LBL[v.cat])}${v.page?(' · עמ׳ '+v.page):''}</div>
-        ${globalEdit?`<div class="vm-thumb-tools no-print">
+        ${uiCanEdit('graphics')?`<div class="vm-thumb-tools no-print">
           <select onchange="vmSetCat('${p.id}','${v.id}',this.value)" title="שינוי סיווג">${VIS_CATS.map(x=>`<option value="${x.id}" ${x.id===v.cat?'selected':''}>${x.name}</option>`).join('')}</select>
           <button class="btn btn-xs" onclick="vmDelete('${p.id}','${v.id}')">✕</button>
         </div>`:''}
@@ -7609,14 +7730,14 @@ function renderVisualMaterial(p){
     return `<div class="vm-cat" ondragover="event.preventDefault();this.classList.add('vm-drop')" ondragleave="this.classList.remove('vm-drop')" ondrop="vmDrop(event,'${p.id}','${c.id}')">
       <div class="vm-cat-head"><span>${c.name}</span><span class="vm-count">${items.length}</span></div>
       ${items.length?`<div class="vm-grid">${thumbs}</div>`:`
-        <div class="vm-empty ${globalEdit?'':'vm-empty-ro'}">
+        <div class="vm-empty ${uiCanEdit('graphics')?'':'vm-empty-ro'}">
           <span>אין חומר בקטגוריה זו</span>
-          ${globalEdit?`<div class="vm-empty-actions">
+          ${uiCanEdit('graphics')?`<div class="vm-empty-actions">
             <button class="btn btn-ghost btn-xs" onclick="vmPickFile('${p.id}','${c.id}')">בחירת קובץ</button>
             <span class="muted">· גרירה · הדבקה (Ctrl+V)</span>
           </div>`:''}
         </div>`}
-      ${items.length&&globalEdit?`<button class="btn btn-ghost btn-xs" onclick="vmPickFile('${p.id}','${c.id}')">+ הוספה לקטגוריה</button>`:''}
+      ${items.length&&uiCanEdit('graphics')?`<button class="btn btn-ghost btn-xs" onclick="vmPickFile('${p.id}','${c.id}')">+ הוספה לקטגוריה</button>`:''}
     </div>`;
   }).join('');
   el.innerHTML=`
@@ -7747,7 +7868,7 @@ function renderHarmonica(p){
     <div class="detail-section-title">הרמוניקה</div>
     <div class="muted" style="font-size:12px;margin-bottom:8px">מסמכי הרמוניקה של התוכנית (PDF ארוך/רב-עמודי, תמונות פנורמיות). נפתחים בתוך האפליקציה — תצוגה רציפה או תצוגת קנבס עם זום וניווט. לא מומרים לתמונות קטנות.</div>
     <input type="file" id="harmFileInput" accept="application/pdf,image/*" style="display:none" onchange="harmSelected(this)">
-    ${globalEdit?`<div class="harm-drop" ondragover="event.preventDefault();this.classList.add('vm-drop')" ondragleave="this.classList.remove('vm-drop')" ondrop="harmDrop(event,'${p.id}')">
+    ${uiCanEdit('graphics')?`<div class="harm-drop" ondragover="event.preventDefault();this.classList.add('vm-drop')" ondragleave="this.classList.remove('vm-drop')" ondrop="harmDrop(event,'${p.id}')">
       <button class="btn btn-ghost btn-sm" onclick="window._harmPid='${p.id}';document.getElementById('harmFileInput').click()">העלאת הרמוניקה</button>
       <span class="muted">· גרירת קובץ לכאן</span></div>`:''}
     <div class="harm-list">${items.length?items.map(h=>`
@@ -7756,7 +7877,7 @@ function renderHarmonica(p){
           <span class="harm-item-tools">
             <button class="btn btn-ghost btn-xs" onclick="openHarmonica('${p.id}','${h.id}','flow')">תצוגה רציפה</button>
             <button class="btn btn-ghost btn-xs" onclick="openHarmonica('${p.id}','${h.id}','canvas')">תצוגת קנבס</button>
-            ${globalEdit?`<button class="btn btn-ghost btn-xs" onclick="harmDelete('${p.id}','${h.id}')">מחק</button>`:''}
+            ${uiCanEdit('graphics')?`<button class="btn btn-ghost btn-xs" onclick="harmDelete('${p.id}','${h.id}')">מחק</button>`:''}
           </span></div>
       </div>`).join(''):'<div class="muted">אין הרמוניקה עדיין.</div>'}</div>`;
 }
@@ -8304,6 +8425,284 @@ function spatialSearch(q){
 }
 
 
+/* ══════════ מערכת תפקידים והרשאות — אדריכלית העיר / הנהלה / יזמים ══════════
+   שלושה סוגי משתמשים:
+   architect — אדריכלית העיר: צפייה ועריכה מלאה + אישור ונעילת סעיפים.
+   manager   — מנכ״ל העירייה / ראש העיר: צפייה בלבד בכל המערכת.
+   developer — יזם: צפייה ועריכה בתוכניות שלו בלבד; סעיף שאושר ע"י האדריכלית ננעל.
+   הערה: זו בקרת הרשאות ברמת הממשק (כל הלקוחות חולקים מפתח Supabase ציבורי). */
+const SESSION_KEY = 'ashdod_session_v2';
+const ROLE_CODES_LS = 'ashdod_role_codes_v1';
+let roleCodes = { architect: 'anat2026', manager: 'ashdod2026' };
+let session = null; // {role:'architect'|'manager'|'developer', tiks:[], at}
+let _pendingDevLink = null;
+
+const ROLE_LABELS = { architect:'אדריכלית העיר — עריכה מלאה', manager:'הנהלת העירייה — צפייה בלבד', developer:'יזם' };
+// הסעיפים שהיזם רשאי לערוך בתוכנית שלו (מפתח = מזהה פאנל בדף הפרויקט)
+const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ועקרונות', muni:'דרישות עירייה', data:'נתוני פרויקט', team:'צוות היזם', calc:'מחשבונים והשוואה', review:'בדיקת התאמה', graphics:'חומר גרפי', docs:'מסמכים' };
+// שדות שהיזם לעולם אינו עורך גם בסעיפים המותרים (סטטוס, שלב, מטפל, פורומים, החלטות, חוו"ד, גאנט)
+const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(/;
+// אילו דפים ראשיים זמינים לכל תפקיד (null = הכל)
+const NAV_VISIBLE = {
+  architect: null,
+  manager: ['landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts'],
+  developer: ['table','guidelines','muni','spatial','calchub']
+};
+
+function isArchitect(){ return !!session && session.role==='architect'; }
+function isManager(){ return !!session && session.role==='manager'; }
+function isDeveloper(){ return !!session && session.role==='developer'; }
+function devOwns(p){ return isDeveloper() && !!p && (session.tiks||[]).map(String).includes(String(p.tik)); }
+function planLocks(p){ if(!p.locks) p.locks={}; return p.locks; }
+function sectionLocked(p, sec){ const L=(p&&p.locks)||{}; return !!(L.__all || L[sec]); }
+/** האם המשתמש הנוכחי רשאי לערוך סעיף נתון בתוכנית */
+function canEditSection(p, sec){
+  if(isArchitect()) return true;
+  if(isDeveloper()) return devOwns(p) && (sec in DEV_SECTIONS) && !sectionLocked(p, sec);
+  return false;
+}
+/** לשימוש בתבניות: האם המשתמש הנוכחי רשאי לערוך סעיף זה כרגע (אדריכלית — לפי מתג העריכה; יזם — לפי בעלות ונעילה) */
+function uiCanEdit(sec){
+  if(!session || isManager()) return false;
+  if(isArchitect()) return globalEdit;
+  if(isDeveloper()){ const p=pj(); return !!p && canEditSection(p, sec); }
+  return false;
+}
+/** האם שדה DOM נתון פתוח לעריכת היזם (לפי הפאנל, הנעילות וסוג השדה) */
+function devFieldEditable(el){
+  const p = pj();
+  if(!p || !devOwns(p)) return false;
+  const panel = el.closest('.pp-panel'); if(!panel) return false;
+  const sec = panel.id.replace('panel-','');
+  if(!(sec in DEV_SECTIONS)) return false;
+  if(sectionLocked(p, sec)) return false;
+  const attrs = (el.getAttribute('onchange')||'')+(el.getAttribute('oninput')||'')+(el.getAttribute('onclick')||'');
+  if(DEV_FIELD_BLOCK.test(attrs)) return false;
+  return true;
+}
+
+/* ── קודי גישה ליזמים ── */
+function genDevCode(){ const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; }
+/** קוד הגישה של היזם לתוכנית; נוצר אוטומטית ע"י האדריכלית בפתיחת הדף */
+function devCodeFor(p){ if(!p) return ''; if(!p.devCode){ if(!isArchitect()) return ''; p.devCode = genDevCode(); savePlans(); } return p.devCode; }
+function copyDevLink(){ const p=pj(); if(!p) return; const url=fillLinkFor(p.tik); navigator.clipboard.writeText(url).then(()=>toast('קישור כניסת היזם הועתק — כולל קוד גישה')).catch(()=>toast('קוד היזם: '+devCodeFor(p))); }
+
+/* ── קודי גישה של תפקידים — מקומי + ענן ── */
+function loadRoleCodesLocal(){ try{ const l=JSON.parse(localStorage.getItem(ROLE_CODES_LS)||'null'); if(l&&l.architect) roleCodes={...roleCodes,...l}; }catch(e){} }
+async function loadRoleCodesCloud(){
+  try{
+    const res=await fetch(SB_URL+'/rest/v1/'+MUNI_TABLE+'?select=data&id=eq.role_codes',{headers:SB_HEADERS});
+    if(res.ok){ const rows=await res.json(); const d=rows[0]&&rows[0].data; if(d&&d.architect){ roleCodes={...roleCodes,...d}; try{localStorage.setItem(ROLE_CODES_LS,JSON.stringify(roleCodes));}catch(e){} } }
+  }catch(e){}
+}
+async function saveRoleCodes(){
+  try{ localStorage.setItem(ROLE_CODES_LS, JSON.stringify(roleCodes)); }catch(e){}
+  try{ await fetch(SB_URL+'/rest/v1/'+MUNI_TABLE+'?on_conflict=id',{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'role_codes',data:roleCodes,updated_at:new Date().toISOString()}])}); }catch(e){}
+}
+function setRoleCode(role,val){ val=String(val||'').trim(); if(!val){ toast('קוד ריק לא נשמר'); renderRoleAdmin(); return; } roleCodes[role]=val; saveRoleCodes(); toast('קוד הגישה עודכן'); }
+/** כרטיס ניהול ההרשאות בדף ההגדרות */
+function renderRoleAdmin(){
+  const el=document.getElementById('roleAdminBody'); if(!el) return;
+  if(!isArchitect()){ el.innerHTML='<p class="set-desc">ניהול קודי גישה — לאדריכלית העיר בלבד.</p>'; return; }
+  el.innerHTML = `
+    <div class="pp-field"><label>קוד גישה — אדריכלית העיר</label><input type="text" data-nolock="1" value="${esc(roleCodes.architect)}" onchange="setRoleCode('architect',this.value)"></div>
+    <div class="pp-field"><label>קוד גישה — הנהלת העירייה (צפייה בלבד)</label><input type="text" data-nolock="1" value="${esc(roleCodes.manager)}" onchange="setRoleCode('manager',this.value)"></div>
+    <p class="set-desc" style="margin-top:8px">קוד גישה ליזם מופיע בכותרת של כל דף תוכנית (🔑) — לחיצה מעתיקה קישור כניסה ישיר לשליחה ליזם. הקודים מגבילים את הממשק בלבד ואינם תחליף לאבטחת מידע מלאה.</p>`;
+}
+
+/* ── מסך כניסה ── */
+function loginPick(role){
+  const idx={architect:0,manager:1,developer:2}[role];
+  document.querySelectorAll('.login-cards .login-card').forEach((c,i)=>c.classList.toggle('sel', i===idx));
+  document.querySelectorAll('.login-form').forEach(f=>f.classList.remove('open'));
+  const f=document.getElementById('lf'+role.charAt(0).toUpperCase()+role.slice(1));
+  if(f){ f.classList.add('open'); const inp=f.querySelector('input'); if(inp)setTimeout(()=>inp.focus(),60); }
+}
+function loginErr(role,msg){ const e=document.getElementById('liErr'+role.charAt(0).toUpperCase()+role.slice(1)); if(e)e.textContent=msg||''; }
+function loginSubmit(role){
+  if(role==='architect'){
+    const code=(document.getElementById('liArchCode').value||'').trim();
+    if(code!==String(roleCodes.architect)) return loginErr('architect','קוד שגוי');
+    return startSession({role:'architect'});
+  }
+  if(role==='manager'){
+    const code=(document.getElementById('liMgrCode').value||'').trim();
+    if(code!==String(roleCodes.manager)) return loginErr('manager','קוד שגוי');
+    return startSession({role:'manager'});
+  }
+  const tik=(document.getElementById('liDevTik').value||'').trim();
+  const code=(document.getElementById('liDevCode').value||'').trim().toUpperCase();
+  if(!tik||!code) return loginErr('developer','נא למלא מס׳ תוכנית וקוד גישה');
+  const p=plans.find(x=>String(x.tik)===String(tik));
+  if(!p) return loginErr('developer','תוכנית לא נמצאה');
+  if(!p.devCode || String(p.devCode).toUpperCase()!==code) return loginErr('developer','קוד גישה שגוי — פנו לאדריכלית העיר');
+  startSession({role:'developer', tiks:[String(p.tik)]});
+}
+function startSession(s){
+  session={...s, at:new Date().toISOString()};
+  try{ localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }catch(e){}
+  const ov=document.getElementById('loginOverlay'); if(ov)ov.classList.remove('open');
+  applyRoleUI();
+  populateFilters(); applyFilters(); renderLanding();
+  if(isDeveloper()){
+    const p=plans.find(x=>String(x.tik)===String((session.tiks||[])[0]));
+    if(p) openProject(p.id); else activateNavFor('table');
+  }
+  toast('ברוכים הבאים — '+(ROLE_LABELS[session.role]||''));
+}
+function logoutRole(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  location.hash=''; location.reload();
+}
+/** כניסה אוטומטית של יזם מקישור: #project=1910&code=ABC123 (ממתין לטעינת נתוני הענן) */
+function tryPendingDevLogin(){
+  if(!_pendingDevLink) return;
+  const {tik,code}=_pendingDevLink;
+  const p=plans.find(x=>String(x.tik)===String(tik));
+  if(p && p.devCode && String(p.devCode).toUpperCase()===code){
+    _pendingDevLink=null;
+    startSession({role:'developer', tiks:[String(p.tik)]});
+    return;
+  }
+  _pendingDevLink.tries=(_pendingDevLink.tries||0)+1;
+  if(_pendingDevLink.tries<12){ setTimeout(tryPendingDevLogin,1000); }
+  else { _pendingDevLink=null; const ov=document.getElementById('loginOverlay'); if(ov)ov.classList.add('open'); toast('קישור הכניסה אינו תקף — נא להיכנס ידנית'); }
+}
+function initRoles(){
+  loadRoleCodesLocal(); loadRoleCodesCloud();
+  try{ session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); }catch(e){ session=null; }
+  if(session && !ROLE_LABELS[session.role]) session=null;
+  const raw=(location.hash||'').replace('#','');
+  if(raw.startsWith('project=') && !session){
+    const params=new URLSearchParams(raw);
+    const tik=params.get('project'), code=(params.get('code')||'').toUpperCase();
+    if(tik && code){ _pendingDevLink={tik,code,tries:0}; tryPendingDevLogin(); }
+  }
+  if(!session && !_pendingDevLink){ const ov=document.getElementById('loginOverlay'); if(ov)ov.classList.add('open'); }
+  applyRoleUI();
+  if(session){ applyFilters(); } // רענון סינון לפי התפקיד (יזם רואה רק את תוכניותיו)
+  // יזם מחובר ללא קישור ישיר — פתיחת התוכנית שלו אחרי סיום האתחול
+  if(isDeveloper() && !(location.hash||'').includes('project=')){
+    const p=plans.find(x=>String(x.tik)===String((session.tiks||[])[0]));
+    if(p) setTimeout(()=>openProject(p.id),0);
+  }
+}
+/** מיישם את מגבלות התפקיד על הממשק כולו */
+function applyRoleUI(){
+  document.body.classList.remove('role-architect','role-manager','role-developer');
+  if(session) document.body.classList.add('role-'+session.role);
+  if(session && !isArchitect() && globalEdit){ globalEdit=false; } // מצב עריכה גלובלי — לאדריכלית בלבד
+  const allow = session ? NAV_VISIBLE[session.role] : null;
+  document.querySelectorAll('#mainNav button').forEach(b=>{
+    const id=b.dataset.nav; if(!id) return;
+    b.style.display = (!allow || allow.includes(id)) ? '' : 'none';
+  });
+  const chip=document.getElementById('roleChip'), name=document.getElementById('roleChipName');
+  if(chip&&name){ if(session){ chip.style.display='inline-flex'; name.textContent = isDeveloper() ? ('יזם — תוכנית '+(session.tiks||[]).join(', ')) : (ROLE_LABELS[session.role]||''); } else chip.style.display='none'; }
+  if(currentProjectId!=null){ applyProjectRole(); const p=pj(); if(p) applyLocksUI(p); }
+  applyGlobalMode();
+}
+
+/* ── אישור ונעילת סעיפים ע"י אדריכלית העיר ── */
+function openLocksModal(){
+  if(!isArchitect()){ toast('אישור ונעילה — לאדריכלית העיר בלבד'); return; }
+  if(!pj()) return;
+  renderLocksModal();
+  document.getElementById('locksModal').classList.add('open');
+}
+function closeLocksModal(){ document.getElementById('locksModal').classList.remove('open'); }
+function renderLocksModal(){
+  const p=pj(); if(!p) return;
+  const L=planLocks(p);
+  const fmt=l=>l&&l.at? new Date(l.at).toLocaleDateString('he-IL') : '';
+  let html = `<div class="lk-row" style="background:rgba(42,95,95,0.05);border-radius:8px;padding:10px 8px">
+    <div><div class="lk-name"><b>אישור כל התוכנית</b></div><div class="lk-meta">${L.__all?('אושרה וננעלה ב-'+fmt(L.__all)):'נעילת כל הסעיפים ליזם בבת אחת'}</div></div>
+    <button class="btn btn-sm ${L.__all?'btn-ghost':'btn-primary'}" onclick="toggleLock('__all')">${L.__all?'ביטול אישור':'אישור ונעילה'}</button>
+  </div>`;
+  html += Object.entries(DEV_SECTIONS).map(([sec,label])=>{
+    const l=L[sec];
+    return `<div class="lk-row">
+      <div><div class="lk-name">${label}</div><div class="lk-meta">${l?('אושר ב-'+fmt(l)):(L.__all?'נעול במסגרת אישור התוכנית':'פתוח לעריכת היזם')}</div></div>
+      <button class="btn btn-sm ${l?'btn-ghost':'btn-primary'}" onclick="toggleLock('${sec}')" ${L.__all?'disabled':''}>${l?'ביטול אישור':'אישור ונעילה'}</button>
+    </div>`;
+  }).join('');
+  document.getElementById('locksBody').innerHTML=html;
+}
+function toggleLock(sec){
+  const p=pj(); if(!p) return;
+  const L=planLocks(p);
+  const nowLocked = !L[sec];
+  if(nowLocked) L[sec]={by:'אדריכלית העיר', at:new Date().toISOString()}; else delete L[sec];
+  savePlans(); renderLocksModal(); applyLocksUI(p); lockInputs(!globalEdit);
+  toast(nowLocked?'הסעיף אושר וננעל לעריכת היזם':'האישור בוטל — הסעיף פתוח לעריכה');
+}
+/** באנרים + חסימת סעיפים נעולים בדף הפרויקט */
+function applyLocksUI(p){
+  if(!p) return;
+  document.querySelectorAll('.pp-panel').forEach(panel=>{
+    const sec=panel.id.replace('panel-','');
+    const locked = (sec in DEV_SECTIONS) && sectionLocked(p,sec);
+    panel.classList.toggle('sec-locked', locked);
+    let banner=panel.querySelector(':scope > .lock-banner');
+    if(locked){
+      const l=(p.locks&&(p.locks[sec]||p.locks.__all))||{};
+      const when=l.at?(' בתאריך '+new Date(l.at).toLocaleDateString('he-IL')):'';
+      const txt='✔ סעיף זה אושר על ידי אדריכלית העיר'+when+(isArchitect()?' — ניתן לבטל דרך „אישורים ונעילה”':' — נעול לעריכה');
+      if(!banner){ banner=document.createElement('div'); banner.className='lock-banner'; panel.prepend(banner); }
+      banner.textContent=txt;
+    } else if(banner) banner.remove();
+  });
+  const btn=document.getElementById('ppLocksBtn');
+  if(btn){ const L=p.locks||{}; const n=Object.keys(L).length; btn.textContent='🔒 אישורים ונעילה'+(n?(' ('+(L.__all?'הכל':n)+')'):''); }
+}
+
+/* ── שכבת הגנה שנייה: עטיפת פונקציות כתיבה לפי הרשאה ──
+   גם אם שדה נשאר פתוח בממשק, הכתיבה עצמה נבדקת כאן. */
+(function(){
+  function wrap(name, check, silent){
+    const orig = window[name];
+    if (typeof orig !== 'function') return;
+    window[name] = function(...args){
+      if (!check(...args)) { if(!silent) toast('אין הרשאה לפעולה זו במשתמש הנוכחי'); return; }
+      return orig.apply(this, args);
+    };
+  }
+  const archOnly = ()=> isArchitect();
+  const secCheck = sec => (()=> canEditSection(pj(), sec));
+  // פעולות ניהוליות — אדריכלית העיר בלבד
+  ['saveField','addPlan','setDecision','setDecisionField','setGantt','setOpinion','setModalOpinion',
+   'saveForumDate','addForumEvent','setForumEvent','delForumEvent','onStageChange','removeComm',
+   'saveGlOverride','saveMuni','saveCalcRules','saveContacts','importBackup','confirmVisualsImport',
+   'toggleLock','setRoleCode','saveRoleCodes'].forEach(n=>wrap(n, archOnly));
+  // שמירה כללית — חסומה בשקט להנהלה/אורח (אדריכלית ויזם שומרים)
+  ['savePlans','saveShares','cloudSaveNow','scheduleCloudSave'].forEach(n=>wrap(n, ()=> !isManager(), true));
+  // עריכת סעיפי פרויקט — לפי בעלות היזם ונעילות האישור
+  wrap('pjSet', (field)=> canEditSection(pj(),'info') && (!isDeveloper() || !/^(status|stage|handler|opinion|date|purpose)$/.test(field)));
+  wrap('mSet', secCheck('info'));
+  wrap('oSet', ()=> isArchitect() || (devOwns(pj()) && !sectionLocked(pj(),'__all')));
+  wrap('setChk', secCheck('review'));
+  wrap('setSpatial', secCheck('review'));
+  wrap('setGuide', secCheck('guidelines'));
+  wrap('setGuideNote', secCheck('guidelines'));
+  wrap('setMuni', secCheck('muni'));
+  ['addPlot','removePlot','setPlot','pdSet'].forEach(n=>wrap(n, secCheck('data')));
+  ['teamAdd','teamSet','teamDel','teamEmailSet'].forEach(n=>wrap(n, secCheck('team')));
+  wrap('uploadDoc', secCheck('docs'));
+  wrap('removeDoc', secCheck('docs'));
+  wrap('setGraphic', secCheck('graphics'));
+  // רענון נעילות אחרי רינדור מחדש של פאנלים (השדות נוצרים מחדש פתוחים)
+  function postWrap(name){
+    const orig=window[name]; if(typeof orig!=='function') return;
+    window[name]=function(...a){
+      const r=orig.apply(this,a);
+      try{ if(session && currentProjectId!=null){ lockInputs(!globalEdit); const p=pj(); if(p) applyLocksUI(p); } }catch(e){}
+      return r;
+    };
+  }
+  ['ppTab','renderInfoTab','renderDataTab','renderReviewTab','renderGuidelinesTab','renderProjectMuni',
+   'renderDocsTab','renderGraphicsTab','renderTeam','renderCalcTab','renderForumsTab','renderProcessTab'].forEach(postWrap);
+})();
+
 // ── INIT ──
 populateFilters();
 applyFilters();
@@ -8316,10 +8715,13 @@ initCloud();
 loadMuni();
 loadCalcRules();
 (function(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');const el=document.getElementById('lastSaveInfo');if(s&&s.savedAt&&el)el.textContent='גיבוי אחרון: '+new Date(s.savedAt).toLocaleString('he-IL');}catch(e){}})();
+// אתחול מערכת התפקידים (כניסה/הרשאות) — לפני הניתוב כדי שהמגבלות יחולו
+initRoles();
 // שחזור דף מ-hash (כתובת ישירה / רענון ללא 404)
 if (location.hash) routeFromHash();
 // אתחול מצב גלובלי (תצוגה/עריכה) — ברירת מחדל תצוגה
 initGlobalMode();
+applyRoleUI(); // אכיפת מגבלות התפקיד אחרי אתחול מצב העריכה
 
 /* ══════════ סייען AI — מנוע הבדיקה של אדריכל/ת העיר ══════════ */
 /* ה-backend רץ על Vercel. GitHub Pages לא מריץ שרת, לכן הקריאות מופנות
