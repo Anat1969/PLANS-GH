@@ -152,6 +152,27 @@ tbody tr:hover{background:var(--teal-pale)}
 .sp-clause{display:flex;gap:8px;font-size:13.5px;line-height:1.7;align-items:flex-start}
 .sp-num{flex-shrink:0;font-weight:700;color:var(--bronze);min-width:42px;font-variant-numeric:tabular-nums}
 .sp-hit{background:#fde68a;color:#000;border-radius:2px;padding:0 1px}
+/* כפתור מסמך מקור — אחיד בכל הדפים מבוססי-מקור */
+.src-doc-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bordeaux);color:#fff;text-decoration:none;
+  border-radius:var(--r);padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;transition:.15s}
+.src-doc-btn:hover{background:var(--bordeaux-deep)}
+/* מחשבון אינטראקטיבי מלא */
+.ical{padding:4px}
+.ical-example{font-size:12.5px;color:#2a557a;background:#eef4fb;border:1px solid #cfe1f5;border-radius:8px;padding:8px 12px;margin-bottom:10px}
+.ical-inputs{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px}
+.ical-fld{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600}
+.ical-in{display:inline-flex;align-items:center;gap:6px}
+.ical-in input{border:1px solid var(--stone);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:14px;width:110px}
+.ical-u{font-size:11px;color:var(--muted);font-weight:400}
+.ical-tbl{width:100%;max-width:560px;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+.ical-tbl th,.ical-tbl td{border:1px solid var(--stone);padding:6px 10px;text-align:right}
+.ical-tbl th{background:#faf7f2;font-weight:700;color:var(--bordeaux)}
+.ical-tbl .ical-calc{color:#666;font-size:12px}
+.ical-tbl .ical-res{font-weight:700;font-variant-numeric:tabular-nums}
+.ical-tbl .ical-total{background:#f2fbf5}
+.ical-tbl .ical-total td{font-weight:700}
+.ical-sources{margin-top:10px;border-top:1px dashed var(--stone);padding-top:8px;font-size:12.5px}
+.ical-sources ul{margin:4px 0 0;padding-inline-start:18px;line-height:1.6}
 @media(max-width:820px){.sp-layout{flex-direction:column}.sp-toc{position:static;width:100%;flex:none;max-height:none;order:-1}}
 /* מקרא מפה */
 .map-legend{font-size:12px;line-height:1.9;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 12px}
@@ -226,6 +247,8 @@ tbody tr:hover{background:var(--teal-pale)}
 .cc-top{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:6px}
 .cc-type{font-size:11px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 9px}
 .cc-line{font-size:12px;margin:3px 0;line-height:1.5}
+.cc-row{font-size:12.5px;margin:3px 0;line-height:1.5;display:flex;gap:6px;flex-wrap:wrap}
+.cc-row .cc-k{color:var(--bronze);font-weight:600;min-width:66px}
 .cc-actions{margin-top:8px}
 .cform{display:grid;gap:4px;max-height:60vh;overflow:auto}
 .cform .mail-lbl{margin-top:8px}
@@ -865,7 +888,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .muni-export{display:flex;gap:6px;margin-bottom:1rem}
 .muni-sum-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:rgba(0,0,0,0.7);background:#fff;border:1px solid var(--stone);border-radius:8px;padding:10px 14px}
 .muni-dept{border:1px solid var(--stone);border-radius:8px;margin-bottom:10px;overflow:hidden;background:#fff}
-.muni-dept .acc-head{gap:10px}
+.muni-dept .acc-head{gap:10px;font-size:16px;font-weight:700;font-family:var(--display);color:var(--bordeaux)}
 .muni-dept-count{font-size:12px;color:rgba(0,0,0,0.5);background:var(--fog);padding:2px 8px;border-radius:99px}
 .muni-dept-body{padding:1rem 1.2rem;border-top:1px solid var(--fog)}
 .muni-resp{font-size:13.5px;color:rgba(0,0,0,0.7);margin-bottom:0.9rem;line-height:1.5}
@@ -875,7 +898,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .mc-actions{display:flex;gap:6px;flex-wrap:wrap}
 .muni-source-inline{font-size:11px;color:rgba(0,0,0,0.4);margin-bottom:1rem}
 .muni-cat{margin-bottom:1rem}
-.muni-cat-title{font-family:var(--display);font-size:14px;color:var(--teal);border-bottom:1px solid var(--fog);padding-bottom:4px;margin-bottom:8px}
+.muni-cat-title{font-family:var(--display);font-size:17px;font-weight:700;color:var(--bordeaux);border-bottom:2px solid var(--bronze);padding-bottom:5px;margin-bottom:10px}
 .muni-req{padding:8px 0;border-bottom:1px solid var(--fog)}
 .muni-req-info{padding:5px 0}
 .muni-req-info .muni-req-main{display:flex;align-items:flex-start;gap:8px}
@@ -1203,7 +1226,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="logo" onclick="go('landing',this)">אשדוד <span>תוכניות בינוי</span></div>
   <!-- קבוצת ניווט/מידע -->
   <nav id="mainNav" class="toolbar-nav">
-    <button class="active" onclick="go('landing',this)">ראשי</button>
+    <button class="active" onclick="go('landing',this)">דף ראשי</button>
     <button onclick="go('table',this)">טבלת תוכניות</button>
     <button onclick="go('guidelines',this)">הנחיות להגשת תוכנית בינוי ועיצוב</button>
     <button onclick="go('map',this)">מפה</button>
@@ -1653,7 +1676,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <div id="spatial" class="page">
   <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>הנחיות מרחביות 18</span></div>
   <div class="page-title">הנחיות מרחביות לעיר אשדוד — מהדורה 18</div>
-  <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח.</div>
+  <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח. <a class="src-doc-btn" href="source-spatial18.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור</a></div>
   <div class="sp-search no-print">
     <input type="text" id="spSearch" placeholder="חיפוש מילת מפתח בכל ההנחיות…" oninput="spatialSearch(this.value)">
     <span id="spSearchCount" class="muted"></span>
@@ -1669,7 +1692,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>אוגדן</span></div>
   <div class="page-title">אוגדן — דרישות גורמי העירייה לתוכנית בינוי ועיצוב</div>
   <div class="page-subtitle">מידע כללי: הנספחים, הדרישות והתיאומים הנדרשים מול גורמי העירייה, לפי מחלקות.</div>
-  <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
+  <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <a class="src-doc-btn" href="source-aoggdan.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור (האוגדן)</a> · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
 
   <div class="muni-filters" id="muniFilters"></div>
   <div class="muni-topbar">
@@ -5739,7 +5762,7 @@ function muniContactHTML(dept){
   return dept.contacts.map((c,ci)=>`<div class="muni-contact">
     <div class="mc-info">
       <b class="${muniIsAdmin()?'ai-seeded':''}">${esc(c.name)}</b> — ${esc(c.role)}<br>
-      <span dir="ltr">${esc(c.phone)}</span> · <span dir="ltr">${esc(c.email)}</span>
+      <span dir="ltr">${c.phone?`<a class="c-link" href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:'—'}</span> · <span dir="ltr">${c.email?`<a class="c-link" href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'—'}</span>
     </div>
     <div class="mc-actions no-print">
       <button class="btn btn-ghost btn-sm" onclick="copyMuniEmail('${c.email}')">📋 העתק מייל</button>
@@ -6241,40 +6264,181 @@ function renderCalcHubShell(p, def){
   </div>`;
 }
 /* דוגמאות חישוב להמחשה — קבועים מסומנים במפורש כטעונים אימות (לא מאושרים) */
-const CALC_EXAMPLES = {
+/* ══════════════════════════════════════════════════════════════
+   מחשבונים אינטראקטיביים מלאים — קלט חי → פלט מפורק, לכל מחשבון.
+   דוגמאות על מספרים "עגולים" (100/1000) לזכירת המקדם.
+   דרישות מהאוגדן וההנחיות המרחביות מוצגות לכל מחשבון.
+   ערכי מקדם המסומנים "להמחשה" טעונים אימות; אין המצאת נוסחה מאושרת.
+   ═══════════════════════════════════════════════════════════════ */
+function _fmtNum(n){ if(n==null||isNaN(n)) return '—'; return Number(n).toLocaleString('he-IL',{maximumFractionDigits:2}); }
+function _val(id){ const el=document.getElementById(id); return el? (parseFloat(el.value)||0) : 0; }
+
+/* הגדרת מחשבונים אינטראקטיביים */
+const ICALC = {
   parking: {
-    title:'דוגמה: חישוב חניה למגורים',
-    inputs:[['יחידות דיור','40','יח״ד'],['תקן חניה (להמחשה)','1.5','חניות ליח״ד']],
-    formula:'חניות נדרשות = יח״ד × תקן = 40 × 1.5',
-    result:'60 חניות נדרשות',
-    note:'התקן 1.5 להמחשה בלבד — יש לאמת מול תקן החניה החל (ארצי/מקומי) ותב״ע.'
+    title:'חניה — קלט חי ופירוק לסוגים',
+    example:'דוגמה זכירה: על 100 יח״ד, במקדם 1.0 → 100 חניות; במקדם 1.5 → 150.',
+    inputs:[
+      {id:'ic_units',label:'יחידות דיור',def:100,unit:'יח״ד'},
+      {id:'ic_ratio',label:'תקן חניה (להמחשה — מהתב״ע)',def:1,unit:'חניות ליח״ד'},
+      {id:'ic_commercial',label:'שטח מסחר',def:0,unit:'מ״ר'},
+      {id:'ic_commRatio',label:'תקן מסחר (להמחשה)',def:0.02,unit:'חניות למ״ר'}
+    ],
+    compute(){
+      const units=_val('ic_units'), ratio=_val('ic_ratio'), comm=_val('ic_commercial'), cr=_val('ic_commRatio');
+      const resid=Math.ceil(units*ratio);
+      const commercial=Math.ceil(comm*cr);
+      const base=resid+commercial;
+      const disabled=Math.ceil(base*0.02); // בנוסף לסה"כ — מספר לפי תקן/חוק
+      const visitors=Math.ceil(resid*0.1); // אורחים — להמחשה, נקבע בתב"ע
+      const evPrivate=resid; // תשתית הכנה 100% מחניות פרטיות (אוגדן)
+      const total=base+disabled;
+      return {rows:[
+        ['חניות מגורים', units+' × '+ratio, resid],
+        ['חניות מסחר', comm+' × '+cr, commercial],
+        ['— סה״כ בסיס —','', base],
+        ['חניות נכים (בנוסף לסה״כ)', '2% מהבסיס (לפי חוק/תקן)', disabled],
+        ['חניות אורחים (להמחשה)', '10% ממגורים — נקבע בתב״ע', visitors],
+        ['הכנת עמדות טעינה חשמלי', '100% מחניות פרטיות (אוגדן)', evPrivate+' תשתית'],
+        ['— סה״כ נדרש (בסיס + נכים) —','', total]
+      ], note:'חניות טוריות עד 10% מהסה״כ (אוגדן). היחס המספרי ליח״ד/מסחר/אורחים נקבע בתב״ע/תקן משרד התחבורה — לא באוגדן.'};
+    },
+    sources:['אוגדן: נכים בנוסף לסה״כ · חשמלי 100%/20% · טוריות ≤10% · רמת שירות 1','תקן החניה החל (ארצי/מקומי) + תב״ע — ליחס המספרי']
   },
-  planting:{
-    title:'דוגמה: תכסית ושטח פתוח',
-    inputs:[['שטח מגרש','5,000','מ״ר'],['תכסית מרבית (להמחשה)','40','%']],
-    formula:'תכסית בנויה מרבית = שטח מגרש × אחוז = 5,000 × 40%',
-    result:'2,000 מ״ר בנוי מרבי · 3,000 מ״ר שטח פתוח מינימלי',
-    note:'אחוז התכסית להמחשה — נקבע בתב״ע/הוראות לפי הייעוד.'
+  runoff: {
+    title:'נגר וניקוז — שטח מחלחל מינימלי',
+    example:'דוגמה זכירה: על 1,000 מ״ר מגרש, יעד 15% → 150 מ״ר מחלחל; 27% → 270.',
+    inputs:[
+      {id:'ic_lot',label:'שטח מגרש',def:1000,unit:'מ״ר'},
+      {id:'ic_perm',label:'יעד חלחול (להמחשה)',def:15,unit:'%'},
+      {id:'ic_roof',label:'שטח גגות (אטום)',def:0,unit:'מ״ר'}
+    ],
+    compute(){
+      const lot=_val('ic_lot'), perm=_val('ic_perm'), roof=_val('ic_roof');
+      const need=Math.round(lot*perm/100);
+      const sealed=roof;
+      return {rows:[
+        ['שטח מחלחל נדרש', lot+' × '+perm+'%', need+' מ״ר'],
+        ['שטח אטום (גגות)', '', sealed+' מ״ר'],
+        ['שטח פנוי לחלחול/בור קידוח', 'להשלמה לפי תכנון', (lot-sealed)>0?(lot-sealed)+' מ״ר':'—']
+      ], note:'יעד החלחול נקבע בהנחיות ובדרישת אגף הניקוז. בפרויקטים נדרש לעיתים בור קידוח משלים.'};
+    },
+    sources:['הנחיות מרחביות 18 — ניהול נגר עילי','אגף ניקוז — יעד חלחול ופתרונות']
   },
-  runoff:{
-    title:'דוגמה: שטח מחלחל מינימלי',
-    inputs:[['שטח מגרש','5,000','מ״ר'],['יעד חלחול (להמחשה)','15','%']],
-    formula:'שטח מחלחל נדרש = שטח מגרש × יעד = 5,000 × 15%',
-    result:'750 מ״ר שטח מחלחל מינימלי',
-    note:'יעד החלחול להמחשה — יש לאמת מול דרישת אגף הניקוז וההנחיות.'
+  planting: {
+    title:'נטיעות ותכסית',
+    example:'דוגמה זכירה: על 1,000 מ״ר, תכסית 40% → 400 מ״ר בנוי, 600 מ״ר פתוח.',
+    inputs:[
+      {id:'ic_lot2',label:'שטח מגרש',def:1000,unit:'מ״ר'},
+      {id:'ic_cover',label:'תכסית מרבית (להמחשה — מהתב״ע)',def:40,unit:'%'},
+      {id:'ic_treeRatio',label:'עץ לכל X מ״ר פתוח (להמחשה)',def:100,unit:'מ״ר/עץ'}
+    ],
+    compute(){
+      const lot=_val('ic_lot2'), cover=_val('ic_cover'), tr=_val('ic_treeRatio');
+      const built=Math.round(lot*cover/100);
+      const open=lot-built;
+      const trees=tr>0?Math.floor(open/tr):0;
+      return {rows:[
+        ['שטח בנוי מרבי (תכסית)', lot+' × '+cover+'%', built+' מ״ר'],
+        ['שטח פתוח מינימלי', lot+' − '+built, open+' מ״ר'],
+        ['עצים מומלצים (להמחשה)', open+' ÷ '+tr, trees+' עצים']
+      ], note:'התכסית ויחס הנטיעות נקבעים בתב״ע ובהנחיות המרחביות לפי הייעוד. הצללה ונטיעות מפחיתות אי-חום עירוני.'};
+    },
+    sources:['הנחיות מרחביות 18 — עצים, שטחים פתוחים ותכסית','תב״ע/הוראות התוכנית — אחוז תכסית']
+  },
+  trash: {
+    title:'אשפה — פתרון אצירה לפי קומות (אוגדן)',
+    example:'מדרג האוגדן: <10 קומות=טמון קרקע · 10–14=שוט+דחסנית · 15+=2 שוטים+2 דחסנים.',
+    inputs:[
+      {id:'ic_tunits',label:'יחידות דיור',def:100,unit:'יח״ד'},
+      {id:'ic_floors',label:'מספר קומות',def:12,unit:'קומות'}
+    ],
+    compute(){
+      const floors=_val('ic_floors'), units=_val('ic_tunits');
+      let sol,sec;
+      if(floors<=9){ sol='מיכל טמון קרקע (5 מ״ק) לפי חישוב זרם האשפה'; sec='סעיף 15א (עמ׳ 21)'; }
+      else if(floors<=14){ sol='שוט אחד + דחסנית אחת לזרם האשפה; שוט נפרד לפחים כתומים (3 מ״ק)'; sec='סעיף 15ב (עמ׳ 21)'; }
+      else { sol='שני דחסנים + שני שוטים — לזרם אשפה ולזרם מחזור אריזות (דחסנית 12–22 מ״ק)'; sec='סעיף 15ג (עמ׳ 21)'; }
+      return {rows:[
+        ['יח״ד', '', units],
+        ['מדרג לפי קומות', floors+' קומות', floors<=9?'מתחת ל-10':(floors<=14?'10–14':'15+')],
+        ['פתרון אצירה נדרש', '', sol]
+      ], note:'הנפח המדויק לפי „חישוב זרם האשפה” בתקנות אצירת אשפה. מקור: '+sec+' · אוגדן אשדוד.'};
+    },
+    sources:['אוגדן — כלי אצירה, מדרג קומות, התאמת מכבש לעסק לפי שטח (סעיף 24)']
+  },
+  rights: {
+    title:'זכויות ושטחים',
+    example:'דוגמה זכירה: על 1,000 מ״ר מגרש, 200% בנייה → 2,000 מ״ר; מזה 15% שירות → 300.',
+    inputs:[
+      {id:'ic_rlot',label:'שטח מגרש',def:1000,unit:'מ״ר'},
+      {id:'ic_far',label:'אחוזי בנייה כוללים (מהתב״ע)',def:200,unit:'%'},
+      {id:'ic_svc',label:'שיעור שטחי שירות (להמחשה)',def:15,unit:'%'}
+    ],
+    compute(){
+      const lot=_val('ic_rlot'), far=_val('ic_far'), svc=_val('ic_svc');
+      const total=Math.round(lot*far/100);
+      const service=Math.round(total*svc/100);
+      const main=total-service;
+      return {rows:[
+        ['סה״כ שטחי בנייה', lot+' × '+far+'%', total+' מ״ר'],
+        ['שטחי שירות', total+' × '+svc+'%', service+' מ״ר'],
+        ['שטחים עיקריים', total+' − '+service, main+' מ״ר']
+      ], note:'אחוזי הבנייה ושיעור השירות נקבעים בהוראות התב״ע. חריגה חוסמת הגשה עד הקלה מאושרת.'};
+    },
+    sources:['הוראות התב״ע החלה + טבלה 5 — זכויות מותרות','הנחיות מרחביות 18 — עקרונות בינוי']
+  },
+  fees: {
+    title:'אגרות והיטלים — אומדן',
+    example:'דוגמה זכירה: 1,000 מ״ר בנייה × תעריף להמחשה 100 ₪/מ״ר → 100,000 ₪.',
+    inputs:[
+      {id:'ic_area',label:'שטח בנייה כולל',def:1000,unit:'מ״ר'},
+      {id:'ic_devLevy',label:'היטל פיתוח (להמחשה — מהתעריפון)',def:100,unit:'₪/מ״ר'},
+      {id:'ic_sewLevy',label:'היטל ביוב (להמחשה)',def:40,unit:'₪/מ״ר'},
+      {id:'ic_waterLevy',label:'היטל מים (להמחשה)',def:25,unit:'₪/מ״ר'},
+      {id:'ic_permitFee',label:'אגרת בנייה (להמחשה)',def:35,unit:'₪/מ״ר'}
+    ],
+    compute(){
+      const a=_val('ic_area'), dev=_val('ic_devLevy'), sew=_val('ic_sewLevy'), wat=_val('ic_waterLevy'), per=_val('ic_permitFee');
+      const devT=a*dev, sewT=a*sew, watT=a*wat, perT=a*per;
+      const total=devT+sewT+watT+perT;
+      return {rows:[
+        ['היטל פיתוח', a+' × '+dev, _fmtNum(devT)+' ₪'],
+        ['היטל ביוב', a+' × '+sew, _fmtNum(sewT)+' ₪'],
+        ['היטל מים', a+' × '+wat, _fmtNum(watT)+' ₪'],
+        ['אגרת בנייה', a+' × '+per, _fmtNum(perT)+' ₪'],
+        ['— סה״כ אומדן —','', _fmtNum(total)+' ₪']
+      ], note:'התעריפים להמחשה בלבד — יש להזין את התעריפים המחייבים מתעריפון העירייה/חוק העזר. אומדן זה אינו מחליף חישוב רשמי, אך מאפשר להעריך מראש את סדר הגודל הכספי.'};
+    },
+    sources:['תעריפון העירייה / חוק עזר — היטלי פיתוח, ביוב, מים ואגרות בנייה','אומדן מקדים בלבד — החישוב המחייב מהגורם הרשמי']
   }
 };
+
+/* רינדור המחשבון האינטראקטיבי — קלט חי → פלט מפורק */
 function calcExampleHTML(calcId){
-  const ex=CALC_EXAMPLES[calcId]; if(!ex) return '<div class="muted" style="font-size:13px;padding:8px 0">אין דוגמת חישוב מובנית למחשבון זה — בחרי תוכנית להרצה על נתונים אמיתיים.</div>';
-  return `<div class="calc-example">
-    <div class="cex-title">${esc(ex.title)}</div>
-    <table class="cex-io"><thead><tr><th>קלט</th><th>ערך</th><th>יחידה</th></tr></thead>
-      <tbody>${ex.inputs.map(r=>`<tr><td>${esc(r[0])}</td><td class="cex-val">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</tbody></table>
-    <div class="cex-formula"><span class="chub-k">חישוב:</span> ${esc(ex.formula)}</div>
-    <div class="cex-result"><span class="chub-k">פלט:</span> <b>${esc(ex.result)}</b></div>
-    <div class="cex-note">⚠ ${esc(ex.note)}</div>
+  const c=ICALC[calcId];
+  if(!c) return '<div class="muted" style="font-size:13px;padding:8px 0">אין מחשבון אינטראקטיבי לנושא זה עדיין.</div>';
+  const inputs=c.inputs.map(f=>`<label class="ical-fld">${esc(f.label)}
+    <span class="ical-in"><input type="number" id="${f.id}" value="${f.def}" oninput="runICalc('${calcId}')"><span class="ical-u">${esc(f.unit)}</span></span></label>`).join('');
+  return `<div class="ical">
+    <div class="cex-title">${esc(c.title)}</div>
+    <div class="ical-example">💡 ${esc(c.example)}</div>
+    <div class="ical-inputs">${inputs}</div>
+    <div id="icalOut_${calcId}" class="ical-out"></div>
+    <div class="ical-sources"><b>דרישות ומקורות:</b><ul>${c.sources.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
   </div>`;
 }
+/* חישוב חי */
+function runICalc(calcId){
+  const c=ICALC[calcId]; if(!c) return;
+  const out=document.getElementById('icalOut_'+calcId); if(!out) return;
+  let r; try{ r=c.compute(); }catch(e){ return; }
+  out.innerHTML = `
+    <table class="ical-tbl"><thead><tr><th>רכיב</th><th>חישוב</th><th>תוצאה</th></tr></thead>
+      <tbody>${r.rows.map(row=>`<tr class="${String(row[0]).includes('סה״כ')?'ical-total':''}"><td>${esc(row[0])}</td><td class="ical-calc">${esc(row[1])}</td><td class="ical-res">${esc(row[2])}</td></tr>`).join('')}</tbody></table>
+    <div class="cex-note">⚠ ${esc(r.note)}</div>`;
+}
+
 let _calchubActive = 'parking';
 function calchubSelect(id){ _calchubActive=id; renderCalcHub(); }
 function renderCalcHub(){
@@ -6302,13 +6466,14 @@ function renderCalcHub(){
         ${info.explain?`<div><span class="chub-k">הסבר:</span> ${esc(info.explain)}</div>`:''}
         ${info.insight?`<div class="chub-insight"><span class="chub-k">תובנה:</span> ${esc(info.insight)}</div>`:''}
       </div>
-      ${interactiveCalcBlock(def.id) ? `<div class="pp-card calc-card">${interactiveCalcBlock(def.id)}</div>` : ''}
       <div class="pp-card calc-card">${calcExampleHTML(def.id)}</div>
+      ${interactiveCalcBlock(def.id) ? `<div class="pp-card calc-card">${interactiveCalcBlock(def.id)}</div>` : ''}
     </div>`;
   }
   el.innerHTML = `<div class="calchub-btns">${btns}</div>
     <div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>
     ${content}`;
+  if(!p && typeof runICalc==='function') setTimeout(()=>runICalc(def.id),0); // הצגת פלט ראשוני עם ערכי ברירת מחדל
 }
 
 /* ── מסך ניהול כללים (בסיסי — הוספה/עריכה) ── */
@@ -6955,13 +7120,12 @@ function renderContactsPage(){
     const arrow=col=>v.sort===col?(v.dir>0?' ▲':' ▼'):'';
     const th=(lbl,col)=>`<th onclick="contactSort('${col}')" style="cursor:pointer">${lbl}${arrow(col)}</th>`;
     bodyHtml=`<div class="tbl-wrap"><table class="track-table contacts-table"><thead><tr>
-      <th class="no-print"></th>${th('שם','name')}${th('סוג','type')}${th('חברה/משרד','org')}${th('תפקיד','title')}<th>נייד</th><th>דוא״ל</th>${th('תוכניות','plans')}<th>מקור</th>${th('עודכן','updatedAt')}<th class="no-print">פעולות</th>
-    </tr></thead><tbody>${list.map(c=>contactRow(c)).join('')||'<tr><td colspan="10" class="muted">אין אנשי קשר.</td></tr>'}</tbody></table></div>`;
+      <th class="no-print"></th>${th('שם','name')}${th('סוג','type')}${th('חברה/משרד','org')}${th('תפקיד','title')}<th>נייד</th><th>דוא״ל</th>${th('תוכניות','plans')}<th class="no-print">פעולות</th>
+    </tr></thead><tbody>${list.map(c=>contactRow(c)).join('')||'<tr><td colspan="8" class="muted">אין אנשי קשר.</td></tr>'}</tbody></table></div>`;
   }
   const realN=contacts.filter(c=>c.real).length;
   const sampleNote=contacts.some(c=>c.sample)?`<div class="calc-warn-banner">קיימות רשומות דוגמה — <button class="btn btn-ghost btn-xs" onclick="deleteSampleContacts()">מחק את כל רשומות הדוגמה</button></div>`:'';
-  const srcNote=realN?`<div class="pd-intro">${realN} אנשי קשר נטענו ממקור אמת — קבצי „חוות הדעת” (החלטות ועדה). שדה שלא נמצא במקור מסומן „לא נמצא במקור”; לכל רשומה נשמרת הפניה לקובץ המקור. <button class="btn btn-ghost btn-xs" onclick="previewImportRealContacts()">רענון מהמקור</button></div>`:'';
-  el.innerHTML=controls+sampleNote+srcNote+`<div class="muted" style="margin:6px 0 10px">${list.length} מתוך ${contacts.length} אנשי קשר</div>`+bodyHtml;
+  el.innerHTML=controls+sampleNote+`<div class="muted" style="margin:6px 0 10px">${list.length} מתוך ${contacts.length} אנשי קשר</div>`+bodyHtml;
 }
 
 // שדה חסר ברשומת-מקור מסומן במפורש „לא נמצא במקור” (לא ניחוש)
@@ -6973,28 +7137,28 @@ function contactRow(c){
   const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
   return `<tr class="${c.sample?'contact-sample':''}">
     <td class="no-print"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"></td>
-    <td><strong>${esc(c.name||'—')}</strong> ${contactSrcBadge(c)}</td>
+    <td><strong>${esc(c.name||'—')}</strong>${c.sample?' <span class="samp-tag">דוגמה</span>':''}</td>
     <td>${esc(c.type||'—')}</td>
     <td>${esc(c.org||'—')}</td>
     <td>${esc(c.title||'—')}</td>
     <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">☎</a>`:_missing(c)}</td>
     <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">✉</a>`:_missing(c)}</td>
     <td>${plansTxt==='—'?_missing(c):esc(plansTxt)}</td>
-    <td class="c-src">${esc(_srcText(c))||'—'}</td>
-    <td style="white-space:nowrap">${fmtDate(c.updatedAt)}</td>
     <td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></td>
   </tr>`;
 }
 function contactCard(c){
   const v=contactView;
   const plansTxt=(c.plans||[]).map(contactPlanTitle).join(', ')||'—';
+  // פורמט אחיד: שורה נפרדת לכל סוג מידע
   return `<div class="contact-card ${c.sample?'contact-sample':''}">
-    <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${contactSrcBadge(c)}<span class="cc-type">${esc(c.type||'')}</span></div>
-    <div class="cc-line">${esc(c.org||'')}${c.title?(' · '+esc(c.title)):''}</div>
-    <div class="cc-line">${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:_missing(c)} ${c.email?`· <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:('· '+_missing(c))}</div>
-    <div class="cc-line muted">תוכניות: ${esc(plansTxt)}</div>
-    ${c.notes?`<div class="cc-line muted">${esc(c.notes)}</div>`:''}
-    ${_srcText(c)?`<div class="cc-line c-src">מקור: ${esc(_srcText(c))}</div>`:''}
+    <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${c.sample?'<span class="samp-tag">דוגמה</span>':''}<span class="cc-type">${esc(c.type||'')}</span></div>
+    ${c.org?`<div class="cc-row"><span class="cc-k">חברה/משרד:</span> ${esc(c.org)}</div>`:''}
+    ${c.title?`<div class="cc-row"><span class="cc-k">תפקיד:</span> ${esc(c.title)}</div>`:''}
+    ${c.phone?`<div class="cc-row"><span class="cc-k">נייד:</span> <a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a></div>`:''}
+    ${c.email?`<div class="cc-row"><span class="cc-k">דוא״ל:</span> <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a></div>`:''}
+    <div class="cc-row"><span class="cc-k">תוכניות:</span> ${esc(plansTxt)}</div>
+    ${c.notes?`<div class="cc-row"><span class="cc-k">הערות:</span> ${esc(c.notes)}</div>`:''}
     <div class="cc-actions no-print"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></div>
   </div>`;
 }
@@ -7178,7 +7342,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.20';
+const APP_VERSION = '2026.07.21';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
