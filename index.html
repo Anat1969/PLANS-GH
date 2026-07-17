@@ -6286,10 +6286,14 @@ function renderCalcHubShell(p, def){
    ערכי מקדם המסומנים "להמחשה" טעונים אימות; אין המצאת נוסחה מאושרת.
    ═══════════════════════════════════════════════════════════════ */
 function _fmtNum(n){ if(n==null||isNaN(n)) return '—'; return Number(n).toLocaleString('he-IL',{maximumFractionDigits:2}); }
-function _val(id){ const el=document.getElementById(id); if(!el) return 0;
-  // קרא מ-value; אם ריק (מצב ביניים ברינדור) — קרא מתכונת ה-value שנקבעה
+// מפת ערכים נוכחית — נבנית ב-runICalc מהשדות או מברירות המחדל, כדי לא להיות תלוי בתזמון DOM
+let _ICALC_VALS = {};
+function _val(id){
+  if(_ICALC_VALS[id]!=null) return _ICALC_VALS[id];
+  const el=document.getElementById(id); if(!el) return 0;
   let raw = el.value; if(raw===''||raw==null) raw = el.getAttribute('value')||'';
-  const n=parseFloat(raw); return isNaN(n)?0:n; }
+  const n=parseFloat(raw); return isNaN(n)?0:n;
+}
 
 /* הגדרת מחשבונים אינטראקטיביים */
 const ICALC = {
@@ -6455,9 +6459,15 @@ function calcExampleHTML(calcId){
 function runICalc(calcId){
   const c=ICALC[calcId]; if(!c) return;
   const out=document.getElementById('icalOut_'+calcId); if(!out) return;
-  let r; try{ r=c.compute(); }catch(e){ out.innerHTML='<div class="ical-err">בדקי את ערכי הקלט ונסי שוב.</div>'; return; }
+  // בנה מפת ערכים מהשדות; ערך ריק/חסר → ברירת המחדל של השדה (כך הפלט תמיד מלא)
+  _ICALC_VALS={};
+  c.inputs.forEach(f=>{ const el=document.getElementById(f.id);
+    let raw = el ? el.value : ''; if(raw===''||raw==null) raw=(el&&el.getAttribute('value'))||f.def;
+    const n=parseFloat(raw); _ICALC_VALS[f.id]=isNaN(n)?f.def:n; });
+  let r; try{ r=c.compute(); }catch(e){ out.innerHTML='<div class="ical-err">בדקי את ערכי הקלט ונסי שוב.</div>'; _ICALC_VALS={}; return; }
+  _ICALC_VALS={};
   // סיכום הקלט שהמשתמש הזין
-  const inSummary = c.inputs.map(f=>{ const el=document.getElementById(f.id); const v=el?el.value:f.def; return esc(f.label)+': <b>'+esc(v)+'</b> '+esc(f.unit); }).join(' · ');
+  const inSummary = c.inputs.map(f=>{ const el=document.getElementById(f.id); let v=el?el.value:''; if(v===''||v==null) v=(el&&el.getAttribute('value'))||f.def; return esc(f.label)+': <b>'+esc(v)+'</b> '+esc(f.unit); }).join(' · ');
   // השורות: רגילות + שורות סה״כ (בולטות). שורת הסה״כ האחרונה = "השורה התחתונה"
   const totalRows = r.rows.filter(row=>String(row[0]).includes('סה״כ'));
   const bottom = totalRows.length? totalRows[totalRows.length-1] : r.rows[r.rows.length-1];
@@ -7394,7 +7404,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.24';
+const APP_VERSION = '2026.07.25';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
