@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>תוכניות בינוי — אשדוד</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -1942,7 +1944,7 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script>
 const STATUSES = ['טרם עודכן','בטיפול','הושלם','בהמתנה','סגור','דחוף','תוכנית נסגרה'];
 const STATUS_COLORS = {'טרם עודכן':'rgba(0,0,0,0.25)','בטיפול':'#c47a20','הושלם':'#3d8b5e','בהמתנה':'#3B8BD4','סגור':'#b84040','דחוף':'#b84040','תוכנית נסגרה':'#b84040'};
@@ -2104,6 +2106,7 @@ function savePlans() {
     const payload = { savedAt: new Date().toISOString(), plans: buildPlanRecords() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch(e) { console.warn('save failed', e); }
+  _cloudDirty = true;      // יש שינויים שטרם הגיעו לענן
   scheduleCloudSave(); // שמירה אונליין (debounced)
 }
 
@@ -2112,7 +2115,7 @@ const SB_URL = 'https://slcpldoaaagkoozpbjsk.supabase.co';
 const SB_KEY = 'sb_publishable_WFWOidX2n_-6CVZb3ZoR3g_gDRtYI6O';
 const SB_TABLE = 'ashdod_plans';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
-let _cloudTimer = null, _cloudBusy = false;
+let _cloudTimer = null, _cloudBusy = false, _cloudDirty = false;
 
 function setCloudStatus(state, text) {
   const el = document.getElementById('cloudStatus');
@@ -2140,6 +2143,7 @@ async function cloudSaveNow() {
       body: JSON.stringify(rows)
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    _cloudDirty = false; // הכל סונכרן
     setCloudStatus('ok', '☁ נשמר אונליין');
   } catch (e) {
     console.warn('cloud save failed', e);
@@ -2272,7 +2276,9 @@ function clearSeed(p, key) { if (!p) return; if (!p._userEdited) p._userEdited =
 loadPlans();
 applySeedOpinions();
 migrateForumDates();
-setInterval(savePlans, 30000);
+// רשת ביטחון: ניסיון סנכרון חוזר רק כשיש שינויים שטרם עלו לענן.
+// טאב סרק ללא עריכות לא דוחף כלום — וכך אינו דורס עריכות של משתמשים אחרים.
+setInterval(()=>{ if(_cloudDirty && !_cloudTimer && !_cloudBusy) cloudSaveNow(); }, 30000);
 
 /** מיישר את תאריכי הפורומים/הכנה לוועדה לפי הצילום המאושר (אידמפוטנטי — בטוח לחזרה).
    דורס ערכים שנשמרו קודם עם מיפוי הפוך, אך רק אם הם שונים מהערך המאושר
@@ -2282,12 +2288,14 @@ function migrateForumDates(){
   Object.keys(SEED_FORUM_DATES).forEach(tik=>{
     const p = plans.find(x=>String(x.tik)===tik); if(!p) return;
     const fd = SEED_FORUM_DATES[tik];
-    if ((p.forumArchitect||'') !== (fd.forumArchitect||'')) { p.forumArchitect = fd.forumArchitect||''; changed=true; }
-    if ((p.forumConsultants||'') !== (fd.forumConsultants||'')) { p.forumConsultants = fd.forumConsultants||''; changed=true; }
+    // שדה שנערך ידנית (מסומן ב-_userEdited) לעולם לא נדרס ע"י ה-seed
+    const edited = k => p._userEdited && p._userEdited[k];
+    if (!edited('forumArchitect') && (p.forumArchitect||'') !== (fd.forumArchitect||'')) { p.forumArchitect = fd.forumArchitect||''; changed=true; }
+    if (!edited('forumConsultants') && (p.forumConsultants||'') !== (fd.forumConsultants||'')) { p.forumConsultants = fd.forumConsultants||''; changed=true; }
     if (!p.datesPlan) p.datesPlan = { forum1:'', forum2:'', committeePrep:'', committee:'' };
     // הכנה לוועדה (משוער) — כולל ניקוי ערך שגוי כאשר החדש ריק
-    if ((p.datesPlan.committeePrep||'') !== (fd.committeePrep||'')) { p.datesPlan.committeePrep = fd.committeePrep||''; changed=true; }
-    if (fd.committeeDate && p.committeeDate !== fd.committeeDate) { p.committeeDate = fd.committeeDate; changed=true; }
+    if (!edited('datesPlan.committeePrep') && (p.datesPlan.committeePrep||'') !== (fd.committeePrep||'')) { p.datesPlan.committeePrep = fd.committeePrep||''; changed=true; }
+    if (!edited('committeeDate') && fd.committeeDate && p.committeeDate !== fd.committeeDate) { p.committeeDate = fd.committeeDate; changed=true; }
   });
   if (changed) savePlans();
 }
@@ -2354,6 +2362,7 @@ function go(id, btn, isBack) {
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   if (id === 'exec' && typeof renderExecDash === 'function') { renderExecDash(); }
   if (id === 'devhome' && typeof renderDevHome === 'function') { renderDevHome(); }
+  if (id === 'table') { syncTableEditMode(); } // רענון מצב עריכת הטבלה אחרי ניווט (המצב אולי הוחלף בדף אחר)
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
   const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
@@ -2595,6 +2604,7 @@ function saveForumDate(id, field, el){
   if(!p) return;
   const oldVal = p[field];
   p[field] = el.value;
+  clearSeed(p, field); // סימון עריכה ידנית — כדי שה-seed לא ידרוס את התאריך בטעינה הבאה
   savePlans();
   renderTable();
   toast(`${FORUM_INFO[field]?.label || field} עודכן`);
@@ -3271,6 +3281,8 @@ const ASHDOD_DISTRICTS = {
 };
 
 function initMap() {
+  // Leaflet נטען עם defer — אם עוד לא הגיע (רשת איטית/קישור ישיר למפה), ננסה שוב עוד רגע
+  if (typeof L === 'undefined') { setTimeout(initMap, 200); return; }
   gisMap = L.map('gis-map', {boxZoom:true}).setView([31.802, 34.650], 13);
   setupBoxZoom(gisMap);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
@@ -7733,6 +7745,8 @@ function importBackup(input){
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
+      // אימות שזה באמת קובץ גיבוי של המערכת — קובץ זר עלול למחוק את כל הנתונים
+      if(d.app!=='ashdod-plans' || !Array.isArray(d.plans) || !d.plans.length){ toast('הקובץ אינו גיבוי תקין של המערכת — הייבוא בוטל'); return; }
       if(!confirm('לייבא גיבוי? '+(d.plans?d.plans.length:0)+' תוכניות ו-'+(d.contacts?d.contacts.length:0)+' אנשי קשר יוחלפו.')) return;
       if(Array.isArray(d.plans)){ plans.length=0; d.plans.forEach(p=>plans.push(p)); savePlans(); }
       if(Array.isArray(d.contacts)){ contacts=d.contacts; saveContacts&&saveContacts(); }

@@ -79,13 +79,31 @@ function buildUserMessage(actionId, payload = {}) {
   return fn(payload);
 }
 
+// אבטחת הקצה: הפונקציה ציבורית — מגבילים מקורות דפדפן וקצב בקשות כדי למנוע שריפת קרדיט API ע"י זרים.
+const ALLOWED_ORIGIN_RE = [/^https:\/\/[\w.-]+\.vercel\.app$/, /^https:\/\/[\w.-]+\.github\.io$/, /^https?:\/\/localhost(:\d+)?$/];
+const _rateHits = new Map(); // ip → {n, t} — לכל אינסטנס; מגן מפני שימוש אוטומטי מסיבי
+function isRateLimited(ip) {
+  const now = Date.now();
+  const rec = _rateHits.get(ip) || { n: 0, t: now };
+  if (now - rec.t > 60000) { rec.n = 0; rec.t = now; }
+  rec.n++;
+  _rateHits.set(ip, rec);
+  if (_rateHits.size > 5000) _rateHits.clear(); // מניעת גידול זיכרון
+  return rec.n > 20; // עד 20 בקשות לדקה לכל IP
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin || '';
+  const originAllowed = !origin || ALLOWED_ORIGIN_RE.some(re => re.test(origin));
+  if (originAllowed && origin) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!originAllowed) return res.status(403).json({ error: 'Origin not allowed' });
+  const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim() || 'unknown';
+  if (isRateLimited(ip)) return res.status(429).json({ error: 'יותר מדי בקשות — נסו שוב בעוד דקה' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.ANAT_KEY_CLOUDE;
   if (!apiKey) return res.status(500).json({ error: 'חסר מפתח API בהגדרות Vercel (ANTHROPIC_API_KEY / ANAT_KEY_CLOUDE)' });
