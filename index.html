@@ -6286,7 +6286,10 @@ function renderCalcHubShell(p, def){
    ערכי מקדם המסומנים "להמחשה" טעונים אימות; אין המצאת נוסחה מאושרת.
    ═══════════════════════════════════════════════════════════════ */
 function _fmtNum(n){ if(n==null||isNaN(n)) return '—'; return Number(n).toLocaleString('he-IL',{maximumFractionDigits:2}); }
-function _val(id){ const el=document.getElementById(id); return el? (parseFloat(el.value)||0) : 0; }
+function _val(id){ const el=document.getElementById(id); if(!el) return 0;
+  // קרא מ-value; אם ריק (מצב ביניים ברינדור) — קרא מתכונת ה-value שנקבעה
+  let raw = el.value; if(raw===''||raw==null) raw = el.getAttribute('value')||'';
+  const n=parseFloat(raw); return isNaN(n)?0:n; }
 
 /* הגדרת מחשבונים אינטראקטיביים */
 const ICALC = {
@@ -6522,7 +6525,7 @@ function renderCalcHub(){
   el.innerHTML = `<div class="calchub-btns">${btns}</div>
     <div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>
     ${content}`;
-  if(!p && typeof runICalc==='function') setTimeout(()=>runICalc(def.id),0); // הצגת פלט ראשוני עם ערכי ברירת מחדל
+  if(!p && typeof runICalc==='function') requestAnimationFrame(()=>requestAnimationFrame(()=>runICalc(def.id))); // אחרי ציור מלא
 }
 
 /* ── מסך ניהול כללים (בסיסי — הוספה/עריכה) ── */
@@ -7391,7 +7394,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.23';
+const APP_VERSION = '2026.07.24';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
