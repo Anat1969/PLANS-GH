@@ -46,8 +46,21 @@ const documentShim = {
   activeElement: null,
   hidden: false,
 };
+// fetch מקומי: כתובות יחסיות (seed-data.json, spatial18.json) נקראות מהדיסק כמו בשרת סטטי
+const localFetch = (url, opts) => {
+  if (typeof url === 'string' && !/^https?:/.test(url)) {
+    const p = path.join(__dirname, '..', String(url).split('?')[0]);
+    try {
+      const data = fs.readFileSync(p, 'utf8');
+      return Promise.resolve({ ok: true, status: 200, json: async () => JSON.parse(data), text: async () => data });
+    } catch (e) {
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}), text: async () => '' });
+    }
+  }
+  return fetch(url, opts);
+};
 const sandbox = {
-  console, fetch, setTimeout, clearTimeout, setInterval, clearInterval,
+  console, fetch: localFetch, setTimeout, clearTimeout, setInterval, clearInterval,
   URLSearchParams, Date, Math, JSON, Intl, Promise, Object, Array, String, Number, Boolean, RegExp, Map, Set, parseFloat, parseInt, isNaN, encodeURI, encodeURIComponent, decodeURIComponent, structuredClone,
   document: documentShim,
   localStorage: localStorageShim,
