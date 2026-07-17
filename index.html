@@ -373,10 +373,23 @@ tbody tr:hover{background:var(--teal-pale)}
 .stage-badge.st3{background:#d98a2b}.stage-badge.stapp{background:var(--ok)}
 /* נקודת רמזור לצד תווית השלב */
 .stage-badge::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.9);margin-inline-end:6px;vertical-align:middle}
-.pp-tabs{display:flex;gap:0;border-bottom:2px solid var(--stone);margin:1.2rem 0 1.5rem;flex-wrap:wrap}
-.pp-tab{padding:0.7rem 1.3rem;font-size:14px;font-weight:500;color:rgba(0,0,0,0.55);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:var(--sans)}
-.pp-tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
-.pp-tab:hover{color:var(--teal)}
+/* סרגל נושאים אנכי בצד ימין של דף הפרויקט */
+.pp-with-rail{margin-top:1.2rem}
+.pp-rail{width:200px;flex:0 0 200px;position:sticky;top:70px;max-height:calc(100vh - 88px);overflow:auto}
+.pp-rail-toggle{display:none;width:100%;border:1px solid var(--bronze,#9c7a3c);background:#fff;border-radius:8px;padding:8px;font-family:inherit;font-size:12px;cursor:pointer;margin-bottom:8px}
+.pp-rail-nav{display:flex;flex-direction:column;gap:3px;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:12px;padding:10px}
+.pp-rail-grp{font-size:10.5px;font-weight:700;color:var(--bronze,#9c7a3c);letter-spacing:0.5px;margin:8px 4px 2px;text-transform:none}
+.pp-rail-grp:first-child{margin-top:2px}
+.pp-tab{text-align:right;padding:8px 12px;font-size:13px;font-weight:500;color:var(--ink,#211d1a);border:1px solid transparent;background:none;border-radius:8px;cursor:pointer;font-family:var(--sans);transition:all .13s;line-height:1.3}
+.pp-tab:hover{background:#f5f2ec}
+.pp-tab.active{background:var(--bordeaux,#7a1f2b);color:#fff;font-weight:700}
+@media(max-width:900px){
+  .pp-with-rail{flex-direction:column}
+  .pp-rail{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
+  .pp-rail-toggle{display:block}
+  .pp-rail-nav{display:none}
+  .pp-rail.open .pp-rail-nav{display:flex}
+}
 .pp-panel{display:none}
 .pp-panel.active{display:block}
 .pp-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
@@ -831,6 +844,20 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .chub-k{color:var(--bronze,#9c7a3c);font-weight:700;margin-inline-end:4px}
 .chub-insight{color:#2a6f6f}
 .calchub-item .calc-card{border-radius:0 0 10px 10px;margin-top:-1px}
+.calchub-btns{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.calchub-btn{border:1px solid var(--stone,#e5ded4);background:var(--surface,#fff);border-radius:22px;padding:9px 18px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink,#211d1a);transition:all .13s}
+.calchub-btn:hover{border-color:var(--bronze,#9c7a3c)}
+.calchub-btn.active{background:var(--bordeaux,#7a1f2b);color:#fff;border-color:var(--bordeaux,#7a1f2b)}
+.calc-example{padding:8px 4px}
+.cex-title{font-family:var(--display);font-size:15px;font-weight:700;color:var(--bordeaux,#7a1f2b);margin-bottom:8px}
+.cex-io{width:100%;max-width:420px;border-collapse:collapse;margin-bottom:10px;font-size:13px}
+.cex-io th,.cex-io td{border:1px solid var(--stone,#e5ded4);padding:6px 10px;text-align:right}
+.cex-io th{background:#faf7f2;font-weight:600}
+.cex-io .cex-val{font-weight:700;font-variant-numeric:tabular-nums}
+.cex-formula{font-size:13px;margin:6px 0;font-family:var(--sans)}
+.cex-result{font-size:14px;margin:6px 0}
+.cex-note{font-size:12px;color:#9a6300;background:#fdf6e3;border:1px solid #f0e4b8;border-radius:8px;padding:8px 12px;margin-top:8px}
+.calc-priority{font-size:12px;color:#2a557a;background:#eef4fb;border:1px solid #cfe1f5;border-radius:8px;padding:8px 12px;margin-bottom:8px;line-height:1.5}
 .muni-req-main{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .muni-req-title{font-size:13.5px;flex:1}
 .muni-cond-tag{background:var(--bronze);color:#fff;font-size:10px;padding:1px 6px;border-radius:4px;margin-inline-start:6px}
@@ -1448,24 +1475,31 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   <!-- מסלול עבודה רציף (מצב אדריכל היזם) -->
   <div id="workflowBar"></div>
 
-  <div class="pp-tabs" id="ppTabs">
-    <button class="pp-tab active" onclick="ppTab('info',this)">מידע</button>
-    <button class="pp-tab" onclick="ppTab('forums',this)">פורומים</button>
-    <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
-    <button class="pp-tab" onclick="ppTab('team',this)">צוות היזם</button>
-    <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים</button>
-    <button class="pp-tab" onclick="ppTab('guidelines',this)">הנחיות</button>
-    <button class="pp-tab" onclick="ppTab('review',this)">בדיקה</button>
-    <button class="pp-tab" onclick="ppTab('muni',this)">דרישות עירייה</button>
-    <button class="pp-tab" onclick="ppTab('process',this)">תהליך וגאנט</button>
-    <button class="pp-tab" onclick="ppTab('graphics',this)">חומר גרפי</button>
-    <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
-    <button class="pp-tab" onclick="ppTab('comm',this)">תקשורת</button>
-    <button class="pp-tab" onclick="ppTab('timeline',this)">ציר זמן</button>
-    <button class="pp-tab" onclick="ppTab('opinion',this)">חוות דעת</button>
-  </div>
-
-  <div class="pp-body-wrap">
+  <div class="pp-body-wrap pp-with-rail">
+  <!-- סרגל נושאים בצד ימין: מסודר מהמידע הרעיוני (חזון/הנחיות) לפרקטי (חומרים) -->
+  <aside class="pp-rail no-print" id="ppRail">
+    <button class="pp-rail-toggle" onclick="document.getElementById('ppRail').classList.toggle('open')">☰ נושאים</button>
+    <nav class="pp-rail-nav" id="ppTabs">
+      <div class="pp-rail-grp">זיהוי וחזון</div>
+      <button class="pp-tab active" onclick="ppTab('info',this)">מידע וזיהוי</button>
+      <button class="pp-tab" onclick="ppTab('guidelines',this)">הנחיות ועקרונות</button>
+      <div class="pp-rail-grp">תהליך ודרישות</div>
+      <button class="pp-tab" onclick="ppTab('forums',this)">פורומים ותהליך</button>
+      <button class="pp-tab" onclick="ppTab('process',this)">תהליך וגאנט</button>
+      <button class="pp-tab" onclick="ppTab('muni',this)">דרישות עירייה</button>
+      <div class="pp-rail-grp">נתונים והשוואה</div>
+      <button class="pp-tab" onclick="ppTab('data',this)">נתוני פרויקט</button>
+      <button class="pp-tab" onclick="ppTab('team',this)">צוות היזם</button>
+      <button class="pp-tab" onclick="ppTab('calc',this)">מחשבונים והשוואה</button>
+      <button class="pp-tab" onclick="ppTab('review',this)">בדיקת התאמה</button>
+      <div class="pp-rail-grp">חומרים ותוצרים</div>
+      <button class="pp-tab" onclick="ppTab('graphics',this)">חומר גרפי</button>
+      <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
+      <button class="pp-tab" onclick="ppTab('comm',this)">תקשורת</button>
+      <button class="pp-tab" onclick="ppTab('timeline',this)">ציר זמן</button>
+      <button class="pp-tab" onclick="ppTab('opinion',this)">חוות דעת</button>
+    </nav>
+  </aside>
   <div class="pp-panels-col">
   <div class="pp-panel active" id="panel-info"></div>
   <div class="pp-panel" id="panel-forums"></div>
@@ -5938,7 +5972,9 @@ function renderCalcShell(p, def){
     <div class="calc-warn-banner">⚠ הערכים והנוסחאות אינם מאושרים אוטומטית — הם להמחשה בלבד וחייבים אימות מול המקור הרשמי (אוגדן/תקן/תב״ע) לפני שימוש.${unverified?' <b>יש כללים שטרם אומתו.</b>':''}</div>
     <details class="calc-sec" open><summary>נתוני קלט</summary>${inputsHtml}</details>
     ${hints.length?`<details class="calc-sec"><summary>קבועים אפשריים (טעונים אימות)</summary>${renderConstantHints(def.id)}</details>`:''}
-    <details class="calc-sec"><summary>מקור הדרישה והקבועים</summary>${renderCalcSources(rules)}</details>
+    <details class="calc-sec"><summary>מקור הדרישה והקבועים</summary>
+      <div class="calc-priority">סדר עדיפות סטטוטורי למקור הערך: <b>נתוני היזם → הוראות התוכנית החלה → טבלה 5 → דרישות העירייה → אוגדן → הנחיות מרחביות</b>. ערך מגורם בעדיפות גבוהה גובר.</div>
+      ${renderCalcSources(rules)}</details>
     <div class="calc-result">${body}</div>
   </div>`;
 }
@@ -6056,20 +6092,74 @@ function renderCalcHubShell(p, def){
     ${shell}
   </div>`;
 }
+/* דוגמאות חישוב להמחשה — קבועים מסומנים במפורש כטעונים אימות (לא מאושרים) */
+const CALC_EXAMPLES = {
+  parking: {
+    title:'דוגמה: חישוב חניה למגורים',
+    inputs:[['יחידות דיור','40','יח״ד'],['תקן חניה (להמחשה)','1.5','חניות ליח״ד']],
+    formula:'חניות נדרשות = יח״ד × תקן = 40 × 1.5',
+    result:'60 חניות נדרשות',
+    note:'התקן 1.5 להמחשה בלבד — יש לאמת מול תקן החניה החל (ארצי/מקומי) ותב״ע.'
+  },
+  planting:{
+    title:'דוגמה: תכסית ושטח פתוח',
+    inputs:[['שטח מגרש','5,000','מ״ר'],['תכסית מרבית (להמחשה)','40','%']],
+    formula:'תכסית בנויה מרבית = שטח מגרש × אחוז = 5,000 × 40%',
+    result:'2,000 מ״ר בנוי מרבי · 3,000 מ״ר שטח פתוח מינימלי',
+    note:'אחוז התכסית להמחשה — נקבע בתב״ע/הוראות לפי הייעוד.'
+  },
+  runoff:{
+    title:'דוגמה: שטח מחלחל מינימלי',
+    inputs:[['שטח מגרש','5,000','מ״ר'],['יעד חלחול (להמחשה)','15','%']],
+    formula:'שטח מחלחל נדרש = שטח מגרש × יעד = 5,000 × 15%',
+    result:'750 מ״ר שטח מחלחל מינימלי',
+    note:'יעד החלחול להמחשה — יש לאמת מול דרישת אגף הניקוז וההנחיות.'
+  }
+};
+function calcExampleHTML(calcId){
+  const ex=CALC_EXAMPLES[calcId]; if(!ex) return '<div class="muted" style="font-size:13px;padding:8px 0">אין דוגמת חישוב מובנית למחשבון זה — בחרי תוכנית להרצה על נתונים אמיתיים.</div>';
+  return `<div class="calc-example">
+    <div class="cex-title">${esc(ex.title)}</div>
+    <table class="cex-io"><thead><tr><th>קלט</th><th>ערך</th><th>יחידה</th></tr></thead>
+      <tbody>${ex.inputs.map(r=>`<tr><td>${esc(r[0])}</td><td class="cex-val">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</tbody></table>
+    <div class="cex-formula"><span class="chub-k">חישוב:</span> ${esc(ex.formula)}</div>
+    <div class="cex-result"><span class="chub-k">פלט:</span> <b>${esc(ex.result)}</b></div>
+    <div class="cex-note">⚠ ${esc(ex.note)}</div>
+  </div>`;
+}
+let _calchubActive = 'parking';
+function calchubSelect(id){ _calchubActive=id; renderCalcHub(); }
 function renderCalcHub(){
   const el=document.getElementById('calchubBody'); if(!el) return;
   const sel=document.getElementById('calchubPlan');
-  // אכלוס בורר התוכניות
   if(sel && !sel.dataset.filled){
     const opts=plans.slice().sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0))
       .map(p=>`<option value="${p.id}">תב/${esc(p.tik)} — ${esc(p.district||'')} ${esc(p.location||'')}</option>`).join('');
-    sel.innerHTML='<option value="">— מבנה המחשבון בלבד —</option>'+opts; sel.dataset.filled='1';
+    sel.innerHTML='<option value="">— דוגמת חישוב (ברירת מחדל) —</option>'+opts; sel.dataset.filled='1';
   }
   const pid = sel? sel.value : '';
   let p = pid? plans.find(x=>x.id==pid) : null;
-  if(!p){ p = {tik:'—',meta:{},plots:[],table5:{},parking:{},projectData:{}}; if(typeof ensureProjectData==='function'){ try{ ensureProjectData(p); }catch(e){} } }
-  el.innerHTML = `<div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>`
-    + CALCULATORS.map(def=>renderCalcHubShell(p,def)).join('');
+  const def = CALCULATORS.find(c=>c.id===_calchubActive) || CALCULATORS[0];
+  // כפתורי בחירת מחשבון
+  const btns = CALCULATORS.map(c=>`<button class="calchub-btn ${c.id===_calchubActive?'active':''}" onclick="calchubSelect('${c.id}')">${esc(c.name)}</button>`).join('');
+  let content;
+  if(p){ // הרצה על תוכנית אמיתית
+    content = renderCalcHubShell(p, def);
+  } else { // ברירת מחדל — דוגמת חישוב
+    const info = CALC_INFO[def.id]||{};
+    content = `<div class="calchub-item">
+      <div class="chub-meta">
+        <div class="chub-topic"><span class="chub-k">נושא:</span> ${esc(info.topic||def.name)}</div>
+        ${info.vars?`<div><span class="chub-k">משתנים:</span> ${esc(info.vars)}</div>`:''}
+        ${info.explain?`<div><span class="chub-k">הסבר:</span> ${esc(info.explain)}</div>`:''}
+        ${info.insight?`<div class="chub-insight"><span class="chub-k">תובנה:</span> ${esc(info.insight)}</div>`:''}
+      </div>
+      <div class="pp-card calc-card">${calcExampleHTML(def.id)}</div>
+    </div>`;
+  }
+  el.innerHTML = `<div class="calchub-btns">${btns}</div>
+    <div class="calc-manage-bar no-print"><button class="btn btn-ghost btn-sm" onclick="openCalcRulesEditor('')">ניהול כללים ומקורות</button></div>
+    ${content}`;
 }
 
 /* ── מסך ניהול כללים (בסיסי — הוספה/עריכה) ── */
@@ -6939,7 +7029,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.14';
+const APP_VERSION = '2026.07.15';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
