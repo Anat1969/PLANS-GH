@@ -101,15 +101,15 @@ tbody tr:hover{background:var(--teal-pale)}
 .back-btn:hover{background:var(--bronze-deep,var(--bronze-deep));transform:translateY(-1px);box-shadow:0 4px 16px rgba(156,122,60,0.5)}
 .back-btn:focus-visible{outline:3px solid rgba(156,122,60,0.5);outline-offset:2px}
 /* כפתור חזרה גלובלי — קבוע, גדול ומואר, בכל הדפים */
-.global-back{position:fixed;top:70px;inset-inline-start:18px;z-index:900;display:inline-flex;align-items:center;gap:6px;
-  background:var(--bronze,var(--bronze));color:#fff;border:none;border-radius:24px;padding:9px 18px 9px 14px;
-  font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 3px 14px rgba(156,122,60,0.4);
-  transition:all .18s;letter-spacing:0.3px}
-.global-back:hover{background:var(--bronze-deep,var(--bronze-deep));transform:translateY(-1px);box-shadow:0 5px 20px rgba(156,122,60,0.55)}
-.global-back:focus-visible{outline:3px solid rgba(156,122,60,0.55);outline-offset:2px}
-.global-back .gb-arrow{font-size:20px;line-height:1;margin-top:-2px}
-@media(max-width:640px){.global-back{top:auto;bottom:16px;inset-inline-start:16px;padding:10px 16px}}
-@media print{.global-back{display:none !important}}
+/* כפתור חזרה בסרגל הראשי — בולט, ליד מתג התצוגה */
+.mast-back{display:inline-flex;align-items:center;gap:4px;background:var(--bordeaux);color:#fff;border:none;
+  border-radius:var(--r);padding:6px 15px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;
+  white-space:nowrap;transition:all .15s;box-shadow:0 1px 4px rgba(122,31,43,0.35)}
+.mast-back:hover{background:var(--bordeaux-deep);transform:translateY(-1px)}
+.mast-back:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.mast-back .gb-arrow{font-size:16px;line-height:1}
+@media print{.mast-back{display:none !important}}
+#boxZoomBtn.active{background:var(--bordeaux);color:#fff;border-color:var(--bordeaux)}
 /* מקרא מפה */
 .map-legend{font-size:12px;line-height:1.9;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px 12px}
 .map-legend .ml-group{font-weight:700;font-size:11px;color:var(--bronze,var(--bronze));letter-spacing:0.5px;margin-bottom:2px}
@@ -467,7 +467,8 @@ tbody tr:hover{background:var(--teal-pale)}
 .gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
 .gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
 /* דף הנחיות — סרגל טאבים אופקי קבוע + תוכן הטאב הנבחר + סרגל אנכי משני */
-.gl-tabs{position:sticky;top:56px;z-index:50;display:flex;gap:6px;flex-wrap:wrap;background:var(--paper,#faf9f7);padding:10px 6px;border-bottom:2px solid var(--bronze,var(--bronze));margin-bottom:1rem;border-radius:0 0 8px 8px}
+.gl-tabs{position:sticky;top:56px;z-index:50;display:flex;gap:6px;flex-wrap:wrap;background:var(--paper,#faf9f7);padding:10px 6px;border-bottom:2px solid var(--bronze);margin-bottom:1rem;border-radius:0 0 8px 8px;min-height:52px;align-items:center}
+.gl-body-main{min-height:60vh}
 .gl-tab{font-size:13px;color:var(--ink,#211d1a);background:#fff;border:1px solid var(--stone,#e5ded4);border-radius:20px;padding:8px 16px;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap;transition:all .15s}
 .gl-tab:hover{border-color:var(--bronze,var(--bronze))}
 .gl-tab.active{background:var(--bordeaux,var(--bordeaux));color:#fff;border-color:var(--bordeaux,var(--bordeaux));font-weight:700}
@@ -1172,6 +1173,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
+    <button id="globalBack" class="mast-back no-print" onclick="goBack()" style="display:none" title="חזרה לדף הקודם"><span class="gb-arrow">‹</span> <span class="gb-label">חזרה</span></button>
     <div class="search-bar">
       <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" data-nolock="1" oninput="globalSearchFn(this.value)">
     </div>
@@ -1184,11 +1186,6 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   </div>
 </div>
 </header>
-
-<!-- כפתור חזרה גלובלי — קבוע בכל הדפים, חוזר לדף האחרון -->
-<button id="globalBack" class="global-back no-print" onclick="goBack()" style="display:none" title="חזרה לדף הקודם">
-  <span class="gb-arrow">‹</span><span class="gb-label">חזרה</span>
-</button>
 
 <!-- ════════ LANDING ════════ -->
 <div id="landing" class="page active">
@@ -1318,6 +1315,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
           <div class="layer-toggle on" data-layer="green"></div>
         </div>
       </div>
+      <button id="boxZoomBtn" class="btn btn-ghost btn-sm no-print" style="width:100%;margin-top:10px" onclick="toggleBoxZoom()">🔍 זום לפי מלבן</button>
       <div class="section-title" style="margin-top:1.5rem">מקרא</div>
       <div class="map-legend" id="mapLegend">
         <div class="ml-group">סטטוס תוכנית</div>
@@ -2938,7 +2936,8 @@ const ASHDOD_DISTRICTS = {
 };
 
 function initMap() {
-  gisMap = L.map('gis-map').setView([31.802, 34.650], 13);
+  gisMap = L.map('gis-map', {boxZoom:true}).setView([31.802, 34.650], 13);
+  setupBoxZoom(gisMap);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
     attribution: '© CartoDB © OpenStreetMap', maxZoom: 19
   }).addTo(gisMap);
@@ -3037,6 +3036,37 @@ function toggleGIS(el, layerName) {
   else if (gisLayers[layerName]) gisMap.removeLayer(gisLayers[layerName]);
 }
 
+/* ── זום על ידי גרירת מלבן על המפה (ללא צורך ב-Shift) ── */
+let _boxZoomOn = false, _boxStart = null, _boxRect = null;
+function setupBoxZoom(map){
+  const container = map.getContainer();
+  map.on('mousedown', e=>{
+    if(!_boxZoomOn) return;
+    _boxStart = e.latlng;
+    map.dragging.disable();
+    _boxRect = L.rectangle([[_boxStart.lat,_boxStart.lng],[_boxStart.lat,_boxStart.lng]], {color:'#7a1f2b',weight:2,dashArray:'5,4',fillColor:'#7a1f2b',fillOpacity:0.1}).addTo(map);
+  });
+  map.on('mousemove', e=>{
+    if(!_boxZoomOn || !_boxStart || !_boxRect) return;
+    _boxRect.setBounds(L.latLngBounds(_boxStart, e.latlng));
+  });
+  map.on('mouseup', e=>{
+    if(!_boxZoomOn || !_boxStart) return;
+    const b = L.latLngBounds(_boxStart, e.latlng);
+    if(_boxRect){ map.removeLayer(_boxRect); _boxRect=null; }
+    _boxStart=null; map.dragging.enable();
+    if(b.isValid() && b.getNorthEast().distanceTo(b.getSouthWest())>30) map.fitBounds(b);
+    // כיבוי המצב אחרי זום אחד
+    toggleBoxZoom(false);
+  });
+}
+function toggleBoxZoom(force){
+  _boxZoomOn = (force===undefined)? !_boxZoomOn : force;
+  const btn=document.getElementById('boxZoomBtn'); if(btn) btn.classList.toggle('active', _boxZoomOn);
+  const cont=gisMap&&gisMap.getContainer(); if(cont) cont.style.cursor = _boxZoomOn?'crosshair':'';
+  if(_boxZoomOn) toast('סמני מלבן על המפה כדי להגדיל');
+}
+
 // ── TRENDS ──
 function renderTrends() {
   // Counter
@@ -3047,7 +3077,8 @@ function renderTrends() {
   plans.forEach(p => { if (p.year) yearCounts[p.year] = (yearCounts[p.year]||0)+1; });
   const years = Object.keys(yearCounts).sort();
   const maxY = Math.max(...Object.values(yearCounts));
-  drawLineChart('lineChartCanvas', years, years.map(y=>yearCounts[y]), maxY);
+  const curYear=String(new Date().getFullYear());
+  drawLineChart('lineChartCanvas', years, years.map(y=>yearCounts[y]), maxY, years.indexOf(curYear));
 
   // בורר שנה לגרף החודשי + ציור ראשוני
   const yrsWithData=[...new Set(plans.map(p=>(p.date||'').slice(0,4)).filter(Boolean))].sort();
@@ -3136,10 +3167,16 @@ function renderMonthlyTrend(){
     labels=HE_MONTHS_SHORT.slice(); data=counts;
   }
   const maxVal=Math.max(1,...data);
-  drawLineChart('monthChartCanvas', labels, data, maxVal);
+  // מיקום "היום" בגרף החודשי
+  const now=new Date(); let todayIdx=-1;
+  if(yr==='all'){ const k=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const keys2=[]; plans.forEach(p=>{const d=(p.date||'');if(d.length>=7)keys2.push(d.slice(0,7));});
+    const uniq=[...new Set(keys2)].sort(); todayIdx=uniq.indexOf(k);
+  } else if(yr===String(now.getFullYear())){ todayIdx=now.getMonth(); }
+  drawLineChart('monthChartCanvas', labels, data, maxVal, todayIdx);
 }
 
-function drawLineChart(canvasId, labels, data, maxVal) {
+function drawLineChart(canvasId, labels, data, maxVal, todayIdx) {
   const canvas = document.getElementById(canvasId);
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.parentElement.clientWidth - 32;
@@ -3215,6 +3252,24 @@ function drawLineChart(canvasId, labels, data, maxVal) {
   ctx.closePath();
   ctx.fillStyle = 'rgba(42,95,95,0.08)';
   ctx.fill();
+
+  // סימון "היום" — קו אנכי + תווית, במיקום המתאים על הציר
+  if (todayIdx != null && todayIdx >= 0 && points.length) {
+    const tx = pad.left + (todayIdx / (labels.length-1||1)) * cw;
+    ctx.save();
+    ctx.setLineDash([5,4]);
+    ctx.strokeStyle = 'var(--bordeaux)'.includes('var')? '#7a1f2b' : '#7a1f2b';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(tx, pad.top-6); ctx.lineTo(tx, pad.top + ch); ctx.stroke();
+    ctx.setLineDash([]);
+    // תווית "היום"
+    ctx.fillStyle = '#7a1f2b';
+    ctx.fillRect(tx-20, pad.top-22, 40, 16);
+    ctx.fillStyle = '#fff'; ctx.font = '700 10px Rubik'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+    ctx.fillText('היום', tx, pad.top-14);
+    ctx.textBaseline='alphabetic';
+    ctx.restore();
+  }
 
   // Dots, values and X labels
   points.forEach(p => {
@@ -4539,11 +4594,12 @@ function glShowTab(id, keepScroll){
   const tab = tabs.find(t=>t.id===id) || tabs[0];
   document.querySelectorAll('#gl-tabs .gl-tab').forEach(b=>b.classList.toggle('active', b.getAttribute('onclick').includes("'"+id+"'")));
   const body = document.getElementById('gl-body');
+  // גלילה לראש אזור התוכן בלבד (לא לכל הדף) כדי שהכפתורים לא יזוזו
+  body.scrollTop = 0;
   body.innerHTML = tab.html();
   instrumentGuidelinesEditable();
-  // סרגל אנכי משני — כותרות המשנה בתוך הטאב הנוכחי (לפירוק נושאים ותתי-נושאים)
   buildGlSubRail();
-  if(!keepScroll) document.getElementById('guidelines').scrollIntoView({behavior:'smooth',block:'start'});
+  // ללא scrollIntoView — הכפתורים נשארים במקומם; רק תוכן הטאב מתחלף
 }
 /* סרגל אנכי משני: מחלץ את כותרות המשנה (h2/h3/section-title) בתוך הטאב הפעיל */
 function buildGlSubRail(){
@@ -7031,7 +7087,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.16';
+const APP_VERSION = '2026.07.17';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
