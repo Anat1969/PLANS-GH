@@ -2200,6 +2200,13 @@ async function cloudSaveNow() {
   if (_cloudBusy) { scheduleCloudSave(); return; }
   _cloudBusy = true;
   try {
+    // הגנה קריטית: אם אין בסיסי השוואה (הטעינה מהענן טרם הצליחה) — קודם
+    // מושכים וממזגים את הענן. אחרת טאב עם עותק ישן דוחף את כל עברו ודורס
+    // עריכות של משתמשים אחרים (זה בדיוק מה שביטל את מיגרציית התמונות).
+    if (_syncBase.size === 0) {
+      const st = await cloudLoad();
+      if (st === 'error') throw new Error('cloud unreachable — refusing blind full push');
+    }
     const now = new Date().toISOString();
     const changed = [];
     buildPlanRecords().forEach(rec => {
@@ -2249,7 +2256,7 @@ async function cloudLoad() {
   } catch (e) {
     console.warn('cloud load failed', e);
     setCloudStatus('err', '⚠ לא מחובר לענן');
-    return false;
+    return 'error'; // שגיאת רשת — שונה מ"ענן ריק"! אסור לדחוף את המצב המקומי במקרה כזה
   }
 }
 
@@ -2503,14 +2510,18 @@ window.addEventListener('beforeunload', savePlans);
 /** אתחול ענן: טוען מ-Supabase ומרענן את התצוגה (מקור אמת מרכזי) */
 async function initCloud() {
   const loaded = await cloudLoad();
-  if (loaded) {
+  if (loaded === true) {
     migrateForumDates(); // תיקון תאריכים גם על נתוני הענן
     applyFilters(); renderLanding();
     if (currentProjectId != null) { const p = pj(); if (p) openProject(currentProjectId); }
     savePlans(); // מסנכרן חזרה כדי לכלול פרויקטים חדשים/seed
-  } else {
-    // אין נתונים בענן עדיין — דחיפה ראשונית של המצב הנוכחי
+  } else if (loaded === false) {
+    // הענן באמת ריק (טבלה ללא שורות) — דחיפה ראשונית של המצב הנוכחי
     cloudSaveNow();
+  } else {
+    // 'error' — טעינה נכשלה. לא דוחפים כלום: דחיפה עכשיו הייתה דורסת את
+    // נתוני כל המשתמשים עם עותק מקומי מיושן. cloudRefresh ינסה שוב בעוד דקה.
+    console.warn('initCloud: load failed — skipping initial push to protect cloud data');
   }
 }
 // initCloud/loadMuni/loadCalcRules מופעלים בסוף האתחול (INIT) אחרי שכל ההגדרות קיימות
