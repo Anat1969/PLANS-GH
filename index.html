@@ -660,24 +660,34 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .date-legend{font-size:11px;color:#777;display:inline-flex;align-items:center;gap:5px;margin-inline-start:6px}
 .date-legend span{padding:1px 8px;border-radius:5px;font-size:11px}
 /* ══════════ טבלת תוכניות קומפקטית — רוחב מוגבל לכל עמודה ══════════ */
-.plans-table{table-layout:fixed;width:100%}
-.plans-table th,.plans-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
-.plans-table .col-tik{width:74px;max-width:74px}
-.plans-table .col-plannum{width:88px;max-width:88px;font-size:12px}
-.plans-table .col-img{width:70px;max-width:70px}
-.plans-table .col-district{width:80px;max-width:80px}
-.plans-table .col-txt{max-width:140px;min-width:80px}
-.plans-table .col-date{width:118px;max-width:118px}
-.plans-table .col-status{width:90px;max-width:90px}
-.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;font-size:11px}
-.plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:12px;padding:3px 5px;min-width:0}
-/* בורר תאריך בטבלה — רחב מספיק, אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
-.plans-table .col-date input[type=date]{font-size:12px;padding:4px 4px;direction:ltr;text-align:center;cursor:pointer}
+.plans-table{table-layout:fixed;width:100%;border-collapse:collapse}
+.plans-table th,.plans-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;padding:4px 5px}
+.plans-table th{padding:6px 5px}
+.plans-table .col-tik{width:52px;max-width:52px}
+.plans-table .col-plannum{width:76px;max-width:76px;font-size:11.5px}
+.plans-table .col-img{width:58px;max-width:58px}
+.plans-table .col-district{width:70px;max-width:70px;font-size:11.5px}
+.plans-table .col-txt{max-width:120px;min-width:64px}
+.plans-table .col-loc{max-width:150px;min-width:90px}
+.plans-table .col-date{width:104px;max-width:104px}
+.plans-table .col-status{width:82px;max-width:82px}
+.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;font-size:11px}
+.plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:11.5px;padding:2px 4px;min-width:0}
+/* מיקום מודגש בבולט גדול */
+.plans-table .col-loc{font-weight:700;font-size:13.5px;color:var(--ink)}
+.plans-table .col-loc .loc-bullet{color:var(--bronze,#9c7a3c);font-size:16px;margin-inline-end:3px;vertical-align:-1px}
+/* חוצצים אנכיים סביב קבוצת הפורומים+הכנה */
+.plans-table .grp-sep-start{border-inline-start:2px solid var(--bronze,#9c7a3c)}
+.plans-table .grp-sep-end{border-inline-end:2px solid var(--bronze,#9c7a3c)}
+.plans-table thead th.grp-sep-start,.plans-table thead th.grp-sep-end{border-color:#fff}
+.plans-table thead th.forum-group{background:var(--bronze-deep,#7a5f2e)}
+/* בורר תאריך בטבלה — אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
+.plans-table .col-date input[type=date]{font-size:11.5px;padding:3px;direction:ltr;text-align:center;cursor:pointer}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;padding:2px;margin:0;opacity:.75;filter:invert(20%)}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .date-legend .dt-future{color:#fff}
 .date-legend .dt-past{color:#3a6ea5}
-@media(max-width:1100px){ .plans-table .col-txt{max-width:110px} }
+@media(max-width:1100px){ .plans-table .col-txt{max-width:96px} .plans-table .col-loc{max-width:120px} }
 .date-input-ds-orange{color:var(--warn)!important;font-weight:700}
 .date-input-ds-red{color:var(--err)!important;font-weight:700}
 .date-input-ds-blue{color:var(--info)!important}
@@ -1010,6 +1020,30 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .fr-chk input{width:16px;height:16px}
 .fr-komplot{border-top:1px dashed #e5e5e5;margin-top:10px;padding-top:10px}
 .fr-komplot .btn{margin-inline-end:6px}
+/* שלושה כפתורי פורום גדולים עם טבעת התקדמות */
+.forum-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:12px 0}
+.forum-card{display:flex;align-items:center;gap:14px;text-align:right;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-top:4px solid var(--bronze,#9c7a3c);border-radius:14px;padding:16px 18px;cursor:pointer;font-family:inherit;transition:all .18s;box-shadow:var(--shadow,0 1px 3px rgba(0,0,0,0.06))}
+.forum-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(122,31,43,0.13)}
+.forum-card.active{border-top-color:var(--bordeaux,#7a1f2b);background:#fdfbf7}
+.forum-card .fc-ring{width:56px;height:56px;flex-shrink:0}
+.fc-ring .fc-bg{fill:none;stroke:#eee;stroke-width:4}
+.fc-ring .fc-fg{fill:none;stroke:var(--bronze,#9c7a3c);stroke-width:4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;transition:stroke-dasharray .5s}
+.fc-ring .fc-pct{font-size:11px;font-weight:700;fill:var(--bordeaux,#7a1f2b);text-anchor:middle;font-family:var(--sans)}
+.forum-card .fc-body{flex:1;min-width:0}
+.fc-name{font-family:var(--display);font-size:17px;font-weight:700;color:var(--bordeaux,#7a1f2b)}
+.fc-sub{font-size:12px;color:var(--muted,#6b6259);margin:2px 0}
+.fc-meta{font-size:11.5px;color:var(--bronze,#9c7a3c);font-weight:600}
+.forum-card .fc-chev{color:#999;font-size:15px}
+.forum-detail{border:1px solid var(--stone,#e5ded4);border-radius:12px;padding:14px 16px;background:#fff;margin-top:6px}
+.fd-head{font-family:var(--display);font-size:16px;font-weight:700;color:var(--bordeaux,#7a1f2b);margin-bottom:8px}
+.fd-section-t{font-size:13px;font-weight:600;color:var(--ink,#211d1a);margin:12px 0 6px;border-bottom:1px solid #eee;padding-bottom:3px}
+/* יומן אירועים */
+.fl-list{display:flex;flex-direction:column;gap:6px}
+.fl-row{display:grid;grid-template-columns:118px 1.2fr 1.6fr auto auto;gap:8px;align-items:center;padding:6px;border:1px solid #eee;border-radius:8px}
+.fl-row.fl-done{background:#f2fbf5;border-color:#c6e9d3}
+.fl-row input[type=date],.fl-row .fl-event,.fl-row .fl-content{border:1px solid #d5d5d5;border-radius:6px;padding:4px 7px;font-size:12px;font-family:inherit;width:100%;box-sizing:border-box}
+.fl-doneck{font-size:12px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+@media(max-width:700px){.fl-row{grid-template-columns:1fr 1fr;gap:6px}}
 .mail-modal{max-width:640px;width:92vw;text-align:right}
 .mail-lbl{display:block;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);margin:10px 0 4px}
 .mail-modal input,.mail-modal textarea{width:100%;border:1px solid var(--stone);border-radius:6px;padding:8px;font-family:inherit;font-size:13px}
@@ -1185,17 +1219,17 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
     <table class="plans-table">
       <thead>
         <tr>
-          <th onclick="sortTable(0)"><span class="sort-arrow">▼</span>מס' סידורי</th>
-          <th onclick="sortTable(3)"><span class="sort-arrow">▼</span>מס' תכנית</th>
-          <th style="width:96px">הדמייה</th>
-          <th onclick="sortTable(1)"><span class="sort-arrow">▼</span>רובע</th>
-          <th onclick="sortTable(2)"><span class="sort-arrow">▼</span>מיקום</th>
-          <th onclick="sortTable(4)"><span class="sort-arrow">▼</span>יזם</th>
-          <th onclick="sortTable(5)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
-          <th onclick="sortTable(8)"><span class="sort-arrow">▼</span>פורום אדריכל</th>
-          <th onclick="sortTable(9)"><span class="sort-arrow">▼</span>פורום יועצים</th>
-          <th onclick="sortTable(10)"><span class="sort-arrow">▼</span>הכנה לוועדה</th>
-          <th onclick="sortTable(11)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th class="col-tik" onclick="sortTable(0)"><span class="sort-arrow">▼</span>מס'</th>
+          <th class="col-plannum" onclick="sortTable(3)"><span class="sort-arrow">▼</span>מס' תכנית</th>
+          <th class="col-img">הדמייה</th>
+          <th class="col-district" onclick="sortTable(1)"><span class="sort-arrow">▼</span>רובע</th>
+          <th class="col-loc" onclick="sortTable(2)"><span class="sort-arrow">▼</span>מיקום</th>
+          <th class="col-txt" onclick="sortTable(4)"><span class="sort-arrow">▼</span>יזם</th>
+          <th class="col-txt" onclick="sortTable(5)"><span class="sort-arrow">▼</span>מגיש/עורך</th>
+          <th class="col-date forum-group grp-sep-start" onclick="sortTable(8)"><span class="sort-arrow">▼</span>פורום אדריכל</th>
+          <th class="col-date forum-group" onclick="sortTable(9)"><span class="sort-arrow">▼</span>פורום יועצים</th>
+          <th class="col-date forum-group grp-sep-end" onclick="sortTable(10)"><span class="sort-arrow">▼</span>הכנה לוועדה</th>
+          <th class="col-status" onclick="sortTable(11)"><span class="sort-arrow">▼</span>סטטוס</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -1651,7 +1685,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','_seeded','_userEdited'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2568,12 +2602,12 @@ function renderTable() {
         <td class="col-plannum"><input value="${p.planNum}" onchange="saveField(${p.id},'planNum',this)"></td>
         <td class="col-img">${renderFrameHTML(p)}</td>
         <td class="col-district"><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
-        <td class="col-txt"><input value="${esc(p.location||'')}" onchange="saveField(${p.id},'location',this)"></td>
+        <td class="col-loc"><input value="${esc(p.location||'')}" onchange="saveField(${p.id},'location',this)" style="font-weight:700"></td>
         <td class="col-txt"><input value="${esc(p.developer||'')}" onchange="saveField(${p.id},'developer',this)"></td>
         <td class="col-txt"><input value="${esc(p.submitter||'')}" onchange="saveField(${p.id},'submitter',this)"></td>
-        <td class="col-date"><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
+        <td class="col-date grp-sep-start"><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
         <td class="col-date"><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
-        <td class="col-date"><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
+        <td class="col-date grp-sep-end"><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
         <td class="col-status"><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`;
     }
@@ -2583,12 +2617,12 @@ function renderTable() {
       <td class="col-plannum">${p.planNum}</td>
       <td class="col-img" onclick="event.stopPropagation()">${renderFrameHTML(p)}</td>
       <td class="col-district">${p.district}</td>
-      <td class="col-txt" title="${esc(p.location||'')}">${p.location||'—'}</td>
+      <td class="col-loc" title="${esc(p.location||'')}">${p.location?('<span class="loc-bullet">●</span>'+esc(p.location)):'—'}</td>
       <td class="col-txt" title="${esc(p.developer||'')}">${p.developer||'—'}</td>
       <td class="col-txt" title="${esc(p.submitter||'')}">${p.submitter||'—'}</td>
-      <td class="col-date"><span class="date-status ${dateTimeClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
+      <td class="col-date grp-sep-start"><span class="date-status ${dateTimeClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
       <td class="col-date"><span class="date-status ${dateTimeClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
-      <td class="col-date"><span class="date-status ${dateTimeClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
+      <td class="col-date grp-sep-end"><span class="date-status ${dateTimeClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
       <td class="col-status">${statusChip(p.status)}</td>
     </tr>`;
   }).join('');
@@ -6746,7 +6780,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.11';
+const APP_VERSION = '2026.07.12';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
@@ -7353,74 +7387,108 @@ function forumStages(p){
   };
 }
 
+/* ── יומן אירועים לכל פורום: מתעד תאריך, אירוע/שלב, תוכן, והשלמה ── */
+const FORUM_META = {
+  architect:  {name:'פורום אדריכל העיר', dateField:'forumArchitect', sub:'הנחיות ודרישות'},
+  consultants:{name:'פורום יועצים',       dateField:'forumConsultants', sub:'דרישות תב״ע · מחשבונים · גורמי עירייה'},
+  committee:  {name:'פורום הכנה לוועדה',   dateField:'committeeDate', sub:'חוות דעת ומוכנוּת להגשה'}
+};
+function ensureForumLog(p){ if(!p.forumLog||typeof p.forumLog!=='object') p.forumLog={architect:[],consultants:[],committee:[]};
+  ['architect','consultants','committee'].forEach(k=>{ if(!Array.isArray(p.forumLog[k])) p.forumLog[k]=[]; }); return p.forumLog; }
+// התקדמות הפורום: אחוז שלבים שהושלמו (מ-forumStages) + אירועים שהושלמו
+function forumProgress(p, key){
+  const stages = (key==='committee') ? null : forumStages(p)[key];
+  let done=0, total=0;
+  if(stages){ total=stages.length; done=stages.filter(s=>s.state==='done').length; }
+  else { // committee: צ'ק־ליסט מוכנות
+    total=COMMITTEE_CHECKLIST.length; done=COMMITTEE_CHECKLIST.filter(c=>p.committeeReady&&p.committeeReady[c.id]).length;
+  }
+  // אירועי יומן שסומנו כהושלמו נחשבים גם הם
+  const log=(p.forumLog&&p.forumLog[key])||[];
+  const logDone=log.filter(e=>e.done).length;
+  total+=log.length; done+=logDone;
+  return { done, total, pct: total? Math.round(done/total*100):0 };
+}
+let _openForum = null;
+function toggleForum(key){ _openForum = (_openForum===key)?null:key; renderForumsTab(pj()); }
+
 function renderForumsTab(p){
-  ensureCommittee(p);
+  ensureCommittee(p); ensureForumLog(p);
   const el=document.getElementById('panel-forums'); if(!el) return;
-  const stages=forumStages(p);
-  const stageRows = arr => arr.map(s=>`
+  const cards = ['architect','consultants','committee'].map(key=>{
+    const meta=FORUM_META[key]; const pr=forumProgress(p,key);
+    const dateVal = p[meta.dateField];
+    const ring = `<svg class="fc-ring" viewBox="0 0 42 42"><circle class="fc-bg" cx="21" cy="21" r="18"/><circle class="fc-fg" cx="21" cy="21" r="18" style="stroke-dasharray:${pr.pct*1.131} 113" /><text x="21" y="25" class="fc-pct">${pr.pct}%</text></svg>`;
+    return `<button class="forum-card ${_openForum===key?'active':''}" onclick="toggleForum('${key}')" data-sec>
+      ${ring}
+      <div class="fc-body"><div class="fc-name">${meta.name}</div>
+        <div class="fc-sub">${meta.sub}</div>
+        <div class="fc-meta">${dateVal?('מועד: '+fmtDate(dateVal)):'מועד טרם נקבע'} · ${pr.done}/${pr.total} שלבים</div></div>
+      <span class="fc-chev">${_openForum===key?'▴':'▾'}</span>
+    </button>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="detail-section-title">פורומים — לחצי על פורום לתיעוד מלא והתקדמות</div>
+    <div class="forum-cards">${cards}</div>
+    <div id="forumDetail"></div>`;
+  if(_openForum) renderForumDetail(p, _openForum);
+  setTimeout(buildSecNav,60);
+}
+
+function renderForumDetail(p, key){
+  const el=document.getElementById('forumDetail'); if(!el) return;
+  const meta=FORUM_META[key];
+  const stages = (key==='committee') ? null : forumStages(p)[key];
+  const stageRows = stages ? stages.map(s=>`
     <div class="fr-stage" onclick="ppTabByName('${s.tab}')">
       <div class="fr-stage-main"><span class="fr-stage-label">${esc(s.label)}</span>
         <span class="fr-stage-hint">${esc(s.hint||'')}</span></div>
       <div class="fr-stage-side">${forumStageChip(s.state)}<span class="fr-go">מעבר ›</span></div>
-    </div>`).join('');
-
-  // צ'ק־ליסט ועדה
-  const chk = COMMITTEE_CHECKLIST.map(c=>{
-    const on=!!(p.committeeReady&&p.committeeReady[c.id]);
-    return `<label class="fr-chk">
-      <input type="checkbox" ${on?'checked':''} ${globalEdit?'':'disabled'} onchange="setCommitteeReady('${c.id}',this.checked)">
-      <span>${esc(c.label)}</span>${on?'<span class="sc sc-green">קיים</span>':'<span class="sc sc-gray">חסר</span>'}
-    </label>`;
-  }).join('');
-  const opinion=p.opinion||{};
-  const opinionState = opinion.recommendation ? 'done' : (opinion.summary||opinion.description ? 'partial':'pending');
+    </div>`).join('') : '';
+  // צ'ק־ליסט מוכנות לוועדה
+  let committeeExtra='';
+  if(key==='committee'){
+    const opinion=p.opinion||{};
+    const opinionState = opinion.recommendation ? 'done' : (opinion.summary||opinion.description ? 'partial':'pending');
+    const chk = COMMITTEE_CHECKLIST.map(c=>{ const on=!!(p.committeeReady&&p.committeeReady[c.id]);
+      return `<label class="fr-chk"><input type="checkbox" ${on?'checked':''} ${globalEdit?'':'disabled'} onchange="setCommitteeReady('${c.id}',this.checked)"><span>${esc(c.label)}</span>${on?'<span class="sc sc-green">קיים</span>':'<span class="sc sc-gray">חסר</span>'}</label>`; }).join('');
+    committeeExtra = `
+      <div class="fr-stage" onclick="ppTabByName('opinion')">
+        <div class="fr-stage-main"><span class="fr-stage-label">חוות דעת לוועדה לפי פורמט</span>
+          <span class="fr-stage-hint">${opinion.recommendation?('המלצה: '+esc(opinion.recommendation)):'לניסוח חוות הדעת'}</span></div>
+        <div class="fr-stage-side">${forumStageChip(opinionState)}<span class="fr-go">מעבר ›</span></div>
+      </div>
+      <div class="fr-committee"><div class="fr-committee-title">בדיקת מוכנוּת להגשה לוועדה</div>${chk}</div>
+      <div class="fr-komplot"><b>חוות דעת בוורד להעלאה לקומפלוט:</b>
+        <div class="muted" style="font-size:12px;margin:4px 0">להורדה כקובץ Word ולהעלאה לקומפלוט.</div>
+        <button class="btn btn-primary btn-sm" onclick="downloadOpinionWord(${p.id})">הורדת חוות דעת (Word)</button>
+        <button class="btn btn-ghost btn-sm" onclick="ppTabByName('opinion')">פתיחת חוות הדעת</button></div>`;
+  }
+  // יומן אירועים
+  const log=(p.forumLog[key]||[]);
+  const logRows = log.length ? log.map((e,i)=>`
+    <div class="fl-row ${e.done?'fl-done':''}">
+      <input type="date" class="fl-date" value="${esc(e.date||'')}" onchange="setForumEvent('${key}',${i},'date',this.value)" ${globalEdit?'':'disabled'}>
+      <input class="fl-event" value="${esc(e.event||'')}" placeholder="אירוע / שלב" onchange="setForumEvent('${key}',${i},'event',this.value)" ${globalEdit?'':'disabled'}>
+      <input class="fl-content" value="${esc(e.content||'')}" placeholder="תוכן / החלטה / תוצר" onchange="setForumEvent('${key}',${i},'content',this.value)" ${globalEdit?'':'disabled'}>
+      <label class="fl-doneck"><input type="checkbox" ${e.done?'checked':''} onchange="setForumEvent('${key}',${i},'done',this.checked)" ${globalEdit?'':'disabled'}> הושלם</label>
+      ${globalEdit?`<button class="btn btn-xs" onclick="delForumEvent('${key}',${i})">✕</button>`:''}
+    </div>`).join('') : '<div class="muted" style="font-size:12px;padding:6px 0">טרם תועדו אירועים בפורום זה.</div>';
 
   el.innerHTML = `
-    <div class="detail-section-title">פורומים — שלבי התוכנית</div>
-    <div class="muted" style="font-size:12px;margin-bottom:10px">שלבי העבודה של התוכנית מאורגנים לפי שלושת הפורומים. לחיצה על שלב עוברת לסעיף המתאים. הסטטוס נגזר מהנתונים הקיימים.</div>
-
-    <div class="forum-block">
-      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
-        <span data-sec>פורום אדריכל העיר</span>
-        <span class="forum-sub">הנחיות ודרישות · ${p.forumArchitect?('מועד: '+fmtDate(p.forumArchitect)):'טרם נקבע'}</span>
-      </div>
-      <div class="forum-body">${stageRows(stages.architect)}</div>
-    </div>
-
-    <div class="forum-block">
-      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
-        <span data-sec>פורום יועצים</span>
-        <span class="forum-sub">דרישות תב״ע · מחשבונים · גורמי עירייה · ${p.forumConsultants?('מועד: '+fmtDate(p.forumConsultants)):'טרם נקבע'}</span>
-      </div>
-      <div class="forum-body">${stageRows(stages.consultants)}</div>
-    </div>
-
-    <div class="forum-block open">
-      <div class="forum-head" onclick="this.parentNode.classList.toggle('open')">
-        <span data-sec>פורום הכנה לוועדה</span>
-        <span class="forum-sub">חוות דעת ומוכנוּת להגשה</span>
-      </div>
-      <div class="forum-body">
-        <div class="fr-stage" onclick="ppTabByName('opinion')">
-          <div class="fr-stage-main"><span class="fr-stage-label">חוות דעת לוועדה לפי פורמט חוות הדעת</span>
-            <span class="fr-stage-hint">${opinion.recommendation?('המלצה: '+esc(opinion.recommendation)):'לניסוח חוות הדעת'}</span></div>
-          <div class="fr-stage-side">${forumStageChip(opinionState)}<span class="fr-go">מעבר ›</span></div>
-        </div>
-        <div class="fr-committee">
-          <div class="fr-committee-title">בדיקת מוכנוּת להגשה לוועדה</div>
-          ${chk}
-        </div>
-        <div class="fr-komplot">
-          <b>חוות דעת בוורד להעלאה לקומפלוט:</b>
-          <div class="muted" style="font-size:12px;margin:4px 0">ניתן להוריד את חוות הדעת כקובץ Word ולהעלותו למערכת קומפלוט. יש לוודא סימון „חוות דעת בוורד” לעיל לאחר ההעלאה.</div>
-          <button class="btn btn-primary btn-sm" onclick="downloadOpinionWord(${p.id})">הורדת חוות דעת (Word)</button>
-          <button class="btn btn-ghost btn-sm" onclick="ppTabByName('opinion')">פתיחת חוות הדעת</button>
-        </div>
-      </div>
+    <div class="forum-detail">
+      <div class="fd-head">${meta.name} — תיעוד והתקדמות</div>
+      ${stages?`<div class="fd-section-t">שלבי הפורום</div>${stageRows}`:''}
+      ${committeeExtra}
+      <div class="fd-section-t">יומן אירועים ותיעוד <span class="muted" style="font-weight:400;font-size:11px">(תאריך · אירוע/שלב · תוכן · השלמה)</span></div>
+      <div class="fl-list">${logRows}</div>
+      ${globalEdit?`<button class="btn btn-ghost btn-sm" onclick="addForumEvent('${key}')">+ הוספת אירוע/שלב</button>`:''}
     </div>`;
-  setTimeout(buildSecNav,60);
 }
 function setCommitteeReady(id,on){ const p=pj(); if(!p)return; ensureCommittee(p); p.committeeReady[id]=on; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
+function addForumEvent(key){ const p=pj(); if(!p)return; ensureForumLog(p); p.forumLog[key].push({date:todayStr(),event:'',content:'',done:false}); p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
+function setForumEvent(key,i,field,val){ const p=pj(); if(!p)return; ensureForumLog(p); if(p.forumLog[key][i]){ p.forumLog[key][i][field]=val; p.updatedAt=todayStr(); savePlans(); if(field==='done') renderForumsTab(p); } }
+function delForumEvent(key,i){ const p=pj(); if(!p)return; ensureForumLog(p); p.forumLog[key].splice(i,1); savePlans(); renderForumsTab(p); }
 
 /* ── הורדת חוות הדעת כקובץ Word (HTML‑to‑doc, RTL) להעלאה לקומפלוט ── */
 function downloadOpinionWord(pid){
