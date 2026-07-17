@@ -234,7 +234,10 @@ tbody tr:hover{background:var(--teal-pale)}
 .status-select{padding:4px 8px;border:1px solid var(--stone);border-radius:var(--r);font-size:11px;font-family:var(--sans);background:white;cursor:pointer}
 .status-select:focus{outline:none;border-color:var(--teal)}
 
-#gis-map{width:100%;height:550px;border-radius:var(--r);border:1px solid var(--stone)}
+#gis-map{width:100%;height:calc(100vh - 200px);min-height:520px;border-radius:var(--r);border:1px solid var(--stone)}
+/* עמוד המפה — רחב יותר לניצול מרבי של המסך */
+.map-page-wide{max-width:1760px !important;padding-top:1.2rem !important}
+.map-page-wide .layer-panel,.map-page-wide .map-legend{font-size:12px}
 .leaflet-popup-content{font-family:var(--sans);direction:rtl;font-size:12px;line-height:1.6}
 .leaflet-popup-content strong{color:var(--teal)}
 
@@ -448,21 +451,20 @@ tbody tr:hover{background:var(--teal-pale)}
 .gl-title{font-family:var(--display);font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
 .gl-sub{font-size:16px;color:rgba(0,0,0,0.6);margin-top:0.5rem;max-width:760px;line-height:1.6}
 .gl-actions{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
-/* דף הנחיות — פריסה עם סרגל צד קבוע (sticky) */
+/* דף הנחיות — סרגל טאבים אופקי קבוע + תוכן הטאב הנבחר + סרגל אנכי משני */
+.gl-tabs{position:sticky;top:56px;z-index:50;display:flex;gap:6px;flex-wrap:wrap;background:var(--paper,#faf9f7);padding:10px 6px;border-bottom:2px solid var(--bronze,#9c7a3c);margin-bottom:1rem;border-radius:0 0 8px 8px}
+.gl-tab{font-size:13px;color:var(--ink,#211d1a);background:#fff;border:1px solid var(--stone,#e5ded4);border-radius:20px;padding:8px 16px;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap;transition:all .15s}
+.gl-tab:hover{border-color:var(--bronze,#9c7a3c)}
+.gl-tab.active{background:var(--bordeaux,#7a1f2b);color:#fff;border-color:var(--bordeaux,#7a1f2b);font-weight:700}
 .gl-layout{display:flex;gap:18px;align-items:flex-start}
-.gl-layout #gl-body{flex:1;min-width:0}
-.gl-rail{width:200px;flex:0 0 200px;position:sticky;top:78px;max-height:calc(100vh - 96px);overflow:auto}
-.gl-rail-toggle{display:none;width:100%;border:1px solid var(--bronze,#9c7a3c);background:#fff;border-radius:8px;padding:8px;font-family:inherit;font-size:12px;cursor:pointer;margin-bottom:8px}
-.gl-nav{display:flex;flex-direction:column;gap:5px;background:var(--paper);padding:0.6rem;border:1px solid var(--stone);border-radius:10px}
-.gl-nav a{font-size:12.5px;color:#fff;background:var(--teal);text-decoration:none;padding:8px 12px;border-radius:8px;transition:all 0.15s;border:1px solid var(--teal);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.08);cursor:pointer;text-align:right;line-height:1.3}
-.gl-nav a:hover{background:var(--bronze);border-color:var(--bronze)}
-.gl-nav a.gl-active{background:var(--bronze);border-color:var(--bronze)}
+.gl-body-main{flex:1;min-width:0}
+.gl-subrail{width:190px;flex:0 0 190px;position:sticky;top:112px;max-height:calc(100vh - 130px);overflow:auto;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:10px;padding:10px}
+.gl-subrail-title{font-size:11px;font-weight:700;color:var(--bronze,#9c7a3c);letter-spacing:0.5px;margin-bottom:6px}
+.gl-sublink{display:block;font-size:12px;color:#555;text-decoration:none;padding:5px 8px;border-radius:6px;border-inline-start:2px solid transparent;line-height:1.35}
+.gl-sublink:hover{background:#f5f5f5;color:var(--bordeaux,#7a1f2b);border-inline-start-color:var(--bronze,#9c7a3c)}
 @media(max-width:820px){
   .gl-layout{flex-direction:column}
-  .gl-rail{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
-  .gl-rail-toggle{display:block}
-  .gl-nav{display:none;flex-direction:row;flex-wrap:wrap}
-  .gl-rail.open .gl-nav{display:flex}
+  .gl-subrail{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
 }
 .gl-section{margin-bottom:2.5rem;scroll-margin-top:120px}
 .gl-h2{font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);padding-bottom:0.4rem;border-bottom:2px solid var(--teal);display:inline-block;margin-bottom:0.3rem}
@@ -1239,10 +1241,10 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 </div>
 
 <!-- ════════ MAP ════════ -->
-<div id="map" class="page">
-  <div class="page-title">מפה אינטראקטיבית</div>
-  <div class="page-subtitle">תצוגה מרחבית — לחיצה על סמן לפרטים</div>
-  <div class="g2" style="grid-template-columns:1fr 280px">
+<div id="map" class="page map-page-wide">
+  <div class="page-title" style="margin-bottom:2px">מפה אינטראקטיבית</div>
+  <div class="page-subtitle" style="margin-bottom:8px">תצוגה מרחבית — לחיצה על סמן לפרטים</div>
+  <div class="g2" style="grid-template-columns:1fr 240px;gap:12px;align-items:start">
     <div><div id="gis-map"></div></div>
     <div>
       <div class="section-title">שכבות מידע</div>
@@ -1307,6 +1309,14 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
       <div class="section-title">תוכניות לפי שנה</div>
       <div class="line-chart-card">
         <canvas id="lineChartCanvas" width="800" height="280"></canvas>
+      </div>
+
+      <div class="section-title" style="margin-top:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>תוכניות לפי חודשים</span>
+        <select id="trendMonthYear" onchange="renderMonthlyTrend()" style="font-size:12px;padding:4px 8px;border:1px solid var(--stone);border-radius:6px"></select>
+      </div>
+      <div class="line-chart-card">
+        <canvas id="monthChartCanvas" width="800" height="260"></canvas>
       </div>
 
       <div class="g2" style="margin-top:1rem">
@@ -1396,12 +1406,10 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 <!-- ════════ GUIDELINES PAGE (דף הנחיות כללי — GuidelinesPage) ════════ -->
 <div id="guidelines" class="page">
   <div id="gl-hero"></div>
+  <nav id="gl-tabs" class="gl-tabs no-print"></nav>
   <div class="gl-layout">
-    <aside class="gl-rail no-print">
-      <button class="gl-rail-toggle" onclick="this.parentNode.classList.toggle('open')">☰ ניווט</button>
-      <nav id="gl-nav" class="gl-nav"></nav>
-    </aside>
-    <div id="gl-body"></div>
+    <div id="gl-body" class="gl-body-main"></div>
+    <aside id="gl-subrail" class="gl-subrail no-print"></aside>
   </div>
 </div>
 
@@ -1957,6 +1965,7 @@ function go(id, btn, isBack) {
   document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   if (id === 'map' && !window._mapInit) { setTimeout(initMap, 150); window._mapInit = true; }
+  else if (id === 'map') { setTimeout(()=>{ try{ if(gisMap) gisMap.invalidateSize(); }catch(e){} }, 120); }
   if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
@@ -2975,6 +2984,13 @@ function renderTrends() {
   const maxY = Math.max(...Object.values(yearCounts));
   drawLineChart('lineChartCanvas', years, years.map(y=>yearCounts[y]), maxY);
 
+  // בורר שנה לגרף החודשי + ציור ראשוני
+  const yrsWithData=[...new Set(plans.map(p=>(p.date||'').slice(0,4)).filter(Boolean))].sort();
+  const sel=document.getElementById('trendMonthYear');
+  if(sel){ sel.innerHTML='<option value="all">כל השנים</option>'+yrsWithData.map(y=>`<option value="${y}">${y}</option>`).join('');
+    if(!sel.value) sel.value = yrsWithData[yrsWithData.length-1]||'all'; }
+  renderMonthlyTrend();
+
   // Top districts
   const distCounts = {};
   plans.forEach(p => { if (p.district && p.district !== 'לא צוין') distCounts[p.district] = (distCounts[p.district]||0)+1; });
@@ -3033,6 +3049,29 @@ function renderTrends() {
       <p>${Object.keys(distCounts).length} רובעים פעילים מתוך כלל רובעי העיר. הפיתוח מתפרש על פני מגוון אזורים.</p>
     </div>
   `;
+}
+
+/* ── גרף מגמות לפי חודשים (לפי שנה נבחרת או כל השנים) ── */
+const HE_MONTHS_SHORT = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
+function renderMonthlyTrend(){
+  const sel=document.getElementById('trendMonthYear');
+  const yr = sel ? sel.value : 'all';
+  let labels, data;
+  if(yr==='all'){
+    // ציר זמן חודשי רציף על פני כל השנים (YYYY-MM)
+    const counts={};
+    plans.forEach(p=>{ const d=(p.date||''); if(d.length>=7){ const k=d.slice(0,7); counts[k]=(counts[k]||0)+1; } });
+    const keys=Object.keys(counts).sort();
+    labels=keys.map(k=>{ const [y,m]=k.split('-'); return HE_MONTHS_SHORT[+m-1]+' '+y.slice(2); });
+    data=keys.map(k=>counts[k]);
+  } else {
+    // 12 חודשים של השנה הנבחרת
+    const counts=new Array(12).fill(0);
+    plans.forEach(p=>{ const d=(p.date||''); if(d.slice(0,4)===yr && d.length>=7){ const mm=parseInt(d.slice(5,7))-1; if(mm>=0&&mm<12) counts[mm]++; } });
+    labels=HE_MONTHS_SHORT.slice(); data=counts;
+  }
+  const maxVal=Math.max(1,...data);
+  drawLineChart('monthChartCanvas', labels, data, maxVal);
 }
 
 function drawLineChart(canvasId, labels, data, maxVal) {
@@ -4405,14 +4444,53 @@ const GL_OVERRIDE_KEY = 'ashdod_guidelines_overrides_v1';
 function glOverrides(){ try{ return JSON.parse(localStorage.getItem(GL_OVERRIDE_KEY)||'{}'); }catch(e){ return {}; } }
 function saveGlOverride(key,text){ const o=glOverrides(); o[key]=text; try{ localStorage.setItem(GL_OVERRIDE_KEY, JSON.stringify(o)); }catch(e){} }
 
+/* מבנה טאבים: כל טאב = כפתור אופקי קבוע; מציג רק את תוכן הטאב הנבחר.
+   תכנים ללא כפתור ייעודי (גאנט, תוכנית פיתוח) אוגדו תחת טאב קרוב בנושא. */
+function glTabSections(D){
+  return [
+    { id:'snapshot', label:'תמונת מצב',   html:()=>glSnapshot(D) },
+    { id:'flow',     label:'תהליך האישור', html:()=>glFlow(D) + glGantt(D) },   // גאנט אוגד לתהליך
+    { id:'dates',    label:'לוחות זמנים',  html:()=>glDates(D) },
+    { id:'guidelines',label:'הנחיות תכנון',html:()=>glGuidelines(D) },
+    { id:'materials',label:'חומרי הגשה',   html:()=>glMaterials(D) + glDevPlan(D) }, // תוכנית פיתוח אוגדה לחומרי הגשה
+    { id:'comm',     label:'תקשורת והשלמות',html:()=>glComm(D) },
+    { id:'roles',    label:'בעלי תפקידים', html:()=>glRoles(D) },
+    { id:'faq',      label:'שאלות נפוצות',  html:()=>glFaq(D) },
+  ];
+}
+let _glActiveTab = 'snapshot';
 function renderGuidelines(){
   const D = GUIDELINES_DATA;
   document.getElementById('gl-hero').innerHTML = glHero(D.hero);
-  document.getElementById('gl-nav').innerHTML = glSectionNav(D.sectionNav);
-  document.getElementById('gl-body').innerHTML =
-    glSnapshot(D) + glFlow(D) + glDates(D) + glGantt(D) + glGuidelines(D) +
-    glMaterials(D) + glDevPlan(D) + glComm(D) + glRoles(D) + glFaq(D);
+  const tabs = glTabSections(D);
+  document.getElementById('gl-tabs').innerHTML = tabs.map(t=>
+    `<button class="gl-tab ${t.id===_glActiveTab?'active':''}" onclick="glShowTab('${t.id}')">${t.label}</button>`).join('');
+  glShowTab(_glActiveTab, true);
+}
+function glShowTab(id, keepScroll){
+  _glActiveTab = id;
+  const D = GUIDELINES_DATA;
+  const tabs = glTabSections(D);
+  const tab = tabs.find(t=>t.id===id) || tabs[0];
+  document.querySelectorAll('#gl-tabs .gl-tab').forEach(b=>b.classList.toggle('active', b.getAttribute('onclick').includes("'"+id+"'")));
+  const body = document.getElementById('gl-body');
+  body.innerHTML = tab.html();
   instrumentGuidelinesEditable();
+  // סרגל אנכי משני — כותרות המשנה בתוך הטאב הנוכחי (לפירוק נושאים ותתי-נושאים)
+  buildGlSubRail();
+  if(!keepScroll) document.getElementById('guidelines').scrollIntoView({behavior:'smooth',block:'start'});
+}
+/* סרגל אנכי משני: מחלץ את כותרות המשנה (h2/h3/section-title) בתוך הטאב הפעיל */
+function buildGlSubRail(){
+  const rail=document.getElementById('gl-subrail'); const body=document.getElementById('gl-body');
+  if(!rail||!body) return;
+  const heads=[...body.querySelectorAll('.gl-h2,.gl-sub2,h3,.gl-subhead')].filter(h=>(h.textContent||'').trim());
+  if(heads.length<2){ rail.style.display='none'; rail.innerHTML=''; return; }
+  rail.style.display='';
+  rail.innerHTML='<div class="gl-subrail-title">בתוך הנושא</div>'+heads.map((h,i)=>{
+    if(!h.id) h.id='glsub_'+i;
+    return `<a class="gl-sublink" href="#${h.id}" onclick="event.preventDefault();document.getElementById('${h.id}').scrollIntoView({behavior:'smooth',block:'start'})">${esc((h.textContent||'').trim().slice(0,38))}</a>`;
+  }).join('');
 }
 
 /** מסמן טקסטים עריכים בדף ההנחיות, מיישם החלפות שמורות, ומחווט שמירה ב-blur.
@@ -6780,7 +6858,7 @@ function projUnassign(id,tik){
 /* ══════════════════════════════════════════════════════════════
    דף הגדרות — כלים טכניים, נתונים ותחזוקה (מחוץ לדפי העבודה)
    ═══════════════════════════════════════════════════════════════ */
-const APP_VERSION = '2026.07.12';
+const APP_VERSION = '2026.07.13';
 const VS_LINK = 'vscode://file/c%3A/Users/shtan/Desktop/%D7%A2%D7%A0%D7%AA%20-%20%D7%9C%D7%A4%D7%98%D7%95%D7%A4/AI/PLANS';
 
 function renderSettings(){
