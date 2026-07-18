@@ -1437,7 +1437,104 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 @media(max-width:900px){
   .toolbar-nav{flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;max-width:100%}
   .toolbar-nav button{flex:0 0 auto}
+  .toolbar-manage{flex-wrap:wrap;row-gap:6px}
+  .search-bar input{width:150px}
   .plans-table-wrap,.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+/* המסמך לעולם לא גולש אופקית — תוכן רחב נגלל בתוך המיכל שלו */
+html,body{overflow-x:clip}
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  CIVIC MODERN — שכבת הרענון העיצובי 2026                      ║
+   ║  שכבת override מרוכזת: טוקנים קרירים, פטרול עמוק וזהב,        ║
+   ║  טיפוגרפיה מודגשת, עיגולים גדולים, הצללות רכות ותנועה עדינה   ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+:root{
+  --paper:#f1f4f4;
+  --surface:#ffffff;
+  --stone:#dde4e4;
+  --fog:#e9eeee;
+  --ink:#132321;
+  --muted:#5a6a68;
+  --teal:#0e6b62;
+  --teal-light:#118172;
+  --teal-pale:rgba(14,107,98,0.08);
+  --bronze-gold:#d9a441;
+  --r:13px;
+  --shadow:0 1px 2px rgba(10,30,28,0.05),0 10px 28px -14px rgba(10,30,28,0.22);
+}
+::selection{background:rgba(14,107,98,0.2)}
+html{scrollbar-color:#b9c6c5 transparent}
+
+/* ── טיפוגרפיה: כותרות מודגשות מודרניות (Rubik 800) ── */
+.page-title,.ex-title,.dh-title,.login-title,.tour-box h3,.pp-title{
+  font-family:var(--sans);font-weight:800;letter-spacing:-0.02em;text-wrap:balance}
+.page-title{font-size:30px}
+.ex-sec-h,.hp-sec h3{font-family:var(--sans);font-weight:700;letter-spacing:-0.01em}
+.pp-card h4{font-family:var(--sans);font-weight:700}
+
+/* ── Masthead: פטרול-לילה עם זהב, ניווט גלולות ── */
+.masthead{background:linear-gradient(180deg,#0c1d1b,#11302c);box-shadow:0 1px 0 rgba(255,255,255,0.06),0 10px 30px -18px rgba(0,0,0,0.6)}
+.logo{font-weight:800;letter-spacing:0}
+.logo span{color:var(--bronze-gold)}
+.toolbar-nav button{border-radius:99px;padding:7px 14px;transition:background .15s,color .15s}
+.toolbar-nav button:hover{background:rgba(255,255,255,0.09)}
+.toolbar-nav button.active{background:rgba(217,164,65,0.14);color:var(--bronze-gold);border-bottom:none}
+.search-bar input{border-radius:99px}
+.mode-toggle{border-radius:99px}
+.cloud-status{border-radius:99px}
+
+/* ── כרטיסים ומשטחים: עומק רך, הרמה בריחוף ── */
+.pp-card,.hp-sec,.dh-hero,.dh-guide,.dh-rule-col,.ex-fcol,.ex-att-row,.dh-step,.quick-card,.set-card,.login-box,.locks-box,.tour-box{
+  border-radius:var(--r);box-shadow:0 1px 2px rgba(10,30,28,0.04)}
+.quick-card,.dh-guide,.ex-att-row,.dh-step,.ex-plan-chip{transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s,border-color .16s}
+.quick-card:hover,.dh-guide:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:rgba(14,107,98,0.35)}
+.ex-att-row:hover,.dh-step:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+
+/* ── כפתורים: משקל, עומק, מיקרו-תנועה ── */
+.btn{border-radius:10px;font-weight:600;letter-spacing:0}
+.btn-primary{box-shadow:0 6px 16px -8px rgba(14,107,98,0.55)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 22px -10px rgba(14,107,98,0.6)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{border:1px solid var(--stone);background:var(--surface)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ── Hero בדף הראשי: פאנל פטרול עמוק במקום רקע קרם ── */
+.hero{background:radial-gradient(120% 160% at 85% -20%,#17423c 0%,#0c1d1b 55%);border-radius:20px;margin:1.6rem;padding:3.4rem 2rem 2.8rem;color:#f2f6f5;box-shadow:var(--shadow)}
+.hero h1{color:#fff}
+.hero h1 span{color:var(--bronze-gold)}
+.hero p{color:rgba(255,255,255,0.72)}
+.hero-bg::before{display:none}
+.hero .hero-stats .val,.hero-stats .val{color:var(--bronze-gold)}
+.hero-stats{color:rgba(255,255,255,0.85)}
+
+/* ── דשבורד ההנהלה: מספרים גדולים ונקיים ── */
+.ex-kpi .xk-num{font-family:var(--sans);font-weight:800;font-size:38px;letter-spacing:-0.02em}
+.ex-kpis{border-radius:var(--r);background:var(--surface);border:1px solid var(--stone);overflow:hidden}
+.ex-fcol-h{font-weight:700}
+.ex-pace .pc .bar{border-radius:6px 6px 0 0}
+
+/* ── מסך כניסה: פטרול-לילה מלא ── */
+#loginOverlay{background:radial-gradient(130% 130% at 50% -10%,#17423c 0%,#0a1817 60%)}
+.login-head{background:transparent;padding-bottom:0}
+.login-head .lh-city{color:var(--bronze-gold)}
+.login-box{background:rgba(255,255,255,0.985);border-radius:20px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.55)}
+.login-head .login-title,.login-head .login-sub{color:#0c1d1b}
+.login-head{color:#0c1d1b;padding-top:1.8rem}
+.login-head .login-sub{color:#5a6a68}
+.login-card{border-radius:14px}
+.login-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.login-card .lc-icon{background:var(--teal-pale)}
+.login-foot{color:#8a9795}
+
+/* ── טבלאות: כותרת פטרול, ריחוף שורה ── */
+table thead th{font-weight:700}
+tbody tr{transition:background .12s}
+
+/* ── מעבר עמודים עדין ── */
+@media (prefers-reduced-motion: no-preference){
+  .page.active{animation:pageIn .3s cubic-bezier(.16,1,.3,1)}
+  @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
 </style>
 </head>
