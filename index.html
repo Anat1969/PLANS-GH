@@ -1536,6 +1536,30 @@ tbody tr{transition:background .12s}
   .page.active{animation:pageIn .3s cubic-bezier(.16,1,.3,1)}
   @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
+
+/* ══════════ תמונות: העלאה מכל מכשיר ותצוגה ללא חיתוך ══════════ */
+/* כפתור החלפת תמונה על מסגרת מלאה */
+.render-swap{position:absolute;top:4px;inset-inline-start:4px;width:24px;height:24px;border:none;border-radius:7px;
+  background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:13px;line-height:1;opacity:0;transition:opacity .15s;z-index:2}
+.render-frame{position:relative}
+.img-box,.devplan-box{position:relative}
+.render-frame:hover .render-swap,.img-box:hover .render-swap,.devplan-box:hover .render-swap{opacity:1}
+/* כפתור ההסרה נראה בריחוף גם במסגרות אזור/תוכנית פיתוח (עד עכשיו נשאר שקוף לנצח) */
+.img-box:hover .render-clear,.devplan-box:hover .render-clear{opacity:1}
+/* מגע (נייד/טאבלט): אין hover — כל כפתורי ההסרה/החלפה גלויים תמיד, ומטרות מגע גדולות */
+@media (pointer:coarse){
+  .render-clear,.render-swap,.doc-thumb-x{opacity:1 !important}
+  .doc-thumb-x{width:26px;height:26px;font-size:14px}
+  .render-clear{width:24px;height:24px}
+  .viewer-btns button,.viewer-btns a{min-width:42px;min-height:42px;font-size:16px}
+  .vm-thumb-tools select{font-size:13px;min-height:34px}
+}
+/* תצוגות גדולות מציגות את התמונה בשלמותה — בלי חיתוך (contain במקום cover) */
+#renderInfoFrame .render-frame img{object-fit:contain;background:#0c1d1b}
+.img-box img{object-fit:contain !important;background:var(--fog)}
+.doc-thumb-inner img{object-fit:contain !important;background:var(--fog)}
+/* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
+.dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
 </head>
 <body>
@@ -3129,6 +3153,7 @@ function renderFrameHTML(p) {
       ondragover="renderDragOver(event)" ondragleave="renderDragLeave(event)" ondrop="renderDrop(event,${p.id})">
       <img src="${p.render}" onclick="event.stopPropagation();renderZoom(${p.id})" alt="הדמייה">
       ${n>1?`<span class="render-count" onclick="event.stopPropagation();renderZoom(${p.id})">${n}📷</span>`:''}
+      <button class="render-swap" title="החלפת תמונה" onclick="event.stopPropagation();renderPick(${p.id})">⇄</button>
       <button class="render-clear" title="הסר" onclick="event.stopPropagation();renderClear(${p.id})">✕</button>
     </div>`;
   }
@@ -3155,7 +3180,11 @@ function _renderStore(id, dataUrl) {
    כך רשומת התוכנית נשארת קטנה (localStorage לא מתפוצץ, סנכרון מהיר).
    אם ההעלאה נכשלת (אופליין) — נסיגה ל-base64 מקומי כדי לא לאבד את התמונה. ── */
 async function _storagePut(blob, folder, name) {
-  const safe = String(Date.now()) + '_' + Math.random().toString(36).slice(2, 7) + '_' + (name || 'img').replace(/[^\w.\-֐-׿]/g, '_');
+  // מפתח האחסון חייב להיות ASCII — שם עברי גורם ל-HTTP 400 מ-Supabase Storage.
+  // השם המקורי (כולל עברית) נשמר בנפרד לתצוגה; כאן רק סיומת בטוחה.
+  const ext = (String(name || '').match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0].toLowerCase();
+  const asciiBase = String(name || 'file').replace(/\.[^.]*$/, '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'file';
+  const safe = String(Date.now()) + '_' + Math.random().toString(36).slice(2, 7) + '_' + asciiBase + ext;
   const path = folder + '/' + safe;
   const res = await fetch(SB_URL + '/storage/v1/object/' + DOCS_BUCKET + '/' + encodeURI(path), {
     method: 'POST',
@@ -3165,9 +3194,25 @@ async function _storagePut(blob, folder, name) {
   if (!res.ok) throw new Error('upload HTTP ' + res.status);
   return path;
 }
+/** דחיסת תמונה בצד הלקוח: צילום נייד של 8MB הופך ל-JPEG ~300KB לפני ההעלאה.
+    מדלג על PDF/קבצים קטנים; נסיגה לקובץ המקורי בכל כשל (למשל HEIC שהדפדפן לא מפענח). */
+async function compressImage(file, maxDim = 1800, quality = 0.85) {
+  if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.size < 300 * 1024) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file; // הדחיסה לא עזרה — נשארים עם המקור
+    return new File([blob], String(file.name || 'img').replace(/\.[^.]*$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch (e) { return file; }
+}
 async function storeMedia(file) {
   try {
-    const path = await _storagePut(file, 'img', file.name);
+    const toSend = await compressImage(file);
+    const path = await _storagePut(toSend, 'img', toSend.name);
     return docPublicUrl(path);
   } catch (e) {
     console.warn('media upload failed — falling back to base64', e);
@@ -3233,6 +3278,7 @@ function areaFrameHTML(p, idx){
   if (img) {
     return `<div class="img-box" ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'area',${idx})">
       <img src="${img}" onclick="genZoom('area',${idx})" alt="תמונה">
+      <button class="render-swap" title="החלפת תמונה" onclick="event.stopPropagation();genPick('area',${idx})">⇄</button>
       <button class="render-clear" onclick="event.stopPropagation();genClear('area',${idx})">✕</button>
     </div>`;
   }
@@ -3248,6 +3294,7 @@ function devPlanFrameHTML(p){
   if (img) {
     return `<div class="devplan-box" ondragover="genDragOver(event)" ondragleave="genDragLeave(event)" ondrop="genDrop(event,'dev')">
       <img src="${img}" onclick="genZoom('dev')" alt="תוכנית פיתוח">
+      <button class="render-swap" title="החלפת תמונה" onclick="event.stopPropagation();genPick('dev')">⇄</button>
       <button class="render-clear" onclick="event.stopPropagation();genClear('dev')">✕</button>
     </div>`;
   }
@@ -6513,7 +6560,12 @@ function docPublicUrl(path){ return SB_URL + '/storage/v1/object/public/' + DOCS
 
 /** מעלה קובץ ל-Storage ומחזיר את הנתיב (Promise) */
 async function uploadDoc(file, folder){
-  const safe = String(Date.now()) + '_' + (file.name||'file').replace(/[^\w.\-֐-׿]/g,'_');
+  if (file.size > 25 * 1024 * 1024) throw new Error('הקובץ גדול מדי (מעל 25MB) — יש לצמצם או לפצל');
+  if (file.type && file.type.startsWith('image/')) file = await compressImage(file); // צילום נייד → JPEG קל
+  // מפתח ASCII בלבד (עברית = HTTP 400); השם העברי המקורי נשמר ב-name לתצוגה
+  const ext = (String(file.name||'').match(/\.[A-Za-z0-9]{2,5}$/) || [''])[0].toLowerCase();
+  const asciiBase = String(file.name||'file').replace(/\.[^.]*$/, '').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || 'file';
+  const safe = String(Date.now()) + '_' + asciiBase + ext;
   const path = folder + '/' + safe;
   const res = await fetch(SB_URL + '/storage/v1/object/' + DOCS_BUCKET + '/' + encodeURI(path), {
     method:'POST',
@@ -6549,6 +6601,7 @@ function docThumbHTML(d, scope, key, i){
   </div>`;
 }
 function _docStore(scope, key, meta){
+  if(!meta || !meta.path) return; // העלאה שנחסמה/נכשלה — אין מה לרשום
   const p=pj(); if(!p)return; ensureDocsLib(p);
   if(scope==='dept'){ (p.docsLib.byTopic[key]=p.docsLib.byTopic[key]||[]).push(meta); }
   else if(scope==='taba'){ p.docsLib.taba.push(meta); }
@@ -6557,8 +6610,9 @@ function _docStore(scope, key, meta){
   if(currentProjectId!=null){ renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p); }
 }
 function docPick(scope, key){
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='*/*'; inp.multiple=true;
-  inp.onchange=async e=>{ for(const f of e.target.files){ try{ toast('מעלה '+f.name+'…'); const m=await uploadDoc(f, scope+'_'+key); _docStore(scope,key,m); }catch(err){ toast('שגיאת העלאה'); } } toast('הועלה'); };
+  const inp=document.createElement('input'); inp.type='file';
+  inp.accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx,.dwg,.dxf,.zip'; inp.multiple=true;
+  inp.onchange=async e=>{ for(const f of e.target.files){ try{ toast('מעלה '+f.name+'…'); const m=await uploadDoc(f, scope+'_'+key); _docStore(scope,key,m); }catch(err){ toast(err.message||'שגיאת העלאה'); } } };
   inp.click();
 }
 function docPaste(ev, scope, key){
@@ -6605,6 +6659,10 @@ function docOpen(scope, key, i){
   stage.onmousedown=e=>{ _viewer.drag=true; _viewer.sx=e.clientX-_viewer.x; _viewer.sy=e.clientY-_viewer.y; };
   window.onmousemove=e=>{ if(_viewer.drag){ _viewer.x=e.clientX-_viewer.sx; _viewer.y=e.clientY-_viewer.sy; dvApply(); } };
   window.onmouseup=()=>{ _viewer.drag=false; };
+  // מגע: אצבע אחת מזיזה, שתי אצבעות מקרבות/מרחיקות (צביטה)
+  bindTouchPanZoom(stage,
+    ()=>({x:_viewer.x, y:_viewer.y, z:_viewer.z}),
+    s=>{ _viewer.x=s.x; _viewer.y=s.y; _viewer.z=Math.max(0.2,Math.min(8,s.z)); dvApply(); });
 }
 function dvApply(){ const img=document.getElementById('dvImg'); if(img) img.style.transform=`translate(${_viewer.x}px,${_viewer.y}px) scale(${_viewer.z})`; }
 function dvZoom(f){ _viewer.z=Math.max(0.2,Math.min(8,_viewer.z*f)); dvApply(); }
@@ -8334,6 +8392,8 @@ function bindViewerEvents(ov){
 
 /* ══════════ הרמוניקה ══════════ */
 function harmonicaAddFile(p, file){
+  if(!file || !(file.type==='application/pdf' || (file.type||'').startsWith('image/'))){ toast('הרמוניקה מקבלת רק PDF או תמונה'); return; }
+  if(file.size > 40*1024*1024){ toast('הקובץ גדול מדי (מעל 40MB)'); return; }
   _visInit(p);
   storeMedia(file).then(src=>{
     p.harmonica.push({ id:'h'+(p.harmonica.length+1), src, name:file.name, kind:file.type==='application/pdf'?'pdf':'img', addedAt:todayStr() });
@@ -8395,6 +8455,30 @@ function bindHarmCanvas(){ _hv={scale:1,tx:0,ty:0}; const c=document.getElementB
   let drag=false,sx,sy; c.onmousedown=e=>{drag=true;sx=e.clientX-_hv.tx;sy=e.clientY-_hv.ty;};
   window.addEventListener('mousemove',e=>{if(drag){_hv.tx=e.clientX-sx;_hv.ty=e.clientY-sy;hvApply();}});
   window.addEventListener('mouseup',()=>drag=false);
+  // מגע: הזזה בצביעה אחת, זום בצביטה
+  bindTouchPanZoom(c,
+    ()=>({x:_hv.tx, y:_hv.ty, z:_hv.scale}),
+    s=>{ _hv.tx=s.x; _hv.ty=s.y; _hv.scale=Math.max(0.2,Math.min(8,s.z)); hvApply(); });
+}
+/** תמיכת מגע גנרית לצופי תמונות: אצבע אחת = הזזה, שתי אצבעות = צביטת זום */
+function bindTouchPanZoom(el, get, set){
+  let start=null;
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+  el.addEventListener('touchstart', e=>{
+    const s=get();
+    if(e.touches.length===1) start={mode:'pan', x0:e.touches[0].clientX-s.x, y0:e.touches[0].clientY-s.y};
+    else if(e.touches.length===2) start={mode:'pinch', d0:dist(e.touches), z0:s.z, x:s.x, y:s.y};
+  }, {passive:true});
+  el.addEventListener('touchmove', e=>{
+    if(!start) return;
+    e.preventDefault();
+    const s=get();
+    if(start.mode==='pan' && e.touches.length===1)
+      set({...s, x:e.touches[0].clientX-start.x0, y:e.touches[0].clientY-start.y0});
+    else if(start.mode==='pinch' && e.touches.length===2)
+      set({x:start.x, y:start.y, z:start.z0*(dist(e.touches)/start.d0)});
+  }, {passive:false});
+  el.addEventListener('touchend', ()=>{ start=null; }, {passive:true});
 }
 function closeHarmViewer(){ const ov=document.getElementById('harmViewer'); if(ov) ov.style.display='none'; }
 
@@ -9503,7 +9587,8 @@ function renderDevHome(){
   wrap('setGraphic', secCheck('graphics'));
   // אזורי גרירת/הדבקת תמונות — divs שאינם נתפסים ע"י נעילת שדות רגילה
   ['genStore','genClear'].forEach(n=>wrap(n, secCheck('info')));
-  ['vmAddFile','vmSetCat','vmDelete','harmDelete'].forEach(n=>wrap(n, secCheck('graphics')));
+  ['_renderStore','renderClear'].forEach(n=>wrap(n, secCheck('info')));
+  ['vmAddFile','vmSetCat','vmDelete','harmDelete','harmonicaAddFile'].forEach(n=>wrap(n, secCheck('graphics')));
   // רענון נעילות אחרי רינדור מחדש של פאנלים (השדות נוצרים מחדש פתוחים)
   function postWrap(name){
     const orig=window[name]; if(typeof orig!=='function') return;
