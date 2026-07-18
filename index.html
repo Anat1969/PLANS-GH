@@ -9355,7 +9355,7 @@ function renderExecDash(){
         <div class="ex-sec">
           <div class="ex-sec-h">לוח הפורומים הקרוב</div>
           <div class="ex-sec-sub">14 הימים הקרובים</div>
-          ${upcoming.slice(0,8).map(u=>`<div class="ex-week-row"><span class="ex-week-date">${fd(u.date)}</span><span style="cursor:pointer" onclick="openProject(${u.id})">${u.label} — <b>תב/${u.tik}</b> ${esc((u.name||'').slice(0,24))}</span></div>`).join('')||'<div class="ex-empty">אין מועדים קבועים בטווח הקרוב — נקודה לשיפור בקצב</div>'}
+          ${upcoming.slice(0,8).map(u=>`<div class="ex-week-row"><span class="ex-week-date">${fd(u.date)}</span><span style="cursor:pointer" onclick="openProject(${u.id})">${u.label} — <b>תב/${u.tik}</b> ${esc((u.name||'').slice(0,24))}</span></div>`).join('')||'<div class="ex-empty">אין מועדי פורומים קבועים ב-14 הימים הקרובים</div>'}
         </div>
       </div>
     </div>`;
