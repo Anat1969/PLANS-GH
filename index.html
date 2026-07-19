@@ -1240,6 +1240,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .mail-noemail{background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:6px 10px;font-size:12px;color:#8a5a00;margin-top:6px}
 .mail-send-summary{font-size:12px;color:var(--muted,#6b6259);margin-top:8px}
 .mail-assign-hint{font-size:12px;color:#8a5a00;background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5}
+.mail-quick-assign{display:flex;gap:6px;margin-top:8px}
+.mail-quick-assign select{flex:1;min-width:0}
 .mail-add-recipient{display:flex;gap:6px;margin-top:6px}
 .mail-add-recipient input{flex:1}
 .mail-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:1rem}
@@ -8002,7 +8004,11 @@ function openMailComposer(p, subject, body, toList, rec){
     <label class="mail-lbl">נמענים (אל) — אדריכל היזם וכל נציגי היזם המשויכים לתוכנית</label>
     <div class="mail-recipients" id="mailRecList">${recRows}</div>
     ${noEmailBlock}
-    ${noRecipient?`<div class="mail-assign-hint">לא משויכים אנשי קשר עם מייל לתוכנית זו. הוסיפי אותם בדף התוכנית ← „צוות היזם” / „אנשי קשר בפרויקט”, או הזיני נמען ידני כאן:</div>`:''}
+    ${noRecipient?`<div class="mail-assign-hint">לא משויכים אנשי קשר עם מייל לתוכנית זו. שייכי מהמאגר כאן (יתעדכן מיד), או הזיני נמען ידני:</div>`:''}
+    <div class="mail-quick-assign">
+      <select id="mailAssignPick" class="team-f">${mailUnassignedOptions(p)}</select>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="mailQuickAssign(${p.id})">שייך לתוכנית</button>
+    </div>
     <div class="mail-add-recipient">
       <input id="mailAddEmail" type="email" placeholder="הוספת נמען ידני (כתובת מייל)">
       <button class="btn btn-ghost btn-sm" type="button" onclick="mailAddRecipient()">+ הוסף</button>
@@ -8027,6 +8033,36 @@ function _mailData(planId){
   if(document.getElementById('mailAttachLink')&&document.getElementById('mailAttachLink').checked){ body+='\n\nקישור לתוכנית: '+location.origin+location.pathname+'#project='+p.tik; }
   const to=[...document.querySelectorAll('.mail-recipients input:checked')].map(i=>i.dataset.email).filter(Boolean);
   return {p,subject,body,to};
+}
+/** רשימת אנשי קשר מטעם היזם שטרם משויכים לתוכנית — לשיוך מהיר מתוך המייל */
+function mailUnassignedOptions(p){
+  const opts = (contacts||[])
+    .filter(c=>DEV_SIDE_TYPES.includes(c.type) && !(c.plans||[]).map(String).includes(String(p.tik)))
+    .map(c=>`<option value="${c.id}">${esc(c.name)}${c.org?(' · '+esc(c.org)):''} (${esc(c.type)})${c.email?'':' — ללא מייל'}</option>`)
+    .join('');
+  return `<option value="">— שייך איש קשר מהמאגר (אדריכל היזם / נציגי היזם) —</option>${opts}`;
+}
+/** שיוך מהיר של איש קשר לתוכנית, מתוך חלון המייל — מעדכן את הנמענים מיד */
+function mailQuickAssign(planId){
+  const p=plans.find(x=>x.id===planId); if(!p) return;
+  const sel=document.getElementById('mailAssignPick'); const id=sel&&sel.value; if(!id){ toast('בחרי איש קשר'); return; }
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  c.plans=[...new Set([...(c.plans||[]), String(p.tik)])]; c.updatedAt=todayStr(); c.sample=false;
+  saveContacts();
+  if(currentProjectId!=null && typeof renderProjectContacts==='function'){ const pp=pj(); if(pp) renderProjectContacts(pp); }
+  // רענון רשימת הנמענים בחלון המייל, בלי לסגור אותו
+  const rec=projectMailRecipients(p);
+  const list=document.getElementById('mailRecList');
+  if(list){
+    list.innerHTML = rec.withEmail.map(m=>`
+      <label class="chk-inline mail-rec-row ${m.primary?'mail-rec-primary':''}">
+        <input type="checkbox" checked data-email="${esc(m.addr)}">
+        <span>${esc(m.label||m.addr)}${m.primary?' <b class="mail-arch-tag">אדריכל היזם</b>':''}</span>
+        <span class="muted">${esc(m.addr)}</span>
+      </label>`).join('') || '<span class="muted">אין כתובות מייל — הוסיפי נמען ידני.</span>';
+  }
+  const pick=document.getElementById('mailAssignPick'); if(pick) pick.innerHTML=mailUnassignedOptions(p);
+  toast(c.email?('שויך: '+c.name):('שויך: '+c.name+' (ללא מייל — יש להשלים כתובת)'));
 }
 /** הוספת נמען ידני לרשימת הנמענים (כשאיש קשר אינו משויך במאגר) */
 function mailAddRecipient(){
