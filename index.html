@@ -345,6 +345,21 @@ tbody tr:hover{background:var(--teal-pale)}
 .hero-stat .val{font-family:var(--serif);font-size:42px;font-weight:700;color:var(--teal)}
 .hero-stat .lbl{font-size:13px;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px}
 
+/* רצועת מדדים מוסברים ולחיצים בדף הראשי */
+.lm-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:2.5rem}
+.lm-tile{position:relative;text-align:center;background:var(--surface,#fff);border:1px solid var(--stone,#e8e5df);border-inline-start:4px solid var(--muted,#6b6259);border-radius:var(--r,10px);padding:1rem .75rem;cursor:pointer;transition:box-shadow .18s ease-out,transform .18s ease-out;font-family:inherit}
+.lm-tile:hover{box-shadow:0 6px 18px rgba(0,0,0,.08);transform:translateY(-2px)}
+.lm-tile:focus-visible{outline:2px solid var(--teal,#2A5F5F);outline-offset:2px}
+.lm-val{font-family:var(--display,Georgia,serif);font-size:34px;line-height:1;font-weight:700;color:var(--ink,#1a1a1a)}
+.lm-title{font-weight:700;font-size:14px;margin-top:.35rem;color:var(--ink,#1a1a1a)}
+.lm-explain{font-size:11px;color:var(--muted,#6b6259);margin-top:.3rem;line-height:1.35}
+.lm-range{font-size:10px;color:var(--teal,#2A5F5F);margin-top:.4rem;font-weight:600}
+.lm-tile.m-teal{border-inline-start-color:var(--teal,#2A5F5F)}
+.lm-tile.m-red{border-inline-start-color:var(--err,#b84040)}
+.lm-tile.m-orange{border-inline-start-color:var(--warn,#c47a20)}
+.lm-tile.m-gold{border-inline-start-color:var(--bronze,#9c7a3c)}
+.lm-tile.m-bordeaux{border-inline-start-color:var(--bordeaux,#7a1f2b)}
+@media(max-width:900px){.lm-strip{grid-template-columns:repeat(2,1fr)}}
 .quick-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem}
 .quick-card{background:white;border:1px solid var(--stone);border-radius:var(--r);padding:1.5rem;cursor:pointer;transition:all 0.2s;text-align:center}
 .quick-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.1);transform:translateY(-2px)}
@@ -1709,6 +1724,9 @@ tbody tr{transition:background .12s}
     </div>
   </div>
 
+  <!-- מדדי מצב מוסברים ולחיצים -->
+  <div class="lm-strip" id="landingMetrics"></div>
+
   <!-- תוכנית עבודה יומית: מה נעשה + מה צריך להיעשות -->
   <div id="dailyWork"></div>
 
@@ -2984,6 +3002,73 @@ function saveForumDate(id, field, el){
 /** תוכניות "חיות" — לא כולל מחיקה רכה (_deleted). מקור אמת יחיד לכל הרשימות/המדדים. */
 function livePlans(){ return plans.filter(p=>!p._deleted); }
 
+/* ══════════ מדדי הדף הראשי — מוסברים ולחיצים ══════════
+   כל מדד יודע: כותרת, הסבר מה הוא כולל, טווח הזמן, ופונקציה שמחזירה את
+   רשומות המקור — כך אין "מספר סתמי": לוחצים ורואים בדיוק מה מרכיב אותו.
+   מוגדר כפונקציה (lazy) ולא כ-const עליון כדי להימנע מ-TDZ מול planIsActive/generateTasks. */
+function landingMetrics(){
+  const today = todayStr();
+  const overdue = p => { const pd = prepDate(p); return planIsActive(p) && pd && pd < today; };
+  // ממתין ליזם: בהמתנה + הפעולה הבאה מוטלת על צד היזם
+  const waitingDev = p => planIsActive(p) && (p.status==='בהמתנה' || p.status==='בהמתנה ליזם');
+  // ממתין לעירייה: פעיל, פורום יועצים כבר התקיים אך אין עדיין מועד הכנה לוועדה / חוות דעת
+  const waitingMuni = p => planIsActive(p) && p.forumConsultants &&
+    (!(p.datesPlan&&p.datesPlan.committeePrep) || (p.stage==='committee' && !(p.opinion&&p.opinion.recommendation)));
+  const urgentIds = () => { try { return new Set(generateTasks().filter(t=>t.urgency==='high').map(t=>t.id)); } catch(e){ return new Set(); } };
+  return [
+    { key:'active', title:'תוכניות בטיפול', explain:'כל התוכניות שטרם הושלמו או נסגרו', range:'מצב נוכחי',
+      cls:'m-teal', fn:()=>livePlans().filter(planIsActive) },
+    { key:'overdue', title:'באיחור', explain:'תוכניות שמועד ההכנה לוועדה שלהן עבר וטרם הושלמו', range:'עד היום',
+      cls:'m-red', fn:()=>livePlans().filter(overdue) },
+    { key:'waitDev', title:'ממתינות ליזם', explain:'תוכניות שבהן נדרשת תגובה או השלמה מטעם היזם', range:'מצב נוכחי',
+      cls:'m-orange', fn:()=>livePlans().filter(waitingDev) },
+    { key:'waitMuni', title:'ממתינות לעירייה', explain:'תוכניות שבהן נדרשת פעולה של גורם עירוני (הכנה לוועדה / חוות דעת)', range:'מצב נוכחי',
+      cls:'m-gold', fn:()=>livePlans().filter(waitingMuni) },
+    { key:'urgent', title:'פעולות דחופות', explain:'משימות שדורשות טיפול מיידי כדי למנוע עיכוב', range:'תוכנית העבודה היומית',
+      cls:'m-bordeaux', fn:()=>{ const ids=urgentIds(); return livePlans().filter(p=>ids.has(p.id)); } }
+  ];
+}
+
+/** מרנדר את רצועת המדדים המוסברים בדף הראשי */
+function renderLandingMetrics(){
+  const host = document.getElementById('landingMetrics'); if(!host) return;
+  host.innerHTML = landingMetrics().map(m=>{
+    const n = m.fn().length;
+    return `<button class="lm-tile ${m.cls}" onclick="openMetricDrill('${m.key}')" title="${esc(m.explain)}">
+      <div class="lm-val">${n}</div>
+      <div class="lm-title">${esc(m.title)}</div>
+      <div class="lm-explain">${esc(m.explain)}</div>
+      <div class="lm-range">${esc(m.range)} · לחצו לפירוט</div>
+    </button>`;
+  }).join('');
+}
+
+/** חלון פירוט — מציג את רשומות המקור שמרכיבות את המדד */
+function openMetricDrill(key){
+  const m = landingMetrics().find(x=>x.key===key); if(!m) return;
+  const list = m.fn().sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0));
+  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
+  const rows = list.map(p=>`<tr onclick="this.closest('.render-lightbox').remove();openProject(${p.id})" style="cursor:pointer">
+      <td><strong>תב/${esc(p.tik)}</strong></td>
+      <td>${esc(p.district||'')} ${esc(p.location||'')}</td>
+      <td>${esc(p.developer||'—')}</td>
+      <td>${stageLbl[p.stage||'stage_1']||''}</td>
+      <td>${statusChip(p.status)}</td>
+      <td style="white-space:nowrap">${fmtDate(prepDate(p))}</td>
+    </tr>`).join('');
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal" style="max-width:760px">
+    <h3 style="margin-bottom:.2rem">${esc(m.title)} — ${list.length}</h3>
+    <div class="pd-intro">${esc(m.explain)} · ${esc(m.range)}</div>
+    ${list.length?`<div class="tbl-wrap" style="max-height:60vh;overflow:auto"><table class="track-table"><thead><tr>
+      <th>תב</th><th>מיקום</th><th>יזם</th><th>שלב</th><th>סטטוס</th><th>הכנה לוועדה</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>`
+    :'<p class="muted" style="padding:1rem 0">אין תוכניות בקטגוריה זו כרגע.</p>'}
+    <div class="mail-actions"><button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגירה</button></div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
 /** רענון מלא ומרוכז אחרי כל שינוי נתון — מבטיח שכל הדפים/הדוחות/המדדים
     מציגים את אותו מקור אמת. debounced ב-rAF כדי למנוע ריצות כפולות ואיבוד פוקוס. */
 let _refreshQueued = false;
@@ -3020,6 +3105,7 @@ function renderLanding() {
     <div class="hero-stat"><div class="val">${districts.length}</div><div class="lbl">רובעים</div></div>
     <div class="hero-stat"><div class="val">${handlers.length}</div><div class="lbl">אחראים</div></div>
   `;
+  renderLandingMetrics();
   renderActiveTracking();
   renderDailyWork();
 }
