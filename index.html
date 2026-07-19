@@ -689,8 +689,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #projectPage input[data-always="ro"]{color:rgba(0,0,0,0.5) !important}
 @media print{#projectPage input,#projectPage textarea,#projectPage select{color:#000 !important}}
 /* ══════════ מסגרת הדמיית פרויקט (גובה ~2 שורות) ══════════ */
-.render-frame{position:relative;width:88px;height:72px;border-radius:6px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
-.render-frame img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+.render-frame{position:relative;width:116px;height:78px;border-radius:6px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;border:1px solid var(--stone,#e8e5df)}
+.render-frame img{width:100%;height:100%;object-fit:contain;cursor:zoom-in;display:block}
 .render-frame.render-seeded{outline:2px solid #1a56db;outline-offset:-2px}
 .render-empty{border:1.5px dashed var(--stone);cursor:pointer;flex-direction:column;gap:1px;color:#9aa;transition:all .15s}
 .render-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
@@ -762,16 +762,30 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .date-legend span{padding:1px 8px;border-radius:5px;font-size:11px}
 /* ══════════ טבלת תוכניות קומפקטית — רוחב מוגבל לכל עמודה ══════════ */
 .plans-table{table-layout:fixed;width:100%;border-collapse:collapse}
-.plans-table th,.plans-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;padding:4px 5px}
-.plans-table th{padding:6px 5px}
-.plans-table .col-tik{width:52px;max-width:52px}
-.plans-table .col-plannum{width:76px;max-width:76px;font-size:11.5px}
-.plans-table .col-img{width:58px;max-width:58px}
-.plans-table .col-district{width:70px;max-width:70px;font-size:11.5px}
-.plans-table .col-txt{max-width:120px;min-width:64px}
-.plans-table .col-loc{max-width:150px;min-width:90px}
-.plans-table .col-date{width:104px;max-width:104px}
-.plans-table .col-status{width:82px;max-width:82px}
+.plans-table th,.plans-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;padding:3px 3px}
+.plans-table th{padding:5px 3px}
+.plans-table .col-tik{width:40px;max-width:40px}
+.plans-table .col-plannum{width:96px;max-width:96px}
+.plans-table .col-img{width:120px;max-width:120px}
+.plans-table .col-district{width:62px;max-width:62px;font-size:11.5px}
+.plans-table .col-txt{max-width:110px;min-width:58px}
+.plans-table .col-loc{max-width:140px;min-width:84px}
+.plans-table .col-date{width:98px;max-width:98px}
+.plans-table .col-status{width:78px;max-width:78px}
+.plans-table .col-note{width:150px;max-width:150px;white-space:normal}
+.plans-table td.col-note{padding:2px 3px}
+.note-wrap{display:flex;flex-direction:column;gap:3px}
+.note-row{display:flex;align-items:flex-start;gap:2px}
+.note-box{flex:1;min-width:0;resize:none;font-family:inherit;font-size:11px;line-height:1.3;padding:2px 4px;border:1px solid var(--stone,#e8e5df);border-radius:4px;background:var(--surface,#fff);color:var(--ink);overflow:hidden;box-sizing:border-box}
+.note-box:focus{outline:2px solid var(--teal,#2A5F5F);outline-offset:-1px;border-color:var(--teal,#2A5F5F)}
+.note-del{flex:0 0 auto;border:none;background:none;color:var(--muted,#6b6259);cursor:pointer;font-size:11px;line-height:1;padding:2px}
+.note-del:hover{color:var(--err,#b84040)}
+.note-add{align-self:flex-start;border:1px dashed var(--stone,#e8e5df);background:none;color:var(--teal,#2A5F5F);cursor:pointer;font-size:10.5px;border-radius:4px;padding:1px 6px}
+.note-add:hover{background:var(--fog,#f2f0ec)}
+.submit-mail{color:var(--teal,#2A5F5F);text-decoration:none;font-size:13px}
+.submit-mail:hover{color:var(--bordeaux,#7a1f2b)}
+/* מספר תוכנית — גדול ובולט */
+.plans-table td.col-plannum{font-weight:800;font-size:15px;color:var(--ink);letter-spacing:.2px}
 .plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;font-size:11px}
 .plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:11.5px;padding:2px 4px;min-width:0}
 /* מיקום מודגש בבולט גדול */
@@ -1754,6 +1768,7 @@ tbody tr{transition:background .12s}
           <th class="col-date forum-group" onclick="sortTable(9)"><span class="sort-arrow">▼</span>פורום יועצים</th>
           <th class="col-date forum-group grp-sep-end" onclick="sortTable(10)"><span class="sort-arrow">▼</span>הכנה לוועדה</th>
           <th class="col-status" onclick="sortTable(11)"><span class="sort-arrow">▼</span>סטטוס</th>
+          <th class="col-note">הערות</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -2255,7 +2270,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -3359,6 +3374,51 @@ function saveField(id, field, el) {
   }
 }
 
+// ===== הערות בטבלה (עמודה ליד הסטטוס) =====
+function saveTableNote(id, idx, el){
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  if (!Array.isArray(p.tableNotes)) p.tableNotes = [];
+  p.tableNotes[idx] = el.value;
+  savePlans();
+}
+function addTableNote(id){
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  if (!Array.isArray(p.tableNotes)) p.tableNotes = [];
+  p.tableNotes.push('');
+  savePlans();
+  renderTable();
+}
+function removeTableNote(id, idx){
+  const p = plans.find(x=>x.id===id);
+  if (!p || !Array.isArray(p.tableNotes)) return;
+  p.tableNotes.splice(idx,1);
+  savePlans();
+  renderTable();
+}
+function noteCellHTML(p){
+  const notes = Array.isArray(p.tableNotes) ? p.tableNotes : [];
+  const rows = (notes.length ? notes : ['']).map((n,i)=>`
+    <div class="note-row">
+      <textarea class="note-box" rows="1" placeholder="הערה…"
+        onclick="event.stopPropagation()"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+        onchange="saveTableNote(${p.id},${i},this)">${esc(n||'')}</textarea>
+      ${notes.length>1?`<button class="note-del" title="הסר הערה" onclick="event.stopPropagation();removeTableNote(${p.id},${i})">✕</button>`:''}
+    </div>`).join('');
+  return `<div class="note-wrap">${rows}
+    <button class="note-add" title="הוסף הערה" onclick="event.stopPropagation();addTableNote(${p.id})">＋ הערה</button>
+  </div>`;
+}
+// שליחת מייל ידני למגיש — קישור mailto אם קיים מייל, אחרת מושבת
+function submitterMailHTML(p){
+  const email = (p.meta && (p.meta.archEmail || p.meta.reqEmail)) || p.submitterEmail || '';
+  if (!email) return '';
+  const subj = encodeURIComponent(`תוכנית ${p.planNum||p.tik||''} — ${p.location||''}`);
+  return ` <a class="submit-mail" href="mailto:${email}?subject=${subj}" title="שליחת מייל ל${esc(p.submitter||'מגיש')}" onclick="event.stopPropagation()">✉</a>`;
+}
+
 function renderTable() {
   const start = (currentPage-1)*PAGE_SIZE;
   const pageData = filtered.slice(start, start+PAGE_SIZE);
@@ -3394,11 +3454,12 @@ function renderTable() {
         <td class="col-district"><input value="${p.district}" onchange="saveField(${p.id},'district',this)"></td>
         <td class="col-loc"><input value="${esc(p.location||'')}" onchange="saveField(${p.id},'location',this)" style="font-weight:700"></td>
         <td class="col-txt"><input value="${esc(p.developer||'')}" onchange="saveField(${p.id},'developer',this)"></td>
-        <td class="col-txt"><input value="${esc(p.submitter||'')}" onchange="saveField(${p.id},'submitter',this)"></td>
+        <td class="col-txt"><input value="${esc(p.submitter||'')}" onchange="saveField(${p.id},'submitter',this)">${submitterMailHTML(p)}</td>
         <td class="col-date grp-sep-start"><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
         <td class="col-date"><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
         <td class="col-date grp-sep-end"><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
         <td class="col-status"><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
+        <td class="col-note">${noteCellHTML(p)}</td>
       </tr>`;
     }
 
@@ -3409,11 +3470,12 @@ function renderTable() {
       <td class="col-district">${p.district}</td>
       <td class="col-loc" title="${esc(p.location||'')}">${p.location?('<span class="loc-bullet">●</span>'+esc(p.location)):'—'}</td>
       <td class="col-txt" title="${esc(p.developer||'')}">${p.developer||'—'}</td>
-      <td class="col-txt" title="${esc(p.submitter||'')}">${p.submitter||'—'}</td>
+      <td class="col-txt" title="${esc(p.submitter||'')}">${p.submitter||'—'}${submitterMailHTML(p)}</td>
       <td class="col-date grp-sep-start"><span class="date-status ${dateTimeClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
       <td class="col-date"><span class="date-status ${dateTimeClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
       <td class="col-date grp-sep-end"><span class="date-status ${dateTimeClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
       <td class="col-status">${statusChip(p.status)}</td>
+      <td class="col-note" onclick="event.stopPropagation()">${noteCellHTML(p)}</td>
     </tr>`;
   }).join('');
 
