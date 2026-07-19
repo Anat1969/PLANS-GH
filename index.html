@@ -3084,10 +3084,29 @@ function saveForumDate(id, field, el){
   p.updatedAt = todayStr();
   // שרשרת אוטומטית: שינוי תאריך מוקדם מחשב מחדש את הבאים אחריו — אלא אם נערכו ידנית
   ensureForumChain(p);
+  // עדכון שלב אוטומטי לפי מה שהתקיים בפועל, ותיעוד הפעולה
+  const stageChanged = deriveStageFromDates(p);
+  const label = FORUM_INFO[field]?.label || field;
+  logAction(p, 'date', `עודכן ${label}: ${el.value?fmtDate(el.value):'רוקן'}${stageChanged?(' · שלב עודכן ל'+planStageLbl(p)):''}`);
   savePlans();
   renderTable();
   refreshAll(); // סנכרון מלא לכל המדדים/הדוחות
-  toast(`${FORUM_INFO[field]?.label || field} עודכן`);
+  toast(`${label} עודכן${stageChanged?' · השלב עודכן אוטומטית':''}`);
+}
+
+/** גוזר את שלב התוכנית לפי אבני הדרך שהתקיימו בפועל (תאריך שעבר/היום).
+    לא נוגע בתוכנית שהושלמה/נסגרה. מחזיר true אם השלב השתנה. */
+function deriveStageFromDates(p){
+  if(!p || !planIsActive(p)) return false;
+  const today = todayStr();
+  const prev = p.stage || 'stage_1';
+  let stage = 'stage_1';
+  if(_occurred(committeeDateOf(p), today)) stage = 'committee';        // הכנה לוועדה כבר עברה
+  else if(_occurred(p.forumConsultants, today)) stage = 'committee';   // אחרי פורום יועצים — לקראת ועדה
+  else if(_occurred(p.forumArchitect, today)) stage = 'stage_2';       // אחרי פורום אדריכל — לקראת יועצים
+  else stage = 'stage_1';
+  if(stage !== prev){ p.stage = stage; return true; }
+  return false;
 }
 
 // ── LANDING ──
@@ -7556,10 +7575,19 @@ function whoToContact(p, role){
 const stageLblMap={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
 function planStageLbl(p){ return stageLblMap[p.stage||'stage_1']; }
 
+/* ── מצב אבן-דרך לפי תאריך מול היום ──
+   מבחין בין: "התקיים" (יש תאריך שכבר עבר/היום) · "מתוכנן" (יש תאריך עתידי) · "אין תאריך".
+   כך תוכנית העבודה לא אומרת בטעות "הפורום התקיים" כשהתאריך עדיין עתידי,
+   ולא "אין תאריך" כשקיים תאריך עתידי. */
+function _occurred(dateStr, today){ return !!dateStr && String(dateStr) <= String(today); }   // עבר או היום
+function _scheduledFuture(dateStr, today){ return !!dateStr && String(dateStr) > String(today); } // עתידי
+/** התאריך האפקטיבי להכנה לוועדה: המתוכנן (datesPlan.committeePrep) או תאריך הוועדה בפועל */
+function committeeDateOf(p){ return (p.datesPlan && p.datesPlan.committeePrep) || p.committeeDate || ''; }
+
 const WORK_RULES = [
   { id:'committee_overdue', urgency:'high', category:'urgent', impact:'התוכנית תיתקע — מועד ההכנה לוועדה כבר חלף וכל יום נוסף מרחיק את האישור', owner:'אדריכלית העיר', tool:'status',
-    when:(p,c)=>{ const pd=p.datesPlan&&p.datesPlan.committeePrep; return planIsActive(p) && pd && pd<c.today; },
-    build:(p,c)=>({ blocker:'חלף מועד ההכנה לוועדה ('+fmtDate(p.datesPlan.committeePrep)+') והתוכנית טרם הושלמה',
+    when:(p,c)=>{ const cd=committeeDateOf(p); return planIsActive(p) && _occurred(cd,c.today) && cd<c.today; },
+    build:(p,c)=>({ blocker:'חלף מועד ההכנה לוועדה ('+fmtDate(committeeDateOf(p))+') והתוכנית טרם הושלמה',
       action:'לברר מול אדריכל היזם את הסטטוס ולעדכן מועד הכנה לוועדה מחדש עד '+_due(c.today,3),
       contact:whoToContact(p,'dev'), due:_due(c.today,3) }) },
   { id:'dev_no_reply', urgency:'high', category:'waiting', impact:'התהליך מוקפא עד שהיזם ישיב; ללא תזכורת בכתב העיכוב יימשך', owner:'אדריכלית העיר', tool:'mail',
@@ -7577,19 +7605,21 @@ const WORK_RULES = [
     build:(p,c)=>({ blocker:'התוכנית בשלב הכנה לוועדה אך חסרה חוות דעת מסכמת',
       action:'להשלים ולנסח את חוות הדעת לוועדה עד '+_due(c.today,4),
       contact:'—', due:_due(c.today,4) }) },
-  { id:'no_arch_forum', urgency:'med', category:'proactive', impact:'ללא פורום אדריכל התוכנית לא מתחילה להתקדם בתהליך', owner:'אדריכלית העיר', tool:'meeting',
+  { id:'no_arch_forum', urgency:'med', category:'proactive', impact:'ללא מועד לפורום אדריכל התוכנית לא מתחילה להתקדם בתהליך', owner:'אדריכלית העיר', tool:'meeting',
     when:(p)=>planIsActive(p) && !p.forumArchitect,
-    build:(p,c)=>({ blocker:'טרם נקבע/התקיים פורום אדריכל',
+    build:(p,c)=>({ blocker:'טרם נקבע מועד לפורום אדריכל',
       action:'לתאם מועד לפורום אדריכל מול היזם והאדריכל עד '+_due(c.today,10),
       contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
+  // פורום יועצים חסר — רק אחרי שפורום אדריכל *התקיים בפועל* (התאריך עבר)
   { id:'no_consult_forum', urgency:'med', category:'proactive', impact:'עיכוב בקביעת פורום יועצים דוחה את כל אבני הדרך הבאות', owner:'אדריכלית העיר', tool:'meeting',
-    when:(p)=>planIsActive(p) && p.forumArchitect && !p.forumConsultants,
-    build:(p,c)=>({ blocker:'פורום אדריכל התקיים ('+fmtDate(p.forumArchitect)+') אך פורום יועצים טרם נקבע',
+    when:(p,c)=>planIsActive(p) && _occurred(p.forumArchitect,c.today) && !p.forumConsultants,
+    build:(p,c)=>({ blocker:'פורום אדריכל התקיים ('+fmtDate(p.forumArchitect)+') אך טרם נקבע מועד לפורום יועצים',
       action:'לתאם מועד לפורום יועצים עד '+_due(c.today,10),
       contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
+  // הכנה לוועדה חסרה — רק אחרי שפורום יועצים *התקיים בפועל*, וכשאין תאריך ועדה כלל (מתוכנן או בפועל)
   { id:'no_committee_prep', urgency:'med', category:'important', impact:'ללא מועד הכנה לוועדה אין יעד ברור והתוכנית עלולה להישאר תקועה', owner:'אדריכלית העיר', tool:'task',
-    when:(p)=>planIsActive(p) && p.forumConsultants && !(p.datesPlan&&p.datesPlan.committeePrep),
-    build:(p,c)=>({ blocker:'פורום יועצים התקיים אך אין מועד להכנה לוועדה',
+    when:(p,c)=>planIsActive(p) && _occurred(p.forumConsultants,c.today) && !committeeDateOf(p),
+    build:(p,c)=>({ blocker:'פורום יועצים התקיים ('+fmtDate(p.forumConsultants)+') אך אין מועד להכנה לוועדה',
       action:'לקבוע מועד הכנה לוועדה עד '+_due(c.today,14),
       contact:'—', due:_due(c.today,14) }) },
   { id:'stale', urgency:'med', category:'waiting', impact:'תוכנית ללא התקדמות מתמשכת עלולה לרדת מהרדאר ולהיתקע', owner:'אדריכלית העיר', tool:'status',
@@ -8083,9 +8113,17 @@ function mailPrepareSend(planId){
   // פתיחת לקוח המייל של המשתמשת (אישור מפורש שלה) — לא נשלח אוטומטית
   const href='mailto:'+encodeURIComponent(to.join(','))+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
   window.location.href=href;
-  logAction(p,'mail','הוכן לשליחה: '+subject+' → '+to.join(', '));
-  toast('נפתח בלקוח המייל — השליחה בידייך');
-  document.querySelector('.render-lightbox')?.remove(); renderDailyWork&&renderDailyWork();
+  // עדכון סטטוס אוטומטי: פנייה ליזם → התוכנית ממתינה לתגובתו (אלא אם כבר הושלמה/בשלב מתקדם)
+  let statusNote='';
+  if(planIsActive(p) && p.status!=='בהמתנה ליזם' && p.status!=='בהמתנה'){
+    p.status='בהמתנה ליזם'; statusNote=' · הסטטוס עודכן ל„בהמתנה ליזם”';
+  }
+  // תיעוד הפעולה עם רשימת הנמענים בפועל (נשמר בהיסטוריית הפרויקט)
+  logAction(p,'mail','נשלח מייל: '+subject+' → '+to.join(', ')+statusNote);
+  savePlans();
+  toast('נפתח בלקוח המייל — השליחה בידייך'+(statusNote?' · הסטטוס עודכן':''));
+  document.querySelector('.render-lightbox')?.remove();
+  refreshAll(); // עדכון בכל מקום: סטטוס/מדדים/תוכנית עבודה/פעולות אחרונות
 }
 
 /* ══════════════════════════════════════════════════════════════
