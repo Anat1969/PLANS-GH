@@ -2737,9 +2737,13 @@ function go(id, btn, isBack) {
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  // דף ראשי — תמיד מרנדר מחדש מהנתונים העדכניים (מדדים/תוכנית עבודה/מעקב)
+  if (id === 'landing') { renderLanding(); }
+  if (id === 'table') { applyFilters(); } // רענון הטבלה מהנתונים בכל חזרה אליה
   if (id === 'map' && !window._mapInit) { setTimeout(initMap, 150); window._mapInit = true; }
   else if (id === 'map') { setTimeout(()=>{ try{ if(gisMap) gisMap.invalidateSize(); }catch(e){} }, 120); }
-  if (id === 'trends' && !window._trendsInit) { renderTrends(); window._trendsInit = true; }
+  // מגמות/הנחיות — מרנדר בכל כניסה (לא רק פעם אחת) כדי לשקף שינויי נתונים
+  if (id === 'trends') { renderTrends(); window._trendsInit = true; }
   if (id === 'guidelines' && !window._guidelinesInit) { renderGuidelines(); window._guidelinesInit = true; }
   if (id === 'muni' && typeof renderMuni === 'function') { renderMuni(); }
   if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
