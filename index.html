@@ -2366,6 +2366,24 @@ async function cloudSaveNow() {
   } finally { _cloudBusy = false; }
 }
 
+/** ממזג רשומה מרוחקת אל תוכנית מקומית קיימת.
+    שדות רגילים — הענן גובר (מקור אמת). אבל מפות מעקב-עריכה (_userEdited/_seeded/locks)
+    ממוזגות באיחוד: דגל "נערך ידנית" לעולם לא נעלם בגלל סבב סנכרון, אחרת ה-seed
+    היה מרוקן תאריכים שהוקלדו. */
+const _TRACK_MAPS = ['_userEdited','_seeded','locks'];
+function mergeRemoteFields(existing, remote){
+  PERSIST_FIELDS.forEach(f => {
+    if (remote[f] === undefined) return;
+    if (_TRACK_MAPS.includes(f)) {
+      const cur = (existing[f] && typeof existing[f]==='object') ? existing[f] : {};
+      const inc = (remote[f] && typeof remote[f]==='object') ? remote[f] : {};
+      existing[f] = { ...inc, ...cur }; // הדגלים המקומיים גוברים ולא נמחקים
+    } else {
+      existing[f] = remote[f];
+    }
+  });
+}
+
 /** טוען את הפרויקטים מהענן וממזג (מקור אמת מרכזי). מחזיר true אם נטען משהו. */
 async function cloudLoad() {
   try {
@@ -2381,7 +2399,7 @@ async function cloudLoad() {
       if (updated_at) _remoteStamp.set(sp.__key, updated_at);
       const existing = byKey[sp.__key];
       if (existing) {
-        PERSIST_FIELDS.forEach(f => { if (sp[f] !== undefined) existing[f] = sp[f]; });
+        mergeRemoteFields(existing, sp);
       } else {
         const np = { ...sp, id: plans.length }; delete np.__key;
         plans.push(np); byKey[planKey(np)] = np;
@@ -2420,7 +2438,7 @@ async function cloudRefresh() {
       if (localS !== undefined && baseS !== undefined && localS !== baseS) return; // עריכות מקומיות ממתינות — לא דורסים
       const existing = byKey[key];
       if (existing) {
-        PERSIST_FIELDS.forEach(f => { if (data[f] !== undefined) existing[f] = data[f]; });
+        mergeRemoteFields(existing, data);
       } else {
         const np = { ...data, id: plans.length }; delete np.__key;
         plans.push(np); byKey[key] = np;
@@ -2627,17 +2645,19 @@ setInterval(()=>{ if(_cloudDirty && !_cloudTimer && !_cloudBusy) cloudSaveNow();
    (כדי לא לדרוס עריכה ידנית עתידית שתעדכן את SEED_FORUM_DATES בהתאם). */
 function migrateForumDates(){
   let changed = false;
+  // ה-seed רק *ממלא ערך ריק*. לעולם לא דורס ולעולם לא מרוקן ערך קיים —
+  // אחרת תאריך שהוקלד ידנית נמחק בטעינה הבאה אם דגל העריכה אבד בסבב סנכרון.
+  const fill = (obj, k, v) => {
+    if (v && !(obj[k])) { obj[k] = v; changed = true; }
+  };
   Object.keys(SEED_FORUM_DATES).forEach(tik=>{
     const p = plans.find(x=>String(x.tik)===tik); if(!p) return;
     const fd = SEED_FORUM_DATES[tik];
-    // שדה שנערך ידנית (מסומן ב-_userEdited) לעולם לא נדרס ע"י ה-seed
-    const edited = k => p._userEdited && p._userEdited[k];
-    if (!edited('forumArchitect') && (p.forumArchitect||'') !== (fd.forumArchitect||'')) { p.forumArchitect = fd.forumArchitect||''; changed=true; }
-    if (!edited('forumConsultants') && (p.forumConsultants||'') !== (fd.forumConsultants||'')) { p.forumConsultants = fd.forumConsultants||''; changed=true; }
+    fill(p, 'forumArchitect', fd.forumArchitect);
+    fill(p, 'forumConsultants', fd.forumConsultants);
     if (!p.datesPlan) p.datesPlan = { forum1:'', forum2:'', committeePrep:'', committee:'' };
-    // הכנה לוועדה (משוער) — כולל ניקוי ערך שגוי כאשר החדש ריק
-    if (!edited('datesPlan.committeePrep') && (p.datesPlan.committeePrep||'') !== (fd.committeePrep||'')) { p.datesPlan.committeePrep = fd.committeePrep||''; changed=true; }
-    if (!edited('committeeDate') && fd.committeeDate && p.committeeDate !== fd.committeeDate) { p.committeeDate = fd.committeeDate; changed=true; }
+    fill(p.datesPlan, 'committeePrep', fd.committeePrep);
+    fill(p, 'committeeDate', fd.committeeDate);
   });
   if (changed) savePlans();
 }
