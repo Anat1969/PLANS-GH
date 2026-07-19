@@ -1091,16 +1091,29 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-tik{font-size:18px;font-weight:800;color:var(--ink)}
 .dw-name{font-size:15px;color:var(--ink)}
 .dw-stage{font-size:12px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 10px}
-/* שלושת התאריכים לעדכון ישיר מתוך כרטיס תוכנית העבודה */
-.dw-dates{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px;padding:8px 10px;background:var(--fog,#f2f0ec);border-radius:8px}
-.dw-date{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted,#6b6259);font-weight:600}
-.dw-date input[type=date]{font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--stone,#e8e5df);border-radius:5px;direction:ltr;text-align:center;font-variant-numeric:tabular-nums;background:#fff}
+/* שלושת התאריכים לעדכון ישיר מתוך כרטיס תוכנית העבודה — גדולים וצבועים לפי עבר/עתיד */
+.dw-dates{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:0 0 14px;padding:10px 12px;background:var(--fog,#f2f0ec);border-radius:8px}
+.dw-date{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted,#6b6259);font-weight:700}
+.dw-date-lbl{font-size:12px}
+.dw-date input[type=date]{font-size:17px;font-weight:800;padding:6px 8px;border:2px solid var(--stone,#e8e5df);border-radius:6px;direction:ltr;text-align:center;font-variant-numeric:tabular-nums;background:#fff}
 .dw-date input[type=date]:focus{outline:2px solid var(--teal,#2A5F5F);outline-offset:-1px}
+/* צבע התאריך לפי עבר/היום מול עתיד (זהה לקוד הצבעים בטבלה) */
+.dw-date-dt-present input[type=date]{border-color:#7ba9d8;background:#eef5fc;color:#1f4e79}
+.dw-date-dt-future input[type=date]{border-color:#1f4e79;background:#1f4e79;color:#fff}
+.dw-date-state{font-size:11px;font-weight:700;text-align:center;border-radius:10px;padding:1px 6px}
+.dw-date-dt-present .dw-date-state{background:#dbe9f7;color:#1f4e79}
+.dw-date-dt-future .dw-date-state{background:#1f4e79;color:#fff}
+.dw-date-dt-none .dw-date-state{background:var(--stone,#e8e5df);color:var(--muted,#6b6259)}
+.dw-update-btn{background:var(--teal,#2A5F5F);color:#fff;align-self:center;white-space:nowrap;font-weight:700}
+.dw-update-btn:hover{background:var(--bordeaux,#7a1f2b)}
 .dw-cols{display:grid;grid-template-columns:1.3fr 1.6fr .9fr;gap:18px;align-items:start}
 .dw-col{min-width:0}
 .dw-block{margin:0 0 8px;font-size:13.5px;line-height:1.5;color:#444}
 .dw-k{display:block;color:var(--muted,#6b6259);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
 .dw-impact{color:#8a1f2b}
+/* סיבת העיכוב — אדום ובולט */
+.dw-blocker .dw-blocker-txt{color:var(--err,#b84040);font-weight:800;font-size:14px;line-height:1.45}
+.dw-blocker .dw-k{color:var(--err,#b84040)}
 /* "מה צריך לעשות עכשיו" — הדגשה חזקה */
 .dw-now{background:var(--fog,#f2f0ec);border:1px solid var(--stone,#e8e5df);border-inline-start:4px solid var(--teal,#2A5F5F);border-radius:8px;padding:10px 12px}
 .dw-now-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--teal,#2A5F5F);margin-bottom:4px}
@@ -3224,12 +3237,14 @@ function renderLanding() {
 
 /** תאריך ההכנה לוועדה של פרויקט (המתוכנן; נופל חזרה לתאריך הוועדה) */
 function prepDate(p){ return (p.datesPlan && p.datesPlan.committeePrep) || p.committeeDate || ''; }
-/** האם פעולה כלשהי בפרויקט נעשתה בחודש הנוכחי (תאריכי פורום/ועדה/עדכון) */
+/** האם פעולה כלשהי בפרויקט נעשתה בחודש הנוכחי — רק אבני דרך שכבר *התקיימו*
+    (תאריך שעבר/היום), לא מועדים עתידיים שנקבעו. */
 function actedThisMonth(p, ym){
+  const today = todayStr();
   const cand = [p.forumArchitect, p.forumConsultants, p.committeeDate, p.approvalDate,
     p.datesPlan&&p.datesPlan.forum1, p.datesPlan&&p.datesPlan.forum2, p.datesPlan&&p.datesPlan.committeePrep,
     (p.opinion&&p.opinion.savedAt)].filter(Boolean);
-  return cand.some(d => String(d).slice(0,7)===ym);
+  return cand.some(d => String(d).slice(0,7)===ym && String(d)<=today);
 }
 
 /** דף ראשי — תוכניות בטיפול שטרם עבר תאריך ההכנה לוועדה, ממויינות לפי דחיפות */
@@ -7761,12 +7776,21 @@ function taskCard(t){
   const cat = DW_CATS[t.category] || DW_CATS.important;
   const mailBtn = `<button class="btn btn-primary btn-sm" onclick="runTaskTool(${t.id},'${t.rule}','${t.tool}')">${TOOL_LABELS[t.tool]||'ביצוע'}</button>`;
   const p = plans.find(x=>x.id===t.id) || {};
-  const dateField = (field,label)=>`<label class="dw-date"><span>${label}</span>
-    <input type="date" value="${p[field]||''}" onchange="saveForumDate(${t.id},'${field}',this)"></label>`;
+  const today = todayStr();
+  // תאריך גדול וצבוע לפי עבר/עתיד + תווית מצב (התקיים/מתוכנן)
+  const dateField = (field,label)=>{
+    const val=p[field]||'';
+    const cls = val ? dateTimeClass(val) : 'dt-none';
+    const state = !val ? 'טרם נקבע' : (_occurred(val,today) ? 'התקיים' : 'מתוכנן');
+    return `<label class="dw-date dw-date-${cls}"><span class="dw-date-lbl">${label}</span>
+      <input type="date" value="${val}" onchange="saveForumDate(${t.id},'${field}',this)">
+      <span class="dw-date-state">${state}</span></label>`;
+  };
   const datesRow = `<div class="dw-dates">
     ${dateField('forumArchitect','פורום אדריכל')}
     ${dateField('forumConsultants','פורום יועצים')}
     ${dateField('committeeDate','הכנה לוועדה')}
+    <button class="btn btn-sm dw-update-btn" title="עדכני את הרשומה ואת כל תוכנית העבודה לפי התאריכים" onclick="dwUpdateRecord(${t.id})">↻ עדכן רשומה</button>
   </div>`;
   return `<div class="dw-card ${cat.cls}">
     <div class="dw-band">${cat.label}</div>
@@ -7775,7 +7799,7 @@ function taskCard(t){
       ${datesRow}
       <div class="dw-cols">
         <div class="dw-col">
-          <div class="dw-block"><span class="dw-k">מה מעכב</span>${esc(t.blocker)}</div>
+          <div class="dw-block dw-blocker"><span class="dw-k">סיבת העיכוב</span><span class="dw-blocker-txt">${esc(t.blocker)}</span></div>
           ${t.impact?`<div class="dw-block dw-impact"><span class="dw-k">השפעת אי־ביצוע</span>${esc(t.impact)}</div>`:''}
         </div>
         <div class="dw-col dw-now">
@@ -7796,6 +7820,18 @@ function taskCard(t){
       </div>
     </div>
   </div>`;
+}
+/** כפתור "עדכן רשומה": מרענן את השלב/הסטטוס של התוכנית לפי התאריכים בפועל,
+    מתעד, ומרנדר מחדש את כל תוכנית העבודה ביחס לאותה רשומה. */
+function dwUpdateRecord(planId){
+  const p = plans.find(x=>x.id===planId); if(!p){ return; }
+  ensureForumChain(p);                 // השלמת תאריכים נגזרים (בלי לדרוס ידניים)
+  const changed = deriveStageFromDates(p);
+  p.updatedAt = todayStr();
+  logAction(p, 'status', 'הרשומה עודכנה לפי התאריכים'+(changed?(' · שלב: '+planStageLbl(p)):' · אין שינוי שלב'));
+  savePlans();
+  refreshAll();                        // כל תוכנית העבודה + המדדים + הדוחות
+  toast('הרשומה ותוכנית העבודה עודכנו'+(changed?' · השלב עודכן':''));
 }
 function renderDailyWork(){
   const el = document.getElementById('dailyWork'); if(!el) return;
