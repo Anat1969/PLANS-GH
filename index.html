@@ -340,10 +340,11 @@ tbody tr:hover{background:var(--teal-pale)}
 .hero h1{font-family:var(--serif);font-size:48px;font-weight:700;margin-bottom:0.5rem}
 .hero h1 span{color:var(--bronze)}
 .hero p{font-size:17px;color:rgba(0,0,0,0.45);max-width:500px;margin:0 auto 2rem;font-weight:300}
-.hero-stats{display:flex;justify-content:center;gap:3rem}
+.hero-stats{display:flex;justify-content:center;gap:3.5rem}
 .hero-stat{text-align:center}
-.hero-stat .val{font-family:var(--serif);font-size:42px;font-weight:700;color:var(--teal)}
-.hero-stat .lbl{font-size:13px;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px}
+.hero-stat .val{font-family:var(--serif);font-size:46px;font-weight:700;color:var(--bronze-gold,#C5A55A);line-height:1}
+.hero-stat .lbl{font-size:14px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:.3px;margin-bottom:.35rem}
+.hero-stat .sub{font-size:11px;color:rgba(255,255,255,0.6);margin-top:.4rem}
 
 /* רצועת מדדים מוסברים ולחיצים בדף הראשי */
 .lm-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:2.5rem}
@@ -785,7 +786,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table .col-district{width:62px;max-width:62px;font-size:11.5px}
 .plans-table .col-txt{max-width:110px;min-width:58px}
 .plans-table .col-loc{max-width:140px;min-width:84px}
-.plans-table .col-date{width:124px;max-width:124px}
+.plans-table .col-date{width:140px;max-width:140px}
 .plans-table .col-status{width:78px;max-width:78px}
 .plans-table .col-note{width:150px;max-width:150px;white-space:normal}
 .plans-table td.col-note{padding:2px 3px}
@@ -801,8 +802,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .submit-mail:hover{color:var(--bordeaux,#7a1f2b)}
 /* מספר תוכנית — גדול ובולט */
 .plans-table td.col-plannum{font-weight:800;font-size:15px;color:var(--ink);letter-spacing:.2px}
-/* שלושת תאריכי המעקב — גדולים ובולטים בצפייה */
-.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:4px 7px;font-size:13.5px;font-weight:700;letter-spacing:.2px;border-radius:5px}
+/* שלושת תאריכי המעקב — גדולים במיוחד ובולטים בצפייה (פי ~2) */
+.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:6px 8px;font-size:22px;font-weight:800;letter-spacing:.3px;border-radius:6px}
 .plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:11.5px;padding:2px 4px;min-width:0}
 /* מיקום מודגש בבולט גדול */
 .plans-table .col-loc{font-weight:700;font-size:13.5px;color:var(--ink)}
@@ -813,7 +814,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table thead th.grp-sep-start,.plans-table thead th.grp-sep-end{border-color:#fff}
 .plans-table thead th.forum-group{background:var(--bronze-deep,var(--bronze-deep))}
 /* בורר תאריך בטבלה — אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
-.plans-table .col-date input[type=date]{font-size:13px;font-weight:700;padding:5px 3px;direction:ltr;text-align:center;cursor:pointer;border:1px solid var(--teal,#2A5F5F);border-radius:5px}
+.plans-table .col-date input[type=date]{font-size:19px;font-weight:800;padding:7px 3px;direction:ltr;text-align:center;cursor:pointer;border:2px solid var(--teal,#2A5F5F);border-radius:6px}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;padding:2px;margin:0;opacity:.75;filter:invert(20%)}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .date-legend .dt-future{color:#fff}
@@ -1067,21 +1068,42 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-done>div{flex:1}
 .dw-done-meta{font-size:11px;color:rgba(0,0,0,0.45);margin-top:2px}
 /* תוכנית עבודה — כרטיסי דחוף/חשוב */
-.dw-tier{margin-top:1rem}
-.dw-tier-head{font-family:var(--display);font-size:15px;display:flex;align-items:center;gap:8px;margin-bottom:.5rem;padding:4px 10px;border-radius:8px}
-.dw-tier-urgent{background:#fdeaea;color:#9a2828}
-.dw-tier-important{background:#eef4fb;color:#2a557a}
-.dw-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
-.dw-card{border:1px solid var(--fog);border-radius:10px;padding:11px 13px;background:#fff;font-size:13px;line-height:1.55}
-.dw-card.dw-high{border-inline-start:3px solid var(--err)}
-.dw-card.dw-med{border-inline-start:3px solid #4a83c4}
-.dw-card.dw-low{border-inline-start:3px solid var(--stone)}
-.dw-card-head{font-weight:600;margin-bottom:5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.dw-stage{font-size:11px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:1px 8px}
-.dw-block,.dw-action{margin:3px 0}
-.dw-k{color:#8a1f2b;font-weight:600}
-.dw-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:5px 0;font-size:12px;color:#555}
-.dw-tools{display:flex;gap:5px;margin-top:8px}
+.dw-tier{margin-top:1.6rem}
+.dw-tier-head{font-family:var(--display);font-size:19px;font-weight:700;display:flex;align-items:center;gap:12px;margin-bottom:.7rem;padding:9px 16px;border-radius:10px;border-inline-start:6px solid currentColor}
+.dw-tier-hint{font-family:var(--sans);font-size:12px;font-weight:400;opacity:.85}
+.dw-tier-head .dw-count{margin-inline-start:auto;font-family:var(--sans);font-size:15px;font-weight:700;background:rgba(255,255,255,.65);border-radius:20px;padding:2px 12px;min-width:28px;text-align:center}
+/* צבע לפי רמת חשיבות — כותרת הרמה + פס הכרטיס */
+.dw-c-urgent{background:#fdeaea;color:#a02222}
+.dw-c-important{background:#fff4e6;color:#b5610f}
+.dw-c-waiting{background:#eef4fb;color:#2a557a}
+.dw-c-proactive{background:#eaf5ef;color:#1f6d45}
+/* כרטיס אופקי ארוך וגדול */
+.dw-cards{display:flex;flex-direction:column;gap:12px}
+.dw-card{display:flex;align-items:stretch;border:1px solid var(--stone,#e8e5df);border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.dw-band{flex:0 0 42px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-weight:800;font-size:15px;letter-spacing:1px}
+.dw-card.dw-c-urgent .dw-band{background:#a02222;color:#fff}
+.dw-card.dw-c-important .dw-band{background:#b5610f;color:#fff}
+.dw-card.dw-c-waiting .dw-band{background:#2a557a;color:#fff}
+.dw-card.dw-c-proactive .dw-band{background:#1f6d45;color:#fff}
+.dw-body{flex:1;min-width:0;padding:14px 18px}
+.dw-card-head{font-weight:600;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.dw-tik{font-size:18px;font-weight:800;color:var(--ink)}
+.dw-name{font-size:15px;color:var(--ink)}
+.dw-stage{font-size:12px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 10px}
+.dw-cols{display:grid;grid-template-columns:1.3fr 1.6fr .9fr;gap:18px;align-items:start}
+.dw-col{min-width:0}
+.dw-block{margin:0 0 8px;font-size:13.5px;line-height:1.5;color:#444}
+.dw-k{display:block;color:var(--muted,#6b6259);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
+.dw-impact{color:#8a1f2b}
+/* "מה צריך לעשות עכשיו" — הדגשה חזקה */
+.dw-now{background:var(--fog,#f2f0ec);border:1px solid var(--stone,#e8e5df);border-inline-start:4px solid var(--teal,#2A5F5F);border-radius:8px;padding:10px 12px}
+.dw-now-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--teal,#2A5F5F);margin-bottom:4px}
+.dw-now-text{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink,#1a1a1a)}
+.dw-side{font-size:12.5px;color:#555;display:flex;flex-direction:column;gap:7px}
+.dw-side>div{line-height:1.3}
+.dw-empty{padding:.4rem 0}
+@media(max-width:820px){.dw-cols{grid-template-columns:1fr}}
+.dw-tools{display:flex;gap:8px;margin-top:12px}
 .dw-done-filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .dw-done-card{border:1px solid var(--fog);border-radius:10px;padding:10px 13px;background:#fff;font-size:13px}
 .dw-done-top{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
@@ -1205,7 +1227,12 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .mail-modal{max-width:640px;width:92vw;text-align:right}
 .mail-lbl{display:block;font-size:12px;font-weight:600;color:rgba(0,0,0,0.6);margin:10px 0 4px}
 .mail-modal input,.mail-modal textarea{width:100%;border:1px solid var(--stone);border-radius:6px;padding:8px;font-family:inherit;font-size:13px}
-.mail-recipients{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;border:1px solid var(--fog);border-radius:6px;padding:8px}
+.mail-recipients{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;border:1px solid var(--fog);border-radius:6px;padding:8px}
+.mail-rec-row{display:flex;align-items:center;gap:8px}
+.mail-rec-primary{background:rgba(42,95,95,.07);border-radius:5px;padding:3px 5px}
+.mail-arch-tag{background:var(--teal,#2A5F5F);color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700}
+.mail-noemail{background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:6px 10px;font-size:12px;color:#8a5a00;margin-top:6px}
+.mail-send-summary{font-size:12px;color:var(--muted,#6b6259);margin-top:8px}
 .mail-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:1rem}
 @media (max-width:768px){.dw-grid{grid-template-columns:1fr}}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
@@ -3154,10 +3181,11 @@ function renderLanding() {
   const districts = [...new Set(livePlans().map(p=>p.district).filter(Boolean))];
   const handlers = [...new Set(livePlans().map(p=>p.handler).filter(Boolean))];
 
+  const active = livePlans().filter(planIsActive).length;
   document.getElementById('heroStats').innerHTML = `
-    <div class="hero-stat"><div class="val">${total}</div><div class="lbl">תוכניות</div></div>
-    <div class="hero-stat"><div class="val">${districts.length}</div><div class="lbl">רובעים</div></div>
-    <div class="hero-stat"><div class="val">${handlers.length}</div><div class="lbl">אחראים</div></div>
+    <div class="hero-stat"><div class="lbl">סה״כ תוכניות בינוי</div><div class="val">${total}</div><div class="sub">כל התוכניות במערכת</div></div>
+    <div class="hero-stat"><div class="lbl">תוכניות בטיפול</div><div class="val">${active}</div><div class="sub">טרם הושלמו/נסגרו</div></div>
+    <div class="hero-stat"><div class="lbl">רובעים פעילים</div><div class="val">${districts.length}</div><div class="sub">רובעים עם תוכניות</div></div>
   `;
   renderLandingMetrics();
   renderActiveTracking();
@@ -7518,42 +7546,42 @@ const stageLblMap={stage_1:'פורום אדריכל העיר',stage_2:'פורו�
 function planStageLbl(p){ return stageLblMap[p.stage||'stage_1']; }
 
 const WORK_RULES = [
-  { id:'committee_overdue', urgency:'high', owner:'אדריכלית העיר', tool:'status',
+  { id:'committee_overdue', urgency:'high', category:'urgent', impact:'התוכנית תיתקע — מועד ההכנה לוועדה כבר חלף וכל יום נוסף מרחיק את האישור', owner:'אדריכלית העיר', tool:'status',
     when:(p,c)=>{ const pd=p.datesPlan&&p.datesPlan.committeePrep; return planIsActive(p) && pd && pd<c.today; },
     build:(p,c)=>({ blocker:'חלף מועד ההכנה לוועדה ('+fmtDate(p.datesPlan.committeePrep)+') והתוכנית טרם הושלמה',
       action:'לברר מול אדריכל היזם את הסטטוס ולעדכן מועד הכנה לוועדה מחדש עד '+_due(c.today,3),
       contact:whoToContact(p,'dev'), due:_due(c.today,3) }) },
-  { id:'dev_no_reply', urgency:'high', owner:'אדריכלית העיר', tool:'mail',
+  { id:'dev_no_reply', urgency:'high', category:'waiting', impact:'התהליך מוקפא עד שהיזם ישיב; ללא תזכורת בכתב העיכוב יימשך', owner:'אדריכלית העיר', tool:'mail',
     when:(p,c)=>planIsActive(p) && (p.status==='בהמתנה ליזם'||p.status==='בהמתנה') && daysSince(p.updatedAt||p.date, c.today)>7,
     build:(p,c)=>({ blocker:'היזם טרם השיב '+daysSince(p.updatedAt||p.date,c.today)+' ימים',
       action:'לשלוח ליזם תזכורת בכתב עם דרישה להשיב עד '+_due(c.today,5),
       contact:whoToContact(p,'dev'), due:_due(c.today,5) }) },
-  { id:'mismatch_no_explain', urgency:'high', owner:'אדריכל היזם', tool:'doc',
+  { id:'mismatch_no_explain', urgency:'high', category:'waiting', impact:'לא ניתן לקדם לוועדה עם אי־התאמה לא מוסברת — הבקשה עלולה להידחות', owner:'אדריכל היזם', tool:'doc',
     when:(p)=>planIsActive(p) && hasUnexplainedMismatch(p),
     build:(p,c)=>({ blocker:'קיימת אי־התאמה לדרישות שלא הוסברה',
       action:'לקבל מאדריכל היזם הסבר/תיקון לאי־ההתאמה שסומנה, בצירוף מסמך תומך, עד '+_due(c.today,7),
       contact:whoToContact(p,'dev'), due:_due(c.today,7) }) },
-  { id:'no_opinion', urgency:'high', owner:'אדריכלית העיר', tool:'task',
+  { id:'no_opinion', urgency:'high', category:'urgent', impact:'לא ניתן להביא לוועדה ללא חוות דעת מסכמת — הדיון יידחה', owner:'אדריכלית העיר', tool:'task',
     when:(p)=>planIsActive(p) && (p.stage==='committee') && !(p.opinion&&p.opinion.recommendation),
     build:(p,c)=>({ blocker:'התוכנית בשלב הכנה לוועדה אך חסרה חוות דעת מסכמת',
       action:'להשלים ולנסח את חוות הדעת לוועדה עד '+_due(c.today,4),
       contact:'—', due:_due(c.today,4) }) },
-  { id:'no_arch_forum', urgency:'med', owner:'אדריכלית העיר', tool:'meeting',
+  { id:'no_arch_forum', urgency:'med', category:'proactive', impact:'ללא פורום אדריכל התוכנית לא מתחילה להתקדם בתהליך', owner:'אדריכלית העיר', tool:'meeting',
     when:(p)=>planIsActive(p) && !p.forumArchitect,
     build:(p,c)=>({ blocker:'טרם נקבע/התקיים פורום אדריכל',
       action:'לתאם מועד לפורום אדריכל מול היזם והאדריכל עד '+_due(c.today,10),
       contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
-  { id:'no_consult_forum', urgency:'med', owner:'אדריכלית העיר', tool:'meeting',
+  { id:'no_consult_forum', urgency:'med', category:'proactive', impact:'עיכוב בקביעת פורום יועצים דוחה את כל אבני הדרך הבאות', owner:'אדריכלית העיר', tool:'meeting',
     when:(p)=>planIsActive(p) && p.forumArchitect && !p.forumConsultants,
     build:(p,c)=>({ blocker:'פורום אדריכל התקיים ('+fmtDate(p.forumArchitect)+') אך פורום יועצים טרם נקבע',
       action:'לתאם מועד לפורום יועצים עד '+_due(c.today,10),
       contact:whoToContact(p,'arch'), due:_due(c.today,10) }) },
-  { id:'no_committee_prep', urgency:'med', owner:'אדריכלית העיר', tool:'task',
+  { id:'no_committee_prep', urgency:'med', category:'important', impact:'ללא מועד הכנה לוועדה אין יעד ברור והתוכנית עלולה להישאר תקועה', owner:'אדריכלית העיר', tool:'task',
     when:(p)=>planIsActive(p) && p.forumConsultants && !(p.datesPlan&&p.datesPlan.committeePrep),
     build:(p,c)=>({ blocker:'פורום יועצים התקיים אך אין מועד להכנה לוועדה',
       action:'לקבוע מועד הכנה לוועדה עד '+_due(c.today,14),
       contact:'—', due:_due(c.today,14) }) },
-  { id:'stale', urgency:'med', owner:'אדריכלית העיר', tool:'status',
+  { id:'stale', urgency:'med', category:'waiting', impact:'תוכנית ללא התקדמות מתמשכת עלולה לרדת מהרדאר ולהיתקע', owner:'אדריכלית העיר', tool:'status',
     when:(p,c)=>planIsActive(p) && daysSince(p.updatedAt||p.date, c.today)>14,
     build:(p,c)=>({ blocker:'אין התקדמות מתועדת '+daysSince(p.updatedAt||p.date,c.today)+' ימים',
       action:'לבדוק את סטטוס התוכנית ולעדכן את השלב או הפעולה הנדרשת עד '+_due(c.today,5),
@@ -7587,11 +7615,13 @@ function generateTasks(){
           stage:planStageLbl(p), blocker:det.blocker||'', action:det.action||'',
           owner:rule.owner, contact:det.contact||'—', due:det.due||'',
           daysNoProgress:daysNoProgress(p,today), tool:rule.tool||'task',
-          urgency:rule.urgency });
+          urgency:rule.urgency, category:rule.category||(rule.urgency==='high'?'urgent':'important'),
+          impact:rule.impact||'' });
       }
     });
   });
-  tasks.sort((a,b)=> (urgRank[a.urgency]-urgRank[b.urgency]) || (b.daysNoProgress-a.daysNoProgress));
+  const catRank = {urgent:0, important:1, waiting:2, proactive:3};
+  tasks.sort((a,b)=> (catRank[a.category]-catRank[b.category]) || (urgRank[a.urgency]-urgRank[b.urgency]) || (b.daysNoProgress-a.daysNoProgress));
   return tasks;
 }
 
@@ -7679,41 +7709,64 @@ function buildReport(kind){
   out.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* ── רינדור: תוכנית עבודה יומית (דחוף → חשוב) ── */
+/* ── רינדור: תוכנית עבודה יומית — כרטיסים אופקיים ארוכים, צבע לפי רמת חשיבות ── */
+const DW_CATS = {
+  urgent:    { label:'דחוף',            cls:'dw-c-urgent',    hint:'דורש טיפול מיידי כדי למנוע עיכוב' },
+  important: { label:'חשוב',            cls:'dw-c-important', hint:'לקידום התוכנית בזמן' },
+  waiting:   { label:'ממתין לתגובה',    cls:'dw-c-waiting',   hint:'ממתין להשלמה/תשובה מגורם חיצוני' },
+  proactive: { label:'פעולה יזומה',     cls:'dw-c-proactive', hint:'יוזמה לקידום השלב הבא' }
+};
 function taskCard(t){
-  return `<div class="dw-card dw-${t.urgency}">
-    <div class="dw-card-head"><b>תב/${t.tik}</b> · ${esc(t.name)} <span class="dw-stage">${esc(t.stage)}</span></div>
-    <div class="dw-block"><span class="dw-k">חסם:</span> ${esc(t.blocker)}</div>
-    <div class="dw-action"><span class="dw-k">פעולה מומלצת:</span> ${esc(t.action)}</div>
-    <div class="dw-meta">
-      <span><span class="dw-k">אחראי:</span> ${esc(t.owner)}</span>
-      <span><span class="dw-k">לפנות אל:</span> ${esc(t.contact)}</span>
-      ${t.due?`<span><span class="dw-k">יעד:</span> ${esc(t.due)}</span>`:''}
-      <span><span class="dw-k">ללא התקדמות:</span> ${t.daysNoProgress>=9999?'—':t.daysNoProgress+' ימים'}</span>
-    </div>
-    <div class="dw-tools no-print">
-      <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
-      <button class="btn btn-primary btn-sm" onclick="runTaskTool(${t.id},'${t.rule}','${t.tool}')">${TOOL_LABELS[t.tool]||'ביצוע'}</button>
+  const cat = DW_CATS[t.category] || DW_CATS.important;
+  const mailBtn = `<button class="btn btn-primary btn-sm" onclick="runTaskTool(${t.id},'${t.rule}','${t.tool}')">${TOOL_LABELS[t.tool]||'ביצוע'}</button>`;
+  return `<div class="dw-card ${cat.cls}">
+    <div class="dw-band">${cat.label}</div>
+    <div class="dw-body">
+      <div class="dw-card-head"><b class="dw-tik">תב/${t.tik}</b> <span class="dw-name">${esc(t.name)}</span> <span class="dw-stage">${esc(t.stage)}</span></div>
+      <div class="dw-cols">
+        <div class="dw-col">
+          <div class="dw-block"><span class="dw-k">מה מעכב</span>${esc(t.blocker)}</div>
+          ${t.impact?`<div class="dw-block dw-impact"><span class="dw-k">השפעת אי־ביצוע</span>${esc(t.impact)}</div>`:''}
+        </div>
+        <div class="dw-col dw-now">
+          <div class="dw-now-label">מה צריך לעשות עכשיו</div>
+          <div class="dw-now-text">${esc(t.action)}</div>
+        </div>
+        <div class="dw-col dw-side">
+          <div><span class="dw-k">אחראי</span>${esc(t.owner)}</div>
+          <div><span class="dw-k">לפנות אל</span>${esc(t.contact)}</div>
+          ${t.due?`<div><span class="dw-k">יעד</span>${esc(t.due)}</div>`:''}
+          <div><span class="dw-k">ללא התקדמות</span>${t.daysNoProgress>=9999?'—':t.daysNoProgress+' ימים'}</div>
+        </div>
+      </div>
+      <div class="dw-tools no-print">
+        <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
+        <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">✉ מייל לאדריכל היזם</button>
+        ${t.tool!=='mail'&&t.tool!=='doc'&&t.tool!=='complete'?mailBtn:''}
+      </div>
     </div>
   </div>`;
 }
 function renderDailyWork(){
   const el = document.getElementById('dailyWork'); if(!el) return;
   const tasks = generateTasks();
-  const urgent = tasks.filter(t=>t.urgency==='high');
-  const important = tasks.filter(t=>t.urgency!=='high');
-  const urgentHtml = urgent.length ? urgent.map(taskCard).join('') : '<p class="muted">אין פעולות דחופות כרגע.</p>';
-  const importantHtml = important.length ? important.map(taskCard).join('') : '<p class="muted">אין פעולות בעדיפות רגילה כרגע.</p>';
+  const order = ['urgent','important','waiting','proactive'];
+  const tiers = order.map(catKey=>{
+    const cat = DW_CATS[catKey];
+    const items = tasks.filter(t=>(t.category||'important')===catKey);
+    const cards = items.length ? items.map(taskCard).join('') : `<p class="muted dw-empty">אין פעולות בקטגוריה זו כרגע.</p>`;
+    return `<div class="dw-tier">
+      <div class="dw-tier-head ${cat.cls}">
+        <span class="dw-tier-title">${cat.label}</span>
+        <span class="dw-tier-hint">${cat.hint}</span>
+        <span class="dw-count">${items.length}</span>
+      </div>
+      <div class="dw-cards">${cards}</div>
+    </div>`;
+  }).join('');
   el.innerHTML = `
     <div class="section-title" style="margin-top:2.5rem">תוכנית עבודה יומית</div>
-    <div class="dw-tier">
-      <div class="dw-tier-head dw-tier-urgent">דחוף <span class="dw-count">${urgent.length}</span></div>
-      <div class="dw-cards">${urgentHtml}</div>
-    </div>
-    <div class="dw-tier">
-      <div class="dw-tier-head dw-tier-important">חשוב <span class="dw-count">${important.length}</span></div>
-      <div class="dw-cards">${importantHtml}</div>
-    </div>
+    ${tiers}
     <div id="dwDone"></div>`;
   renderDoneThisMonth();
 }
@@ -7850,33 +7903,95 @@ function teamEmailDel(i,j){ const p=pj(); if(!p) return; p.devTeam[i].emails.spl
 function teamEmailSet(i,j,k,v){ const p=pj(); if(!p) return; p.devTeam[i].emails[j][k]=v; savePlans(); if(k==='cc'||k==='active')renderTeam(p); }
 function teamEmailPrimary(i,j){ const p=pj(); if(!p) return; p.devTeam[i].emails.forEach((e,x)=>e.primary=(x===j)); savePlans(); renderTeam(p); }
 
+/* ── אנשי הקשר מטעם היזם (מהמאגר המרכזי, מסונן לתפקידים של צד היזם) ── */
+const DEV_SIDE_TYPES = ['אדריכל','יזם','מנהל פרויקט','עורך בקשה','יועץ'];
+function _normEmail(e){ return String(e||'').trim().toLowerCase(); }
+/** אדריכל היזם של התוכנית — איש הקשר המקצועי הראשי (ברירת מחדל בכל מייל) */
+function devArchitectContact(tik){
+  const pc = (typeof projectContacts==='function')?projectContacts(tik):[];
+  return pc.find(c=>c.type==='אדריכל' && c.email) || pc.find(c=>c.type==='אדריכל') || null;
+}
+/** מאחד נמענים מטעם היזם: אדריכל היזם תמיד ראשון, ואז שאר אנשי הקשר של
+    התוכנית. מסיר כפילויות מייל. מפריד לבעלי-מייל ולחסרי-מייל (להשלמה).
+    לא כולל אנשי קשר מתוכניות אחרות, ולא ממציא כתובות. */
+function projectMailRecipients(p){
+  const seen = new Set();
+  const withEmail = [], noEmail = [];
+  const arch = devArchitectContact(p.tik);
+  const push = (c, primary) => {
+    const em = _normEmail(c.email);
+    if (em){ if(seen.has(em)) return; seen.add(em);
+      withEmail.push({ addr:c.email.trim(), label:(c.name||'')+(c.type?(' · '+c.type):''), primary:!!primary }); }
+    else { noEmail.push({ name:c.name||'—', type:c.type||'' }); }
+  };
+  if (arch) push(arch, true);
+  // צוות היזם (devTeam) — כתובות פעילות
+  (typeof teamMailPairs==='function'?teamMailPairs(p):[]).forEach(m=>{
+    const em=_normEmail(m.addr); if(!em||seen.has(em)) return; seen.add(em);
+    withEmail.push({ addr:m.addr.trim(), label:m.label||m.addr, primary:false });
+  });
+  // שאר אנשי הקשר של התוכנית מטעם היזם
+  ((typeof projectContacts==='function')?projectContacts(p.tik):[])
+    .filter(c=>DEV_SIDE_TYPES.includes(c.type) && !(arch&&c===arch))
+    .forEach(c=>push(c,false));
+  return { withEmail, noEmail, architect:arch };
+}
+
 /* ── ניסוח מייל מתוך פעולה מוצעת (טיוטה בלבד, ללא שליחה אוטומטית) ── */
 function composeMail(planId, ruleId){
   const p = plans.find(x=>x.id===planId); if(!p) return;
-  const rule = WORK_RULES.find(r=>r.id===ruleId) || {action:'', reason:''};
+  const rule = WORK_RULES.find(r=>r.id===ruleId);
+  const det = rule && rule.build ? (()=>{ try{ return rule.build(p,{today:todayStr()}); }catch(e){ return {}; } })() : {};
   const title = buildProjectTitle(p);
-  // נמענים מוצעים מצוות היזם (ללא המצאה)
-  const primary = teamRecipients(p).to;
-  const subject = `תב/${p.tik} — ${rule.action}`;
-  const body = `שלום,\n\nבנוגע לתוכנית הבינוי ${title}:\n\n${rule.action}.\nסיבה: ${rule.reason}.\n\n${p.forumArchitect?('פורום אדריכל: '+fmtDate(p.forumArchitect)+'\n'):''}${p.forumConsultants?('פורום יועצים: '+fmtDate(p.forumConsultants)+'\n'):''}\nנודה להתייחסותכם בהקדם.\n\nבברכה,\nאדריכלית העיר ענת דוד שטיבלמן`;
-  openMailComposer(p, subject, body, primary);
+  const rec = projectMailRecipients(p);
+  const toList = rec.withEmail.map(r=>r.addr);
+  // הערה אחרונה שנרשמה (מהטבלה) — לשילוב בגוף המייל
+  const lastNote = Array.isArray(p.tableNotes) ? [...p.tableNotes].reverse().find(n=>n&&n.trim()) : '';
+  const action = det.action || (rule&&rule.action) || 'נדרשת התייחסותכם';
+  const due = det.due || '';
+  const archName = rec.architect ? (rec.architect.name||'') : '';
+  const subject = `תב/${p.tik} ${p.location?('— '+p.location):''} — ${action}`;
+  const body =
+    `${archName?('לכבוד '+archName+' (אדריכל היזם),'):'שלום רב,'}\n\n`+
+    `בנוגע לתוכנית הבינוי ${title}:\n\n`+
+    `• מה נדרש: ${action}\n`+
+    (det.blocker?`• רקע: ${det.blocker}\n`:'')+
+    (rule&&rule.impact?`• חשיבות: ${rule.impact}\n`:'')+
+    (lastNote?`• הערה אחרונה שנרשמה: ${lastNote}\n`:'')+
+    `\nמועדי התוכנית:\n`+
+    `${p.forumArchitect?('• פורום אדריכל: '+fmtDate(p.forumArchitect)+'\n'):''}`+
+    `${p.forumConsultants?('• פורום יועצים: '+fmtDate(p.forumConsultants)+'\n'):''}`+
+    `${p.committeeDate?('• הכנה לוועדה: '+fmtDate(p.committeeDate)+'\n'):''}`+
+    `\n${due?('נבקש את התייחסותכם/השלמתכם עד '+due+'.'):'נבקש את התייחסותכם בהקדם.'}\n\n`+
+    `בברכה,\nאדריכלית העיר ענת דוד שטיבלמן\nעיריית אשדוד`;
+  openMailComposer(p, subject, body, toList, rec);
 }
-function openMailComposer(p, subject, body, toList){
-  const pairs = teamMailPairs(p);
+function openMailComposer(p, subject, body, toList, rec){
+  rec = rec || projectMailRecipients(p);
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
-  const noRecipient = !(toList&&toList.length);
+  const noRecipient = !(rec.withEmail && rec.withEmail.length);
+  const recRows = rec.withEmail.length ? rec.withEmail.map(m=>`
+    <label class="chk-inline mail-rec-row ${m.primary?'mail-rec-primary':''}">
+      <input type="checkbox" ${((toList||[]).includes(m.addr)||m.primary)?'checked':''} data-email="${esc(m.addr)}">
+      <span>${esc(m.label||m.addr)}${m.primary?' <b class="mail-arch-tag">אדריכל היזם</b>':''}</span>
+      <span class="muted">${esc(m.addr)}</span>
+    </label>`).join('') : '<span class="muted">אין אנשי קשר עם מייל — הוסיפי בטאב „צוות היזם” או ברשימות הקשר.</span>';
+  const noEmailBlock = rec.noEmail && rec.noEmail.length ? `
+    <div class="mail-noemail">⚠ אנשי קשר ללא מייל (להשלמה): ${rec.noEmail.map(c=>esc(c.name)+(c.type?(' · '+esc(c.type)):'')).join(' · ')}</div>` : '';
   ov.innerHTML=`<div class="ver-modal mail-modal">
-    <h3>ניסוח מייל — תב/${p.tik}</h3>
-    ${noRecipient?'<div class="calc-warn-banner">⚠ אין כתובת מייל תקינה בצוות היזם — ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
-    <label class="mail-lbl">נמענים</label>
-    <div class="mail-recipients">${pairs.length?pairs.map(m=>`<label class="chk-inline"><input type="checkbox" ${((toList||[]).includes(m.addr)||m.primary)?'checked':''} data-email="${esc(m.addr)}"> ${esc(m.label||m.addr)} <span class="muted">${esc(m.addr)}${m.cc?' · עותק':''}</span></label>`).join(''):'<span class="muted">אין אנשי קשר — הוסיפי בטאב „צוות היזם”.</span>'}</div>
+    <h3>מייל לפעולה המומלצת — תב/${p.tik}</h3>
+    ${noRecipient?'<div class="calc-warn-banner">⚠ אין כתובת מייל תקינה. ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
+    <label class="mail-lbl">נמענים (אל)</label>
+    <div class="mail-recipients">${recRows}</div>
+    ${noEmailBlock}
     <label class="mail-lbl">נושא</label><input id="mailSubject" value="${esc(subject)}">
-    <label class="mail-lbl">גוף ההודעה</label><textarea id="mailBody" style="min-height:180px">${esc(body)}</textarea>
+    <label class="mail-lbl">גוף ההודעה</label><textarea id="mailBody" style="min-height:200px">${esc(body)}</textarea>
     <label class="chk-inline"><input type="checkbox" id="mailAttachLink" checked> צרף קישור לתוכנית</label>
+    <div id="mailSendSummary" class="mail-send-summary"></div>
     <div class="mail-actions">
       <button class="btn btn-ghost btn-sm" onclick="mailCopy(${p.id})">העתק טקסט</button>
       <button class="btn btn-ghost btn-sm" onclick="mailSaveDraft(${p.id})">שמור טיוטה</button>
-      <button class="btn btn-primary btn-sm" onclick="mailPrepareSend(${p.id})">הכן לשליחה</button>
+      <button class="btn btn-primary btn-sm" onclick="mailPrepareSend(${p.id})">שליחה בלקוח המייל</button>
       <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגור</button>
     </div>
   </div>`;
