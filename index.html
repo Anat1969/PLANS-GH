@@ -769,7 +769,9 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 @media print{#aiFab,#aiPanel{display:none !important}}
 /* ══════════ ארגון סרגלים: ניווט/מידע נפרד מניהול ══════════ */
 .masthead-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;height:auto;min-height:56px;padding-top:6px;padding-bottom:6px}
-.toolbar-nav{display:flex;gap:2px;flex-wrap:wrap}
+.toolbar-nav{display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+/* מפריד בין קבוצות תפעול בסרגל הניווט */
+.nav-sep{flex:0 0 auto;width:1px;height:20px;background:rgba(255,255,255,0.22);margin:0 7px;border-radius:1px}
 .toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15)}
 @media (max-width:900px){.toolbar-manage{margin-inline-start:0;border-inline-start:none;padding-inline-start:0;width:100%;justify-content:flex-start}}
 /* כפתור מצב ענן — באותו עיצוב כמו כפתורי הכותרת (upgrade-btn) */
@@ -1665,20 +1667,27 @@ tbody tr{transition:background .12s}
   <div class="logo" onclick="go('landing',this)">אשדוד <span>תוכניות בינוי</span></div>
   <!-- קבוצת ניווט/מידע -->
   <nav id="mainNav" class="toolbar-nav">
-    <button class="active" data-nav="landing" onclick="go('landing',this)">דף ראשי</button>
-    <button data-nav="exec" onclick="go('exec',this)">תמונת מצב</button>
+    <!-- קבוצה: עבודה יומיומית -->
+    <button class="active" data-nav="landing" onclick="go('landing',this)" title="עבודה">דף ראשי</button>
+    <button data-nav="exec" onclick="go('exec',this)" title="עבודה">תמונת מצב</button>
     <button data-nav="devhome" onclick="go('devhome',this)" style="display:none">דף הבית</button>
-    <button data-nav="table" onclick="go('table',this)">טבלת תוכניות</button>
-    <button data-nav="guidelines" onclick="go('guidelines',this)">הנחיות להגשת תוכנית</button>
-    <button data-nav="map" onclick="go('map',this)">מפה</button>
-    <button data-nav="trends" onclick="go('trends',this)">מגמות וסיכום</button>
-    <button data-nav="shares" onclick="go('shares',this)">חוות דעת, דיווחים ושיתופים</button>
-    <button data-nav="muni" onclick="go('muni',this)">אוגדן דרישות העירייה</button>
-    <button data-nav="spatial" onclick="go('spatial',this)">הנחיות מרחביות (מהדורה 18)</button>
-    <button data-nav="calchub" onclick="go('calchub',this)">מחשבונים</button>
-    <button data-nav="contacts" onclick="go('contacts',this)">רשימות קשר</button>
-    <button data-nav="settings" onclick="go('settings',this)">הגדרות</button>
-    <button data-nav="help" onclick="go('help',this)">❓ עזרה ומדריך</button>
+    <button data-nav="table" onclick="go('table',this)" title="עבודה">טבלת תוכניות</button>
+    <button data-nav="map" onclick="go('map',this)" title="עבודה">מפה</button>
+    <button data-nav="trends" onclick="go('trends',this)" title="עבודה">מגמות וסיכום</button>
+    <span class="nav-sep" aria-hidden="true"></span>
+    <!-- קבוצה: ידע ודרישות -->
+    <button data-nav="guidelines" onclick="go('guidelines',this)" title="ידע ודרישות">הנחיות להגשת תוכנית</button>
+    <button data-nav="muni" onclick="go('muni',this)" title="ידע ודרישות">אוגדן דרישות העירייה</button>
+    <button data-nav="spatial" onclick="go('spatial',this)" title="ידע ודרישות">הנחיות מרחביות (מהדורה 18)</button>
+    <button data-nav="calchub" onclick="go('calchub',this)" title="ידע ודרישות">מחשבונים</button>
+    <span class="nav-sep" aria-hidden="true"></span>
+    <!-- קבוצה: קשר ושיתוף -->
+    <button data-nav="shares" onclick="go('shares',this)" title="קשר ושיתוף">חוות דעת, דיווחים ושיתופים</button>
+    <button data-nav="contacts" onclick="go('contacts',this)" title="קשר ושיתוף">רשימות קשר</button>
+    <span class="nav-sep" aria-hidden="true"></span>
+    <!-- קבוצה: מערכת -->
+    <button data-nav="settings" onclick="go('settings',this)" title="מערכת">הגדרות</button>
+    <button data-nav="help" onclick="go('help',this)" title="מערכת">❓ עזרה ומדריך</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -1774,17 +1783,17 @@ tbody tr{transition:background .12s}
     <div class="hero-stats" id="heroStats"></div>
   </div>
   <div class="quick-cards">
-    <div class="quick-card" onclick="go('table',document.querySelectorAll('#mainNav button')[1])">
+    <div class="quick-card" onclick="go('table', navBtn('table'))">
       
       <h3>טבלת תוכניות</h3>
       <p>צפייה, סינון, חיפוש ועדכון סטטוס לכל התוכניות</p>
     </div>
-    <div class="quick-card" onclick="go('map',document.querySelectorAll('#mainNav button')[2])">
+    <div class="quick-card" onclick="go('map', navBtn('map'))">
       
       <h3>מפה אינטראקטיבית</h3>
       <p>תצוגה מרחבית של כלל התוכניות על מפת אשדוד</p>
     </div>
-    <div class="quick-card" onclick="go('trends',document.querySelectorAll('#mainNav button')[3])">
+    <div class="quick-card" onclick="go('trends', navBtn('trends'))">
       
       <h3>מגמות וסיכום</h3>
       <p>ניתוח מגמות, פילוח לפי רובע, שנה ואחראי</p>
@@ -2039,7 +2048,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ PROJECT PAGE ════════ -->
 <div id="projectPage" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="closeProject()">טבלת תוכניות</a> ‹ <span id="ppCrumb">פרויקט</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <a onclick="closeProject()">טבלת תוכניות</a> ‹ <span id="ppCrumb">פרויקט</span></div>
   <div class="pp-head">
     <div>
       <div class="pp-title" id="ppTitle">—</div>
@@ -2111,7 +2120,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ SHARES PAGE ════════ -->
 <div id="shares" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>חוות דעת, דיווחים ושיתופים</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>חוות דעת, דיווחים ושיתופים</span></div>
   <div class="page-title">חוות דעת, דיווחים ושיתופים</div>
   <div class="page-subtitle">מרכז ההפקה של דיווחים, דוחות מצב ושיתופים למקבלי החלטות — הכל על בסיס הנתונים העדכניים של תוכניות הבינוי.</div>
 
@@ -2163,7 +2172,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ CONTACTS PAGE (רשימות קשר) ════════ -->
 <div id="contacts" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>רשימות קשר</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>רשימות קשר</span></div>
   <div class="page-title">רשימות קשר</div>
   <div class="page-subtitle">מאגר מרכזי לניהול אנשי הקשר של תוכניות הבינוי והעיצוב — יזמים, אדריכלים ומנהלי פרויקט. הפרטים נשמרים פעם אחת ומשויכים לתוכניות.</div>
   <div id="contactsBody"></div>
@@ -2171,7 +2180,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ SETTINGS PAGE (הגדרות) ════════ -->
 <div id="settings" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>הגדרות</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>הגדרות</span></div>
   <div class="page-title">הגדרות</div>
   <div class="page-subtitle">כלים טכניים, נתונים ותחזוקה — מרוכזים כאן ואינם מופיעים בדפי העבודה.</div>
   <div id="settingsBody"></div>
@@ -2179,7 +2188,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ CALCULATORS HUB PAGE (מחשבונים) ════════ -->
 <div id="calchub" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>מחשבונים</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>מחשבונים</span></div>
   <div class="page-title">מחשבונים לתהליך האישור</div>
   <div class="page-subtitle">כל סוגי המחשבונים המשרתים את תהליך האישור מול הגורמים השונים. לכל מחשבון: נושא, מקור, משתנים, קבועים, הסברים, חישוב, קלט, פלט ותובנות.</div>
   <div class="calc-warn-banner" style="margin-bottom:12px">⚠ הערכים והנוסחאות להמחשה בלבד — יש לאמת מול המקור הרשמי (אוגדן / תקן / תב״ע) לפני שימוש. נוסחאות מקצועיות מוזנות רק ממקור מאושר.</div>
@@ -2193,7 +2202,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ SPATIAL GUIDELINES 18 PAGE ════════ -->
 <div id="spatial" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>הנחיות מרחביות 18</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>הנחיות מרחביות 18</span></div>
   <div class="page-title">הנחיות מרחביות לעיר אשדוד — מהדורה 18</div>
   <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח. <a class="src-doc-btn" href="source-spatial18.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור</a></div>
   <div class="sp-search no-print">
@@ -2208,7 +2217,7 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
 <div id="muni" class="page">
-  <div class="pp-breadcrumb"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <span>אוגדן</span></div>
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>אוגדן</span></div>
   <div class="page-title">אוגדן — דרישות גורמי העירייה לתוכנית בינוי ועיצוב</div>
   <div class="page-subtitle">מידע כללי: הנספחים, הדרישות והתיאומים הנדרשים מול גורמי העירייה, לפי מחלקות.</div>
   <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <a class="src-doc-btn" href="source-aoggdan.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור (האוגדן)</a> · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
@@ -2779,6 +2788,8 @@ const PAGE_LABELS = {landing:'הדף הראשי', exec:'תמונת המצב', de
   trends:'מגמות', shares:'דיווחים ושיתופים', muni:'דרישות עירייה', contacts:'רשימות קשר',
   settings:'הגדרות', help:'העזרה', projectPage:'תוכנית בינוי'};
 function currentPageId(){ const a=document.querySelector('.page.active'); return a?a.id:null; }
+/** כפתור הניווט לפי data-nav — עמיד לשינוי סדר/קיבוץ הכפתורים (לא לפי אינדקס) */
+function navBtn(name){ return document.querySelector('#mainNav button[data-nav="'+name+'"]'); }
 function pushNav(fromId){ if(fromId){ if(_navHistory[_navHistory.length-1]!==fromId) _navHistory.push(fromId); if(_navHistory.length>50) _navHistory.shift(); } }
 function updateBackBtn(){
   const btn=document.getElementById('globalBack'); if(!btn) return;
@@ -2792,9 +2803,7 @@ function goBack(){
   if(!_navHistory.length){ return; }
   const prev=_navHistory.pop();
   if(prev==='projectPage' && _lastProjectId!=null){ openProject(_lastProjectId, true); }
-  else { const navMap={landing:0,table:1,guidelines:2,map:3,trends:4,shares:5,muni:6,contacts:7,settings:8};
-    const b=navMap[prev]!=null?document.querySelectorAll('#mainNav button')[navMap[prev]]:null;
-    go(prev,b,true); }
+  else { go(prev, navBtn(prev), true); }
 }
 let _lastProjectId=null;
 function go(id, btn, isBack) {
@@ -4400,7 +4409,7 @@ function drawDonut(canvasId, values, colors) {
 function globalSearchFn(query) {
   if (!query || query.length < 2) return;
   document.getElementById('filterSearch').value = query;
-  go('table', document.querySelectorAll('#mainNav button')[1]);
+  go('table', navBtn('table'));
   applyFilters();
 }
 
@@ -5782,7 +5791,7 @@ function glHero(h){ return `<div class="gl-hero">
   <h1 class="gl-title">${h.title}</h1>
   <p class="gl-sub">${h.subtitle}</p>
   <div class="gl-actions">
-    <button class="btn btn-ghost" onclick="go('table',document.querySelectorAll('#mainNav button')[1])">חזרה לטבלת התוכניות</button>
+    <button class="btn btn-ghost" onclick="go('table', navBtn('table'))">חזרה לטבלת התוכניות</button>
   </div></div>`; }
 
 /* InternalSectionNav — דביק */
@@ -6056,7 +6065,7 @@ function openShare(id){
   window.scrollTo({top:0});
 }
 function sh(){ return shares.find(x=>x.id===currentShareId); }
-function backToShares(){ go('shares', document.querySelectorAll('#mainNav button')[5]); }
+function backToShares(){ go('shares', navBtn('shares')); }
 
 function setShareField(field, val){ const s=sh(); if(!s)return; s[field]=val; touchShare(s); }
 function setShareFilter(field, val){ const s=sh(); if(!s)return; s.filters[field]=val; touchShare(s); }
@@ -6184,7 +6193,7 @@ function renderCeoReport(s){
   const developers=[...new Set(plans.map(p=>p.developer).filter(Boolean))].sort();
   const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
   return `
-  <div class="pp-breadcrumb no-print"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
+  <div class="pp-breadcrumb no-print"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
   <div class="share-toolbar no-print">
     <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
     <div class="share-tb-right">
@@ -6237,7 +6246,7 @@ function renderMayorShare(s){
   const projOpts = plans.map(pl=>`<option value="${pl.id}"${p&&p.id===pl.id?' selected':''}>תב/${pl.tik} — ${esc(pl.district)} ${esc(pl.location||'')}</option>`).join('');
   const alts = s.facadeAlts||[];
   return `
-  <div class="pp-breadcrumb no-print"><a onclick="go('landing',document.querySelectorAll('#mainNav button')[0])">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
+  <div class="pp-breadcrumb no-print"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
   <div class="share-toolbar no-print">
     <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
     <div class="share-tb-right">
@@ -7957,7 +7966,7 @@ function runTaskTool(planId, ruleId, tool){
   if(tool==='meeting'){ openProject(planId); toast('פותח את התוכנית לתיאום מועד'); return; }
   if(tool==='doc'||tool==='complete'){ composeMail(planId, ruleId); return; }
   if(tool==='status'){ openProject(planId); ppTabByName&&ppTabByName('info'); toast('עדכני את הסטטוס בדף התוכנית'); return; }
-  if(tool==='muni'){ go('muni',document.querySelectorAll('#mainNav button')[6]); return; }
+  if(tool==='muni'){ go('muni', navBtn('muni')); return; }
   // task / reminder — רישום משימה בהיסטוריה
   const rule=WORK_RULES.find(r=>r.id===ruleId);
   logAction(p, tool==='reminder'?'reminder':'task', rule?rule.build(p,{today:todayStr()}).action:'משימה נפתחה');
@@ -9245,7 +9254,7 @@ function renderDocMgmt(){
     <div class="set-kv">חוות דעת שזוהו: <b>${opinionsN}</b> · תוכניות שעודכנו מהמקור: <b>${updated}</b> · סתירות פתוחות: <b>${conflicts}</b></div>
     <div class="set-kv">תמונות שחולצו/הועלו: <b>${imgsN}</b> · לא מסווגות: <b>${unclass}</b></div>
     <div class="mail-actions" style="margin-top:8px">
-      <button class="btn btn-primary btn-sm" onclick="go('landing',document.querySelectorAll('#mainNav button')[0]);setTimeout(()=>{go('settings',document.querySelectorAll('#mainNav button')[10]);document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
+      <button class="btn btn-primary btn-sm" onclick="go('landing', navBtn('landing'));setTimeout(()=>{go('settings', navBtn('settings'));document.getElementById('qcBody')&&document.getElementById('qcBody').scrollIntoView()},50);renderQC&&renderQC()">רענון בקרת איכות</button>
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qcBody').scrollIntoView({behavior:'smooth'})">טיפול בחריגים</button>
     </div>
     <div id="qcBody" style="margin-top:14px"></div>`;
