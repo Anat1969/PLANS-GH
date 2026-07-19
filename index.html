@@ -785,7 +785,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table .col-district{width:62px;max-width:62px;font-size:11.5px}
 .plans-table .col-txt{max-width:110px;min-width:58px}
 .plans-table .col-loc{max-width:140px;min-width:84px}
-.plans-table .col-date{width:98px;max-width:98px}
+.plans-table .col-date{width:124px;max-width:124px}
 .plans-table .col-status{width:78px;max-width:78px}
 .plans-table .col-note{width:150px;max-width:150px;white-space:normal}
 .plans-table td.col-note{padding:2px 3px}
@@ -801,7 +801,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .submit-mail:hover{color:var(--bordeaux,#7a1f2b)}
 /* מספר תוכנית — גדול ובולט */
 .plans-table td.col-plannum{font-weight:800;font-size:15px;color:var(--ink);letter-spacing:.2px}
-.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:2px 5px;font-size:11px}
+/* שלושת תאריכי המעקב — גדולים ובולטים בצפייה */
+.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:4px 7px;font-size:13.5px;font-weight:700;letter-spacing:.2px;border-radius:5px}
 .plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:11.5px;padding:2px 4px;min-width:0}
 /* מיקום מודגש בבולט גדול */
 .plans-table .col-loc{font-weight:700;font-size:13.5px;color:var(--ink)}
@@ -812,7 +813,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table thead th.grp-sep-start,.plans-table thead th.grp-sep-end{border-color:#fff}
 .plans-table thead th.forum-group{background:var(--bronze-deep,var(--bronze-deep))}
 /* בורר תאריך בטבלה — אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
-.plans-table .col-date input[type=date]{font-size:11.5px;padding:3px;direction:ltr;text-align:center;cursor:pointer}
+.plans-table .col-date input[type=date]{font-size:13px;font-weight:700;padding:5px 3px;direction:ltr;text-align:center;cursor:pointer;border:1px solid var(--teal,#2A5F5F);border-radius:5px}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;padding:2px;margin:0;opacity:.75;filter:invert(20%)}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .date-legend .dt-future{color:#fff}
@@ -1767,7 +1768,7 @@ tbody tr{transition:background .12s}
     <span class="filter-count" id="filterCount"></span>
     <button class="btn btn-ghost btn-sm" onclick="resetFilters()">נקה סינון</button>
     <span class="date-legend" title="צביעת התאריכים לפי התאריך הנוכחי">
-      מקרא תאריכים: <span class="dt-past">עבר</span> <span class="dt-present">הווה</span> <span class="dt-future">עתיד</span>
+      מקרא תאריכים: <span class="dt-present">עבר / היום</span> <span class="dt-future">עתיד</span>
     </span>
   </div>
 
@@ -2686,6 +2687,7 @@ async function initCloud() {
   const loaded = await cloudLoad();
   if (loaded === true) {
     migrateForumDates(); // תיקון תאריכים גם על נתוני הענן
+    applyForumChainAll(); // השלמת שרשרת 3 התאריכים לכל התוכניות הפעילות
     applyFilters(); renderLanding();
     if (currentProjectId != null) { const p = pj(); if (p) openProject(currentProjectId); }
     savePlans(); // מסנכרן חזרה כדי לכלול פרויקטים חדשים/seed
@@ -2890,18 +2892,65 @@ function dateTimeClass(dateStr){
   const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return 'dt-none';
   const today=_todayISO();
   const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  if(dd<today) return 'dt-past';
-  if(dd.getTime()===today.getTime()) return 'dt-present';
-  return 'dt-future';
+  // שתי משפחות צבע בלבד: עבר+היום = צבע ההווה · עתיד = צבע העתיד.
+  // מחושב מ-new Date בפועל, כך שהצבעים מתעדכנים אוטומטית בכל יום.
+  return dd>today ? 'dt-future' : 'dt-present';
 }
 /* טווח תאריכים: הסתיים=עבר · כולל היום=הווה · טרם התחיל=עתיד */
 function rangeTimeClass(startStr,endStr){
   const today=_todayISO();
   const s=startStr?new Date(startStr+'T00:00:00'):null, e=endStr?new Date(endStr+'T00:00:00'):null;
-  if(e&&!isNaN(e)&&new Date(e.getFullYear(),e.getMonth(),e.getDate())<today) return 'dt-past';
+  // שתי משפחות בלבד: טרם התחיל = עתיד · אחרת (בתהליך/הסתיים) = הווה
   if(s&&!isNaN(s)&&new Date(s.getFullYear(),s.getMonth(),s.getDate())>today) return 'dt-future';
   if(s||e) return 'dt-present';
   return 'dt-none';
+}
+
+/* ══════════ שרשרת שלושת תאריכי המעקב ══════════
+   תאריך 1 (פורום אדריכל) ידני · תאריך 2 (פורום יועצים) = יום שני הקרוב חודש אחרי 1 ·
+   תאריך 3 (הכנה לוועדה) = יום שני הקרוב חודש אחרי 2. תאריך שנערך ידנית (_userEdited)
+   לעולם לא נדרס. לוגיקה מרוכזת אחת — כל הטבלאות/הכרטיסים/הדוחות נשענים עליה. */
+const FORUM_CHAIN = ['forumArchitect','forumConsultants','committeeDate'];
+function _parseISO(s){ if(!s) return null; const d=new Date(s+'T00:00:00'); return isNaN(d)?null:d; }
+function _toISO(d){ const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+/** יום שני הקרוב לתאריך נתון (אם כבר יום שני — נשאר; אחרת קדימה ליום שני הבא) */
+function nextMonday(d){
+  const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const wd=x.getDay();               // 0=ראשון .. 1=שני
+  const add=(1-wd+7)%7;              // 0 אם כבר שני
+  x.setDate(x.getDate()+add);
+  return x;
+}
+/** יום שני הקרוב, חודש אחרי תאריך ה-ISO הנתון */
+function mondayMonthAfter(iso){
+  const d=_parseISO(iso); if(!d) return '';
+  const m=new Date(d.getFullYear(),d.getMonth()+1,d.getDate());
+  return _toISO(nextMonday(m));
+}
+function forumEdited(p,field){ return !!(p._userEdited && p._userEdited[field]); }
+/** משלים/מעדכן את שרשרת שלושת התאריכים על תוכנית אחת.
+    ממלא רק תאריך אוטומטי שטרם נערך ידנית. מחזיר true אם השתנה משהו. */
+function ensureForumChain(p){
+  if(!p || !planIsActive(p)) return false;
+  let changed=false;
+  // תאריך 2 מ-1
+  if(p.forumArchitect && !forumEdited(p,'forumConsultants')){
+    const want=mondayMonthAfter(p.forumArchitect);
+    if(want && p.forumConsultants!==want){ p.forumConsultants=want; changed=true; }
+  }
+  // תאריך 3 מ-2 (הערך המעודכן ביותר)
+  if(p.forumConsultants && !forumEdited(p,'committeeDate')){
+    const want=mondayMonthAfter(p.forumConsultants);
+    if(want && p.committeeDate!==want){ p.committeeDate=want; changed=true; }
+  }
+  return changed;
+}
+/** מחיל את השרשרת על כל התוכניות הפעילות (בטעינה ובכל תוכנית חדשה) */
+function applyForumChainAll(){
+  let any=false;
+  livePlans().forEach(p=>{ if(ensureForumChain(p)) any=true; });
+  if(any) savePlans();
+  return any;
 }
 
 const FORUM_EMAIL_RECIPIENTS = 'anatdavids@ashdod.muni.il';
@@ -2991,11 +3040,12 @@ function saveForumDate(id, field, el){
   p[field] = el.value;
   clearSeed(p, field); // סימון עריכה ידנית — כדי שה-seed לא ידרוס את התאריך בטעינה הבאה
   p.updatedAt = todayStr();
+  // שרשרת אוטומטית: שינוי תאריך מוקדם מחשב מחדש את הבאים אחריו — אלא אם נערכו ידנית
+  ensureForumChain(p);
   savePlans();
   renderTable();
   refreshAll(); // סנכרון מלא לכל המדדים/הדוחות
   toast(`${FORUM_INFO[field]?.label || field} עודכן`);
-  if(el.value && el.value !== oldVal) notifyForumDate(p, field, el.value);
 }
 
 // ── LANDING ──
@@ -3653,15 +3703,15 @@ function openDetail(id) {
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">פורום אדריכל</div>
-        <input type="date" class="date-input-${dateTrafficClass(p.forumArchitect)}" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this);openDetail(${p.id})">
+        <input type="date" class="date-input-${dateTrafficClass(p.forumArchitect)}" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)">
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">פורום יועצים</div>
-        <input type="date" class="date-input-${dateTrafficClass(p.forumConsultants)}" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this);openDetail(${p.id})">
+        <input type="date" class="date-input-${dateTrafficClass(p.forumConsultants)}" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)">
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">הכנה לוועדה</div>
-        <input type="date" class="date-input-${dateTrafficClass(p.committeeDate)}" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this);openDetail(${p.id})">
+        <input type="date" class="date-input-${dateTrafficClass(p.committeeDate)}" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)">
       </div>
       <div class="detail-date-cell">
         <div class="dlabel">תאריך אישור</div>
@@ -3791,14 +3841,12 @@ function addPlan() {
   const archEmail = document.getElementById('addArchEmail').value.trim();
   newPlan.devCode = genDevCode(); // קוד גישה ליזם — נוצר מיד כדי שיוכל להתחבר עוד לפני פתיחת דף התוכנית
   plans.push(newPlan);
+  ensureForumChain(newPlan); // השלמה אוטומטית של תאריך 2 ו-3 מתאריך 1, אם הוזן
   savePlans();
   populateFilters();
   applyFilters();
   renderLanding();
   toast(`תוכנית בינוי ${tik} נוספה בהצלחה`);
-  if(newPlan.forumArchitect) notifyForumDate(newPlan,'forumArchitect',newPlan.forumArchitect);
-  if(newPlan.forumConsultants) notifyForumDate(newPlan,'forumConsultants',newPlan.forumConsultants);
-  if(newPlan.committeeDate) notifyForumDate(newPlan,'committeeDate',newPlan.committeeDate);
   notifyArchitectNewPlan(newPlan, archEmail);
   // הצגת קישור למילוי שדות (במקום סגירה מיידית)
   _addedPlanTik = newPlan.tik;
@@ -9809,6 +9857,7 @@ function renderDevHome(){
 })();
 
 // ── INIT ──
+applyForumChainAll(); // השלמת שרשרת 3 תאריכי המעקב לתוכניות פעילות (לפני רינדור ראשוני)
 populateFilters();
 applyFilters();
 renderLanding();
