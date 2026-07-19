@@ -474,6 +474,21 @@ tbody tr:hover{background:var(--teal-pale)}
 .stage-badge.st3{background:#d98a2b}.stage-badge.stapp{background:var(--ok)}
 /* נקודת רמזור לצד תווית השלב */
 .stage-badge::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.9);margin-inline-end:6px;vertical-align:middle}
+/* פס שלבי החיים של התוכנית */
+#stageStrip{margin:0 0 1rem}
+.stg-strip{display:flex;align-items:center;gap:2px;background:var(--surface,#fff);border:1px solid var(--stone,#e8e5df);border-radius:12px;padding:14px 18px;flex-wrap:wrap}
+.stg-step{display:flex;align-items:center;gap:9px}
+.stg-dot{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:var(--fog,#f2f0ec);color:var(--muted,#6b6259);border:2px solid var(--stone,#e8e5df)}
+.stg-name{font-weight:700;font-size:14px;color:var(--ink,#1a1a1a)}
+.stg-date{font-size:11px;color:var(--muted,#6b6259);margin-top:1px}
+.stg-line{flex:1;min-width:24px;height:3px;border-radius:2px;background:var(--stone,#e8e5df)}
+.stg-done .stg-dot{background:var(--ok,#3d8b5e);color:#fff;border-color:var(--ok,#3d8b5e)}
+.stg-current .stg-dot{background:var(--teal,#2A5F5F);color:#fff;border-color:var(--teal,#2A5F5F);box-shadow:0 0 0 4px rgba(42,95,95,.15)}
+.stg-current .stg-name{color:var(--teal,#2A5F5F)}
+.stg-todo .stg-name{color:var(--muted,#6b6259);font-weight:600}
+.stg-hint{font-size:12.5px;color:var(--muted,#6b6259);margin-top:8px;padding:8px 12px;background:var(--fog,#f2f0ec);border-radius:8px;line-height:1.5}
+.stg-hint b{color:var(--ink,#1a1a1a)}
+@media(max-width:720px){.stg-strip{gap:8px}.stg-line{display:none}.stg-step{flex:1 1 45%}}
 /* סרגל נושאים אנכי בצד ימין של דף הפרויקט */
 .pp-with-rail{margin-top:1.2rem}
 .pp-rail{width:200px;flex:0 0 200px;position:sticky;top:70px;max-height:calc(100vh - 88px);overflow:auto}
@@ -2038,10 +2053,11 @@ tbody tr{transition:background .12s}
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
       </div>
-      <button class="btn back-btn" id="ppBackBtn" onclick="closeProject()">‹ חזרה לטבלת התוכניות</button>
     </div>
   </div>
 
+  <!-- פס שלבי חיים של התוכנית: איפה היא עומדת ומה נדרש לשלב הבא -->
+  <div id="stageStrip" class="no-print"></div>
   <!-- מסלול עבודה רציף (מצב אדריכל היזם) -->
   <div id="workflowBar"></div>
 
@@ -4670,7 +4686,37 @@ function buildSecNav(){
   window.addEventListener('scroll',_secSpy,{passive:true}); _secSpy();
 }
 function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el){ const fb=el.closest('.forum-block'); if(fb) fb.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); } document.getElementById('secNav').classList.remove('open'); }
+/* ── פס שלבי החיים של התוכנית — ברור ומוסבר ── */
+const STAGE_FLOW = [
+  { key:'stage_1',   label:'פורום אדריכל העיר', dateField:'forumArchitect',   next:'קביעת/קיום פורום אדריכל העיר' },
+  { key:'stage_2',   label:'פורום יועצים',      dateField:'forumConsultants', next:'קביעת/קיום פורום יועצים' },
+  { key:'committee', label:'הכנה לוועדה',        dateField:'committeeDate',    next:'קביעת מועד הכנה לוועדה + השלמת חוות דעת' },
+  { key:'approved',  label:'מאושר',             dateField:null,               next:'אישור הוועדה' }
+];
+function renderStageStrip(p){
+  const el=document.getElementById('stageStrip'); if(!el||!p) return;
+  const today=todayStr();
+  const curIdx = Math.max(0, STAGE_FLOW.findIndex(s=>s.key===(p.stage||'stage_1')));
+  const steps = STAGE_FLOW.map((s,i)=>{
+    const state = i<curIdx ? 'done' : (i===curIdx ? 'current' : 'todo');
+    const dv = s.dateField ? p[s.dateField] : (p.status==='הושלם'||p.status==='אושר סופית'?today:'');
+    const dstate = dv ? (_occurred(dv,today) ? 'התקיים '+fmtDate(dv) : 'מתוכנן '+fmtDate(dv)) : '';
+    return `<div class="stg-step stg-${state}">
+      <div class="stg-dot">${state==='done'?'✓':(i+1)}</div>
+      <div class="stg-txt"><div class="stg-name">${s.label}</div>${dstate?`<div class="stg-date">${dstate}</div>`:''}</div>
+    </div>`;
+  }).join('<div class="stg-line"></div>');
+  // הסבר מה נדרש כדי להתקדם לשלב הבא
+  const nextStep = STAGE_FLOW[curIdx+1];
+  const hint = (p.stage==='approved') ? 'התוכנית אושרה — סיום התהליך.' :
+    (nextStep ? `כדי להתקדם ל„${nextStep.label}”: ${nextStep.next}. השלב מתעדכן אוטומטית כשהתאריך של אבן הדרך הנוכחית מתקיים (עובר), או ידנית בטאב „מידע וזיהוי”.` :
+    'זהו השלב האחרון לפני האישור.');
+  el.innerHTML = `
+    <div class="stg-strip">${steps}</div>
+    <div class="stg-hint"><b>איך עוברים שלב:</b> ${hint}</div>`;
+}
 function renderStageBadge(p) {
+  renderStageStrip(p);
   const map = {stage_1:['שלב 1 — פורום אדריכל העיר','st1'],stage_2:['שלב 2 — פורום יועצים','st2'],committee:['הכנה לוועדה','st3'],approved:['מאושר','stapp']};
   const [txt,cls] = map[p.stage] || map.stage_1;
   document.getElementById('ppStageBadge').innerHTML = `<span class="stage-badge ${cls}">${txt}</span>`;
@@ -5022,6 +5068,9 @@ function renderOpinionTab(p){
       <div style="font-size:13px;color:rgba(0,0,0,0.5)">שדות אפורים מתמלאים אוטומטית מנתוני הפרויקט.</div>
       <button class="btn btn-primary" onclick="window.print()">ייצוא ל-PDF (הדפסה)</button>
     </div>
+    ${!isDeveloper()?`<div class="pp-card no-print"><h4>מסמכים תומכים לחוות הדעת</h4>
+      <div class="pd-intro">חוות דעת חתומה, נספחים, אישורים — גררי / הדביקי / העלי.</div>
+      ${attachFieldHTML('field','opinion','מסמכי חוות הדעת')}</div>`:''}
     <div class="opinion-doc" id="opinionDoc">
       <h2 style="font-family:var(--display);text-align:center">חוות דעת — תוכנית בינוי ${esc(p.planNum)||'תב/----'}</h2>
       <div class="pp-cols">
@@ -5418,15 +5467,31 @@ function renderDocsTab(p) {
   </div>`).join('') || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מסמכים עדיין.</p>';
   document.getElementById('panel-docs').innerHTML = `
     <div class="pp-card">
-      <h4>הוספת מסמך / קישור</h4>
+      <h4>העלאת מסמכים לתוכנית</h4>
+      <div class="pd-intro">גררי לכאן קבצים, הדביקי (Ctrl+V), או לחצי „העלאה”. תמונות · PDF · Word · Excel · DWG. הקבצים נשמרים בענן ומצורפים לתוכנית.</div>
+      ${attachFieldHTML('docs','all','מסמכי התוכנית')}
+    </div>
+    <div class="pp-card">
+      <h4>הוספת קישור חיצוני (לא חובה)</h4>
       <div class="pp-cols">
         <div class="pp-field"><label>שם המסמך</label><input id="docName" placeholder="שם"></div>
         <div class="pp-field"><label>סוג</label><select id="docType">${DOC_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
       </div>
       <div class="pp-field"><label>קישור (URL)</label><input id="docUrl" placeholder="https://..."></div>
-      <button class="btn btn-primary btn-sm" onclick="addDoc()">הוסף מסמך</button>
+      <button class="btn btn-ghost btn-sm" onclick="addDoc()">הוסף קישור</button>
     </div>
-    <div class="pp-card"><h4>מסמכים מצורפים</h4>${docs}</div>`;
+    ${p.documents.length?`<div class="pp-card"><h4>קישורים חיצוניים</h4>${docs}</div>`:''}`;
+}
+/* ── ווידג'ט צירוף אחיד לכל שדה — גרירה/הדבקה/העלאה (חוזר על מנגנון docPick) ── */
+function attachFieldHTML(scope, key, label){
+  const p=pj(); if(!p) return '';
+  ensureDocsLib(p);
+  const list=_docList(p,scope,key);
+  const thumbs=list.map((d,i)=>docThumbHTML(d,scope,key,i)).join('');
+  return `<div class="doc-frame attach-field" ondragover="docDragOver(event)" ondragleave="docDragLeave(event)" ondrop="docDrop(event,'${scope}','${key}')" onpaste="docPaste(event,'${scope}','${key}')" tabindex="0">
+    <div class="doc-frame-head"><b>${esc(label||'מסמכים')}</b> — גררי / הדביקי (Ctrl+V) / <button class="btn btn-ghost btn-sm" onclick="docPick('${scope}','${key}')">העלאה</button></div>
+    <div class="doc-thumbs">${thumbs || '<span class="muted">אין קבצים עדיין — גררי, הדביקי או העלי לכאן.</span>'}</div>
+  </div>`;
 }
 function addDoc(){
   const p=pj();if(!p)return;
@@ -5457,6 +5522,11 @@ function renderCommTab(p){
       </div>
       <div class="pp-field"><label>תוכן</label><textarea id="commContent"></textarea></div>
       <button class="btn btn-primary btn-sm" onclick="addComm()">הוסף רשומה</button>
+    </div>
+    <div class="pp-card">
+      <h4>מסמכים מצורפים לתכתובות ולפגישות</h4>
+      <div class="pd-intro">סיכומי פגישה, פרוטוקולים, מכתבים — גררי / הדביקי / העלי.</div>
+      ${attachFieldHTML('comm','all','מסמכי תכתובת ופגישות')}
     </div>
     <div>${list}</div>`;
 }
@@ -6885,7 +6955,7 @@ const IMG_EXT = ['jpg','jpeg','png','gif','webp','bmp','svg'];
 function docExt(name){ return (name.split('.').pop()||'').toLowerCase(); }
 function docIsImage(name){ return IMG_EXT.includes(docExt(name)); }
 function docIsPdf(name){ return docExt(name)==='pdf'; }
-function docPublicUrl(path){ return SB_URL + '/storage/v1/object/public/' + DOCS_BUCKET + '/' + path; }
+function docPublicUrl(path){ if(path && path.startsWith('data:')) return path; return SB_URL + '/storage/v1/object/public/' + DOCS_BUCKET + '/' + path; }
 
 /** מעלה קובץ ל-Storage ומחזיר את הנתיב (Promise) */
 async function uploadDoc(file, folder){
@@ -6896,13 +6966,22 @@ async function uploadDoc(file, folder){
   const asciiBase = String(file.name||'file').replace(/\.[^.]*$/, '').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) || 'file';
   const safe = String(Date.now()) + '_' + asciiBase + ext;
   const path = folder + '/' + safe;
-  const res = await fetch(SB_URL + '/storage/v1/object/' + DOCS_BUCKET + '/' + encodeURI(path), {
-    method:'POST',
-    headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type': file.type||'application/octet-stream', 'x-upsert':'true' },
-    body: file
-  });
-  if(!res.ok) throw new Error('upload HTTP '+res.status);
-  return { path, name:file.name, type:file.type, size:file.size };
+  try {
+    const res = await fetch(SB_URL + '/storage/v1/object/' + DOCS_BUCKET + '/' + encodeURI(path), {
+      method:'POST',
+      headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type': file.type||'application/octet-stream', 'x-upsert':'true' },
+      body: file
+    });
+    if(!res.ok) throw new Error('upload HTTP '+res.status);
+    return { path, name:file.name, type:file.type, size:file.size };
+  } catch(err) {
+    // גיבוי מקומי: אם הענן לא זמין, שומרים כ-data URL (עד ~8MB) כדי שהקובץ לא יאבד
+    if(file.size <= 8*1024*1024){
+      const dataUrl = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+      return { path:dataUrl, name:file.name, type:file.type, size:file.size, local:true };
+    }
+    throw err;
+  }
 }
 
 /* ── ספריית מסמכים גלובלית לפרויקט (בתוך p.docsLib) ── */
@@ -6929,14 +7008,23 @@ function docThumbHTML(d, scope, key, i){
     <button class="doc-thumb-x" onclick="event.stopPropagation();docRemove('${scope}','${key}',${i})">✕</button>
   </div>`;
 }
+/** מפתח האחסון עבור scope/key כלליים (כל שדה/טאב) — נשמר תחת byTopic */
+function _docBucketKey(scope, key){ return (scope==='dept')?key:(scope+'_'+key); }
 function _docStore(scope, key, meta){
   if(!meta || !meta.path) return; // העלאה שנחסמה/נכשלה — אין מה לרשום
   const p=pj(); if(!p)return; ensureDocsLib(p);
-  if(scope==='dept'){ (p.docsLib.byTopic[key]=p.docsLib.byTopic[key]||[]).push(meta); }
-  else if(scope==='taba'){ p.docsLib.taba.push(meta); }
+  if(scope==='taba'){ p.docsLib.taba.push(meta); }
   else if(scope==='developer'){ p.docsLib.developer.push(meta); }
+  else { const bk=_docBucketKey(scope,key); (p.docsLib.byTopic[bk]=p.docsLib.byTopic[bk]||[]).push(meta); }
   savePlans();
-  if(currentProjectId!=null){ renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p); }
+  if(currentProjectId!=null){
+    if(typeof renderReviewTab==='function') renderReviewTab(p);
+    if(document.getElementById('docWorkspace')) renderDocWorkspace(p);
+    if(scope==='docs' && document.getElementById('panel-docs')) renderDocsTab(p);
+    if(scope==='comm' && document.getElementById('panel-comm')) renderCommTab(p);
+    if(scope==='timeline' && document.getElementById('panel-timeline')) renderTimelineTab(p);
+    if(scope==='field') refreshProjectPanels&&refreshProjectPanels(p);
+  }
 }
 function docPick(scope, key){
   const inp=document.createElement('input'); inp.type='file';
@@ -6955,13 +7043,17 @@ function docDrop(ev, scope, key){
   const files=ev.dataTransfer.files;
   if(files&&files.length){ (async()=>{ for(const f of files){ try{ toast('מעלה '+f.name+'…'); const m=await uploadDoc(f,scope+'_'+key); _docStore(scope,key,m); }catch(e){ toast('שגיאה'); } } toast('הועלה'); })(); }
 }
-function _docList(p, scope, key){ ensureDocsLib(p); if(scope==='dept')return p.docsLib.byTopic[key]||[]; if(scope==='taba')return p.docsLib.taba; if(scope==='developer')return p.docsLib.developer; return []; }
+function _docList(p, scope, key){ ensureDocsLib(p); if(scope==='taba')return p.docsLib.taba; if(scope==='developer')return p.docsLib.developer; return p.docsLib.byTopic[_docBucketKey(scope,key)]||[]; }
 function docRemove(scope, key, i){
   const p=pj(); if(!p)return; const list=_docList(p,scope,key); const d=list[i]; if(!d)return;
   if(!confirm('להסיר את '+d.name+'?')) return;
   fetch(SB_URL+'/storage/v1/object/'+DOCS_BUCKET+'/'+encodeURI(d.path),{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).catch(()=>{});
   list.splice(i,1); savePlans();
-  renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p);
+  if(typeof renderReviewTab==='function') renderReviewTab(p); if(document.getElementById('docWorkspace')) renderDocWorkspace(p);
+  if(scope==='docs' && document.getElementById('panel-docs')) renderDocsTab(p);
+  if(scope==='comm' && document.getElementById('panel-comm')) renderCommTab(p);
+  if(scope==='timeline' && document.getElementById('panel-timeline')) renderTimelineTab(p);
+  if(scope==='field') refreshProjectPanels&&refreshProjectPanels(p);
 }
 
 /* ── צופה מסמך מלא: זום + הזזה ── */
