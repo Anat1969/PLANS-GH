@@ -158,6 +158,10 @@ tbody tr:hover{background:var(--teal-pale)}
 .src-doc-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bordeaux);color:#fff;text-decoration:none;
   border-radius:var(--r);padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;transition:.15s}
 .src-doc-btn:hover{background:var(--bordeaux-deep)}
+/* אינדיקציה אחידה: כפתור קישור חיצוני (נפתח בכרטיסייה חדשה) */
+.ext-link .ext-ico{font-size:11px;opacity:.7;margin-inline-start:2px}
+.ext-link{text-decoration:none}
+.attach-hint{font-size:11px;color:var(--muted,#6b6259);margin:6px 0 3px}
 /* מחשבון אינטראקטיבי מלא */
 .ical{padding:4px}
 .ical-example{font-size:12.5px;color:#2a557a;background:#eef4fb;border:1px solid #cfe1f5;border-radius:8px;padding:8px 12px;margin-bottom:10px}
@@ -1495,6 +1499,8 @@ body.role-manager [onclick*="removeComm"]{display:none !important}
 .hp-sec.hp-wide{grid-column:1/-1}
 .hp-sec h3{font-family:var(--display);font-size:17px;margin-bottom:10px;color:var(--ink)}
 .hp-sec p{font-size:13.5px;line-height:1.75;color:var(--ink)}
+.hp-list{margin:0;padding-inline-start:18px;font-size:13.5px;line-height:1.7;color:var(--ink)}
+.hp-list li{margin-bottom:7px}
 .hp-role-tip{background:rgba(42,95,95,0.06);border:1px solid rgba(42,95,95,0.25);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.7;margin-bottom:4px}
 .hp-roles{display:flex;flex-direction:column;gap:10px}
 .hp-roles > div{font-size:13px;line-height:1.6}
@@ -2943,6 +2949,37 @@ function fmtDate(d) {
   const parts = d.split('-');
   if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
   return d;
+}
+/* ══════════ מנגנון קישור אחיד לכל האפליקציה ══════════
+   כל כפתור שמוביל למשאב חיצוני (אתר/מסמך/מפה) עובר דרך openLink,
+   כדי שכולם יתנהגו זהה. normalizeUrl מוסיף https:// כשחסר סכימה — כך
+   שאתר שהוזן בלי "http" (למשל govmap.gov.il) לא נפתח כנתיב יחסי שבור. */
+function normalizeUrl(u){
+  if(!u) return '';
+  u = String(u).trim();
+  if(!u) return '';
+  if(u.startsWith('data:')) return u;                 // קובץ מוטמע מקומי
+  if(/^(https?:|mailto:|tel:)/i.test(u)) return u;    // כבר עם סכימה
+  if(/^\/\//.test(u)) return 'https:'+u;              // //host → https
+  if(/^[./]/.test(u)) return u;                       // נתיב יחסי מפורש (./x , /x) — קובץ מקומי
+  // שם קובץ מקומי בודד (למשל source.pdf) — לא דומיין: משאירים כפי שהוא
+  if(/^[\w-]+\.(pdf|docx?|xlsx?|pptx?|png|jpe?g|gif|svg|webp|zip|dwg|dxf|txt|csv)$/i.test(u)) return u;
+  // דומיין ללא סכימה (יש נקודה + סיומת דומיין, ואולי נתיב/שאילתה) → https
+  if(/^[\w.-]+\.[a-z]{2,}(\/|$|\?|#)/i.test(u)) return 'https://'+u;
+  return u;                                           // אחר — משאירים כמו שהוא
+}
+/** פתיחת משאב חיצוני בצורה אחידה (כרטיסייה חדשה). מחזיר false אם אין URL. */
+function openLink(u){
+  const url = normalizeUrl(u);
+  if(!url){ toast('אין קישור להצגה'); return false; }
+  window.open(url, '_blank', 'noopener');
+  return false; // למניעת ניווט ברירת מחדל כשקוראים מ-onclick של <a>
+}
+/** בונה כפתור-קישור אחיד עם אינדיקציה ויזואלית של "יעד חיצוני" */
+function linkBtnHTML(url, label, cls){
+  const u = esc(normalizeUrl(url));
+  if(!u) return '';
+  return `<a class="btn ${cls||'btn-ghost'} btn-sm ext-link" href="${u}" target="_blank" rel="noopener" title="נפתח בכרטיסייה חדשה: ${u}">${label||'צפה'} <span class="ext-ico" aria-hidden="true">↗</span></a>`;
 }
 /** מחזיר class צבע לתאריך לפי הסטטוס: אדום/כתום/ירוק/כחול */
 function statusDateClass(status){
@@ -5050,7 +5087,7 @@ function renderGraphicsTab(p){
         <div><strong>${it.name}</strong> ${it.req?'<span style="color:var(--err);font-size:11px">חובה</span>':''} ${badge}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <input value="${esc(g.url)}" placeholder="קישור URL" onchange="setGraphic('${it.id}',this.value)" style="width:180px;font-size:12px;padding:4px;border:1px solid var(--stone);border-radius:var(--r)">
-          ${has?`<a class="btn btn-ghost btn-sm" href="${g.url}" target="_blank" rel="noopener">צפה</a>`:''}
+          ${has?linkBtnHTML(g.url,'צפה'):''}
         </div></div>`;
     }).join('')}</div>`).join('');
   document.getElementById('panel-graphics').innerHTML = `
@@ -5063,7 +5100,7 @@ function renderGraphicsTab(p){
   if(typeof renderVisualMaterial==='function') renderVisualMaterial(p);
   if(typeof renderHarmonica==='function') renderHarmonica(p);
 }
-function setGraphic(id,url){const p=pj();if(!p)return;p.graphics[id]={url:url.trim(),date:todayStr()};savePlans();renderGraphicsTab(p);toast('נשמר');}
+function setGraphic(id,url){const p=pj();if(!p)return;p.graphics[id]={url:normalizeUrl(url),date:todayStr()};savePlans();renderGraphicsTab(p);toast('נשמר');}
 
 /* ══════════ טאב חוות דעת (FULL-ANALYSIS — opinion_template) ══════════ */
 const RECOMMENDATIONS = ['מומלץ לאשר','מומלץ לאשר בתנאים','לא מומלץ לאשר'];
@@ -5429,7 +5466,9 @@ function renderStage2(p) {
         <div class="pp-field"><label>שם היועץ</label><input value="${(it.consultant||'').replace(/"/g,'&quot;')}" onchange="setChk('stage2','${c.code}','consultant',this.value)"></div>
         <div class="chk-row">${chkSelect('stage2',c.code,it.status)}
           <textarea placeholder="הערות..." onchange="setChk('stage2','${c.code}','note',this.value)">${it.note||''}</textarea></div>
-        <div class="pp-field" style="margin-top:0.6rem"><label>קישור לקובץ (URL)</label><input value="${(it.fileUrl||'').replace(/"/g,'&quot;')}" placeholder="https://..." onchange="setChk('stage2','${c.code}','fileUrl',this.value)"></div>
+        <div class="pp-field" style="margin-top:0.6rem"><label>קישור לקובץ (URL)</label>
+          <div style="display:flex;gap:6px;align-items:center"><input style="flex:1" value="${(it.fileUrl||'').replace(/"/g,'&quot;')}" placeholder="https://..." onchange="setChk('stage2','${c.code}','fileUrl',this.value)">${it.fileUrl?linkBtnHTML(it.fileUrl,'צפה'):''}</div>
+          <div class="attach-hint">או צרפי קובץ ישירות:</div>${attachFieldHTML('field','stage2_'+c.code,'קובץ ליועץ '+esc(c.code))}</div>
       </div>
     </div>`;
   }).join('');
@@ -5472,7 +5511,7 @@ function updateProgress(p){
 function renderDocsTab(p) {
   const docs = p.documents.map((d,i)=>`<div class="doc-item">
     <div><strong>${d.name}</strong> <span style="color:rgba(0,0,0,0.45)">· ${d.type} · ${d.date||''}</span></div>
-    <div style="display:flex;gap:6px">${d.url?`<a class="btn btn-ghost btn-sm" href="${d.url}" target="_blank" rel="noopener">צפה</a>`:''}<button class="btn btn-ghost btn-sm" onclick="removeDoc(${i})">מחק</button></div>
+    <div style="display:flex;gap:6px">${d.url?linkBtnHTML(d.url,'צפה'):''}<button class="btn btn-ghost btn-sm" onclick="removeDoc(${i})">מחק</button></div>
   </div>`).join('') || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מסמכים עדיין.</p>';
   document.getElementById('panel-docs').innerHTML = `
     <div class="pp-card">
@@ -5506,7 +5545,7 @@ function addDoc(){
   const p=pj();if(!p)return;
   const name=document.getElementById('docName').value.trim();
   if(!name){toast('נא להזין שם מסמך');return;}
-  p.documents.push({name,type:document.getElementById('docType').value,url:document.getElementById('docUrl').value.trim(),date:todayStr()});
+  p.documents.push({name,type:document.getElementById('docType').value,url:normalizeUrl(document.getElementById('docUrl').value),date:todayStr()});
   savePlans();renderDocsTab(p);toast('מסמך נוסף');
 }
 function removeDoc(i){const p=pj();if(!p)return;p.documents.splice(i,1);savePlans();renderDocsTab(p);toast('מסמך נמחק');}
@@ -10013,6 +10052,17 @@ function renderHelp(){
     <div class="ex-sub">מערכת ניהול תוכניות הבינוי של אדריכלית העיר אשדוד — מה יש כאן, איך התהליך עובד, ומה כל מונח אומר.</div>
     ${roleGuide}
     <div class="hp-grid">
+      <section class="hp-sec">
+        <h3>הכפתורים — לאן כל אחד מוביל</h3>
+        <ul class="hp-list">
+          <li><b>כפתורי ניווט</b> (סרגל עליון, מקובצים לפי סוג: עבודה · ידע ודרישות · קשר ושיתוף · מערכת) — מעבירים בין דפי המערכת. לא יוצאים מהאפליקציה.</li>
+          <li><b>כפתור „חזרה”</b> (עליון) — חוזר לדף הקודם שבו היית.</li>
+          <li><b>כפתורי „מה צריך לעשות עכשיו” / „עדכן רשומה”</b> (תוכנית עבודה) — מבצעים פעולה בתוך המערכת ומעדכנים את הנתונים.</li>
+          <li><b>כפתור עם ↗ (קישור חיצוני)</b> — נפתח באתר/מסמך <b>חיצוני בכרטיסייה חדשה</b>. אפשר להזין כתובת אתר גם בלי „https://” — המערכת משלימה אוטומטית, כך שאתר חדש יעבוד כמו כל אתר.</li>
+          <li><b>אזור „גררי / הדביקי / העלאה”</b> — לצירוף קבצים (תמונות · PDF · Word). הקובץ נשמר בתוך התוכנית, לא כקישור.</li>
+          <li><b>✉ מייל</b> — פותח טיוטה בתוכנת המייל שלך; השליחה בידייך.</li>
+        </ul>
+      </section>
       <section class="hp-sec">
         <h3>מה המערכת הזו?</h3>
         <p>כלי אחד שמרכז את כל תוכניות הבינוי בעיר: מעקב אחר כל תוכנית משלב ההגשה ועד האישור, הדרישות שהיזם צריך לעמוד בהן,
