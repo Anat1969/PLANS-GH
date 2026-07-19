@@ -786,7 +786,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table .col-district{width:62px;max-width:62px;font-size:11.5px}
 .plans-table .col-txt{max-width:110px;min-width:58px}
 .plans-table .col-loc{max-width:140px;min-width:84px}
-.plans-table .col-date{width:140px;max-width:140px}
+.plans-table .col-date{width:150px;max-width:150px}
 .plans-table .col-status{width:78px;max-width:78px}
 .plans-table .col-note{width:150px;max-width:150px;white-space:normal}
 .plans-table td.col-note{padding:2px 3px}
@@ -802,8 +802,9 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .submit-mail:hover{color:var(--bordeaux,#7a1f2b)}
 /* מספר תוכנית — גדול ובולט */
 .plans-table td.col-plannum{font-weight:800;font-size:15px;color:var(--ink);letter-spacing:.2px}
-/* שלושת תאריכי המעקב — גדולים במיוחד ובולטים בצפייה (פי ~2) */
-.plans-table .col-date .date-status{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:6px 8px;font-size:22px;font-weight:800;letter-spacing:.3px;border-radius:6px}
+/* שלושת תאריכי המעקב — גדולים ובולטים, אך תמיד מוצגים במלואם (ללא חיתוך) */
+.plans-table .col-date{overflow:visible}
+.plans-table .col-date .date-status{display:inline-block;max-width:100%;white-space:nowrap;overflow:visible;padding:5px 7px;font-size:17px;font-weight:800;letter-spacing:.2px;border-radius:6px;font-variant-numeric:tabular-nums}
 .plans-table td input,.plans-table td select{width:100%;box-sizing:border-box;font-size:11.5px;padding:2px 4px;min-width:0}
 /* מיקום מודגש בבולט גדול */
 .plans-table .col-loc{font-weight:700;font-size:13.5px;color:var(--ink)}
@@ -814,7 +815,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .plans-table thead th.grp-sep-start,.plans-table thead th.grp-sep-end{border-color:#fff}
 .plans-table thead th.forum-group{background:var(--bronze-deep,var(--bronze-deep))}
 /* בורר תאריך בטבלה — אייקון לוח שנה גדול וברור, כיוון LTR לתצוגת תאריך תקינה */
-.plans-table .col-date input[type=date]{font-size:19px;font-weight:800;padding:7px 3px;direction:ltr;text-align:center;cursor:pointer;border:2px solid var(--teal,#2A5F5F);border-radius:6px}
+.plans-table .col-date input[type=date]{font-size:15px;font-weight:700;padding:6px 2px;direction:ltr;text-align:center;cursor:pointer;border:2px solid var(--teal,#2A5F5F);border-radius:6px;font-variant-numeric:tabular-nums}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;padding:2px;margin:0;opacity:.75;filter:invert(20%)}
 .plans-table .col-date input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .date-legend .dt-future{color:#fff}
@@ -1090,6 +1091,11 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-tik{font-size:18px;font-weight:800;color:var(--ink)}
 .dw-name{font-size:15px;color:var(--ink)}
 .dw-stage{font-size:12px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 10px}
+/* שלושת התאריכים לעדכון ישיר מתוך כרטיס תוכנית העבודה */
+.dw-dates{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px;padding:8px 10px;background:var(--fog,#f2f0ec);border-radius:8px}
+.dw-date{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted,#6b6259);font-weight:600}
+.dw-date input[type=date]{font-size:13px;font-weight:700;padding:4px 6px;border:1px solid var(--stone,#e8e5df);border-radius:5px;direction:ltr;text-align:center;font-variant-numeric:tabular-nums;background:#fff}
+.dw-date input[type=date]:focus{outline:2px solid var(--teal,#2A5F5F);outline-offset:-1px}
 .dw-cols{display:grid;grid-template-columns:1.3fr 1.6fr .9fr;gap:18px;align-items:start}
 .dw-col{min-width:0}
 .dw-block{margin:0 0 8px;font-size:13.5px;line-height:1.5;color:#444}
@@ -1233,6 +1239,9 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .mail-arch-tag{background:var(--teal,#2A5F5F);color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700}
 .mail-noemail{background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:6px 10px;font-size:12px;color:#8a5a00;margin-top:6px}
 .mail-send-summary{font-size:12px;color:var(--muted,#6b6259);margin-top:8px}
+.mail-assign-hint{font-size:12px;color:#8a5a00;background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.5}
+.mail-add-recipient{display:flex;gap:6px;margin-top:6px}
+.mail-add-recipient input{flex:1}
 .mail-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:1rem}
 @media (max-width:768px){.dw-grid{grid-template-columns:1fr}}
 .stc-desc{font-size:16px;line-height:1.65;color:rgba(0,0,0,0.72);flex:1}
@@ -7719,10 +7728,19 @@ const DW_CATS = {
 function taskCard(t){
   const cat = DW_CATS[t.category] || DW_CATS.important;
   const mailBtn = `<button class="btn btn-primary btn-sm" onclick="runTaskTool(${t.id},'${t.rule}','${t.tool}')">${TOOL_LABELS[t.tool]||'ביצוע'}</button>`;
+  const p = plans.find(x=>x.id===t.id) || {};
+  const dateField = (field,label)=>`<label class="dw-date"><span>${label}</span>
+    <input type="date" value="${p[field]||''}" onchange="saveForumDate(${t.id},'${field}',this)"></label>`;
+  const datesRow = `<div class="dw-dates">
+    ${dateField('forumArchitect','פורום אדריכל')}
+    ${dateField('forumConsultants','פורום יועצים')}
+    ${dateField('committeeDate','הכנה לוועדה')}
+  </div>`;
   return `<div class="dw-card ${cat.cls}">
     <div class="dw-band">${cat.label}</div>
     <div class="dw-body">
       <div class="dw-card-head"><b class="dw-tik">תב/${t.tik}</b> <span class="dw-name">${esc(t.name)}</span> <span class="dw-stage">${esc(t.stage)}</span></div>
+      ${datesRow}
       <div class="dw-cols">
         <div class="dw-col">
           <div class="dw-block"><span class="dw-k">מה מעכב</span>${esc(t.blocker)}</div>
@@ -7981,9 +7999,14 @@ function openMailComposer(p, subject, body, toList, rec){
   ov.innerHTML=`<div class="ver-modal mail-modal">
     <h3>מייל לפעולה המומלצת — תב/${p.tik}</h3>
     ${noRecipient?'<div class="calc-warn-banner">⚠ אין כתובת מייל תקינה. ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
-    <label class="mail-lbl">נמענים (אל)</label>
-    <div class="mail-recipients">${recRows}</div>
+    <label class="mail-lbl">נמענים (אל) — אדריכל היזם וכל נציגי היזם המשויכים לתוכנית</label>
+    <div class="mail-recipients" id="mailRecList">${recRows}</div>
     ${noEmailBlock}
+    ${noRecipient?`<div class="mail-assign-hint">לא משויכים אנשי קשר עם מייל לתוכנית זו. הוסיפי אותם בדף התוכנית ← „צוות היזם” / „אנשי קשר בפרויקט”, או הזיני נמען ידני כאן:</div>`:''}
+    <div class="mail-add-recipient">
+      <input id="mailAddEmail" type="email" placeholder="הוספת נמען ידני (כתובת מייל)">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="mailAddRecipient()">+ הוסף</button>
+    </div>
     <label class="mail-lbl">נושא</label><input id="mailSubject" value="${esc(subject)}">
     <label class="mail-lbl">גוף ההודעה</label><textarea id="mailBody" style="min-height:200px">${esc(body)}</textarea>
     <label class="chk-inline"><input type="checkbox" id="mailAttachLink" checked> צרף קישור לתוכנית</label>
@@ -8004,6 +8027,17 @@ function _mailData(planId){
   if(document.getElementById('mailAttachLink')&&document.getElementById('mailAttachLink').checked){ body+='\n\nקישור לתוכנית: '+location.origin+location.pathname+'#project='+p.tik; }
   const to=[...document.querySelectorAll('.mail-recipients input:checked')].map(i=>i.dataset.email).filter(Boolean);
   return {p,subject,body,to};
+}
+/** הוספת נמען ידני לרשימת הנמענים (כשאיש קשר אינו משויך במאגר) */
+function mailAddRecipient(){
+  const inp=document.getElementById('mailAddEmail'); if(!inp) return;
+  const addr=(inp.value||'').trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addr)){ toast('כתובת מייל לא תקינה'); return; }
+  const list=document.getElementById('mailRecList'); if(!list) return;
+  if([...list.querySelectorAll('input[data-email]')].some(i=>i.dataset.email.toLowerCase()===addr.toLowerCase())){ toast('הנמען כבר ברשימה'); inp.value=''; return; }
+  const lbl=document.createElement('label'); lbl.className='chk-inline mail-rec-row';
+  lbl.innerHTML=`<input type="checkbox" checked data-email="${esc(addr)}"><span>נמען ידני</span><span class="muted">${esc(addr)}</span>`;
+  list.appendChild(lbl); inp.value='';
 }
 function mailCopy(planId){ const {subject,body}=_mailData(planId); navigator.clipboard.writeText('נושא: '+subject+'\n\n'+body).then(()=>toast('הועתק ללוח')); }
 function mailSaveDraft(planId){ const {p,subject,body,to}=_mailData(planId); logAction(p,'mail','טיוטה נשמרה: '+subject); toast('טיוטה נשמרה'); renderDailyWork&&renderDailyWork(); }
