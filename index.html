@@ -1373,6 +1373,26 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .login-err{width:100%;text-align:center;color:#a33;font-size:13px;min-height:18px}
 .role-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(42,95,95,0.08);border:1px solid rgba(42,95,95,0.25);color:var(--teal,#2a5f5f);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap}
 .role-chip .rc-out{cursor:pointer;opacity:.75;font-size:11px;text-decoration:underline}
+.role-chip .rc-info{cursor:pointer;opacity:.85;font-weight:700;font-size:11px;border:1px solid currentColor;
+  border-radius:50%;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.role-chip .rc-info:hover{opacity:1;background:rgba(42,95,95,0.15)}
+/* גוון לפי מסלול — כדי שההבדל יהיה מיידי לעין */
+body.role-manager .role-chip{background:rgba(156,122,60,0.10);border-color:rgba(156,122,60,0.35);color:var(--bronze-deep,#7a5f2e)}
+body.role-developer .role-chip{background:rgba(122,31,43,0.09);border-color:rgba(122,31,43,0.30);color:var(--bordeaux,#7a1f2b)}
+/* פאנל הרשאות */
+.perm-head{font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6}
+.perm-grid{display:grid;gap:8px}
+.perm-row{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border:1px solid var(--stone);
+  border-radius:var(--r);background:var(--surface);font-size:13px}
+.perm-row .pm-i{flex:none;font-weight:700;width:16px;text-align:center}
+.perm-row.yes .pm-i{color:#2e7d5b} .perm-row.no .pm-i{color:#a33} .perm-row.part .pm-i{color:var(--bronze-deep,#7a5f2e)}
+.perm-row.no{opacity:.72}
+.perm-row b{display:block;margin-bottom:2px}
+.perm-row span{color:var(--muted);font-size:12px;line-height:1.55}
+.perm-sec{margin-top:1.2rem;font-size:12px;color:var(--muted);border-top:1px solid var(--stone);padding-top:.9rem}
+.perm-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.perm-tags i{font-style:normal;font-size:11px;background:var(--fog);border:1px solid var(--stone);
+  border-radius:12px;padding:2px 9px;color:var(--ink)}
 .lock-banner,.ro-banner{background:rgba(42,95,95,0.07);border:1px solid rgba(42,95,95,0.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--teal,#2a5f5f);display:flex;gap:8px;align-items:center}
 body.role-developer .pp-panel.sec-locked input,body.role-developer .pp-panel.sec-locked textarea,
 body.role-developer .pp-panel.sec-locked select,body.role-developer .pp-panel.sec-locked button,
@@ -1724,7 +1744,7 @@ tbody tr{transition:background .12s}
       <span class="mode-switch"><span class="mode-knob"></span></span>
     </div>
     <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">☁ מתחבר…</span>
-    <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-out" onclick="logoutRole()">החלפת משתמש</span></span>
+    <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-info" onclick="openPermsModal()" title="מה מותר לי במסלול הזה?">i</span> <span class="rc-out" onclick="logoutRole()">החלפת משתמש</span></span>
   </div>
 </div>
 </header>
@@ -1785,6 +1805,17 @@ tbody tr{transition:background .12s}
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
       <button class="btn btn-ghost btn-sm" onclick="closeLocksModal()">סגירה</button>
     </div>
+  </div>
+</div>
+
+<!-- ════════ מה מותר לי — הרשאות המסלול ════════ -->
+<div class="modal-overlay no-print" id="permsModal" onclick="if(event.target===this)closePermsModal()">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="permsTitle">ההרשאות שלי</h3>
+      <button class="modal-close" onclick="closePermsModal()">✕</button>
+    </div>
+    <div class="modal-body" id="permsBody"></div>
   </div>
 </div>
 
@@ -9964,6 +9995,66 @@ function applyRoleUI(){
   if(currentProjectId!=null){ applyProjectRole(); const p=pj(); if(p) applyLocksUI(p); }
   applyGlobalMode();
 }
+
+/* ══════════════════════════════════════════════════════
+   "מה מותר לי" — פירוט הרשאות המסלול הנוכחי.
+   היכולות נגזרות מקבועי ההרשאות שבקוד (NAV_VISIBLE,
+   DEV_SECTIONS) ומהתפקיד — ולא מרשימה שנכתבה בנפרד,
+   כדי שלא ייווצר פער בין המוצג לבין ההתנהגות בפועל.
+   ══════════════════════════════════════════════════════ */
+const ROLE_ROUTE = {
+  architect:{ name:'אדריכלית העיר', tone:'עריכה מלאה' },
+  manager:  { name:'הנהלת העירייה', tone:'צפייה בלבד' },
+  developer:{ name:'יזם', tone:'עריכת התוכנית שלך בלבד' }
+};
+function permAbilities(){
+  const arch=isArchitect(), mgr=isManager(), dev=isDeveloper();
+  return [
+    {ok:true, t:'צפייה בתוכניות',
+     d: dev? 'רק התוכנית/ות המשויכות לקוד הגישה שלך' : 'כל התוכניות במערכת'},
+    {ok: arch?1:(dev?'part':0), t:'עריכת נתוני תוכנית',
+     d: arch? 'עריכה מלאה של כל השדות בכל התוכניות'
+        : dev? 'חלקית — רק בסעיפים שברשימה למטה, ורק בתוכנית שלך'
+        : 'אין הרשאת עריכה — צפייה בלבד'},
+    {ok:arch?1:0, t:'שינוי סטטוס, שלב ומטפל',
+     d: arch? 'שליטה מלאה בהתקדמות התוכנית' : 'שמור לאדריכלית העיר בלבד'},
+    {ok:arch?1:0, t:'כתיבת חוות דעת והחלטות',
+     d: arch? 'כתיבה, עריכה והפקה של חוות דעת' : 'לצפייה בלבד — נכתב ע"י אדריכלית העיר'},
+    {ok:arch?1:0, t:'אישור ונעילת סעיפים',
+     d: arch? 'נעילת סעיפים לאחר אישור, כך שהיזם לא ישנה אותם' : 'שמור לאדריכלית העיר בלבד'},
+    {ok:arch?1:0, t:'הגדרות המערכת',
+     d: arch? 'כולל כללי הבדיקה והמחשבונים' : 'אין גישה'}
+  ].map(r=>({...r, cls: r.ok===true||r.ok===1?'yes':(r.ok===0?'no':'part')}));
+}
+function openPermsModal(){
+  if(!session) return;
+  const R=ROLE_ROUTE[session.role]||{name:session.role,tone:''};
+  const ttl=document.getElementById('permsTitle');
+  if(ttl) ttl.textContent='המסלול שלי: '+R.name;
+  // הדפים הזמינים — נשלפים מהניווט עצמו
+  const allow=NAV_VISIBLE[session.role]||[];
+  const navNames=allow.map(id=>{
+    const b=document.querySelector('#mainNav button[data-nav="'+id+'"]');
+    return b? b.textContent.trim().replace(/^❓\s*/,'') : id;
+  });
+  const abil=permAbilities();
+  let html='<div class="perm-head"><b>'+esc(R.name)+'</b> — '+esc(R.tone)+
+    (isDeveloper()? '<br>תוכניות משויכות: '+esc((session.tiks||[]).map(t=>'תב/'+t).join(', ')) : '')+
+    '</div><div class="perm-grid">'+
+    abil.map(a=>'<div class="perm-row '+a.cls+'"><span class="pm-i">'+
+      (a.cls==='yes'?'✓':a.cls==='no'?'✕':'~')+'</span><span style="flex:1"><b>'+esc(a.t)+'</b><span>'+esc(a.d)+'</span></span></div>').join('')+
+    '</div>';
+  if(isDeveloper()){
+    html+='<div class="perm-sec"><b>סעיפים שניתן לערוך בתוכנית שלך</b>'+
+      '<div class="perm-tags">'+Object.values(DEV_SECTIONS).map(s=>'<i>'+esc(s)+'</i>').join('')+'</div>'+
+      '<div style="margin-top:7px">סעיף שאושר וננעל ע"י אדריכלית העיר אינו ניתן עוד לעריכה.</div></div>';
+  }
+  html+='<div class="perm-sec"><b>הדפים הזמינים לך</b><div class="perm-tags">'+
+    navNames.map(n=>'<i>'+esc(n)+'</i>').join('')+'</div></div>';
+  document.getElementById('permsBody').innerHTML=html;
+  document.getElementById('permsModal').classList.add('open');
+}
+function closePermsModal(){ const m=document.getElementById('permsModal'); if(m)m.classList.remove('open'); }
 
 /* ── אישור ונעילת סעיפים ע"י אדריכלית העיר ── */
 function openLocksModal(){
