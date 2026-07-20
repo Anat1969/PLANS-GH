@@ -1124,8 +1124,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-card.dw-c-important .dw-band{background:#b5610f;color:#fff}
 .dw-card.dw-c-waiting .dw-band{background:#2a557a;color:#fff}
 .dw-card.dw-c-proactive .dw-band{background:#1f6d45;color:#fff}
-.dw-body{flex:1;min-width:0;padding:14px 18px}
-.dw-card-head{font-weight:600;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.dw-body{flex:1;min-width:0;padding:10px 14px}
+.dw-card-head{font-weight:600;margin-bottom:7px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dw-tik{font-size:18px;font-weight:800;color:var(--ink)}
 .dw-name{font-size:15px;color:var(--ink)}
 .dw-stage{font-size:12px;background:#eef4f4;color:#3a6d6d;border-radius:12px;padding:2px 10px}
@@ -1144,7 +1144,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-date-dt-none .dw-date-state{background:var(--stone,#e8e5df);color:var(--muted,#6b6259)}
 .dw-update-btn{background:var(--teal,#2A5F5F);color:#fff;align-self:center;white-space:nowrap;font-weight:700}
 .dw-update-btn:hover{background:var(--bordeaux,#7a1f2b)}
-.dw-cols{display:grid;grid-template-columns:1.3fr 1.6fr .9fr;gap:18px;align-items:start}
+.dw-cols{display:grid;grid-template-columns:1.2fr 1.5fr .8fr;gap:14px;align-items:start}
 .dw-col{min-width:0}
 .dw-block{margin:0 0 8px;font-size:13.5px;line-height:1.5;color:#444}
 .dw-k{display:block;color:var(--muted,#6b6259);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
@@ -1153,17 +1153,29 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-blocker .dw-blocker-txt{color:var(--err,#b84040);font-weight:800;font-size:14px;line-height:1.45}
 .dw-blocker .dw-k{color:var(--err,#b84040)}
 /* "מה צריך לעשות עכשיו" — הדגשה חזקה */
-.dw-now{background:var(--fog,#f2f0ec);border:1px solid var(--stone,#e8e5df);border-inline-start:4px solid var(--teal,#2A5F5F);border-radius:8px;padding:10px 12px}
-.dw-now-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--teal,#2A5F5F);margin-bottom:4px}
-.dw-now-text{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink,#1a1a1a)}
+.dw-now{background:var(--fog,#f2f0ec);border:1px solid var(--stone,#e8e5df);border-inline-start:4px solid var(--teal,#2A5F5F);border-radius:8px;padding:7px 10px;margin-top:8px}
+.dw-now-label{font-size:10.5px;font-weight:800;letter-spacing:.4px;color:var(--teal,#2A5F5F);margin-bottom:2px}
+.dw-now-text{font-size:13.5px;font-weight:700;line-height:1.4;color:var(--ink,#1a1a1a)}
+/* עמודת ההערות במרכז — קומפקטית, גדלה רק לפי התוכן */
+.dw-col-notes{min-width:0}
+.dw-col-notes .nti{margin-top:0;padding-top:0;border-top:none}
 .dw-side{font-size:12.5px;color:#555;display:flex;flex-direction:column;gap:7px}
 .dw-side>div{line-height:1.3}
 .dw-empty{padding:.4rem 0}
 @media(max-width:820px){.dw-cols{grid-template-columns:1fr}}
 .dw-tools{display:flex;gap:8px;margin-top:12px}
 .dw-done-filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.dw-done-card{border:1px solid var(--fog);border-radius:10px;padding:10px 13px;background:#fff;font-size:13px}
+.dw-done-card{border:1px solid var(--fog);border-radius:10px;padding:8px 12px;background:#fff;font-size:13px;overflow-x:auto}
 .dw-done-top{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+/* "מה נעשה" — פורמט קבוע: כותרות מעל, נתונים מתחת.
+   אותו תבנית עמודות בכל הכרטיסים, ללא תלות באורך התוכן. */
+.dwd-row{display:grid;grid-template-columns:78px minmax(0,1.7fr) 110px minmax(0,1.5fr) 86px 108px 104px 84px;
+  gap:10px;align-items:center;min-width:760px}
+.dwd-head{font-size:10.5px;font-weight:700;color:var(--muted,#6b6259);letter-spacing:.3px;
+  padding-bottom:4px;border-bottom:1px solid var(--fog)}
+.dwd-data{padding-top:5px;font-size:12.5px;color:#333}
+.dwd-row>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dwd-data b{color:var(--teal,#2A5F5F)}
 /* ── הערות תוכן ── */
 .nt-wrap{margin-top:6px}
 .nt-add{display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap}
@@ -8507,11 +8519,12 @@ function taskCard(t){
         <div class="dw-col">
           <div class="dw-block dw-blocker"><span class="dw-k">סיבת העיכוב</span><span class="dw-blocker-txt">${esc(t.blocker)}</span></div>
           ${t.impact?`<div class="dw-block dw-impact"><span class="dw-k">השפעת אי־ביצוע</span>${esc(t.impact)}</div>`:''}
+          <div class="dw-now">
+            <div class="dw-now-label">מה צריך לעשות עכשיו</div>
+            <div class="dw-now-text">${esc(t.action)}</div>
+          </div>
         </div>
-        <div class="dw-col dw-now">
-          <div class="dw-now-label">מה צריך לעשות עכשיו</div>
-          <div class="dw-now-text">${esc(t.action)}</div>
-        </div>
+        <div class="dw-col dw-col-notes">${notesInline(p)}</div>
         <div class="dw-col dw-side">
           <div><span class="dw-k">אחראי</span>${esc(t.owner)}</div>
           <div><span class="dw-k">לפנות אל</span>${esc(t.contact)}</div>
@@ -8519,7 +8532,6 @@ function taskCard(t){
           <div><span class="dw-k">ללא התקדמות</span>${t.daysNoProgress>=9999?'—':t.daysNoProgress+' ימים'}</div>
         </div>
       </div>
-      ${notesInline(p)}
       <div class="dw-tools no-print">
         <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
         <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">✉ מייל לאדריכל היזם</button>
@@ -8612,12 +8624,23 @@ function renderDoneThisMonth(){
   // תוכניות פעילות ללא פעילות החודש — הצגת המשפט הנדרש
   const actedTiks=new Set(acts.map(a=>String(a.tik)));
   const noActivity=activePlans.filter(p=>!actedTiks.has(String(p.tik)));
+  // פורמט אחיד וקבוע: שורת כותרות מעל, שורת נתונים מתחת.
+  // אותו סדר, אותו רוחב ואותו מיקום בכל הכרטיסים — ללא תלות באורך התוכן.
   const rows = acts.length ? acts.map(a=>`
     <div class="dw-done-card">
-      <div class="dw-done-top"><b>תב/${a.tik}</b> · ${esc(a.name)} ${statusChip(a.status)}</div>
-      <div class="dw-done-body">
-        <div><span class="dw-k">פעולה:</span> ${esc(actionTypeLabel(a.type))}${a.detail?(' — '+esc(a.detail)):''}</div>
-        <div class="dw-done-meta"><span class="dw-k">תאריך:</span> ${fmtDate(a.at)} · <span class="dw-k">בוצע ע״י:</span> ${esc(a.by||'—')} · <span class="dw-k">שלב:</span> ${esc(a.stage)}</div>
+      <div class="dwd-row dwd-head">
+        <span>תוכנית</span><span>שם התוכנית</span><span>פעולה</span><span>פירוט</span>
+        <span>תאריך</span><span>בוצע ע״י</span><span>שלב</span><span>סטטוס</span>
+      </div>
+      <div class="dwd-row dwd-data">
+        <span><b>תב/${esc(String(a.tik))}</b></span>
+        <span title="${esc(a.name)}">${esc(a.name)}</span>
+        <span>${esc(actionTypeLabel(a.type))}</span>
+        <span title="${esc(a.detail||'')}">${a.detail?esc(a.detail):'—'}</span>
+        <span>${fmtDate(a.at)}</span>
+        <span>${esc(a.by||'—')}</span>
+        <span>${esc(a.stage||'—')}</span>
+        <span>${statusChip(a.status)}</span>
       </div>
     </div>`).join('') : '';
   el.innerHTML=`
