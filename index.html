@@ -899,6 +899,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .ds-orange{background:rgba(196,122,32,0.14);color:var(--warn)}
 .ds-red{background:rgba(184,64,64,0.14);color:var(--err)}
 .ds-blue{background:rgba(59,139,212,0.14);color:var(--info)}
+.ds-teal{background:rgba(42,95,95,0.14);color:var(--teal,#2A5F5F)}
 /* צביעת תאריכים לפי זמן אמת: עבר=כחול בהיר · הווה=כחול בינוני · עתיד=כחול כהה+לבן */
 .dt-past{background:#e8f1fb;color:#3a6ea5}
 .dt-present{background:#7ba9d8;color:#fff;font-weight:700}
@@ -1590,6 +1591,33 @@ textarea.infra-in{overflow:hidden;resize:none;line-height:1.4;min-height:2.2em}
 .kpi-lbl{font-size:11px;color:rgba(0,0,0,0.55);margin-top:2px}
 .kpi-warn .kpi-num{color:var(--err)}
 .share-section{margin-bottom:1.6rem;padding-bottom:1rem;border-bottom:1px solid var(--fog)}
+/* ── דוח מנכ"ל — סרגל בתוך המסגרת, מיושר לקצוות ── */
+.ceo-doc{padding:1.5rem}
+.ceo-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+  width:100%;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--stone)}
+.ceo-tb-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ceo-tb-sep{width:1px;height:20px;background:var(--stone);margin:0 4px}
+.ceo-tb-status{font-size:12.5px;color:var(--muted)}
+.ceo-reminder{background:rgba(156,122,60,0.10);border:1px solid rgba(156,122,60,0.35);border-radius:8px;
+  padding:8px 12px;font-size:13px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* כרטיסי סיכום — שורה אחת, גלילה אופקית בלבד במסך צר */
+.ceo-kpis{display:flex;flex-wrap:nowrap;gap:10px;overflow-x:auto;padding-bottom:4px}
+.ceo-kpis .kpi{flex:1 0 130px;min-width:130px}
+.ceo-h{font-family:var(--display);font-size:15px;margin-bottom:.5rem;color:var(--teal,#2A5F5F)}
+.ceo-sec-b{font-size:13px}
+.ceo-namelist{margin:0;padding-inline-start:18px;font-size:13px;line-height:1.7}
+/* טבלת סטטוס */
+.ceo-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.ceo-tbl th{text-align:right;font-size:10.5px;color:var(--muted);font-weight:700;padding:5px 6px;border-bottom:1px solid var(--stone);white-space:nowrap}
+.ceo-tbl td{padding:5px 6px;border-bottom:1px solid var(--fog);vertical-align:top}
+.ceo-targets{font-size:11px;color:var(--muted);white-space:nowrap}
+.ceo-lastnote{max-width:180px;overflow-wrap:anywhere}
+.ceo-dots{display:inline-flex;gap:3px}
+.ceo-dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.cd-ok{background:#3d8b5e} .cd-off{background:var(--fog)}
+.ceo-rn-cell{min-width:150px}
+.ceo-rn{width:100%;font-family:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--stone);border-radius:6px;resize:none;overflow:hidden;background:var(--surface);color:var(--ink)}
+.ceo-rn-meta{font-size:10px;color:var(--muted);margin-top:2px}
 .share-section.locked{background:rgba(61,139,94,0.04);border-radius:8px;padding:10px}
 .share-sec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .share-sec-head h3{font-family:var(--display);font-size:17px;color:var(--ink)}
@@ -6751,8 +6779,8 @@ const shareAudienceProfiles = {
   }
 };
 
-const SHARE_STATUS = { draft:'טיוטה', review:'מוכן לבדיקה', approved:'אושר לשיתוף' };
-const SHARE_STATUS_CLS = { draft:'ds-orange', review:'ds-blue', approved:'ds-green' };
+const SHARE_STATUS = { draft:'טיוטה', review:'ממתין לבדיקת אדריכלית העיר', needsupdate:'נדרש עדכון', approved:'מאושר לשליחה', sent:'נשלח למנכ״ל' };
+const SHARE_STATUS_CLS = { draft:'ds-orange', review:'ds-blue', needsupdate:'ds-orange', approved:'ds-green', sent:'ds-teal' };
 
 /* ── מבנה נתונים ואחסון (Supabase: ashdod_shares) ── */
 let shares = [];
@@ -6775,7 +6803,7 @@ function newShare(type){
     title: type==='monthly-ceo-report' ? ('דוח מעקב חודשי — ' + heMonthName(nowMonth()) + ' ' + nowYear()) : 'שיתוף עיצוב חזיתות',
     status: 'draft',
     reportingPeriod: type==='monthly-ceo-report' ? { month: nowMonth(), year: nowYear() } : undefined,
-    filters: { district:'', developer:'', archName:'', stage:'', includeCompleted:true, includeAppendix:true },
+    filters: { district:'', developer:'', archName:'', stage:'', includeCompleted:(function(){try{return localStorage.getItem('ashdod_ceo_inclDone')==='1';}catch(e){return false;}})(), includeAppendix:true },
     projectIds: [],
     generatedContent: {},
     manualEdits: {},
@@ -6920,6 +6948,78 @@ function advanceShareStatus(){
 /* ══════════ דוח מעקב חודשי למנכ״ל ══════════ */
 const CEO_ACTIVE_STATUSES = ['בטיפול','בהמתנה','דחוף']; // בתהליך/עבודה/המתנה/מעוכב
 
+/* ── תהליך שליחה: הפקה → אישור → שליחה. הסטטוס אוטומטי לפי הפעולה ── */
+const CEO_ARCHITECT_EMAIL = 'shtanat5@gmail.com';   // אדריכלית העיר
+function ceoProduce(){
+  const s=sh(); if(!s)return;
+  s.status='review';                       // טיוטה לבדיקת אדריכלית העיר
+  s.producedAt=new Date().toISOString();
+  touchShare(s); openShare(s.id);
+  toast('הופק דוח — ממתין לבדיקת אדריכלית העיר');
+}
+function ceoApprove(){
+  const s=sh(); if(!s)return;
+  s.status='approved';
+  s.approvedAt=new Date().toISOString();
+  // שמירת גרסה סופית לארכיון רק באישור
+  ceoArchiveVersion(s);
+  touchShare(s); openShare(s.id);
+  toast('הדוח אושר — מוכן לשליחה למנכ״ל');
+}
+function ceoSendToCeo(){
+  const s=sh(); if(!s)return;
+  if(s.status!=='approved'){ toast('יש לאשר את הדוח לפני השליחה'); return; }
+  const doc=document.getElementById('shareDoc');
+  const clone=doc?doc.cloneNode(true):null;
+  if(clone){ clone.querySelectorAll('.no-print').forEach(x=>x.remove()); }
+  const body=clone?clone.innerText.replace(/\n{3,}/g,'\n\n'):s.title;
+  const subject=encodeURIComponent(s.title||'דוח מעקב חודשי');
+  // פתיחת טיוטת מייל למנכ״ל
+  window.location.href='mailto:?subject='+subject+'&body='+encodeURIComponent(body);
+  s.status='sent';
+  s.sentAt=new Date().toISOString();
+  s.recipients=['מנכ״ל העירייה'];
+  // עדכון רשומת הארכיון בשעת השליחה
+  const arch=(s.archive||[]).slice(-1)[0];
+  if(arch){ arch.sentAt=s.sentAt; arch.recipients=s.recipients; }
+  touchShare(s); openShare(s.id);
+  toast('נפתחה טיוטת מייל למנכ״ל · הדוח סומן כנשלח');
+}
+function ceoReopenForEdit(){
+  const s=sh(); if(!s)return;
+  s.status='needsupdate';
+  touchShare(s); openShare(s.id);
+  toast('הדוח הוחזר לעריכה');
+}
+/** ארכיון „דוחות חודשיים” — צילום הנתונים בעת האישור */
+function ceoArchiveVersion(s){
+  if(!Array.isArray(s.archive)) s.archive=[];
+  const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
+  const doc=document.getElementById('shareDoc');
+  const snap = doc ? doc.innerHTML : '';
+  s.archive.push(Object.freeze({
+    month:pr.month, year:pr.year, label:heMonthName(pr.month)+' '+pr.year,
+    approvedAt:new Date().toISOString(), sentAt:'', recipients:[],
+    title:s.title, snapshotHtml:snap.slice(0,200000)
+  }));
+}
+/** עדכון תצוגת הסטטוס והכפתורים בלי רינדור מלא (למניעת אובדן פוקוס) */
+function renderShareStatusUI(){
+  const el=document.getElementById('ceoStatusPill'); const s=sh();
+  if(el&&s){ el.className='date-status '+(SHARE_STATUS_CLS[s.status]||''); el.textContent=SHARE_STATUS[s.status]||s.status; }
+}
+/** תזכורת ל-1 בחודש: הפקת דוח לחודש הקודם (במקום cron אמיתי) */
+function ceoMonthlyReminder(s){
+  const now=new Date(); const d=now.getDate();
+  if(d>5) return '';   // מציגים בתחילת החודש בלבד
+  const pr=s.reportingPeriod||{};
+  const prevM = now.getMonth()===0?12:now.getMonth(); const prevY = now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  if(pr.month===prevM && pr.year===prevY && s.status!=='draft') return '';
+  return `<div class="ceo-reminder no-print">📅 תחילת חודש — מומלץ להפיק את דוח <b>${heMonthName(prevM)} ${prevY}</b>.
+    <button class="btn btn-primary btn-xs" onclick="ceoSetPeriod(${prevM},${prevY});ceoProduce()">הפקת דוח לחודש הקודם</button></div>`;
+}
+function ceoSetPeriod(m,y){ const s=sh(); if(!s)return; if(!s.reportingPeriod)s.reportingPeriod={}; s.reportingPeriod.month=m; s.reportingPeriod.year=y; touchShare(s); }
+
 /** תוכניות שאושרו בחודש נתון (YYYY-MM) — לפי תאריך האישור בפועל.
     נבדק על כלל התוכניות ולא רק על הפעילות, כי תוכנית שאושרה
     כבר אינה "בטיפול" ולכן לא הייתה נכללת בסינון הרגיל. */
@@ -6950,14 +7050,87 @@ function ceoSelectedPlans(s){
   });
 }
 
-/** בונה טבלת סטטוס תמציתית לדוח */
-function ceoStatusTable(list){
+/* ── הגדרות מוסכמות לדוח (מהסטטוס האמיתי, ללא ספירה כפולה) ──
+   אושרו = תוכניות שנחתמו (signDate).
+   הושלמו = סיימו את שלושת הפורומים: אדריכל + יועצים + הכנה לוועדה. */
+function ceoForumsDone(p){
+  const archOk = !!(p.forumDecision && p.forumDecision.approved);
+  const consOk = !!(p.consultantsPlanApproved &&
+    Array.isArray(p.consultants) && p.consultants.length>0 &&
+    p.consultants.every(c=>c.status==='approved'));
+  const cr = p.committeeReady||{};
+  const items = (typeof COMMITTEE_CHECKLIST!=='undefined')?COMMITTEE_CHECKLIST:[];
+  const commOk = items.length>0 && items.every(it=>cr[it.id]);
+  return { archOk, consOk, commOk, all: archOk&&consOk&&commOk };
+}
+function ceoIsSigned(p){ return !!(p.signDate); }
+function ceoIsCompleted(p){ return ceoForumsDone(p).all; }
+/** מצב שלושת הפורומים כשלושה נקודות רמזור */
+function ceoForumDots(p){
+  const f=ceoForumsDone(p);
+  const dot=(ok,lbl)=>`<span class="ceo-dot ${ok?'cd-ok':'cd-off'}" title="${lbl}"></span>`;
+  return `<span class="ceo-dots">${dot(f.archOk,'פורום אדריכל')}${dot(f.consOk,'פורום יועצים')}${dot(f.commOk,'הכנה לוועדה')}</span>`;
+}
+/** תאריך היעד הקרוב מבין מועדי הפורומים שטרם עברו */
+function ceoNearestTarget(p, today){
+  const cands=[p.forumArchitect,p.forumConsultants,(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate]
+    .filter(Boolean).filter(d=>d>=today).sort();
+  return cands[0]||'';
+}
+/** עמידה/חריגה בלוח הזמנים: אם יש מועד שעבר וטרם התקיים הפורום המתאים */
+function ceoScheduleStatus(p, today){
+  const f=ceoForumsDone(p);
+  const overdue = (p.forumArchitect&&p.forumArchitect<today&&!f.archOk)
+    || (p.forumConsultants&&p.forumConsultants<today&&!f.consOk)
+    || (((p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate)&&(((p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate)<today)&&!f.commOk);
+  return overdue ? '<span class="date-status ds-red">חריגה</span>' : '<span class="date-status ds-green">בלו״ז</span>';
+}
+/** ההערה האחרונה שנרשמה בתוכנית (מהערות התוכן) */
+function ceoLastNote(p){
+  const ns = (typeof planNotes==='function')?planNotes(p):(p.notes||[]);
+  return ns&&ns.length ? ns[0].text : '';
+}
+/* ── הערת אדריכלית העיר לדוח — נפרדת מהערות העבודה ── */
+function ceoReportNote(s,tik){ return (s.reportNotes&&s.reportNotes[tik]) || null; }
+function setCeoReportNote(tik, text){
+  const s=sh(); if(!s)return; if(!s.reportNotes)s.reportNotes={};
+  const t=String(text||'').trim();
+  if(!t){ delete s.reportNotes[tik]; }
+  else { s.reportNotes[tik]={ text:t, at:new Date().toISOString(), by:'אדריכלית העיר' }; }
+  touchShare(s);
+  if(s.status==='approved'||s.status==='review'){ s.status='needsupdate'; renderShareStatusUI(); }
+}
+
+/** בונה טבלת סטטוס לדוח — ללא עמודת שם התוכנית */
+function ceoStatusTable(list, opts){
+  opts=opts||{};
   if(!list.length) return '<p class="muted">אין תוכניות התואמות את הסינון.</p>';
-  const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
-  const risk = p => (p.status==='דחוף'?'<span class="date-status ds-red">גבוה</span>':(p.status==='בהמתנה'?'<span class="date-status ds-orange">בינוני</span>':'<span class="date-status ds-green">נמוך</span>'));
-  return `<div class="tbl-wrap"><table><thead><tr>
-    <th>תוכנית</th><th>שם התוכנית</th><th>מגרש</th><th>יזם</th><th>אדריכל</th><th>שלב</th><th>יעד</th><th>סיכון</th></tr></thead><tbody>${
-    list.map(p=>`<tr><td><strong>תב/${p.tik}</strong></td><td>${esc(p.projectName||'—')}</td><td>${esc(p.location||'—')}</td><td>${esc(p.developer||'—')}</td><td>${esc(p.submitter||p.meta&&p.meta.archName||'—')}</td><td>${stageLbl[p.stage||'stage_1']}</td><td>${fmtDate(p.committeeDate)}</td><td>${risk(p)}</td></tr>`).join('')
+  const s=sh();
+  const today=todayStr();
+  const stageLbl={stage_1:'פורום אדריכל',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר',signed:'נחתם'};
+  const schedule = opts.editable!==false;
+  return `<div class="tbl-wrap"><table class="ceo-tbl"><thead><tr>
+    <th>תוכנית</th><th>סטטוס</th><th>שלב</th><th>פורומים</th><th>יעדי פורומים</th><th>יעד קרוב</th><th>לו״ז</th><th>הערה אחרונה</th>${schedule?'<th>הערת אדריכלית לדוח</th>':''}</tr></thead><tbody>${
+    list.map(p=>{
+      const targets=[p.forumArchitect,p.forumConsultants,(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate]
+        .map(d=>d?fmtDate(d):'—').join(' · ');
+      const near=ceoNearestTarget(p,today);
+      const rn=s?ceoReportNote(s,p.tik):null;
+      const noteCell = schedule ? `<td class="ceo-rn-cell">
+        <textarea class="ceo-rn autogrow" rows="1" oninput="autoGrow(this)" placeholder="הערה לדוח..." onchange="setCeoReportNote('${esc(String(p.tik))}',this.value)">${esc(rn?rn.text:'')}</textarea>
+        ${rn?`<div class="ceo-rn-meta">${fmtDate(rn.at)} · ${esc(rn.by)}</div>`:''}</td>` : '';
+      return `<tr>
+        <td><strong>תב/${esc(String(p.tik))}</strong></td>
+        <td>${statusChip?statusChip(p.status):esc(p.status||'')}</td>
+        <td>${stageLbl[p.stage||'stage_1']}</td>
+        <td>${ceoForumDots(p)}</td>
+        <td class="ceo-targets">${targets}</td>
+        <td>${near?fmtDate(near):'—'}</td>
+        <td>${ceoScheduleStatus(p,today)}</td>
+        <td class="ceo-lastnote">${esc(ceoLastNote(p)||'—')}</td>
+        ${noteCell}
+      </tr>`;
+    }).join('')
   }</tbody></table></div>`;
 }
 
@@ -7037,65 +7210,104 @@ function autoSection(s, key){
   return '';
 }
 
+/** סעיף פשוט לדוח (ללא כפתורי יצירה/נעילה) */
+function ceoSection(title, body){
+  return `<section class="share-section"><h3 class="ceo-h">${title}</h3><div class="ceo-sec-b">${body}</div></section>`;
+}
 function renderCeoReport(s){
+  const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
+  const prYm = String(pr.year)+'-'+String(pr.month).padStart(2,'0');
   const list = ceoSelectedPlans(s);
-  const newThis = list.filter(p=>{ const d=p.date||''; const pr=s.reportingPeriod; if(!d||!pr) return false; const [y,m]=d.split('-'); return Number(y)===pr.year && Number(m)===pr.month; }).length;
-  const doneThis = plans.filter(p=>p.status==='הושלם' && p.committeeDate && s.reportingPeriod && Number(p.committeeDate.split('-')[0])===s.reportingPeriod.year && Number(p.committeeDate.split('-')[1])===s.reportingPeriod.month).length;
-  const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה').length;
-  const prYm = s.reportingPeriod ? (String(s.reportingPeriod.year)+'-'+String(s.reportingPeriod.month).padStart(2,'0')) : '';
-  const approvedList = prYm ? ceoApprovedInMonth(prYm) : [];
+  const newThis = list.filter(p=>{ const d=p.date||''; if(!d) return false; const [y,m]=d.split('-'); return Number(y)===pr.year && Number(m)===pr.month; });
+  const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה');
+  // אושרו = נחתמו החודש · הושלמו = שלושת הפורומים. ללא ספירה כפולה.
+  const approvedList = plans.filter(p=>ceoIsSigned(p) && (p.signDate||'').slice(0,7)===prYm);
+  const completedList = plans.filter(p=>ceoIsCompleted(p) && !ceoIsSigned(p)); // הושלמו אך טרם נחתמו — כדי לא לספור פעמיים
+  const urgent = list.filter(p=>{ const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate; return p.status==='דחוף' || (pd&&pd<todayStr()); });
   const districts=[...new Set(plans.map(p=>normalizeDistrict(p.district)).filter(Boolean))].sort();
   const developers=[...new Set(plans.map(p=>p.developer).filter(Boolean))].sort();
-  const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
+
+  // כרטיסי סיכום — סדר מימין לשמאל: פעילות · בעיכוב · הושלמו · אושרו · נקלטו
+  const kpi=(num,lbl,cls)=>`<div class="kpi ${cls||''}"><div class="kpi-num">${num}</div><div class="kpi-lbl">${lbl}</div></div>`;
+  const kpiRow=`<div class="kpi-row ceo-kpis">
+    ${kpi(list.length,'תוכניות פעילות')}
+    ${kpi(delayed.length,'בעיכוב / דורש טיפול','kpi-warn')}
+    ${kpi(completedList.length,'הושלמו')}
+    ${kpi(approvedList.length,'אושרו')}
+    ${kpi(newThis.length,'נקלטו החודש')}
+  </div>`;
+
+  const nameList = arr => arr.length ? '<ul class="ceo-namelist">'+arr.map(p=>`<li>${esc(ceoPlanName(p))}</li>`).join('')+'</ul>' : '<p class="muted">אין.</p>';
+  const reminder = ceoMonthlyReminder(s);
+
   return `
   <div class="pp-breadcrumb no-print"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
-  <div class="share-toolbar no-print">
-    <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
-    <div class="share-tb-right">
-      <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
-      <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
-      <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="draftShareFromData()" title="טיוטה מהנתונים ללא שימוש ב-AI">טיוטה מהנתונים</button> <button class="btn btn-ghost btn-sm" onclick="generateShareContent()" title="ניסוח משכנע יותר בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportShareWord()">Word</button>
-      <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
-    </div>
-  </div>
 
-  <div class="share-doc" id="shareDoc">
-    <div class="share-note no-print">הדוח מתמלא אוטומטית מהנתונים העדכניים — תקציר ענייני לכל כותרת. „✨ העשר עם AI” משכתב לניסוח מנהלי משכנע יותר (צורך טוקנים).</div>
+  <div class="share-doc ceo-doc" id="shareDoc">
+    ${reminder}
+    <!-- סרגל הכפתורים בתוך מסגרת הדוח, מיושר לקצוות, מרווח ~12px מעל התוכן -->
+    <div class="ceo-toolbar no-print">
+      <div class="ceo-tb-status">סטטוס: <span id="ceoStatusPill" class="date-status ${SHARE_STATUS_CLS[s.status]||''}">${SHARE_STATUS[s.status]||s.status}</span></div>
+      <div class="ceo-tb-actions">
+        <button class="btn btn-primary btn-sm" onclick="ceoProduce()">הפקת דוח חודשי</button>
+        <button class="btn btn-sm" onclick="ceoApprove()" ${s.status==='sent'?'disabled':''}>אישור הדוח</button>
+        <button class="btn btn-sm" onclick="ceoSendToCeo()" ${s.status==='approved'?'':'disabled'}>שליחה למנכ״ל</button>
+        <span class="ceo-tb-sep"></span>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
+        ${(s.archive&&s.archive.length)?`<button class="btn btn-ghost btn-sm" onclick="showCeoArchive()">ארכיון (${s.archive.length})</button>`:''}
+        ${s.status==='sent'?`<button class="btn btn-ghost btn-sm" onclick="ceoReopenForEdit()">החזרה לעריכה</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
+      </div>
+    </div>
+
     <div class="share-filters no-print">
       <div class="pp-field"><label>חודש</label><select onchange="setSharePeriod('month',this.value)">${Array.from({length:12},(_,i)=>`<option value="${i+1}"${pr.month===i+1?' selected':''}>${heMonthName(i+1)}</option>`).join('')}</select></div>
       <div class="pp-field"><label>שנה</label><input type="number" value="${pr.year}" onchange="setSharePeriod('year',this.value)"></div>
       <div class="pp-field"><label>רובע</label><select onchange="setShareFilter('district',this.value);openShare('${s.id}')"><option value="">הכל</option>${districts.map(d=>`<option${s.filters.district===d?' selected':''}>${d}</option>`).join('')}</select></div>
       <div class="pp-field"><label>יזם</label><select onchange="setShareFilter('developer',this.value);openShare('${s.id}')"><option value="">הכל</option>${developers.map(d=>`<option${s.filters.developer===d?' selected':''}>${esc(d)}</option>`).join('')}</select></div>
-      <div class="pp-field"><label>שלב</label><select onchange="setShareFilter('stage',this.value);openShare('${s.id}')"><option value="">הכל</option><option value="stage_1"${s.filters.stage==='stage_1'?' selected':''}>פורום אדריכל</option><option value="stage_2"${s.filters.stage==='stage_2'?' selected':''}>פורום יועצים</option><option value="committee"${s.filters.stage==='committee'?' selected':''}>הכנה לוועדה</option><option value="approved"${s.filters.stage==='approved'?' selected':''}>מאושר</option></select></div>
-      <label class="chk-inline"><input type="checkbox" ${s.filters.includeCompleted?'checked':''} onchange="setShareFilter('includeCompleted',this.checked);openShare('${s.id}')"> כלול שהושלמו</label>
+      <label class="chk-inline"><input type="checkbox" ${s.filters.includeCompleted?'checked':''} onchange="ceoSetIncludeCompleted(this.checked)"> כלול שהושלמו</label>
     </div>
 
     <h1 class="share-title" contenteditable="true" onblur="setShareTitle(this.textContent)">${esc(s.title)}</h1>
     <div class="share-sub">אדריכלית העיר ענת דוד שטיבלמן · ${heMonthName(pr.month)} ${pr.year}</div>
 
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-num">${list.length}</div><div class="kpi-lbl">תוכניות פעילות</div></div>
-      <div class="kpi"><div class="kpi-num">${newThis}</div><div class="kpi-lbl">נקלטו החודש</div></div>
-      <div class="kpi"><div class="kpi-num">${approvedList.length}</div><div class="kpi-lbl">אושרו החודש</div></div>
-      <div class="kpi"><div class="kpi-num">${doneThis}</div><div class="kpi-lbl">הושלמו החודש</div></div>
-      <div class="kpi kpi-warn"><div class="kpi-num">${delayed}</div><div class="kpi-lbl">בעיכוב / דורש טיפול</div></div>
-    </div>
+    ${ceoSection('תקציר מנהלים', gcOr(s,'executive'))}
 
-    ${sectionShell(s,'executive','תקציר מנהלים', gcOr(s,'executive'))}
-    ${sectionShell(s,'events','האירועים המרכזיים של החודש', gcOr(s,'events'))}
-    <section class="share-section"><div class="share-sec-head"><h3>תוכניות שאושרו החודש</h3></div>
-      ${approvedList.length
-        ? ceoStatusTable(approvedList)
-        : '<p class="muted">לא אושרו תוכניות בחודש זה.</p>'}</section>
-    <section class="share-section"><div class="share-sec-head"><h3>סטטוס תוכניות</h3></div>${ceoStatusTable(list)}</section>
-    ${sectionShell(s,'attention','תוכניות הדורשות תשומת לב', gcOr(s,'attention'))}
-    ${sectionShell(s,'achievements','הישגים והתקדמות', gcOr(s,'achievements'))}
-    ${sectionShell(s,'decisions','החלטות נדרשות מהמנכ״ל', gcOr(s,'decisions'))}
-    ${sectionShell(s,'nextmonth','מבט לחודש הבא', gcOr(s,'nextmonth'))}
+    ${kpiRow}
+
+    ${ceoSection('תוכניות הדורשות טיפול מיידי', urgent.length?nameList(urgent):'<p class="muted">אין תוכניות הדורשות טיפול מיידי החודש.</p>')}
+
+    ${ceoSection('סטטוס תוכניות', ceoStatusTable(list))}
+
+    ${ceoSection('תוכניות שהושלמו', nameList(completedList))}
+
+    ${ceoSection('תוכניות שאושרו ונחתמו', nameList(approvedList))}
+
+    ${ceoSection('החלטות וחסמים מרכזיים', gcOr(s,'decisions'))}
+
+    ${ceoSection('פעולות נדרשות לחודש הבא', gcOr(s,'nextmonth'))}
+
+    ${ceoSection('הערות אדריכלית העיר', `<div class="pp-field no-print-border"><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setShareField('archNote',this.value)" placeholder="הערה כללית לדוח...">${esc(s.archNote||'')}</textarea><div class="print-only">${esc(s.archNote||'')}</div></div>`)}
   </div>`;
+}
+/** „כלול שהושלמו” — נשמר בבחירת המשתמש; ברירת מחדל: לא מסומן */
+function ceoSetIncludeCompleted(on){
+  const s=sh(); if(!s)return;
+  if(!s.filters)s.filters={};
+  s.filters.includeCompleted=on;
+  try{ localStorage.setItem('ashdod_ceo_inclDone', on?'1':'0'); }catch(e){}
+  touchShare(s); openShare(s.id);
+}
+function showCeoArchive(){
+  const s=sh(); if(!s)return;
+  const a=(s.archive||[]).slice().reverse();
+  const rows=a.length?a.map(v=>`<tr><td><b>${esc(v.label)}</b></td><td>${v.approvedAt?fmtDate(v.approvedAt):'—'}</td><td>${v.sentAt?fmtDate(v.sentAt):'—'}</td><td>${esc((v.recipients||[]).join(', ')||'—')}</td></tr>`).join('')
+    :'<tr><td colspan="4" class="muted">אין דוחות בארכיון עדיין</td></tr>';
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal"><h3>ארכיון דוחות חודשיים</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>חודש</th><th>אושר</th><th>נשלח</th><th>נמענים</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <button class="btn btn-primary btn-sm" onclick="this.closest('.render-lightbox').remove()">סגור</button></div>`;
+  document.body.appendChild(ov);
 }
 function setSharePeriod(k,v){ const s=sh(); if(!s)return; if(!s.reportingPeriod)s.reportingPeriod={}; s.reportingPeriod[k]=Number(v); touchShare(s); openShare(s.id); }
 function setShareTitle(t){ const s=sh(); if(!s)return; s.title=t.trim()||s.title; touchShare(s); renderSharesList(); }
