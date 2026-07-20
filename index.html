@@ -1164,6 +1164,36 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .dw-done-filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .dw-done-card{border:1px solid var(--fog);border-radius:10px;padding:10px 13px;background:#fff;font-size:13px}
 .dw-done-top{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+/* ── הערות תוכן ── */
+.nt-wrap{margin-top:6px}
+.nt-add{display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap}
+.nt-add textarea{flex:1;min-width:240px;min-height:62px;resize:vertical;font-family:inherit;font-size:13px;
+  padding:9px 11px;border:1px solid var(--stone);border-radius:var(--r);background:var(--surface);color:var(--ink);line-height:1.6}
+.nt-add textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,95,95,0.10)}
+.nt-add select{font-family:inherit;font-size:12px;padding:7px 9px;border:1px solid var(--stone);
+  border-radius:var(--r);background:var(--surface);color:var(--ink)}
+/* פריסה אופקית — כרטיסים זה לצד זה, נשברים לשורה הבאה */
+.nt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;align-items:start}
+.nt-card{border:1px solid var(--stone);border-radius:var(--r);background:var(--surface);
+  padding:11px 13px;font-size:13px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.nt-card .nt-txt{line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.nt-meta{font-size:11px;color:var(--muted);display:flex;gap:7px;flex-wrap:wrap;align-items:center;
+  border-top:1px solid var(--fog);padding-top:6px;margin-top:auto}
+.nt-tag{font-size:10.5px;background:var(--fog);border:1px solid var(--stone);border-radius:12px;padding:1px 8px;color:var(--ink)}
+.nt-plan{font-weight:600;color:var(--teal);cursor:pointer;text-decoration:none}
+.nt-plan:hover{text-decoration:underline}
+/* ההערה האחרונה — בולטת וברוחב מלא */
+.nt-card.nt-last{grid-column:1/-1;border-color:var(--teal);border-right:4px solid var(--teal);
+  background:linear-gradient(90deg,rgba(42,95,95,0.05),transparent 60%);box-shadow:0 2px 10px rgba(42,95,95,0.08)}
+.nt-card.nt-last .nt-txt{font-size:14px}
+.nt-badge{font-size:10px;font-weight:700;color:#fff;background:var(--teal);border-radius:10px;padding:1px 8px}
+.nt-acts{display:flex;gap:6px;margin-right:auto}
+.nt-acts button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;
+  padding:2px 5px;border-radius:4px;font-family:inherit}
+.nt-acts button:hover{background:var(--fog);color:var(--ink)}
+.nt-edit{width:100%;min-height:70px;font-family:inherit;font-size:13px;padding:8px 10px;
+  border:1px solid var(--teal);border-radius:var(--r);resize:vertical;line-height:1.6;background:var(--surface);color:var(--ink)}
+.nt-empty{color:var(--muted);font-size:13px;padding:10px 0}
 .dw-noact{margin-top:10px;font-size:12px}
 .dw-noact summary{cursor:pointer;color:#777}
 .dw-noact>div{padding:3px 0}
@@ -2145,6 +2175,7 @@ tbody tr{transition:background .12s}
       <button class="pp-tab" onclick="ppTab('graphics',this)">חומר גרפי</button>
       <button class="pp-tab" onclick="ppTab('docs',this)">מסמכים</button>
       <button class="pp-tab" onclick="ppTab('comm',this)">תקשורת</button>
+      <button class="pp-tab" onclick="ppTab('notes',this)">הערות</button>
       <button class="pp-tab" onclick="ppTab('timeline',this)">ציר זמן</button>
       <button class="pp-tab" onclick="ppTab('opinion',this)">חוות דעת</button>
     </nav>
@@ -2162,6 +2193,13 @@ tbody tr{transition:background .12s}
   <div class="pp-panel" id="panel-graphics"></div>
   <div class="pp-panel" id="panel-docs"></div>
   <div class="pp-panel" id="panel-comm"></div>
+  <div class="pp-panel" id="panel-notes">
+    <div class="pp-card">
+      <h4>הערות תוכן</h4>
+      <p class="pd-intro">הערות מצטברות לאורך חיי התוכנית — החלטות, סיכומי שיחות, דרישות ובעיות. ההערה האחרונה מוצגת ראשונה ובולטת.</p>
+      <div id="ntPlanBody" class="nt-wrap"></div>
+    </div>
+  </div>
   <div class="pp-panel" id="panel-timeline"></div>
   <div class="pp-panel" id="panel-opinion"></div>
   </div>
@@ -2419,7 +2457,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2520,10 +2558,30 @@ async function cloudSaveNow() {
     ממוזגות באיחוד: דגל "נערך ידנית" לעולם לא נעלם בגלל סבב סנכרון, אחרת ה-seed
     היה מרוקן תאריכים שהוקלדו. */
 const _TRACK_MAPS = ['_userEdited','_seeded','locks'];
+/* רשימות היסטוריה מצטברות: מיזוג איחוד לפי מזהה, לא דריסה.
+   הערה שנכתבה במכשיר אחד לא תימחק ע"י עותק ענן שאינו מכיר אותה. */
+const _MERGE_LISTS = ['notes'];
+function mergeNoteLists(local, remote){
+  const byId = new Map();
+  (Array.isArray(remote)?remote:[]).forEach(n => { if(n && n.id) byId.set(n.id, n); });
+  (Array.isArray(local)?local:[]).forEach(n => {
+    if(!n || !n.id) return;
+    const r = byId.get(n.id);
+    // אותה הערה משני המקורות — גובר העדכון המאוחר יותר
+    if(!r) byId.set(n.id, n);
+    else {
+      const lt = String(n.edited||n.at||''), rt = String(r.edited||r.at||'');
+      if(lt >= rt) byId.set(n.id, n);
+    }
+  });
+  return [...byId.values()].sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+}
 function mergeRemoteFields(existing, remote){
   PERSIST_FIELDS.forEach(f => {
     if (remote[f] === undefined) return;
-    if (_TRACK_MAPS.includes(f)) {
+    if (_MERGE_LISTS.includes(f)) {
+      existing[f] = mergeNoteLists(existing[f], remote[f]);
+    } else if (_TRACK_MAPS.includes(f)) {
       const cur = (existing[f] && typeof existing[f]==='object') ? existing[f] : {};
       const inc = (remote[f] && typeof remote[f]==='object') ? remote[f] : {};
       existing[f] = { ...inc, ...cur }; // הדגלים המקומיים גוברים ולא נמחקים
@@ -4867,6 +4925,7 @@ function ppTab(name, btn) {
   if(name==='muni'){ const p=pj(); if(p) renderProjectMuni(p); }
   else { muniInProject=false; } // יציאה מהקשר פרויקט למחלקות
   if(name==='team'){ const p=pj(); if(p) renderTeam(p); }
+  if(name==='notes'){ _ntEditing=null; renderPlanNotes(); }
   if(name==='forums'){ const p=pj(); if(p) renderForumsTab(p); }
   setTimeout(buildSecNav, 60);
 }
@@ -7999,6 +8058,127 @@ function logAction(p, type, detail){
   refreshAll(); // "פעולות אחרונות" + "השלב הבא" + מדדים מתעדכנים מיד
 }
 
+/* ══════════════════════════════════════════════════════
+   הערות תוכן לתוכנית (p.notes)
+   הערות שנכתבות ידנית — להבדיל מ-actionLog שהוא תיעוד
+   אוטומטי של פעולות במערכת. אותן הערות נכתבות ונקראות
+   גם בדף התוכנית וגם במרכז היומי.
+   ══════════════════════════════════════════════════════ */
+const NOTE_TAGS = ['כללי','החלטה','סיכום פגישה','דרישה','בעיה','לטיפול'];
+function planNotes(p){ if(!Array.isArray(p.notes)) p.notes=[]; return p.notes; }
+function noteUid(){ return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+/** רק אדריכלית העיר כותבת הערות; כל המסלולים רואים אותן */
+function canEditNotes(){ return isArchitect(); }
+function noteAuthor(){ return isArchitect()? 'אדריכלית העיר' : (isManager()? 'הנהלת העירייה' : 'יזם'); }
+/** הוספת הערה. מחזיר את ההערה שנוצרה, או null אם אין הרשאה/טקסט */
+function addNote(p, text, tag){
+  if(!p || !canEditNotes()) return null;
+  text=String(text||'').trim(); if(!text) return null;
+  const n={ id:noteUid(), text, tag:tag||'כללי', by:noteAuthor(),
+            at:new Date().toISOString(), edited:'' };
+  planNotes(p).unshift(n);            // החדש ביותר תמיד ראשון
+  p.updatedAt = todayStr();
+  savePlans();
+  return n;
+}
+function updateNote(p, id, text){
+  if(!p || !canEditNotes()) return false;
+  const n=planNotes(p).find(x=>x.id===id); if(!n) return false;
+  text=String(text||'').trim(); if(!text) return false;
+  n.text=text; n.edited=new Date().toISOString();
+  p.updatedAt=todayStr(); savePlans(); return true;
+}
+function deleteNote(p, id){
+  if(!p || !canEditNotes()) return false;
+  const arr=planNotes(p); const i=arr.findIndex(x=>x.id===id);
+  if(i<0) return false;
+  arr.splice(i,1); p.updatedAt=todayStr(); savePlans(); return true;
+}
+/** כל ההערות מכל התוכניות, החדשות ראשונות */
+function allNotes(){
+  const out=[];
+  livePlans().forEach(p=>planNotes(p).forEach(n=>
+    out.push(Object.assign({tik:p.tik, pid:p.id, pname:buildProjectTitle(p), status:p.status}, n))));
+  return out.sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+}
+/** תאריך+שעה קריאים להערה */
+function noteWhen(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return String(iso).slice(0,10);
+  return d.toLocaleDateString('he-IL')+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ── רינדור כרטיס הערה (משותף לדף התוכנית ולמרכז היומי) ── */
+let _ntEditing = null;
+function noteCardHtml(n, opts){
+  opts=opts||{};
+  const isLast = !!opts.last;
+  const editing = _ntEditing===n.id;
+  const canEdit = canEditNotes();
+  if(editing){
+    return `<div class="nt-card${isLast?' nt-last':''}">
+      <textarea class="nt-edit" id="ntEd_${n.id}">${esc(n.text)}</textarea>
+      <div class="nt-meta"><div class="nt-acts">
+        <button onclick="ntSaveEdit('${n.pid!=null?n.pid:opts.pid}','${n.id}')">שמירה</button>
+        <button onclick="ntCancelEdit()">ביטול</button></div></div></div>`;
+  }
+  const plan = opts.showPlan
+    ? `<a class="nt-plan" onclick="openProject(${n.pid})">תב/${esc(String(n.tik))}</a>` : '';
+  return `<div class="nt-card${isLast?' nt-last':''}">
+    ${isLast?'<div><span class="nt-badge">ההערה האחרונה</span></div>':''}
+    <div class="nt-txt">${esc(n.text)}</div>
+    <div class="nt-meta">
+      ${plan}
+      <span class="nt-tag">${esc(n.tag||'כללי')}</span>
+      <span>${esc(noteWhen(n.at))}</span>
+      <span>· ${esc(n.by||'')}</span>
+      ${n.edited?'<span>· נערך</span>':''}
+      ${canEdit?`<div class="nt-acts">
+        <button onclick="ntStartEdit('${n.id}')">עריכה</button>
+        <button onclick="ntDelete('${n.pid!=null?n.pid:opts.pid}','${n.id}')">מחיקה</button></div>`:''}
+    </div></div>`;
+}
+function ntStartEdit(id){ _ntEditing=id; ntRerender(); }
+function ntCancelEdit(){ _ntEditing=null; ntRerender(); }
+function ntSaveEdit(pid,id){
+  const ta=document.getElementById('ntEd_'+id); if(!ta) return;
+  const p=plans.find(x=>String(x.id)===String(pid));
+  if(p && updateNote(p, id, ta.value)) toast('ההערה עודכנה');
+  _ntEditing=null; ntRerender();
+}
+function ntDelete(pid,id){
+  if(!confirm('למחוק את ההערה?')) return;
+  const p=plans.find(x=>String(x.id)===String(pid));
+  if(p && deleteNote(p,id)) toast('ההערה נמחקה');
+  ntRerender();
+}
+/** ריענון כל מקום שבו מוצגות הערות */
+function ntRerender(){
+  if(document.getElementById('ntPlanBody')) renderPlanNotes();
+  if(document.getElementById('ntHubBody')) renderNotesHub();
+}
+/* ── הערות בדף התוכנית ── */
+function renderPlanNotes(){
+  const el=document.getElementById('ntPlanBody'); if(!el) return;
+  const p=pj(); if(!p) return;
+  const notes=planNotes(p);
+  const add = canEditNotes() ? `<div class="nt-add">
+      <textarea id="ntNewText" placeholder="הערה על התוכנית — החלטה, סיכום שיחה, דרישה, בעיה שעלתה..."></textarea>
+      <select id="ntNewTag">${NOTE_TAGS.map(t=>`<option>${t}</option>`).join('')}</select>
+      <button class="btn btn-primary btn-sm" onclick="ntAddFromPlan()">הוספה</button>
+    </div>` : '';
+  el.innerHTML = add + (notes.length
+    ? `<div class="nt-grid">${notes.map((n,i)=>noteCardHtml(Object.assign({pid:p.id},n),{last:i===0,pid:p.id})).join('')}</div>`
+    : '<p class="nt-empty">טרם נרשמו הערות לתוכנית זו.</p>');
+}
+function ntAddFromPlan(){
+  const p=pj(); if(!p) return;
+  const ta=document.getElementById('ntNewText'), sel=document.getElementById('ntNewTag');
+  if(!ta||!ta.value.trim()){ toast('לא נכתבה הערה'); return; }
+  addNote(p, ta.value, sel?sel.value:'כללי');
+  ta.value=''; toast('ההערה נשמרה'); ntRerender();
+}
+
 /* ══════════ דוחות מצב מיידיים (מהנתונים, ללא AI) ══════════ */
 /* ── חוות דעת למהנדס הוועדה: בחירת תוכנית → פתיחת חוות הדעת שלה ── */
 function openCommitteeOpinion(){
@@ -8155,8 +8335,12 @@ function renderDailyWork(){
   el.innerHTML = `
     <div class="section-title" style="margin-top:2.5rem">תוכנית עבודה יומית</div>
     ${tiers}
-    <div id="dwDone"></div>`;
+    <div id="dwDone"></div>
+    <div class="section-title" style="margin-top:2rem">הערות תוכן</div>
+    <p class="muted" style="font-size:13px;margin-bottom:10px">הערות שנכתבות ידנית — לצד "מה נעשה" שמתעד פעולות במערכת. ההערה האחרונה מוצגת ראשונה ובולטת.</p>
+    <div id="ntHubBody" class="nt-wrap"></div>`;
   renderDoneThisMonth();
+  renderNotesHub();
 }
 function actionTypeLabel(t){ return ({mail:'מייל נשלח/הוכן', status:'שינוי סטטוס', doc:'מסמך הועלה', note:'הערה נענתה', meeting:'פגישה', approval:'אישור התקבל', date:'מועד נקבע', reminder:'תזכורת', task:'משימה'})[t]||t; }
 
@@ -8227,6 +8411,40 @@ function renderDoneThisMonth(){
     ${noActivity.length&&!dwDoneFilter.tik&&!dwDoneFilter.type&&!dwDoneFilter.by?`<details class="dw-noact"><summary>${noActivity.length} תוכניות פעילות ללא פעילות מתועדת החודש</summary>${noActivity.map(p=>`<div class="muted">תב/${p.tik} — ${esc(buildProjectTitle(p))}: לא תועדה פעילות בתוכנית זו במהלך החודש הנוכחי.</div>`).join('')}</details>`:''}`;
 }
 function dwSetFilter(k,v){ dwDoneFilter[k]=v; if(k==='month'&&v===todayStr().slice(0,7)) dwDoneFilter.month=''; renderDoneThisMonth(); }
+
+/* ── מרכז ההערות היומי — כתיבה לכל תוכנית ממקום אחד ── */
+let ntHubFilter = { tik:'', tag:'' };
+function renderNotesHub(){
+  const el=document.getElementById('ntHubBody'); if(!el) return;
+  const active=livePlans().sort((a,b)=>String(a.tik).localeCompare(String(b.tik),'he',{numeric:true}));
+  let notes=allNotes();
+  if(ntHubFilter.tik) notes=notes.filter(n=>String(n.tik)===String(ntHubFilter.tik));
+  if(ntHubFilter.tag) notes=notes.filter(n=>(n.tag||'כללי')===ntHubFilter.tag);
+  const add = canEditNotes() ? `<div class="nt-add">
+      <select id="ntHubPlan">${active.map(p=>`<option value="${p.id}">תב/${esc(String(p.tik))} — ${esc(buildProjectTitle(p))}</option>`).join('')}</select>
+      <textarea id="ntHubText" placeholder="הערה לסיכום היום — מה עלה, מה סוכם, מה דורש המשך..."></textarea>
+      <select id="ntHubTag">${NOTE_TAGS.map(t=>`<option>${t}</option>`).join('')}</select>
+      <button class="btn btn-primary btn-sm" onclick="ntAddFromHub()">הוספה</button>
+    </div>` : '';
+  const tiks=[...new Set(allNotes().map(n=>n.tik))];
+  const filters=`<div class="dw-done-filters no-print">
+    <select class="team-f" onchange="ntHubSet('tik',this.value)"><option value="">כל התוכניות</option>${tiks.map(t=>`<option value="${esc(String(t))}" ${String(ntHubFilter.tik)===String(t)?'selected':''}>תב/${esc(String(t))}</option>`).join('')}</select>
+    <select class="team-f" onchange="ntHubSet('tag',this.value)"><option value="">כל הסוגים</option>${NOTE_TAGS.map(t=>`<option ${ntHubFilter.tag===t?'selected':''}>${t}</option>`).join('')}</select>
+  </div>`;
+  el.innerHTML = add + filters + (notes.length
+    ? `<div class="nt-grid">${notes.map((n,i)=>noteCardHtml(n,{last:i===0,showPlan:true})).join('')}</div>`
+    : '<p class="nt-empty">טרם נרשמו הערות תוכן.</p>');
+}
+function ntHubSet(k,v){ ntHubFilter[k]=v; renderNotesHub(); }
+function ntAddFromHub(){
+  const sel=document.getElementById('ntHubPlan'), ta=document.getElementById('ntHubText'), tg=document.getElementById('ntHubTag');
+  if(!sel||!ta) return;
+  if(!ta.value.trim()){ toast('לא נכתבה הערה'); return; }
+  const p=plans.find(x=>String(x.id)===String(sel.value));
+  if(!p){ toast('לא נבחרה תוכנית'); return; }
+  addNote(p, ta.value, tg?tg.value:'כללי');
+  ta.value=''; toast('ההערה נשמרה לתב/'+p.tik); ntRerender();
+}
 
 /* ══════════ צוות היזם ופרטי קשר ══════════
    מודל: p.devTeam = [{ id, name, org, title, phone, active, emails:[{addr,primary,cc,active}] }]
