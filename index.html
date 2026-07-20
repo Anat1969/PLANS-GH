@@ -509,6 +509,17 @@ tbody tr:hover{background:var(--teal-pale)}
 .stg-todo .stg-name{color:var(--muted,#6b6259);font-weight:600}
 .stg-hint{font-size:12.5px;color:var(--muted,#6b6259);margin-top:8px;padding:8px 12px;background:var(--fog,#f2f0ec);border-radius:8px;line-height:1.5}
 .stg-hint b{color:var(--ink,#1a1a1a)}
+/* מסלול פורומים חי — רמזור לחיץ */
+.stg-track .stg-step{background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 8px;border-radius:9px;transition:background .12s}
+.stg-track .stg-step:hover{background:var(--fog,#f2f0ec)}
+.stg-track .stg-step.stg-cur{background:rgba(42,95,95,.08);box-shadow:inset 0 0 0 1.5px var(--teal,#2A5F5F)}
+.stg-light{flex:0 0 auto;width:15px;height:15px;border-radius:50%;display:inline-block;border:2px solid rgba(0,0,0,.12)}
+.stg-light-green{background:#3d8b5e}
+.stg-light-yellow{background:#e0a92e}
+.stg-light-red{background:#c0392b}
+.stg-track .stg-txt{display:flex;flex-direction:column;text-align:right}
+.stg-legend{font-size:11.5px;color:var(--muted);margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;line-height:1.5}
+.stg-legend i{width:11px;height:11px;vertical-align:-1px}
 @media(max-width:720px){.stg-strip{gap:8px}.stg-line{display:none}.stg-step{flex:1 1 45%}}
 /* סרגל נושאים אנכי בצד ימין של דף הפרויקט */
 .pp-with-rail{margin-top:1.2rem}
@@ -1309,6 +1320,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .info-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
 .info-panel{display:none}
 .info-panel.active{display:block}
+.review-panel{display:none}
+.review-panel.active{display:block}
 .info-intro{background:rgba(42,95,95,0.07);border-inline-start:4px solid var(--teal);border-radius:var(--r);
   padding:11px 14px;font-size:13px;line-height:1.7;color:var(--ink);margin-bottom:1rem}
 /* שני כרטיסים זה לצד זה כשיש מקום — ריכוזי וקומפקטי */
@@ -1478,6 +1491,25 @@ textarea.infra-in{overflow:hidden;resize:none;line-height:1.4;min-height:2.2em}
 .fc-meta{font-size:11.5px;color:var(--bronze,var(--bronze));font-weight:600}
 .forum-card .fc-chev{color:#999;font-size:15px}
 .forum-detail{border:1px solid var(--stone,#e5ded4);border-radius:12px;padding:14px 16px;background:#fff;margin-top:6px}
+/* החלטת פורום אדריכל — רכיב בולט */
+.forum-decision{border:2px solid var(--bordeaux,#7a1f2b);border-radius:10px;padding:12px 14px;margin-bottom:14px;background:rgba(122,31,43,0.04)}
+.forum-decision.fd-approved{border-color:#3d8b5e;background:rgba(61,139,94,0.06)}
+.fd-title{font-weight:700;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fd-gate{font-size:10.5px;font-weight:600;background:var(--bordeaux,#7a1f2b);color:#fff;border-radius:10px;padding:2px 8px}
+.fd-approved .fd-gate{background:#3d8b5e}
+.fd-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.fd-approve{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer}
+/* רשימת יועצים */
+.cons-block{border:1px solid var(--stone);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.cons-plan{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--fog)}
+.cons-list-title{font-weight:700;font-size:13px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.cons-list{display:flex;flex-direction:column;gap:6px}
+.cons-row{display:grid;grid-template-columns:1fr auto 1.2fr auto;gap:8px;align-items:center;padding:6px;border-radius:8px;border-inline-start:4px solid var(--stone)}
+.cons-row.cons-approved{border-inline-start-color:#3d8b5e;background:rgba(61,139,94,0.04)}
+.cons-row.cons-fix{border-inline-start-color:#c0392b;background:rgba(192,57,43,0.04)}
+.cons-name,.cons-note{font-family:inherit;font-size:12.5px;padding:6px 9px;border:1px solid var(--stone);border-radius:6px;background:var(--surface);color:var(--ink);min-width:0}
+.cons-opts .sp-opt{padding:4px 10px;font-size:11px}
+.fr-signing{border-color:#3d8b5e;background:rgba(61,139,94,0.03)}
 .fd-head{font-family:var(--display);font-size:16px;font-weight:700;color:var(--bordeaux,var(--bordeaux));margin-bottom:8px}
 .fd-section-t{font-size:13px;font-weight:600;color:var(--ink,#211d1a);margin:12px 0 6px;border-bottom:1px solid #eee;padding-bottom:3px}
 /* יומן אירועים */
@@ -2627,7 +2659,8 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
+  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -4953,6 +4986,12 @@ function ensureProjectData(p) {
   if (!p.parking) p.parking = { underground:'', disabled:'', ev:'', public:'', permeable:'' };
   if (!p.access) p.access = { vehicles:'', pedestrians:'', infra:'' };
   if (!p.infra || typeof p.infra !== 'object') p.infra = {};   // רכיבי נגישות ותשתיות מובנים
+  // ── פורומים: החלטת פורום אדריכל, יועצים, וחתימה פיזית ──
+  if (!p.forumDecision) p.forumDecision = { text:'', notes:'', date:'', approved:false };
+  if (!Array.isArray(p.consultants)) p.consultants = [];       // [{id,name,role,status,note}]
+  if (typeof p.consultantsPlanApproved !== 'boolean') p.consultantsPlanApproved = false;
+  if (p.consultantsSignDate === undefined) p.consultantsSignDate = '';
+  if (p.signDate === undefined) p.signDate = '';               // חתימה פיזית על התוכנית המאושרת
   if (!p.aspects) p.aspects = { environmental:'', experiential:'', operational:'' };
   if (!p.datesPlan) p.datesPlan = { forum1:'', forum2:'', committeePrep:'', committee:'' };
   if (!p.summary) p.summary = { phasing:'', consultantNotes:'', finalRec:'', committeeDecision:'', cityArchNotes:'' };
@@ -5232,32 +5271,61 @@ function buildSecNav(){
 function secGo(e,id){ e.preventDefault(); const el=document.getElementById(id); if(el){ const fb=el.closest('.forum-block'); if(fb) fb.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); } document.getElementById('secNav').classList.remove('open'); }
 /* ── פס שלבי החיים של התוכנית — ברור ומוסבר ── */
 const STAGE_FLOW = [
-  { key:'stage_1',   label:'פורום אדריכל העיר', dateField:'forumArchitect',   next:'קביעת/קיום פורום אדריכל העיר' },
-  { key:'stage_2',   label:'פורום יועצים',      dateField:'forumConsultants', next:'קביעת/קיום פורום יועצים' },
-  { key:'committee', label:'הכנה לוועדה',        dateField:'committeeDate',    next:'קביעת מועד הכנה לוועדה + השלמת חוות דעת' },
-  { key:'approved',  label:'מאושר',             dateField:null,               next:'אישור הוועדה' }
+  { key:'stage_1',   label:'פורום אדריכל העיר', dateField:'forumArchitect',   forum:'architect',   next:'קביעת/קיום פורום אדריכל העיר + החלטת פורום' },
+  { key:'stage_2',   label:'פורום יועצים',      dateField:'forumConsultants', forum:'consultants', next:'קביעת/קיום פורום יועצים + אישור כל היועצים' },
+  { key:'committee', label:'הכנה לוועדה',        dateField:'committeeDate',    forum:'committee',   next:'השלמת רשימת הבדיקה להגשה לוועדה' },
+  { key:'approved',  label:'מאושר בוועדה',       dateField:'approvalDate',     forum:'committee',   next:'קביעת מועד הדיון ואישור הוועדה' },
+  { key:'signed',    label:'חתימה פיזית',        dateField:'signDate',         forum:'committee',   next:'חתימה פיזית על התוכנית המאושרת' }
 ];
+/** צבע רמזור לשלב: ירוק=הושלם, צהוב=בטיפול, אדום=חסרים תנאים/אישורים */
+function stageColor(p, key){
+  const forumOk = {
+    // ירוק = התנאי המהותי הושלם (החלטת הפורום). התאריך מידע נלווה, לא חוסם.
+    stage_1: !!(p.forumDecision&&p.forumDecision.approved),
+    stage_2: !!(p.consultantsPlanApproved &&
+                (p.consultants||[]).length>0 && (p.consultants||[]).every(c=>c.status==='approved')),
+    committee: (function(){ ensureCommittee(p); const items=(typeof COMMITTEE_CHECKLIST!=='undefined')?COMMITTEE_CHECKLIST:[];
+                return items.length>0 && items.every(it=>p.committeeReady[it.id]); })(),
+    approved: !!p.approvalDate,
+    signed: !!(p.signDate)
+  };
+  const started = {
+    stage_1: !!(p.forumArchitect || (p.forumDecision&&p.forumDecision.text)),
+    stage_2: !!(p.forumConsultants || p.consultantsPlanApproved || (p.consultants||[]).length),
+    committee: !!(p.committeeDate || Object.values((p.committeeReady||{})).some(Boolean)),
+    approved: false,
+    signed: !!(p.approvalDate)   // ניתן להתחיל חתימה אחרי אישור
+  };
+  if(forumOk[key]) return 'green';
+  if(started[key]) return 'yellow';
+  return 'red';
+}
 function renderStageStrip(p){
   const el=document.getElementById('stageStrip'); if(!el||!p) return;
   const today=todayStr();
-  const curIdx = Math.max(0, STAGE_FLOW.findIndex(s=>s.key===(p.stage||'stage_1')));
+  const curKey = p.stage||'stage_1';
+  const colorLbl = {green:'הושלם', yellow:'בטיפול', red:'חסרים תנאים'};
   const steps = STAGE_FLOW.map((s,i)=>{
-    const state = i<curIdx ? 'done' : (i===curIdx ? 'current' : 'todo');
-    const dv = s.dateField ? p[s.dateField] : (p.status==='הושלם'||p.status==='אושר סופית'?today:'');
+    const color = stageColor(p, s.key);
+    const isCur = s.key===curKey;
+    const dv = s.dateField ? p[s.dateField] : '';
     const dstate = dv ? (_occurred(dv,today) ? 'התקיים '+fmtDate(dv) : 'מתוכנן '+fmtDate(dv)) : '';
-    return `<div class="stg-step stg-${state}">
-      <div class="stg-dot">${state==='done'?'✓':(i+1)}</div>
-      <div class="stg-txt"><div class="stg-name">${s.label}</div>${dstate?`<div class="stg-date">${dstate}</div>`:''}</div>
-    </div>`;
-  }).join('<div class="stg-line"></div>');
-  // הסבר מה נדרש כדי להתקדם לשלב הבא
-  const nextStep = STAGE_FLOW[curIdx+1];
-  const hint = (p.stage==='approved') ? 'התוכנית אושרה — סיום התהליך.' :
-    (nextStep ? `כדי להתקדם ל„${nextStep.label}”: ${nextStep.next}. השלב מתעדכן אוטומטית כשהתאריך של אבן הדרך הנוכחית מתקיים (עובר), או ידנית בטאב „מידע וזיהוי”.` :
-    'זהו השלב האחרון לפני האישור.');
+    // לחיצה על כל שלב עוברת לתחנת העבודה שלו — ללא חסימה
+    return `<button class="stg-step stg-${color}${isCur?' stg-cur':''}" onclick="gotoForumStation('${s.forum}','${s.key}')" title="${colorLbl[color]}">
+      <span class="stg-light stg-light-${color}"></span>
+      <span class="stg-txt"><span class="stg-name">${s.label}</span>${dstate?`<span class="stg-date">${dstate}</span>`:''}</span>
+    </button>`;
+  }).join('<span class="stg-line"></span>');
   el.innerHTML = `
-    <div class="stg-strip">${steps}</div>
-    <div class="stg-hint"><b>איך עוברים שלב:</b> ${hint}</div>`;
+    <div class="stg-strip stg-track">${steps}</div>
+    <div class="stg-legend no-print"><span><i class="stg-light stg-light-green"></i> הושלם</span><span><i class="stg-light stg-light-yellow"></i> בטיפול</span><span><i class="stg-light stg-light-red"></i> חסרים תנאים או אישורים</span> · לחיצה על שלב פותחת את תחנת העבודה שלו (אפשר לעבור גם אם שלב קודם לא הושלם).</div>`;
+}
+/** מעבר לתחנת עבודה של פורום — פותח את הטאב וממקד את הפורום. ללא חסימה. */
+function gotoForumStation(forumKey, stageKey){
+  const p=pj(); if(!p) return;
+  if(stageKey && p.stage!==stageKey){ /* אין קידום אוטומטי בכפייה — רק ניווט */ }
+  ppTab('forums');
+  setTimeout(()=>{ if(typeof _openForum!=='undefined'){ _openForum=forumKey; renderForumsTab(p); } }, 40);
 }
 function renderStageBadge(p) {
   renderStageStrip(p);
@@ -5912,19 +5980,27 @@ function renderSpatialChecks(p){
   </div>`;
 }
 
-function renderReviewTab(p) {
-  const el = document.getElementById('panel-review');
-  let html = '<div class="t5-note" style="margin-bottom:10px">בדיקת ההתאמה משווה את <b>המוצע בתוכנית</b> מול <b>המותר והנדרש</b>: הוראות התב״ע, דרישות העירייה וההנחיות המרחביות. כל אי-התאמה מחייבת הסבר ופתרון.</div>';
-  html += renderTable5(p);          // מנוע החוקים — מותר מול מוצע
-  html += renderRequirements(p);        // דרישות עירוניות רלוונטיות
-  html += renderSpatialChecks(p);       // 18 הנחיות מרחביות
-  if (p.stage === 'stage_2' || p.stage === 'committee' || p.stage === 'approved') {
-    html += renderStage2(p);
-  } else {
-    html += renderStage1(p);
-  }
-  // סיכום והמלצה — הועבר לכאן מדף המידע
-  html += `<div class="pp-card" style="margin-top:1.2rem">
+/* ══════════════════════════════════════════════════════
+   בדיקת התאמה — מחולקת לכפתורים ירוקים לפי נושא.
+   כל נושא נפתח כמסך ממוקד אחד, במבנה אחיד:
+   דרישה · מותר · מבוקש · תוצאה · הסבר במקרה אי-התאמה.
+   ══════════════════════════════════════════════════════ */
+const REVIEW_TOPICS = [
+  {id:'table5', label:'טבלה 5 — זכויות בנייה', fn:p=>renderTable5(p)},
+  {id:'muni',   label:'דרישות התב״ע והעירייה', fn:p=>renderRequirements(p)},
+  {id:'spatial',label:'הנחיות מרחביות', fn:p=>renderSpatialChecks(p)},
+  {id:'stage',  label:'בדיקת שלב', fn:p=>((p.stage==='stage_2'||p.stage==='committee'||p.stage==='approved')?renderStage2(p):renderStage1(p))},
+  {id:'summary',label:'סיכום והמלצה', fn:p=>reviewSummaryHTML(p)}
+];
+let reviewTopic = 'table5';
+function reviewGo(id){
+  reviewTopic=id;
+  document.querySelectorAll('#reviewNav .info-tab').forEach(b=>b.classList.toggle('active', b.dataset.rt===id));
+  document.querySelectorAll('#reviewPanels .review-panel').forEach(pn=>pn.classList.toggle('active', pn.dataset.rt===id));
+  setTimeout(autoGrowAll, 30);
+}
+function reviewSummaryHTML(p){
+  return `<div class="pp-card">
     <h4>סיכום והמלצה</h4>
     <div class="pp-field"><label>תיאור הפרויקט</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="pjSet('projectDescription',this.value)">${p.projectDescription||''}</textarea></div>
     <div class="pp-field"><label>שלביות</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="oSet('summary','phasing',this.value)">${p.summary.phasing||''}</textarea></div>
@@ -5932,7 +6008,17 @@ function renderReviewTab(p) {
     <div class="pp-field"><label>החלטת ועדה</label><textarea class="autogrow ${seedClass(p,'summary.committeeDecision').trim()}" rows="2" oninput="autoGrow(this)" onchange="oSet('summary','committeeDecision',this.value);this.classList.remove('ai-seeded')">${p.summary.committeeDecision||''}</textarea></div>
     <div class="pp-field"><label>הערות אדריכלית העיר</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="oSet('summary','cityArchNotes',this.value)">${p.summary.cityArchNotes||''}</textarea></div>
   </div>`;
-  el.innerHTML = html;
+}
+function renderReviewTab(p) {
+  const el = document.getElementById('panel-review');
+  const nav = `<div class="info-nav no-print" id="reviewNav">${REVIEW_TOPICS.map(t=>
+    `<button class="info-tab${t.id===reviewTopic?' active':''}" data-rt="${t.id}" onclick="reviewGo('${t.id}')">${t.label}</button>`).join('')}</div>`;
+  const panels = REVIEW_TOPICS.map(t=>
+    `<div class="review-panel${t.id===reviewTopic?' active':''}" data-rt="${t.id}">
+       <div class="t5-note" style="margin-bottom:10px">מבנה אחיד: <b>דרישה · מותר · מבוקש · תוצאה</b>, וכל אי-התאמה מחייבת <b>הסבר</b>.</div>
+       ${t.fn(p)}
+     </div>`).join('');
+  el.innerHTML = nav + `<div id="reviewPanels">${panels}</div>`;
   updateProgress(p);
   setTimeout(autoGrowAll, 30);
 }
@@ -10221,10 +10307,12 @@ function renderDocMgmt(){
 
 // צ'ק־ליסט מוכנוּת לוועדה — נשמר על p.committeeReady
 const COMMITTEE_CHECKLIST = [
-  {id:'opinionDoc',   label:'חוות דעת לוועדה לפי פורמט חוות הדעת'},
-  {id:'digitalPlan',  label:'תוכנית דיגיטלית קיימת'},
-  {id:'printedPlan',  label:'תוכנית מודפסת קיימת'},
-  {id:'wordOpinion',  label:'חוות דעת בוורד להעלאה למערכת קומפלוט'}
+  {id:'printedPlan',  label:'כל החומרים המודפסים'},
+  {id:'digitalPlan',  label:'כל החומרים הדיגיטליים'},
+  {id:'harmonica',    label:'הרמוניקה'},
+  {id:'opinionDoc',   label:'חוות דעת מלאה (לפי פורמט)'},
+  {id:'comparison',   label:'מסמכי ההשוואה וההסברים'},
+  {id:'updatedPlan',  label:'תוכנית מעודכנת לדיון'}
 ];
 function ensureCommittee(p){ if(!p.committeeReady||typeof p.committeeReady!=='object') p.committeeReady={}; }
 
@@ -10310,6 +10398,42 @@ function renderForumsTab(p){
   setTimeout(buildSecNav,60);
 }
 
+/* ── רכיב בולט: החלטת פורום אדריכל (תנאי למעבר לפורום יועצים) ── */
+function forumDecisionHTML(p){
+  const d=p.forumDecision||{};
+  return `<div class="forum-decision ${d.approved?'fd-approved':''}">
+    <div class="fd-title">🏛️ החלטת פורום אדריכל העיר <span class="fd-gate">תנאי למעבר לפורום יועצים</span></div>
+    <div class="pp-field"><label>ההחלטה</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setForumDecision('text',this.value)" ${globalEdit?'':'disabled'}>${d.text||''}</textarea></div>
+    <div class="pp-field"><label>הערות</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setForumDecision('notes',this.value)" ${globalEdit?'':'disabled'}>${d.notes||''}</textarea></div>
+    <div class="fd-row">
+      <div class="pp-field"><label>תאריך ההחלטה</label><input type="date" value="${esc(d.date||'')}" onchange="setForumDecision('date',this.value)" ${globalEdit?'':'disabled'}></div>
+      <label class="fd-approve"><input type="checkbox" ${d.approved?'checked':''} onchange="setForumDecision('approved',this.checked)" ${globalEdit?'':'disabled'}> אושר — ניתן לעבור לפורום יועצים</label>
+    </div>
+  </div>`;
+}
+/* ── רשימת יועצים: כל יועץ עם סטטוס והערה ── */
+const CONSULT_STATUS = [['pending','טרם נבדק'],['fix','נדרש תיקון'],['approved','מאושר']];
+function consultantsHTML(p){
+  const rows=(p.consultants||[]).map((c,i)=>`
+    <div class="cons-row cons-${c.status||'pending'}">
+      <input class="cons-name" value="${esc(c.name||'')}" placeholder="שם היועץ / תחום" onchange="setConsultant(${i},'name',this.value)" ${globalEdit?'':'disabled'}>
+      <div class="sp-opts cons-opts no-print">
+        ${CONSULT_STATUS.map(([v,l])=>`<button class="sp-opt${(c.status||'pending')===v?(' on-'+(v==='approved'?'yes':v==='fix'?'no':'na')):''}" onclick="setConsultant(${i},'status','${v}')">${l}</button>`).join('')}
+      </div>
+      <input class="cons-note" value="${esc(c.note||'')}" placeholder="הערה ליועץ זה" onchange="setConsultant(${i},'note',this.value)" ${globalEdit?'':'disabled'}>
+      ${globalEdit?`<button class="btn btn-xs" onclick="delConsultant(${i})">✕</button>`:''}
+    </div>`).join('');
+  const allApproved=(p.consultants||[]).length>0 && p.consultants.every(c=>c.status==='approved');
+  return `<div class="cons-block">
+    <div class="cons-plan">
+      <label class="fd-approve"><input type="checkbox" ${p.consultantsPlanApproved?'checked':''} onchange="setConsultantsPlan('approved',this.checked)" ${globalEdit?'':'disabled'}> קיימת תוכנית מאושרת</label>
+      <div class="pp-field"><label>תאריך החתימה על התוכנית</label><input type="date" value="${esc(p.consultantsSignDate||'')}" onchange="setConsultantsPlan('signDate',this.value)" ${globalEdit?'':'disabled'}></div>
+    </div>
+    <div class="cons-list-title">רשימת יועצים ${allApproved?'<span class="sc sc-green">כל היועצים אישרו</span>':''}</div>
+    <div class="cons-list">${rows||'<div class="muted" style="font-size:12px;padding:6px 0">טרם נוספו יועצים.</div>'}</div>
+    ${globalEdit?`<button class="btn btn-ghost btn-sm" onclick="addConsultant()">+ הוספת יועץ</button>`:''}
+  </div>`;
+}
 function renderForumDetail(p, key){
   const el=document.getElementById('forumDetail'); if(!el) return;
   const meta=FORUM_META[key];
@@ -10334,6 +10458,14 @@ function renderForumDetail(p, key){
         <div class="fr-stage-side">${forumStageChip(opinionState)}<span class="fr-go">מעבר ›</span></div>
       </div>
       <div class="fr-committee"><div class="fr-committee-title">בדיקת מוכנוּת להגשה לוועדה</div>${chk}</div>
+      <div class="fr-committee fr-signing">
+        <div class="fr-committee-title">אישור וחתימה</div>
+        <div class="fd-row">
+          <div class="pp-field"><label>תאריך הדיון והאישור בוועדה</label><input type="date" value="${esc(p.approvalDate||'')}" onchange="pjSet('approvalDate',this.value);renderStageBadge(pj())" ${globalEdit?'':'disabled'}></div>
+          <div class="pp-field"><label>חתימה פיזית על התוכנית המאושרת</label><input type="date" value="${esc(p.signDate||'')}" onchange="setSignDate(this.value)" ${globalEdit?'':'disabled'}></div>
+        </div>
+        <div class="muted" style="font-size:11.5px">התהליך נחשב „הושלם” רק לאחר החתימה הפיזית.</div>
+      </div>
       <div class="fr-komplot"><b>חוות דעת בוורד להעלאה לקומפלוט:</b>
         <div class="muted" style="font-size:12px;margin:4px 0">להורדה כקובץ Word ולהעלאה לקומפלוט.</div>
         <button class="btn btn-primary btn-sm" onclick="downloadOpinionWord(${p.id})">הורדת חוות דעת (Word)</button>
@@ -10353,6 +10485,8 @@ function renderForumDetail(p, key){
   el.innerHTML = `
     <div class="forum-detail">
       <div class="fd-head">${meta.name} — תיעוד והתקדמות</div>
+      ${key==='architect'?forumDecisionHTML(p):''}
+      ${key==='consultants'?consultantsHTML(p):''}
       ${stages?`<div class="fd-section-t">שלבי הפורום</div>${stageRows}`:''}
       ${committeeExtra}
       <div class="fd-section-t">יומן אירועים ותיעוד <span class="muted" style="font-weight:400;font-size:11px">(תאריך · אירוע/שלב · תוכן · השלמה)</span></div>
@@ -10360,7 +10494,17 @@ function renderForumDetail(p, key){
       ${globalEdit?`<button class="btn btn-ghost btn-sm" onclick="addForumEvent('${key}')">+ הוספת אירוע/שלב</button>`:''}
     </div>`;
 }
-function setCommitteeReady(id,on){ const p=pj(); if(!p)return; ensureCommittee(p); p.committeeReady[id]=on; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
+function setCommitteeReady(id,on){ const p=pj(); if(!p)return; ensureCommittee(p); p.committeeReady[id]=on; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); }
+/** החלטת פורום אדריכל — כל שינוי מעדכן מיד את הסרגל העליון */
+function setForumDecision(field,val){ const p=pj(); if(!p)return; if(!p.forumDecision)p.forumDecision={text:'',notes:'',date:'',approved:false}; p.forumDecision[field]=val; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); }
+function addConsultant(){ const p=pj(); if(!p)return; if(!Array.isArray(p.consultants))p.consultants=[]; p.consultants.push({id:'c'+Date.now().toString(36),name:'',role:'',status:'pending',note:''}); p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
+function setConsultant(i,field,val){ const p=pj(); if(!p||!p.consultants[i])return; p.consultants[i][field]=val; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); }
+function delConsultant(i){ const p=pj(); if(!p)return; p.consultants.splice(i,1); p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); }
+function setConsultantsPlan(field,val){ const p=pj(); if(!p)return; if(field==='approved')p.consultantsPlanApproved=val; else if(field==='signDate')p.consultantsSignDate=val; p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); }
+/** חתימה פיזית — רק לאחריה התהליך „הושלם”. */
+function setSignDate(val){ const p=pj(); if(!p)return; p.signDate=val;
+  if(val){ p.stage='signed'; if(p.status!=='הושלם') p.status='הושלם'; }
+  p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); renderStageBadge(p); if(typeof renderTable==='function')renderTable(); }
 function addForumEvent(key){ const p=pj(); if(!p)return; ensureForumLog(p); p.forumLog[key].push({date:todayStr(),event:'',content:'',done:false}); p.updatedAt=todayStr(); savePlans(); renderForumsTab(p); }
 function setForumEvent(key,i,field,val){ const p=pj(); if(!p)return; ensureForumLog(p); if(p.forumLog[key][i]){ p.forumLog[key][i][field]=val; p.updatedAt=todayStr(); savePlans(); if(field==='done') renderForumsTab(p); } }
 function delForumEvent(key,i){ const p=pj(); if(!p)return; ensureForumLog(p); p.forumLog[key].splice(i,1); savePlans(); renderForumsTab(p); }
