@@ -528,14 +528,16 @@ tbody tr:hover{background:var(--teal-pale)}
 .pp-rail-nav{display:flex;flex-direction:column;gap:3px;background:var(--surface,#fff);border:1px solid var(--stone,#e5ded4);border-radius:12px;padding:10px}
 .pp-rail-grp{font-size:10.5px;font-weight:700;color:var(--bronze,var(--bronze));letter-spacing:0.5px;margin:8px 4px 2px;text-transform:none}
 .pp-rail-grp:first-child{margin-top:2px}
-.pp-tab{text-align:right;padding:8px 12px;font-size:13px;font-weight:500;color:var(--ink,#211d1a);border:1px solid transparent;background:none;border-radius:8px;cursor:pointer;font-family:var(--sans);transition:all .13s;line-height:1.3}
+.pp-tab{text-align:right;padding:8px 12px;font-size:13px;font-weight:500;color:var(--ink,#211d1a);border:1px solid transparent;background:none;border-radius:8px;cursor:pointer;font-family:var(--sans);transition:all .13s;line-height:1.3;
+  width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;box-sizing:border-box}
 .pp-tab:hover{background:#f5f2ec}
 .pp-tab.active{background:var(--bordeaux,var(--bordeaux));color:#fff;font-weight:700}
 /* שלוש קבוצות-על */
 .pp-groups{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
 .pp-group{text-align:right;padding:10px 12px;font-size:13.5px;font-weight:700;color:var(--ink);
   border:1px solid var(--stone);background:#fff;border-radius:9px;cursor:pointer;font-family:var(--sans);
-  line-height:1.35;transition:all .13s}
+  line-height:1.35;transition:all .13s;
+  width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:break-word;min-height:44px;display:flex;align-items:center}
 .pp-group:hover{border-color:var(--bordeaux);background:#faf6f0}
 .pp-group.active{background:var(--bordeaux);border-color:var(--bordeaux);color:#fff}
 .pp-subtabs{display:flex;flex-direction:column;gap:3px;padding-top:8px;border-top:1px solid var(--stone)}
@@ -2660,7 +2662,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
-  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate'];
+  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2793,6 +2795,11 @@ function mergeRemoteFields(existing, remote){
       existing[f] = remote[f];
     }
   });
+  // מיזוג ענן עלול להחזיר גאנט ישן (not_started) לתוכנית שכבר הושלמה ועודכנה.
+  // משמרים את מצב „הושלם” של הגאנט לתוכניות שכבר עברו את העדכון החד־פעמי.
+  if (existing._ganttDoneMig2 && existing.status==='הושלם' && Array.isArray(existing.gantt)){
+    existing.gantt.forEach(g=>{ if(g.status!=='done') g.status='done'; });
+  }
 }
 
 /** טוען את הפרויקטים מהענן וממזג (מקור אמת מרכזי). מחזיר true אם נטען משהו. */
@@ -3034,6 +3041,23 @@ function clearSeed(p, key) { if (!p) return; if (!p._userEdited) p._userEdited =
 
 loadPlans();
 migrateForumDates();
+migrateCompletedGantt();
+/* ── עדכון חד־פעמי: תוכניות שהושלמו → כל שלבי הגאנט „הושלם”. ──
+   חל רק על הנתונים הקיימים כעת, פעם אחת לכל תוכנית (דגל _ganttDoneMig2).
+   אינו משנה את לוגיקת הגאנט העתידית — מכאן ואילך התהליך הרגיל. */
+function migrateCompletedGantt(){
+  let changed=false;
+  plans.forEach(p=>{
+    if(p._ganttDoneMig2) return;                 // כבר עודכן — לא לגעת שוב
+    if(p.status!=='הושלם') return;              // רק תוכניות מסומנות כהושלמו
+    // הגאנט נוצר עצלנית ב-ensureProjectData; אם עדיין אין — נטפל שם ולא נסמן דגל כעת
+    if(!Array.isArray(p.gantt) || !p.gantt.length) return;
+    p.gantt.forEach(g=>{ g.status='done'; if(!g.actual) g.actual=p.approvalDate||p.committeeDate||todayStr(); });
+    p._ganttDoneMig2 = true;
+    changed=true;
+  });
+  if(changed){ try{ savePlans(); }catch(e){} }
+}
 /** טוען את נתוני ה-seed (חוות דעת, שדות והדמיות מ-16 מסמכי המקור) מקובץ חיצוני —
     חולצו מ-index.html כדי להקטין את הדף מ-1.7MB ל-0.7MB. הענן ממוזג אחריהם וגובר. */
 async function loadSeedData(){
@@ -3080,6 +3104,7 @@ async function initCloud() {
   const loaded = await cloudLoad();
   if (loaded === true) {
     migrateForumDates(); // תיקון תאריכים גם על נתוני הענן
+    migrateCompletedGantt(); // עדכון חד־פעמי לגאנט של תוכניות שהושלמו (כולל נתוני ענן)
     applyForumChainAll(); // השלמת שרשרת 3 התאריכים לכל התוכניות הפעילות
     applyFilters(); renderLanding();
     if (currentProjectId != null) { const p = pj(); if (p) openProject(currentProjectId); }
@@ -4996,6 +5021,12 @@ function ensureProjectData(p) {
   if (!p.datesPlan) p.datesPlan = { forum1:'', forum2:'', committeePrep:'', committee:'' };
   if (!p.summary) p.summary = { phasing:'', consultantNotes:'', finalRec:'', committeeDecision:'', cityArchNotes:'' };
   if (!Array.isArray(p.gantt) || !p.gantt.length) p.gantt = defaultGantt();
+  // עדכון חד־פעמי: תוכנית שהושלמה → כל שלבי הגאנט „הושלם”.
+  // מזוהה לפי הדגל _ganttDoneMig2; לאחר סימון, שינוי ידני נשמר (התהליך הרגיל).
+  if (!p._ganttDoneMig2 && p.status==='הושלם' && Array.isArray(p.gantt) && p.gantt.length){
+    p.gantt.forEach(g=>{ g.status='done'; if(!g.actual) g.actual=p.approvalDate||p.committeeDate||todayStr(); });
+    p._ganttDoneMig2 = true;
+  }
   if (!p.graphics) p.graphics = {};
   if (!p.opinion || typeof p.opinion !== 'object') {
     // opinion היה בעבר מחרוזת — נשמר לתוך description
