@@ -432,6 +432,18 @@ tbody tr:hover{background:var(--teal-pale)}
 .pattern-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
 .pattern-card strong{font-size:15px;display:block;margin-bottom:6px;color:var(--ink)}
 .pattern-card p{font-size:13px;color:rgba(0,0,0,0.55);line-height:1.6}
+/* ── כרטיס מידע בריחוף מעל גרפים ── */
+#chartHover{position:fixed;z-index:4000;pointer-events:none;opacity:0;transform:translateY(4px);
+  transition:opacity .14s ease,transform .14s ease;background:var(--surface);color:var(--ink);
+  border:1px solid var(--stone);border-radius:var(--r);box-shadow:0 6px 24px rgba(0,0,0,0.14);
+  padding:10px 14px;font-size:12px;line-height:1.65;max-width:260px;direction:rtl;text-align:right}
+#chartHover.on{opacity:1;transform:translateY(0)}
+#chartHover .ch-t{font-weight:700;font-size:13px;margin-bottom:5px;padding-bottom:5px;
+  border-bottom:1px solid var(--stone);display:flex;align-items:center;gap:6px}
+#chartHover .ch-sw{width:10px;height:10px;border-radius:3px;flex:none}
+#chartHover .ch-r{display:flex;justify-content:space-between;gap:14px;color:var(--muted)}
+#chartHover .ch-r b{color:var(--ink);font-weight:600}
+#chartHover .ch-sub{margin-top:5px;padding-top:5px;border-top:1px solid var(--stone);color:var(--muted);font-size:11px}
 
 .detail-dates-row{display:flex;gap:0;border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;border:1px solid var(--stone)}
 .detail-date-cell{flex:1;padding:1rem 0.8rem;text-align:center;background:var(--fog);border-left:1px solid var(--stone)}
@@ -4202,7 +4214,13 @@ function renderTrends() {
   const years = Object.keys(yearCounts).sort();
   const maxY = Math.max(...Object.values(yearCounts));
   const curYear=String(new Date().getFullYear());
-  drawLineChart('lineChartCanvas', years, years.map(y=>yearCounts[y]), maxY, years.indexOf(curYear));
+  drawLineChart('lineChartCanvas', years, years.map(y=>yearCounts[y]), maxY, years.indexOf(curYear),
+    i=>{ const yr=years[i];
+      const inYr=plans.filter(p=>String(p.year)===String(yr));
+      const byD={}; inYr.forEach(p=>{ if(p.district&&p.district!=='לא צוין') byD[p.district]=(byD[p.district]||0)+1; });
+      const top=Object.entries(byD).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      return {sub: top.length? 'רובעים מובילים: '+top.map(([d,c])=>esc(d)+' ('+c+')').join(', ') : ''};
+    });
 
   // בורר שנה לגרף החודשי + ציור ראשוני
   const yrsWithData=[...new Set(plans.map(p=>(p.date||'').slice(0,4)).filter(Boolean))].sort();
@@ -4230,7 +4248,13 @@ function renderTrends() {
   plans.forEach(p => { statusCounts[p.status] = (statusCounts[p.status]||0)+1; });
   const donutData = Object.entries(statusCounts).sort((a,b)=>b[1]-a[1]);
   const colors = donutData.map(([s]) => STATUS_COLORS[s]||'#ccc');
-  drawDonut('donutCanvas', donutData.map(d=>d[1]), colors);
+  drawDonut('donutCanvas', donutData.map(d=>d[1]), colors,
+    i=>{ const st=donutData[i][0];
+      const inSt=plans.filter(p=>p.status===st);
+      const byD={}; inSt.forEach(p=>{ if(p.district&&p.district!=='לא צוין') byD[p.district]=(byD[p.district]||0)+1; });
+      const top=Object.entries(byD).sort((a,b)=>b[1]-a[1])[0];
+      return {label:st, sub: top? 'ריכוז עיקרי: '+esc(top[0])+' ('+top[1]+')' : ''};
+    });
   document.getElementById('donutLegend').innerHTML = donutData.map(([s,c],i) =>
     `<div><span class="dot" style="background:${colors[i]}"></span>${s}: <strong>${c}</strong> (${Math.round(c/plans.length*100)}%)</div>`
   ).join('');
@@ -4297,10 +4321,62 @@ function renderMonthlyTrend(){
     const keys2=[]; plans.forEach(p=>{const d=(p.date||'');if(d.length>=7)keys2.push(d.slice(0,7));});
     const uniq=[...new Set(keys2)].sort(); todayIdx=uniq.indexOf(k);
   } else if(yr===String(now.getFullYear())){ todayIdx=now.getMonth(); }
-  drawLineChart('monthChartCanvas', labels, data, maxVal, todayIdx);
+  // מפתח התקופה לכל עמודה, לשליפת התוכניות של אותו חודש
+  let periodKeys;
+  if(yr==='all'){ const ks=[]; plans.forEach(p=>{const d=(p.date||'');if(d.length>=7)ks.push(d.slice(0,7));});
+    periodKeys=[...new Set(ks)].sort();
+  } else { periodKeys=HE_MONTHS_SHORT.map((_,m)=>yr+'-'+String(m+1).padStart(2,'0')); }
+  drawLineChart('monthChartCanvas', labels, data, maxVal, todayIdx,
+    i=>{ const key=periodKeys[i]; if(!key) return null;
+      const inM=plans.filter(p=>(p.date||'').slice(0,7)===key);
+      const names=inM.map(p=>p.projectName||p.location||p.number).filter(Boolean).slice(0,3);
+      if(!names.length) return {sub:''};
+      return {sub: names.map(esc).join(' · ') + (inM.length>3? ' ועוד '+(inM.length-3) : '')};
+    });
 }
 
-function drawLineChart(canvasId, labels, data, maxVal, todayIdx) {
+/* ══════════════════════════════════════════════════════
+   כרטיס מידע בריחוף מעל גרפים (canvas hit-testing)
+   הגרפים מצוירים על canvas ואין להם אלמנטים ב-DOM,
+   ולכן שומרים את הגאומטריה על הקנבס ומזהים ריחוף לפי מרחק.
+   ══════════════════════════════════════════════════════ */
+let _chHost=null;
+function chartHoverEl(){
+  if(!_chHost){ _chHost=document.createElement('div'); _chHost.id='chartHover'; document.body.appendChild(_chHost); }
+  return _chHost;
+}
+function chartHoverHide(){ const el=chartHoverEl(); el.classList.remove('on'); }
+function chartHoverShow(html, cx, cy){
+  const el=chartHoverEl();
+  el.innerHTML=html; el.classList.add('on');
+  const r=el.getBoundingClientRect();
+  let x=cx-r.width/2, y=cy-r.height-14;
+  x=Math.max(8, Math.min(x, innerWidth-r.width-8));       // לא לחרוג מהמסך
+  if(y<8) y=cy+18;                                         // אין מקום מעל — להציג מתחת
+  el.style.left=x+'px'; el.style.top=y+'px';
+}
+/* רישום נקודות-פגיעה על קנבס + חיבור מאזינים פעם אחת בלבד */
+function chartHoverBind(canvas, hits){
+  canvas._hits=hits;
+  canvas.style.cursor='default';
+  if(canvas._chBound) return;
+  canvas._chBound=true;
+  canvas.addEventListener('mousemove', e=>{
+    const b=canvas.getBoundingClientRect();
+    const mx=e.clientX-b.left, my=e.clientY-b.top;
+    let best=null, bestD=Infinity;
+    (canvas._hits||[]).forEach(h=>{
+      const d=h.test(mx,my); if(d!=null && d<bestD){ bestD=d; best=h; }
+    });
+    if(best){ canvas.style.cursor='pointer'; chartHoverShow(best.html(), b.left+best.ax, b.top+best.ay); }
+    else { canvas.style.cursor='default'; chartHoverHide(); }
+  });
+  canvas.addEventListener('mouseleave', chartHoverHide);
+}
+function chPct(n,total){ return total? Math.round(n/total*100) : 0; }
+function chRow(k,v){ return `<div class="ch-r"><span>${esc(k)}</span><b>${esc(String(v))}</b></div>`; }
+
+function drawLineChart(canvasId, labels, data, maxVal, todayIdx, meta) {
   const canvas = document.getElementById(canvasId);
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.parentElement.clientWidth - 32;
@@ -4414,14 +4490,34 @@ function drawLineChart(canvasId, labels, data, maxVal, todayIdx) {
     ctx.font = '11px Rubik';
     ctx.fillText(p.lbl, p.x, pad.top + ch + 18);
   });
+
+  // ── נקודות ריחוף: כל נקודה תופסת רצועה אנכית סביבה ──
+  const total = data.reduce((a,b)=>a+(b||0),0);
+  const half = points.length>1 ? (points[1].x-points[0].x)/2 : cw/2;
+  chartHoverBind(canvas, points.map((p,i)=>({
+    ax:p.x, ay:p.y,
+    test:(mx,my)=> (Math.abs(mx-p.x)<=Math.max(14,half) && my>=pad.top-10 && my<=pad.top+ch+10)
+                     ? Math.abs(mx-p.x) : null,
+    html:()=>{
+      const prev = i>0 ? data[i-1] : null;
+      const diff = prev==null ? null : p.val-prev;
+      const m = meta ? meta(i) : null;
+      return `<div class="ch-t"><span class="ch-sw" style="background:#2A5F5F"></span>${esc(p.lbl)}</div>`
+        + chRow(meta&&meta.unit?meta.unit:'תוכניות', p.val)
+        + chRow('מסך הכל', chPct(p.val,total)+'%')
+        + (diff==null?'':chRow('לעומת הקודם', (diff>0?'+':'')+diff))
+        + (m&&m.sub?`<div class="ch-sub">${m.sub}</div>`:'');
+    }
+  })));
 }
 
-function drawDonut(canvasId, values, colors) {
+function drawDonut(canvasId, values, colors, meta) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
   const total = values.reduce((a,b)=>a+b,0);
   const cx = 90, cy = 90, r = 70, lineWidth = 24;
   let start = -Math.PI/2;
+  const hits = [];
   ctx.clearRect(0,0,180,180);
   values.forEach((v,i) => {
     const angle = (v/total)*2*Math.PI;
@@ -4430,8 +4526,28 @@ function drawDonut(canvasId, values, colors) {
     ctx.strokeStyle = colors[i];
     ctx.lineWidth = lineWidth;
     ctx.stroke();
+    // אזור הריחוף של הפרוסה: בין הרדיוס הפנימי לחיצוני, בטווח הזווית שלה
+    const a0=start, a1=start+angle, mid=start+angle/2;
+    hits.push({
+      ax: cx + Math.cos(mid)*r, ay: cy + Math.sin(mid)*r,
+      test:(mx,my)=>{
+        const dx=mx-cx, dy=my-cy, dist=Math.hypot(dx,dy);
+        if(dist < r-lineWidth/2 || dist > r+lineWidth/2) return null;
+        let ang=Math.atan2(dy,dx);
+        while(ang < a0) ang += Math.PI*2;              // נרמול לטווח הפרוסה
+        return (ang <= a1) ? 0 : null;
+      },
+      html:()=>{
+        const m = meta ? meta(i) : null;
+        return `<div class="ch-t"><span class="ch-sw" style="background:${colors[i]}"></span>${esc(m&&m.label?m.label:String(i+1))}</div>`
+          + chRow('תוכניות', v)
+          + chRow('מסך הכל', chPct(v,total)+'%')
+          + (m&&m.sub?`<div class="ch-sub">${m.sub}</div>`:'');
+      }
+    });
     start += angle;
   });
+  chartHoverBind(canvas, hits);
   ctx.fillStyle = 'var(--ink)';
   ctx.font = '700 24px "Rubik"';
   ctx.textAlign = 'center';
