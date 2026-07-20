@@ -1213,6 +1213,29 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 /* מתחת לכותרת התוכנית */
 .nt-head-wrap{margin-top:10px;max-width:640px}
 .nt-head-wrap .nti{border-top:none;padding-top:0;margin-top:0}
+/* ── דף הערות: חיפוש → בחירה → תיעוד ── */
+.nt-search{position:relative;max-width:640px;margin-bottom:1rem}
+.nt-search input{width:100%;font-family:inherit;font-size:14px;padding:11px 40px 11px 14px;
+  border:1px solid var(--stone);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+.nt-search input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,95,95,0.10)}
+.nt-clear{position:absolute;left:8px;top:50%;transform:translateY(-50%);background:none;border:none;
+  cursor:pointer;color:var(--muted);font-size:14px;padding:4px 7px;border-radius:50%}
+.nt-clear:hover{background:var(--fog);color:var(--ink)}
+.nt-res{display:flex;flex-direction:column;gap:6px;max-width:640px;margin-bottom:1rem}
+.nt-res-item{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;text-align:right;width:100%;
+  font-family:inherit;font-size:13px;padding:10px 13px;border:1px solid var(--stone);
+  border-radius:var(--r);background:var(--surface);color:var(--ink);cursor:pointer}
+.nt-res-item:hover{border-color:var(--teal);background:rgba(42,95,95,0.05)}
+.nt-res-item b{color:var(--teal);flex:none}
+.nt-res-item i{font-style:normal;font-size:11.5px;color:var(--muted)}
+.nt-res-item em{font-style:normal;font-size:10.5px;background:var(--fog);border-radius:10px;
+  padding:1px 8px;color:var(--muted);margin-right:auto;flex:none}
+.nt-picked{border:1px solid var(--teal);border-radius:var(--r);background:var(--surface);padding:15px 17px}
+.nt-picked-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  flex-wrap:wrap;margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--stone)}
+.nt-picked-t{font-weight:700;font-size:15px;color:var(--ink)}
+.nt-picked-s{font-size:12px;color:var(--muted);margin-top:3px}
+.nt-picked-acts{display:flex;gap:6px;flex-wrap:wrap}
 /* פירוט שמות תוכניות בתקציר המנהלים */
 .ceo-grp{margin-top:7px;font-size:13px;line-height:1.7}
 .ceo-grp-t{font-weight:700;color:var(--teal)}
@@ -1879,7 +1902,7 @@ tbody tr{transition:background .12s}
 <div id="notes" class="page">
   <div class="section-title">הערות וסיכומי יום</div>
   <p class="muted" style="font-size:13px;margin-bottom:1rem;max-width:70ch">
-    הערות תוכן שנכתבות ידנית — מה נאמר בעל־פה, מה סוכם, מה דורש המשך. נשמרות בהיסטוריה של כל תיק ומופיעות גם בדף התוכנית ובתוכנית העבודה.
+    חפשי תוכנית ותעדי עבורה מה נאמר בשיחות בעל־פה. ההערה נשמרת בכרטיס התוכנית ומוצגת בכל שלבי הטיפול בה.
   </p>
   <div id="ntHubBody" class="nt-wrap"></div>
 </div>
@@ -8586,37 +8609,94 @@ function renderDoneThisMonth(){
 function dwSetFilter(k,v){ dwDoneFilter[k]=v; if(k==='month'&&v===todayStr().slice(0,7)) dwDoneFilter.month=''; renderDoneThisMonth(); }
 
 /* ── מרכז ההערות היומי — כתיבה לכל תוכנית ממקום אחד ── */
-let ntHubFilter = { tik:'', tag:'' };
+/* דף ההערות: חיפוש תוכנית → בחירה → תיעוד.
+   אין בדף רכיבים שאינם משרתים את שני הצעדים האלה. */
+let ntHubQuery = '';      // מילות המפתח שהוקלדו
+let ntHubPlanId = null;   // התוכנית שנבחרה
+
+/** תוצאות החיפוש — לפי כל מילת מפתח הקשורה לתוכנית */
+function ntSearchResults(){
+  const q=String(ntHubQuery||'').trim();
+  if(!q) return [];
+  return livePlans().filter(p=>planMatchesQuery(p,q.toLowerCase())).slice(0,12);
+}
 function renderNotesHub(){
   const el=document.getElementById('ntHubBody'); if(!el) return;
-  const active=livePlans().sort((a,b)=>String(a.tik).localeCompare(String(b.tik),'he',{numeric:true}));
-  let notes=allNotes();
-  if(ntHubFilter.tik) notes=notes.filter(n=>String(n.tik)===String(ntHubFilter.tik));
-  if(ntHubFilter.tag) notes=notes.filter(n=>(n.tag||'כללי')===ntHubFilter.tag);
-  const add = canEditNotes() ? `<div class="nt-add">
-      <select id="ntHubPlan">${active.map(p=>`<option value="${p.id}">תב/${esc(String(p.tik))} — ${esc(buildProjectTitle(p))}</option>`).join('')}</select>
-      <textarea id="ntHubText" placeholder="הערה לסיכום היום — מה עלה, מה סוכם, מה דורש המשך..."></textarea>
-      <select id="ntHubTag">${NOTE_TAGS.map(t=>`<option>${t}</option>`).join('')}</select>
-      <button class="btn btn-primary btn-sm" onclick="ntAddFromHub()">הוספה</button>
-    </div>` : '';
-  const tiks=[...new Set(allNotes().map(n=>n.tik))];
-  const filters=`<div class="dw-done-filters no-print">
-    <select class="team-f" onchange="ntHubSet('tik',this.value)"><option value="">כל התוכניות</option>${tiks.map(t=>`<option value="${esc(String(t))}" ${String(ntHubFilter.tik)===String(t)?'selected':''}>תב/${esc(String(t))}</option>`).join('')}</select>
-    <select class="team-f" onchange="ntHubSet('tag',this.value)"><option value="">כל הסוגים</option>${NOTE_TAGS.map(t=>`<option ${ntHubFilter.tag===t?'selected':''}>${t}</option>`).join('')}</select>
+  const sel = ntHubPlanId!=null ? plans.find(p=>String(p.id)===String(ntHubPlanId)) : null;
+
+  // ① חיפוש
+  const search = `<div class="nt-search no-print">
+    <input type="search" id="ntHubQ" value="${esc(ntHubQuery)}" autocomplete="off"
+      placeholder="חיפוש תוכנית — שם, כתובת, יזם, אדריכל, מספר תוכנית או כל תוכן קיים"
+      oninput="ntHubSearch(this.value)">
+    ${ntHubQuery?`<button class="nt-clear" onclick="ntHubSearch('')" title="ניקוי">✕</button>`:''}
   </div>`;
-  el.innerHTML = add + filters + (notes.length
-    ? `<div class="nt-grid">${notes.map((n,i)=>noteCardHtml(n,{last:i===0,showPlan:true})).join('')}</div>`
-    : '<p class="nt-empty">טרם נרשמו הערות תוכן.</p>');
+
+  // ② תוצאות — רק כשמחפשים ועדיין לא נבחרה תוכנית
+  let results='';
+  if(ntHubQuery && !sel){
+    const rs=ntSearchResults();
+    results = rs.length
+      ? `<div class="nt-res">${rs.map(p=>`<button class="nt-res-item" onclick="ntPickPlan(${p.id})">
+           <b>תב/${esc(String(p.tik))}</b>
+           <span>${esc(p.projectName||p.location||'—')}</span>
+           <i>${esc([p.district,p.developer||p.submitter].filter(Boolean).join(' · '))}</i>
+           ${planNotes(p).length?`<em>${planNotes(p).length} הערות</em>`:''}
+         </button>`).join('')}</div>`
+      : `<p class="nt-empty">לא נמצאה תוכנית התואמת ל„${esc(ntHubQuery)}”.</p>`;
+  }
+
+  // ③ התוכנית שנבחרה — תיעוד וצפייה בהערות שלה
+  let panel='';
+  if(sel){
+    const notes=planNotes(sel);
+    const add = canEditNotes() ? `<div class="nt-add">
+        <textarea id="ntHubText" placeholder="מה נאמר בשיחה — סיכום, החלטה, דרישה, מה דורש המשך..."></textarea>
+        <select id="ntHubTag">${NOTE_TAGS.map(t=>`<option>${t}</option>`).join('')}</select>
+        <button class="btn btn-primary btn-sm" onclick="ntAddFromHub()">שמירת הערה</button>
+      </div>` : '';
+    panel = `<div class="nt-picked">
+      <div class="nt-picked-head">
+        <div>
+          <div class="nt-picked-t">תב/${esc(String(sel.tik))}${sel.projectName?(' — '+esc(sel.projectName)):''}</div>
+          <div class="nt-picked-s">${esc([sel.district,sel.location,sel.developer||sel.submitter,sel.status].filter(Boolean).join(' · '))}</div>
+        </div>
+        <div class="nt-picked-acts no-print">
+          <button class="btn btn-ghost btn-sm" onclick="openProject(${sel.id})">פתיחת כרטיס התוכנית</button>
+          <button class="btn btn-ghost btn-sm" onclick="ntPickPlan(null)">חיפוש תוכנית אחרת</button>
+        </div>
+      </div>
+      ${add}
+      ${notes.length
+        ? `<div class="nt-grid">${notes.map((n,i)=>noteCardHtml(Object.assign({pid:sel.id},n),{last:i===0,pid:sel.id})).join('')}</div>`
+        : '<p class="nt-empty">טרם נרשמו הערות לתוכנית זו. ההערה שתיכתב תישמר בכרטיס התוכנית ותוצג בכל שלבי הטיפול.</p>'}
+    </div>`;
+  }
+
+  // ללא חיפוש וללא בחירה — הנחיה קצרה בלבד
+  const hint = (!ntHubQuery && !sel)
+    ? '<p class="nt-empty">חפשי תוכנית כדי לתעד עבורה הערות משיחות בעל־פה.</p>' : '';
+
+  el.innerHTML = search + results + panel + hint;
+  const inp=document.getElementById('ntHubQ');
+  if(inp && ntHubQuery && !sel){ inp.focus(); inp.setSelectionRange(inp.value.length,inp.value.length); }
 }
-function ntHubSet(k,v){ ntHubFilter[k]=v; renderNotesHub(); }
+function ntHubSearch(v){ ntHubQuery=v; if(!v) ntHubPlanId=null; renderNotesHub(); }
+function ntPickPlan(id){
+  ntHubPlanId = id;
+  if(id==null){ ntHubQuery=''; }
+  _ntEditing=null;
+  renderNotesHub();
+  if(id!=null){ const t=document.getElementById('ntHubText'); if(t) t.focus(); }
+}
 function ntAddFromHub(){
-  const sel=document.getElementById('ntHubPlan'), ta=document.getElementById('ntHubText'), tg=document.getElementById('ntHubTag');
-  if(!sel||!ta) return;
+  const ta=document.getElementById('ntHubText'), tg=document.getElementById('ntHubTag');
+  if(!ta) return;
   if(!ta.value.trim()){ toast('לא נכתבה הערה'); return; }
-  const p=plans.find(x=>String(x.id)===String(sel.value));
+  const p=plans.find(x=>String(x.id)===String(ntHubPlanId));
   if(!p){ toast('לא נבחרה תוכנית'); return; }
   addNote(p, ta.value, tg?tg.value:'כללי');
-  ta.value=''; toast('ההערה נשמרה לתב/'+p.tik); ntRerender();
+  ta.value=''; toast('ההערה נשמרה בכרטיס תב/'+p.tik); ntRerenderAll();
 }
 
 /* ══════════ צוות היזם ופרטי קשר ══════════
