@@ -444,6 +444,11 @@ tbody tr:hover{background:var(--teal-pale)}
 #chartHover .ch-r{display:flex;justify-content:space-between;gap:14px;color:var(--muted)}
 #chartHover .ch-r b{color:var(--ink);font-weight:600}
 #chartHover .ch-sub{margin-top:5px;padding-top:5px;border-top:1px solid var(--stone);color:var(--muted);font-size:11px}
+#chartHover .ch-list{margin:3px 0 0;padding:0;list-style:none}
+#chartHover .ch-list li{position:relative;padding-right:11px;margin-bottom:2px;line-height:1.5;
+  overflow-wrap:anywhere}
+#chartHover .ch-list li:before{content:'•';position:absolute;right:0;color:var(--teal)}
+#chartHover .ch-more{margin-top:3px;opacity:.75;font-style:italic}
 
 .detail-dates-row{display:flex;gap:0;border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;border:1px solid var(--stone)}
 .detail-date-cell{flex:1;padding:1rem 0.8rem;text-align:center;background:var(--fog);border-left:1px solid var(--stone)}
@@ -4253,7 +4258,16 @@ function renderTrends() {
       const inSt=plans.filter(p=>p.status===st);
       const byD={}; inSt.forEach(p=>{ if(p.district&&p.district!=='לא צוין') byD[p.district]=(byD[p.district]||0)+1; });
       const top=Object.entries(byD).sort((a,b)=>b[1]-a[1])[0];
-      return {label:st, sub: top? 'ריכוז עיקרי: '+esc(top[0])+' ('+top[1]+')' : ''};
+      // פירוט התוכניות באותו סטטוס — רשימה אנכית
+      const names=inSt.slice(0,6).map(p=>{
+        const nm=p.projectName||p.location||'';
+        return (p.tik? 'תב/'+p.tik : '') + (nm? (p.tik?' — ':'')+nm : '');
+      }).filter(Boolean);
+      let sub='';
+      if(top) sub+='ריכוז עיקרי: '+esc(top[0])+' ('+top[1]+')';
+      if(names.length) sub+='<ul class="ch-list">'+names.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>'
+        + (inSt.length>names.length? '<div class="ch-more">ועוד '+(inSt.length-names.length)+'</div>' : '');
+      return {label:st, sub};
     });
   document.getElementById('donutLegend').innerHTML = donutData.map(([s,c],i) =>
     `<div><span class="dot" style="background:${colors[i]}"></span>${s}: <strong>${c}</strong> (${Math.round(c/plans.length*100)}%)</div>`
@@ -4331,7 +4345,8 @@ function renderMonthlyTrend(){
       const inM=plans.filter(p=>(p.date||'').slice(0,7)===key);
       const names=inM.map(p=>p.projectName||p.location||p.number).filter(Boolean).slice(0,3);
       if(!names.length) return {sub:''};
-      return {sub: names.map(esc).join(' · ') + (inM.length>3? ' ועוד '+(inM.length-3) : '')};
+      return {sub: '<ul class="ch-list">'+names.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul>'
+        + (inM.length>names.length? '<div class="ch-more">ועוד '+(inM.length-names.length)+'</div>' : '')};
     });
 }
 
