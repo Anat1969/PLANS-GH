@@ -741,7 +741,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 #projectPage input[data-always="ro"]{color:rgba(0,0,0,0.5) !important}
 @media print{#projectPage input,#projectPage textarea,#projectPage select{color:#000 !important}}
 /* ══════════ מסגרת הדמיית פרויקט (גובה ~2 שורות) ══════════ */
-.render-frame{position:relative;width:116px;height:78px;border-radius:6px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;border:1px solid var(--stone,#e8e5df)}
+.render-frame{position:relative;width:116px;aspect-ratio:var(--img-ratio);height:auto;border-radius:6px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;border:1px solid var(--stone,#e8e5df)}
 .render-frame img{width:100%;height:100%;object-fit:contain;cursor:zoom-in;display:block}
 .render-frame.render-seeded{outline:2px solid #1a56db;outline-offset:-2px}
 .render-empty{border:1.5px dashed var(--stone);cursor:pointer;flex-direction:column;gap:1px;color:#9aa;transition:all .15s}
@@ -757,7 +757,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .render-count{position:absolute;bottom:2px;right:2px;background:rgba(26,86,219,0.92);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;cursor:pointer}
 .render-lb-close{position:absolute;top:20px;left:24px;color:#fff;font-size:28px;cursor:pointer}
 /* מסגרת בדף הפרויקט — גדולה יותר */
-#renderInfoFrame .render-frame{width:100%;height:150px}
+#renderInfoFrame .render-frame{width:100%;aspect-ratio:var(--img-ratio);height:auto}
 @media print{.render-clear,.render-empty{display:none}}
 /* ══════════ צ'ק-בוקס דו-מצבי (התייחסו? כן/לא) ══════════ */
 .chk2{display:inline-flex;gap:4px}
@@ -771,6 +771,31 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 /* ══════════ כרטיס תוכנית בינוי עם הדמייה כרקע (50% שקיפות) ══════════ */
 .card-render{position:relative;overflow:hidden}
 .card-render-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.5;z-index:0;pointer-events:none}
+
+/* ══════════════════════════════════════════════════════
+   הצגת תמונות — כלל אחיד לכל המערכת
+   כל תמונה מוצגת במלואה, ללא חיתוך, על רקע לבן.
+   המסגרות מלבניות אופקיות ביחס אחיד (3:2), והתמונה
+   מותאמת לתוכן המסגרת תוך שמירת יחס הגבהים המקורי.
+   כשיחס התמונה שונה מיחס המסגרת — השוליים נשארים לבנים.
+   ══════════════════════════════════════════════════════ */
+:root{ --img-ratio: 3 / 2; }
+.render-frame,.img-box,.devplan-box,.doc-thumb-inner,
+.mayor-hero,.fa-img,.fc-img,.vm-thumb-box{
+  aspect-ratio:var(--img-ratio);
+  height:auto;
+  min-height:0;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.render-frame img,.img-box img,.devplan-box img,.doc-thumb-inner img,
+.mayor-hero img,.fa-img img,.fc-img img,.vm-thumb-box img{
+  width:100%;height:100%;
+  object-fit:contain;      /* התמונה כולה נכנסת — ללא חיתוך */
+  background:#fff;         /* השוליים הפנויים נשארים לבנים */
+  display:block;
+}
 .card-render-content{position:relative;z-index:1}
 /* רקע לבן חצי-שקוף מאחורי הטקסט לשמירת קריאוּת */
 .card-render .card-render-bg::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.35)}
@@ -865,14 +890,15 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 /* ══════════ פריסת אזורים אנכית + מסגרות תמונה ══════════ */
 .area-row{display:grid;grid-template-columns:1fr 260px;gap:1rem;align-items:stretch;margin-bottom:1.2rem}
 .area-row .pp-card{margin:0}
-.area-frame{display:flex}
-.img-box{position:relative;width:100%;min-height:160px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
-.img-box img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+/* align-items:flex-start — אחרת המסגרת נמתחת לגובה השורה ויחס הצדדים נשבר */
+.area-frame{display:flex;align-items:flex-start}
+.img-box{position:relative;width:100%;aspect-ratio:var(--img-ratio);min-height:0;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
+.img-box img{width:100%;height:100%;object-fit:contain;background:#fff;cursor:zoom-in;display:block}
 .img-empty{border:1.5px dashed var(--stone);cursor:pointer;flex-direction:column;gap:4px;color:#9aa;transition:all .15s}
 .img-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
 /* מסגרת גדולה מלבנית לתוכנית הפיתוח */
 .devplan-card{margin-bottom:1.4rem}
-.devplan-box{position:relative;width:100%;height:340px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
+.devplan-box{position:relative;width:100%;aspect-ratio:var(--img-ratio);height:auto;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
 .devplan-box img{width:100%;height:100%;object-fit:contain;cursor:zoom-in;background:#fff}
 .devplan-empty{border:2px dashed var(--stone);cursor:pointer;flex-direction:column;gap:8px;color:#9aa;transition:all .15s}
 .devplan-empty:hover{border-color:var(--teal);color:var(--teal);background:#f0f7f7}
@@ -1039,8 +1065,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .doc-frame-head{font-size:13px;color:rgba(0,0,0,0.6);margin-bottom:8px}
 .doc-thumbs{display:flex;gap:10px;flex-wrap:wrap}
 .doc-thumb{position:relative;width:110px}
-.doc-thumb-inner{width:110px;height:90px;border:1px solid var(--stone);border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
-.doc-thumb-inner img{width:100%;height:100%;object-fit:cover}
+.doc-thumb-inner{width:110px;aspect-ratio:var(--img-ratio);height:auto;border:1px solid var(--stone);border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
+.doc-thumb-inner img{width:100%;height:100%;object-fit:contain;background:#fff}
 .doc-ic{font-size:13px;color:var(--teal);font-weight:600;text-align:center;padding:4px}
 .doc-thumb-name{font-size:10px;color:rgba(0,0,0,0.55);margin-top:3px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .doc-thumb-x{position:absolute;top:2px;left:2px;width:18px;height:18px;border:none;border-radius:50%;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s}
@@ -1274,8 +1300,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .vm-cat-head{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;color:var(--bordeaux);margin-bottom:8px}
 .vm-count{background:#f0f0f0;color:#666;border-radius:12px;padding:1px 9px;font-size:11px}
 .vm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.vm-thumb{border:1px solid #e2e2e2;border-radius:8px;overflow:hidden;background:#fafafa;display:flex;flex-direction:column}
-.vm-thumb img{width:100%;height:150px;object-fit:contain;background:#f4f4f2;cursor:zoom-in;display:block}
+.vm-thumb{border:1px solid #e2e2e2;border-radius:8px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.vm-thumb img{width:100%;height:auto;aspect-ratio:var(--img-ratio);object-fit:contain;background:#fff;cursor:zoom-in;display:block}
 .vm-thumb-meta{font-size:11px;color:#555;padding:5px 8px;border-top:1px solid #eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vm-thumb-tools{display:flex;gap:4px;padding:5px 8px;border-top:1px solid #f0f0f0;align-items:center}
 .vm-thumb-tools select{flex:1;font-size:11px;border:1px solid #d5d5d5;border-radius:5px;padding:2px}
@@ -1419,20 +1445,20 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .share-sec-body h4{font-size:15px;color:var(--teal);margin:8px 0 4px}
 .share-sec-body ul{padding-inline-start:20px;margin:6px 0}
 /* חזיתות */
-.mayor-hero{width:100%;height:300px;border-radius:8px;overflow:hidden;background:#f6f6f4;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
-.mayor-hero img{width:100%;height:100%;object-fit:cover}
+.mayor-hero{width:100%;aspect-ratio:var(--img-ratio);height:auto;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
+.mayor-hero img{width:100%;height:100%;object-fit:contain;background:#fff}
 .proj-facts{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin-bottom:1.4rem;padding:10px;background:#fafafa;border-radius:8px}
 .facade-alts{display:flex;flex-direction:column;gap:14px}
 .facade-alt{display:grid;grid-template-columns:200px 1fr;gap:14px;border:1px solid var(--fog);border-radius:8px;padding:12px}
-.fa-img{width:100%;height:150px;border:1.5px dashed var(--stone);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
-.fa-img img{width:100%;height:100%;object-fit:cover}
+.fa-img{width:100%;aspect-ratio:var(--img-ratio);height:auto;border:1.5px dashed var(--stone);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#fff}
+.fa-img img{width:100%;height:100%;object-fit:contain;background:#fff}
 .fa-body{display:flex;flex-direction:column;gap:6px}
 .fa-name{font-weight:600;border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit}
 .fa-body textarea{border:1px solid var(--stone);border-radius:6px;padding:6px;font-family:inherit;font-size:13px;min-height:40px;color:#1a56db}
 .facade-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .fc-col{border:1px solid var(--fog);border-radius:8px;overflow:hidden}
-.fc-img{height:140px;background:#f6f6f4;display:flex;align-items:center;justify-content:center}
-.fc-img img{width:100%;height:100%;object-fit:cover}
+.fc-img{aspect-ratio:var(--img-ratio);height:auto;background:#fff;display:flex;align-items:center;justify-content:center}
+.fc-img img{width:100%;height:100%;object-fit:contain;background:#fff}
 .fc-name{font-weight:600;padding:6px 10px;font-size:13px}
 .fc-note{padding:0 10px 10px;font-size:12px;color:rgba(0,0,0,0.6)}
 .ver-modal{background:#fff;border-radius:12px;padding:1.5rem;max-width:520px;width:90vw}
@@ -1787,10 +1813,10 @@ tbody tr{transition:background .12s}
   .viewer-btns button,.viewer-btns a{min-width:42px;min-height:42px;font-size:16px}
   .vm-thumb-tools select{font-size:13px;min-height:34px}
 }
-/* תצוגות גדולות מציגות את התמונה בשלמותה — בלי חיתוך (contain במקום cover) */
-#renderInfoFrame .render-frame img{object-fit:contain;background:#0c1d1b}
-.img-box img{object-fit:contain !important;background:var(--fog)}
-.doc-thumb-inner img{object-fit:contain !important;background:var(--fog)}
+/* תצוגות גדולות מציגות את התמונה בשלמותה — בלי חיתוך, על רקע לבן */
+#renderInfoFrame .render-frame img{object-fit:contain;background:#fff}
+.img-box img{object-fit:contain !important;background:#fff}
+.doc-thumb-inner img{object-fit:contain !important;background:#fff}
 /* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
 .dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
