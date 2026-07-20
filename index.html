@@ -488,7 +488,7 @@ tbody tr:hover{background:var(--teal-pale)}
 .pp-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem;border-bottom:2px solid var(--stone)}
 .pp-title{font-family:var(--display);font-size:30px;font-weight:700;line-height:1.2;color:var(--ink)}
 .pp-sub{font-size:14px;color:rgba(0,0,0,0.55);margin-top:4px}
-.pp-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* .pp-actions הוסר — הכפתורים עברו ל-.proj-toolbar בסרגל העליון */
 .stage-badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 12px;border-radius:4px;color:#fff}
 /* רמזור אחיד: שלב 1/2 = צהוב (בתהליך), ועדה = צהוב-כתום, מאושר = ירוק */
 .stage-badge.st1{background:var(--warn)}.stage-badge.st2{background:var(--warn)}
@@ -818,7 +818,21 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .toolbar-nav{display:flex;gap:2px;flex-wrap:wrap;align-items:center}
 /* מפריד בין קבוצות תפעול בסרגל הניווט */
 .nav-sep{flex:0 0 auto;width:1px;height:20px;background:rgba(255,255,255,0.22);margin:0 7px;border-radius:1px}
-.toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15)}
+.toolbar-manage{display:flex;align-items:center;gap:10px;margin-inline-start:auto;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,0.15);
+  flex-wrap:wrap;row-gap:7px;min-width:0}
+.toolbar-manage .search-bar{min-width:0;flex:0 1 auto}
+/* כפתורי התוכנית הפתוחה בתוך הסרגל העליון — שורה אחת קומפקטית */
+.proj-toolbar{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;flex:0 0 auto;
+  padding-inline-end:10px;margin-inline-end:3px;border-inline-end:1px solid rgba(255,255,255,0.15)}
+.proj-toolbar .btn{font-size:11.5px;padding:5px 10px;white-space:nowrap}
+.proj-toolbar .dev-code-chip{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.35);
+  color:#fff;font-size:11.5px;padding:3px 8px;white-space:nowrap}
+.proj-toolbar .dev-code-chip:hover{background:rgba(255,255,255,0.2)}
+.proj-toolbar .role-toggle{border-color:rgba(255,255,255,0.35)}
+.proj-toolbar .role-btn{font-size:11.5px;padding:5px 10px;white-space:nowrap;
+  background:rgba(255,255,255,0.12);color:#fff}
+.proj-toolbar .role-btn.active{background:#fff;color:var(--teal);font-weight:600}
+.proj-toolbar .stage-badge{font-size:11.5px;padding:4px 9px;white-space:nowrap}
 @media (max-width:900px){.toolbar-manage{margin-inline-start:0;border-inline-start:none;padding-inline-start:0;width:100%;justify-content:flex-start}}
 /* כפתור מצב ענן — באותו עיצוב כמו כפתורי הכותרת (upgrade-btn) */
 .cloud-status{background:var(--bronze);color:white;padding:6px 16px;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;transition:all 0.2s}
@@ -1893,6 +1907,16 @@ tbody tr{transition:background .12s}
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
     <button id="globalBack" class="mast-back no-print" onclick="goBack()" style="display:none" title="חזרה לדף הקודם"><span class="gb-arrow">‹</span> <span class="gb-label">חזרה</span></button>
+    <!-- כפתורי התוכנית הפתוחה — מוצגים רק בדף תוכנית -->
+    <div class="proj-toolbar no-print" id="projToolbar" style="display:none">
+      <span id="ppStageBadge"></span>
+      <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
+      <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
+      <div class="role-toggle" id="roleToggle">
+        <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
+        <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
+      </div>
+    </div>
     <div class="search-bar">
       <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" data-nolock="1" oninput="globalSearchFn(this.value)">
     </div>
@@ -2276,15 +2300,7 @@ tbody tr{transition:background .12s}
       <div class="pp-sub" id="ppSub">—</div>
       <div id="ntHeadBody" class="nt-head-wrap"></div>
     </div>
-    <div class="pp-actions">
-      <span id="ppStageBadge"></span>
-      <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
-      <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
-      <div class="role-toggle" id="roleToggle">
-        <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
-        <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
-      </div>
-    </div>
+    <!-- כפתורי הפעולה של התוכנית עברו לסרגל העליון (#projToolbar) -->
   </div>
 
   <!-- פס שלבי חיים של התוכנית: איפה היא עומדת ומה נדרש לשלב הבא -->
@@ -3060,6 +3076,8 @@ let _lastProjectId=null;
 function go(id, btn, isBack) {
   const from=currentPageId();
   if(!isBack && from && from!==id) pushNav(from);
+  // כפתורי התוכנית שייכים לדף התוכנית בלבד
+  if(id!=='projectPage' && typeof projToolbarShow==='function') projToolbarShow(false);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
@@ -4998,6 +5016,7 @@ function openProject(id, isBack) {
   applyProjectRole(); // מיישם את מצב הצפייה (אדריכל/עיר)
   applyLocksUI(p);    // באנרים וחסימות של סעיפים שאושרו וננעלו
   renderHeadNotes();  // הערות תוכן מתחת לכותרת התוכנית
+  projToolbarShow(true);   // כפתורי התוכנית בסרגל העליון
   const dc=document.getElementById('devCodeChip');
   if(dc && isArchitect()) dc.textContent='🔑 קוד יזם: '+devCodeFor(p);
   // אם פאנל הסייען פתוח — רענן את ההקשר לפרויקט החדש
@@ -5093,8 +5112,14 @@ function workflowStatus(p){
   ['zoningPlan','designation','area'].forEach(k=>{ if(!filled(m[k])) missing++; });
   return { stepDone, doneCount, mismatches, missing };
 }
+/** הצגה/הסתרה של כפתורי התוכנית בסרגל העליון */
+function projToolbarShow(on){
+  const el=document.getElementById('projToolbar');
+  if(el) el.style.display = on ? 'flex' : 'none';
+}
 function closeProject() {
   currentProjectId = null;
+  projToolbarShow(false);
   const dest = _projectOrigin || (isDeveloper() ? 'devhome' : 'table');
   const btn = document.querySelector('#mainNav button[data-nav="'+dest+'"]');
   go(dest, btn);
