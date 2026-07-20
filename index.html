@@ -1600,6 +1600,17 @@ textarea.infra-in{overflow:hidden;resize:none;line-height:1.4;min-height:2.2em}
 /* חזיתות */
 .mayor-hero{width:100%;aspect-ratio:var(--img-ratio);height:auto;border-radius:8px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
 .mayor-hero img{width:100%;height:100%;object-fit:contain;background:#fff}
+/* דוח ראש העיר — מינימליסטי ונקי */
+.mayor-min{max-width:760px;margin:0 auto}
+.mayor-sec{border-bottom:1px solid var(--fog);padding-bottom:1rem;margin-bottom:1.4rem}
+.mayor-sec h3{font-family:var(--display);font-size:16px;margin-bottom:.5rem;color:var(--teal,#2A5F5F)}
+.mayor-ta{width:100%;font-family:inherit;font-size:14px;line-height:1.7;padding:10px 12px;
+  border:1px solid var(--stone);border-radius:8px;background:var(--surface);color:var(--ink);
+  resize:none;overflow:hidden;min-height:3em}
+.mayor-ta:focus{outline:none;border-color:var(--teal)}
+.mayor-ta[readonly]{background:var(--fog);color:var(--ink);border-style:dashed}
+.mayor-vbanner{background:rgba(156,122,60,0.10);border:1px solid rgba(156,122,60,0.35);
+  border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:1rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .proj-facts{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;margin-bottom:1.4rem;padding:10px;background:#fafafa;border-radius:8px}
 .facade-alts{display:flex;flex-direction:column;gap:14px}
 .facade-alt{display:grid;grid-template-columns:200px 1fr;gap:14px;border:1px solid var(--fog);border-radius:8px;padding:12px}
@@ -6787,7 +6798,7 @@ function heMonthName(m){ return ['','ינואר','פברואר','מרץ','אפר
 
 /* ── שמירה/טעינה אונליין ── */
 async function saveShares(){
-  try { localStorage.setItem('ashdod_shares_v1', JSON.stringify(shares)); } catch(e){}
+  try { localStorage.setItem('ashdod_shares_v1', JSON.stringify(shares, (k,v)=> (k==='_viewingVersion'||k==='_backupEdits')?undefined:v)); } catch(e){}
   try {
     const rows = shares.map(s => ({ id: s.id, data: s, updated_at: new Date().toISOString() }));
     if (!rows.length) return;
@@ -7090,58 +7101,113 @@ function setSharePeriod(k,v){ const s=sh(); if(!s)return; if(!s.reportingPeriod)
 function setShareTitle(t){ const s=sh(); if(!s)return; s.title=t.trim()||s.title; touchShare(s); renderSharesList(); }
 
 /* ══════════ שיתוף עיצוב חזיתות לראש העיר ══════════ */
+/* ══════════════════════════════════════════════════════
+   דוח ראש העיר — קצר, נקי ומינימליסטי.
+   שלושה סעיפים ניתנים לעריכה מלאה: פתיח · הקשר עירוני ·
+   המלצת אדריכלית העיר. „שמירת גרסה” שומרת עותק בלתי־ניתן
+   לשינוי לפי שם הפרויקט, תאריך ומספר גרסה.
+   ══════════════════════════════════════════════════════ */
+const MAYOR_SECTIONS = [
+  {key:'opening',        label:'פתיח'},
+  {key:'urban',          label:'הקשר עירוני'},
+  {key:'recommendation', label:'המלצת אדריכלית העיר'}
+];
+function mayorText(s,key){ return (s.manualEdits&&s.manualEdits[key]) || ''; }
+/** הקפאה עמוקה — גרסה שמורה אינה ניתנת לשינוי כלל (כולל content הפנימי) */
+function deepFreeze(o){ if(o&&typeof o==='object'&&!Object.isFrozen(o)){ Object.keys(o).forEach(k=>deepFreeze(o[k])); Object.freeze(o); } return o; }
 function renderMayorShare(s){
   const p = s.projectIds.length ? plans.find(x=>String(x.id)===String(s.projectIds[0])) : null;
   const projOpts = plans.map(pl=>`<option value="${pl.id}"${p&&p.id===pl.id?' selected':''}>תב/${pl.tik} — ${esc(pl.district)} ${esc(pl.location||'')}</option>`).join('');
-  const alts = s.facadeAlts||[];
+  const nver=(s.mayorVersions||[]).length;
   return `
   <div class="pp-breadcrumb no-print"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <a onclick="backToShares()">שיתופים</a> ‹ <span>${esc(s.title)}</span></div>
   <div class="share-toolbar no-print">
     <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
     <div class="share-tb-right">
-      <span class="date-status ${SHARE_STATUS_CLS[s.status]}">${SHARE_STATUS[s.status]}</span>
-      <button class="btn btn-ghost btn-sm" onclick="advanceShareStatus()">קידום סטטוס</button>
-      <button class="btn btn-ghost btn-sm" onclick="showVersions()">גרסאות (${s.version})</button>
-      <button class="btn btn-primary btn-sm" onclick="draftShareFromData()" title="טיוטה מהנתונים ללא שימוש ב-AI">טיוטה מהנתונים</button> <button class="btn btn-ghost btn-sm" onclick="generateShareContent()" title="ניסוח בעזרת AI (צורך טוקנים)">✨ העשר עם AI</button>
+      <button class="btn btn-primary btn-sm" onclick="saveMayorVersion()">💾 שמירת גרסה</button>
+      <button class="btn btn-ghost btn-sm" onclick="showMayorVersions()">גרסאות שמורות${nver?(' ('+nver+')'):''}</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
-      <button class="btn btn-ghost btn-sm" onclick="copyShareEmail()">העתקה למייל</button>
     </div>
   </div>
 
-  <div class="share-doc mayor-doc" id="shareDoc">
+  <div class="share-doc mayor-doc mayor-min" id="shareDoc">
+    ${s._viewingVersion?`<div class="mayor-vbanner no-print">מוצגת גרסה שמורה ${esc(s._viewingVersion.label)} · ${fmtDate(s._viewingVersion.at)} — לצפייה בלבד. <button class="btn btn-ghost btn-xs" onclick="mayorEditFromVersion()">עריכה כגרסה חדשה</button> <button class="btn btn-ghost btn-xs" onclick="mayorBackToCurrent()">חזרה לגרסה הנוכחית</button></div>`:''}
     <div class="share-filters no-print">
       <div class="pp-field" style="flex:1"><label>בחירת תוכנית בינוי</label>
         <select onchange="setMayorProject(this.value)"><option value="">— בחרי פרויקט —</option>${projOpts}</select></div>
     </div>
 
-    ${!p ? '<p class="muted" style="padding:2rem;text-align:center">בחרי תוכנית בינוי כדי למשוך את נתוני הפרויקט, ההדמיות והחלופות.</p>' : `
+    ${!p ? '<p class="muted" style="padding:2rem;text-align:center">בחרי תוכנית בינוי כדי למשוך את פרטי הפרויקט וההדמיה.</p>' : `
     <h1 class="share-title" contenteditable="true" onblur="setShareTitle(this.textContent)">${esc(s.title)}</h1>
     <div class="share-sub">${buildProjectTitle(p)}</div>
 
-    <div class="mayor-hero">${p.devPlanImg||p.render ? `<img src="${p.devPlanImg||p.render}" alt="הדמיה">` : '<div class="muted">אין הדמיה — ניתן להעלות בדף הפרויקט</div>'}</div>
+    ${p.devPlanImg||p.render ? `<div class="mayor-hero"><img src="${p.devPlanImg||p.render}" alt="הדמיה"></div>` : ''}
 
-    <div class="proj-facts">
-      <span><b>מיקום:</b> ${esc(p.district)} ${esc(p.location||'')}</span>
-      <span><b>יזם:</b> ${esc(p.developer||'—')}</span>
-      <span><b>אדריכל:</b> ${esc(p.submitter||(p.meta&&p.meta.archName)||'—')}</span>
-      <span><b>ייעוד:</b> ${esc((p.meta&&p.meta.designation)||p.purpose||'—')}</span>
-    </div>
-
-    ${sectionShell(s,'opening','פתיח', gcOr(s,'opening','<p class="muted">יופק בהפקת תוכן.</p>'))}
-    ${sectionShell(s,'urban','ההקשר העירוני', gcOr(s,'urban','<p class="muted">יופק בהפקת תוכן.</p>'))}
-
-    <section class="share-section"><div class="share-sec-head"><h3>חלופות עיצוב</h3><div class="no-print"><button class="btn btn-ghost btn-sm" onclick="addFacadeAlt()" ${alts.length>=4?'disabled':''}>+ הוסף חלופה</button></div></div>
-      <div class="facade-alts">${alts.length?alts.map((a,i)=>facadeAltHTML(a,i)).join(''):'<p class="muted">הוסיפי בין 2 ל-4 חלופות עיצוב.</p>'}</div>
-    </section>
-
-    ${alts.length>=2 ? `<section class="share-section"><div class="share-sec-head"><h3>השוואה חזותית</h3></div>
-      <div class="facade-compare">${alts.map(a=>`<div class="fc-col"><div class="fc-img">${a.img?`<img src="${a.img}">`:'<div class="muted">אין תמונה</div>'}</div><div class="fc-name">${esc(a.name||'—')}</div><div class="fc-note">${esc(a.pros||'')}</div></div>`).join('')}</div>
-    </section>`:''}
-
-    ${sectionShell(s,'recommendation','המלצת אדריכלית העיר', gcOr(s,'recommendation','<p class="muted">יופק בהפקת תוכן.</p>'))}
-    ${sectionShell(s,'decision','החלטה מבוקשת', gcOr(s,'decision','<p class="muted">יופק בהפקת תוכן.</p>'))}
+    ${MAYOR_SECTIONS.map(sec=>`
+      <section class="share-section mayor-sec">
+        <h3>${sec.label}</h3>
+        <textarea class="mayor-ta autogrow" rows="3" oninput="autoGrow(this)" ${s._viewingVersion?'readonly':''}
+          onchange="setMayorText('${sec.key}',this.value)" placeholder="כתיבת ${sec.label}...">${esc(mayorText(s,sec.key))}</textarea>
+      </section>`).join('')}
     `}
   </div>`;
+}
+function setMayorText(key,val){ const s=sh(); if(!s)return; if(!s.manualEdits)s.manualEdits={}; s.manualEdits[key]=val; touchShare(s); }
+/** שמירת גרסה — עותק בלתי־ניתן לשינוי לפי שם הפרויקט, תאריך ומספר גרסה */
+function saveMayorVersion(){
+  const s=sh(); if(!s)return;
+  const p = s.projectIds.length ? plans.find(x=>String(x.id)===String(s.projectIds[0])) : null;
+  if(!Array.isArray(s.mayorVersions)) s.mayorVersions=[];
+  const num = s.mayorVersions.length+1;
+  const snapshot = {
+    version: num,
+    label: 'גרסה '+num,
+    projectName: p ? buildProjectTitle(p) : (s.title||''),
+    title: s.title,
+    at: todayStr(),
+    savedAt: new Date().toISOString(),
+    content: { opening:mayorText(s,'opening'), urban:mayorText(s,'urban'), recommendation:mayorText(s,'recommendation') }
+  };
+  deepFreeze(snapshot);                            // בלתי־ניתן לשינוי לאחר שמירה (כולל content)
+  s.mayorVersions.push(snapshot);
+  touchShare(s);
+  toast('נשמרה '+snapshot.label+' · '+fmtDate(snapshot.at));
+  openShare(s.id);
+}
+function showMayorVersions(){
+  const s=sh(); if(!s)return;
+  const vs=(s.mayorVersions||[]).slice().reverse();
+  const rows = vs.length ? vs.map(v=>`<tr>
+    <td><b>${esc(v.label)}</b></td><td>${esc(v.projectName||'—')}</td><td>${fmtDate(v.at)}</td>
+    <td class="no-print"><button class="btn btn-ghost btn-xs" onclick="openMayorVersion(${v.version})">פתיחה</button></td>
+  </tr>`).join('') : '<tr><td colspan="4" class="muted">אין גרסאות שמורות עדיין</td></tr>';
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ver-modal"><h3>גרסאות שמורות — ${esc(s.title)}</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>גרסה</th><th>שם הפרויקט</th><th>תאריך</th><th class="no-print"></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <button class="btn btn-primary btn-sm" onclick="this.closest('.render-lightbox').remove()">סגור</button></div>`;
+  document.body.appendChild(ov);
+}
+/** פתיחת גרסה קודמת לצפייה (המקור אינו משתנה) */
+function openMayorVersion(num){
+  const s=sh(); if(!s)return;
+  const v=(s.mayorVersions||[]).find(x=>x.version===num); if(!v) return;
+  s._viewingVersion = v;
+  s._backupEdits = { ...(s.manualEdits||{}) };   // שמירת הטקסט הנוכחי לחזרה
+  s.manualEdits = { ...s.manualEdits, ...v.content };
+  document.querySelectorAll('.render-lightbox').forEach(x=>x.remove());
+  openShare(s.id);
+}
+/** עריכת הגרסה המוצגת כגרסה חדשה — הופך את התוכן לעריך ומנתק מהעותק השמור */
+function mayorEditFromVersion(){
+  const s=sh(); if(!s)return;
+  s._viewingVersion = null;   // התוכן כבר טעון ב-manualEdits; כעת ניתן לעריכה ולשמירה כגרסה חדשה
+  touchShare(s); openShare(s.id); toast('הגרסה נטענה לעריכה — „שמירת גרסה” תיצור גרסה חדשה');
+}
+function mayorBackToCurrent(){
+  const s=sh(); if(!s)return;
+  if(s._backupEdits) s.manualEdits = s._backupEdits;
+  s._viewingVersion=null; s._backupEdits=null;
+  touchShare(s); openShare(s.id);
 }
 function setMayorProject(id){ const s=sh(); if(!s)return; s.projectIds = id?[id]:[]; touchShare(s); openShare(s.id); }
 function addFacadeAlt(){ const s=sh(); if(!s)return; if(!Array.isArray(s.facadeAlts))s.facadeAlts=[]; if(s.facadeAlts.length>=4){toast('מקסימום 4 חלופות');return;} s.facadeAlts.push({name:'חלופה '+(s.facadeAlts.length+1),idea:'',pros:'',cons:'',img:''}); touchShare(s); openShare(s.id); }
