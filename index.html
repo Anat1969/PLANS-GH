@@ -605,6 +605,37 @@ tbody tr:hover{background:var(--teal-pale)}
 .tri-col ul{list-style:none;padding:0;margin:0}
 .tri-col li{font-size:12.5px;padding:3px 0;border-bottom:1px solid var(--fog);color:rgba(0,0,0,0.7)}
 .opinion-doc{background:#fff;border:1px solid var(--stone);border-radius:var(--r);padding:2rem}
+/* דף חוות דעת — מבנה נושאי היררכי */
+.op-doc{padding:1.5rem}
+.op-title{font-family:var(--display);text-align:center;font-size:22px;margin-bottom:1rem}
+.op-sec{border-radius:10px;padding:12px 16px;margin-bottom:12px;border:1px solid var(--stone);background:#fff}
+.op-sec-t{font-family:var(--display);font-size:15px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--stone)}
+.op-sec-b{font-size:13px}
+/* הפרדה חזותית בין מידע · בדיקה · מסקנות · המלצה */
+.op-grp-id{background:linear-gradient(180deg,rgba(42,95,95,.06),#fff)}
+.op-grp-info{border-inline-start:4px solid var(--teal,#2A5F5F)}
+.op-grp-info .op-sec-t{border-bottom-color:var(--teal,#2A5F5F)}
+.op-grp-check{border-inline-start:4px solid var(--bronze-deep,#7a5f2e)}
+.op-grp-check .op-sec-t{border-bottom-color:var(--bronze,#9c7a3c)}
+.op-grp-concl{border-inline-start:4px solid var(--bordeaux,#7a1f2b);background:rgba(122,31,43,.03)}
+.op-grp-rec{border:2px solid var(--bordeaux,#7a1f2b);background:rgba(122,31,43,.04)}
+.op-id-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:5px 16px}
+.op-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.op-tbl th{text-align:right;font-size:11px;color:var(--muted);font-weight:700;padding:5px 7px;border-bottom:1px solid var(--stone);white-space:nowrap}
+.op-tbl td{padding:5px 7px;border-bottom:1px solid var(--fog);vertical-align:top}
+.op-tbl tr.op-ok{background:rgba(61,139,94,.04)} .op-tbl tr.op-no{background:rgba(192,57,43,.05)}
+.op-res{font-size:11px;font-weight:700;border-radius:10px;padding:1px 9px;white-space:nowrap}
+.op-res-ok{background:#3d8b5e;color:#fff} .op-res-no{background:#c0392b;color:#fff} .op-res-na{background:var(--stone);color:var(--ink)}
+.op-scoreboard{display:flex;gap:10px;flex-wrap:wrap}
+.op-score{font-weight:700;font-size:13px;border-radius:8px;padding:6px 14px}
+.op-score-ok{background:rgba(61,139,94,.12);color:#2e7d5b} .op-score-no{background:rgba(192,57,43,.12);color:#a33} .op-score-na{background:var(--fog);color:var(--muted)}
+.op-explain{padding:7px 10px;border-inline-start:3px solid var(--bronze,#9c7a3c);background:var(--fog);border-radius:6px;margin-bottom:6px;font-size:12.5px;line-height:1.5}
+.op-forum{padding:8px 11px;border:1px solid var(--stone);border-radius:8px;font-size:13px}
+.op-forum-ok{border-color:#3d8b5e;background:rgba(61,139,94,.05)}
+.op-forum-txt{margin-top:4px;line-height:1.5} .op-forum-note{margin-top:3px;color:var(--muted);font-size:12px}
+.op-cond{margin:0;padding-inline-start:18px;font-size:13px;line-height:1.7}
+.op-sign{margin-top:1rem;font-size:13px;font-weight:600}
+.op-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
 .opinion-doc h4{margin-bottom:0.5rem}
 .print-only{display:none}
 @media (max-width:768px){.pp-cols{grid-template-columns:1fr}#projectPage,#settingsPage{padding:1rem}.plot-grid,.triangle-grid{grid-template-columns:1fr 1fr}}
@@ -5705,43 +5736,154 @@ function renderGraphicsTab(p){
 }
 function setGraphic(id,url){const p=pj();if(!p)return;p.graphics[id]={url:normalizeUrl(url),date:todayStr()};savePlans();renderGraphicsTab(p);toast('נשמר');}
 
-/* ══════════ טאב חוות דעת (FULL-ANALYSIS — opinion_template) ══════════ */
+/* ══════════════════════════════════════════════════════
+   דף חוות דעת — מבנה היררכי ונושאי.
+   אוסף את תוצאות הבדיקה מהנתונים הקיימים (טבלה 5, דרישות,
+   הנחיות מרחביות, החלטות פורומים, יועצים) — ללא המצאה.
+   ══════════════════════════════════════════════════════ */
 const RECOMMENDATIONS = ['מומלץ לאשר','מומלץ לאשר בתנאים','לא מומלץ לאשר'];
+/** אוסף כל בדיקות ההתאמה למבנה אחיד: {source,label,allowed,proposed,ok,explain} */
+function opinionComplianceRows(p){
+  const rows=[];
+  // טבלה 5
+  if(typeof TABLE5_FIELDS!=='undefined' && p.table5){
+    TABLE5_FIELDS.forEach(f=>{ const row=p.table5[f.key]; if(!row)return;
+      if(row.allowed===''&&row.proposed==='')return;
+      const r=table5Result(f,row);
+      rows.push({source:'טבלה 5', label:f.label, allowed:row.allowed||'—', proposed:row.proposed||'—',
+        ok:r.level==='ok', na:false, explain:row.note||'', level:r.level, result:r.text});
+    });
+  }
+  // דרישות התב״ע/עירייה
+  if(typeof activeRequirements==='function'){
+    activeRequirements(p).forEach(req=>{ const c=(p.muniChecks&&p.muniChecks[req.id])||{met:null,note:''};
+      if(c.met==null)return;
+      rows.push({source:'דרישות תב״ע/אוגדן', label:req.title, allowed:'עמידה בדרישה', proposed:c.met?'עומד':'לא עומד',
+        ok:c.met===true, na:false, explain:c.note||'', level:c.met?'ok':'block', result:c.met?'עומד':'לא עומד'});
+    });
+  }
+  // הנחיות מרחביות
+  if(typeof SPATIAL_GUIDELINES!=='undefined'){
+    SPATIAL_GUIDELINES.forEach((g,i)=>{ const c=(p.spatialChecks&&p.spatialChecks[i])||{ans:null,note:''};
+      if(c.ans==null)return;
+      rows.push({source:'הנחיות מרחביות', label:(typeof g==='string'?g:(g.title||g.label||('הנחיה '+(i+1)))),
+        allowed:'עמידה בהנחיה', proposed:c.ans==='yes'?'עומד':(c.ans==='no'?'לא עומד':'לא רלוונטי'),
+        ok:c.ans==='yes', na:c.ans==='na', explain:c.note||'', level:c.ans==='no'?'block':'ok', result:c.ans==='yes'?'עומד':(c.ans==='no'?'לא עומד':'לא רלוונטי')});
+    });
+  }
+  return rows;
+}
+function opinionSection(title, cls, body){
+  return `<section class="op-sec ${cls||''}"><h3 class="op-sec-t">${title}</h3><div class="op-sec-b">${body}</div></section>`;
+}
 function renderOpinionTab(p){
   const o=p.opinion, m=p.meta;
-  const plotsTable = p.plots.length ? `<div class="tbl-wrap"><table><thead><tr><th>מגרש</th><th>ייעוד</th><th>שטח</th><th>יח״ד</th><th>קומות</th><th>גובה</th><th>תכסית</th></tr></thead>
-    <tbody>${p.plots.map(pl=>`<tr><td>${pl.num||'—'}</td><td>${pl.use||'—'}</td><td>${pl.area||'—'}</td><td>${pl.units||'—'}</td><td>${pl.floorsAbove||'—'}</td><td>${pl.height||'—'}</td><td>${pl.coverage||'—'}</td></tr>`).join('')}</tbody></table></div>` : '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מגרשים.</p>';
-  document.getElementById('panel-opinion').innerHTML = `
+  const rows=opinionComplianceRows(p);
+  const conform=rows.filter(r=>r.ok||r.na);
+  const nonConform=rows.filter(r=>!r.ok&&!r.na);
+  const explains=nonConform.filter(r=>String(r.explain||'').trim());
+  const plotsTable = p.plots.length ? `<div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>שטח</th><th>יח״ד</th><th>קומות</th><th>גובה</th><th>תכסית</th></tr></thead>
+    <tbody>${p.plots.map(pl=>`<tr><td>${esc(pl.num||'—')}</td><td>${esc(pl.use||'—')}</td><td>${esc(pl.area||'—')}</td><td>${esc(pl.units||'—')}</td><td>${esc(pl.floorsAbove||'—')}</td><td>${esc(pl.height||'—')}</td><td>${esc(pl.coverage||'—')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted" style="font-size:13px">טרם הוזנו מגרשים.</p>';
+  // מבנה טבלת השוואה אחיד
+  const cmpTable = arr => arr.length ? `<div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>מקור</th><th>דרישה</th><th>מותר</th><th>מבוקש</th><th>תוצאה</th></tr></thead>
+    <tbody>${arr.map(r=>`<tr class="op-${r.ok?'ok':(r.na?'na':'no')}"><td>${esc(r.source)}</td><td>${esc(r.label)}</td><td>${esc(String(r.allowed))}</td><td>${esc(String(r.proposed))}</td><td><span class="op-res op-res-${r.ok?'ok':(r.na?'na':'no')}">${esc(r.result)}</span></td></tr>`).join('')}</tbody></table></div>` : '<p class="muted" style="font-size:13px">אין רשומות בקטגוריה זו.</p>';
+
+  // ── פורומים ויועצים ──
+  const fd=p.forumDecision||{};
+  const consultants=p.consultants||[];
+  const consRows = consultants.length ? `<div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>יועץ / תחום</th><th>סטטוס</th><th>הערה</th></tr></thead>
+    <tbody>${consultants.map(c=>{const st=(CONSULT_STATUS.find(s=>s[0]===c.status)||['','—'])[1];return `<tr><td>${esc(c.name||'—')}</td><td><span class="op-res op-res-${c.status==='approved'?'ok':(c.status==='fix'?'no':'na')}">${esc(st)}</span></td><td>${esc(c.note||'—')}</td></tr>`;}).join('')}</tbody></table></div>` : '<p class="muted" style="font-size:13px">טרם נרשמו יועצים.</p>';
+
+  const forumsBlock = `
+    <div class="op-forum ${fd.approved?'op-forum-ok':''}">
+      <b>פורום אדריכל העיר:</b> ${fd.approved?'<span class="op-res op-res-ok">אושר</span>':'<span class="op-res op-res-na">טרם אושר</span>'}${fd.date?(' · '+fmtDate(fd.date)):''}
+      ${fd.text?`<div class="op-forum-txt">${esc(fd.text)}</div>`:''}
+      ${fd.notes?`<div class="op-forum-note">${esc(fd.notes)}</div>`:''}
+    </div>
+    <div class="op-forum" style="margin-top:8px">
+      <b>פורום יועצים:</b> ${p.consultantsPlanApproved?'<span class="op-res op-res-ok">קיימת תוכנית מאושרת</span>':'<span class="op-res op-res-na">טרם אושרה תוכנית</span>'}${p.consultantsSignDate?(' · חתימה '+fmtDate(p.consultantsSignDate)):''}
+    </div>`;
+
+  // ── תנאים והשלמות ──
+  const conditions = [];
+  if(nonConform.length) conditions.push(`${nonConform.length} נושאים שאינם תואמים דורשים תיקון או הקלה`);
+  if(consultants.some(c=>c.status!=='approved')) conditions.push('השלמת אישור כל היועצים');
+  ensureCommittee(p);
+  const missingDocs=(typeof COMMITTEE_CHECKLIST!=='undefined')?COMMITTEE_CHECKLIST.filter(c=>!p.committeeReady[c.id]):[];
+  if(missingDocs.length) conditions.push('השלמת מסמכי הגשה: '+missingDocs.map(c=>c.label).join(', '));
+  if(!p.signDate && p.approvalDate) conditions.push('חתימה פיזית על התוכנית המאושרת');
+
+  const el=document.getElementById('panel-opinion');
+  el.innerHTML = `
     ${isDeveloper()?'<div class="ro-banner">חוות הדעת נכתבת על ידי אדריכלית העיר — עמוד זה לצפייה בלבד עבורכם</div>':''}
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
-      <div style="font-size:13px;color:rgba(0,0,0,0.5)">שדות אפורים מתמלאים אוטומטית מנתוני הפרויקט.</div>
-      <button class="btn btn-primary" onclick="window.print()">ייצוא ל-PDF (הדפסה)</button>
+    <div class="op-toolbar no-print">
+      <div class="muted" style="font-size:12.5px">המידע מרוכז אוטומטית מבדיקות ההתאמה. שדות טקסט ניתנים לעריכה.</div>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">ייצוא ל-PDF (הדפסה)</button>
     </div>
     ${!isDeveloper()?`<div class="pp-card no-print"><h4>מסמכים תומכים לחוות הדעת</h4>
       <div class="pd-intro">חוות דעת חתומה, נספחים, אישורים — גררי / הדביקי / העלי.</div>
       ${attachFieldHTML('field','opinion','מסמכי חוות הדעת')}</div>`:''}
-    <div class="opinion-doc" id="opinionDoc">
-      <h2 style="font-family:var(--display);text-align:center">חוות דעת — תוכנית בינוי ${esc(p.planNum)||'תב/----'}</h2>
-      <div class="pp-cols">
-        <div><strong>יזם:</strong> ${p.developer||'—'} &nbsp; <strong>אדריכל:</strong> ${p.submitter||'—'}</div>
-        <div><strong>רובע:</strong> ${p.district||'—'} &nbsp; <strong>גוש/חלקה:</strong> ${p.parcel||'—'}</div>
-      </div>
-      <div style="font-size:13px;margin:6px 0"><strong>תב״ע:</strong> ${m.zoningPlan||'—'} / ${m.zoningDetailed||'—'} &nbsp; <strong>ייעוד:</strong> ${m.designation||'—'}</div>
-      ${(p._seeded&&p._seeded['opinion.recommendation']&&o.recommendation)?`<div class="ai-seeded" style="font-size:13px;margin:6px 0;padding:6px 10px;background:#eef4ff;border:1px solid #cfe0ff;border-radius:6px"><strong>החלטת הוועדה (מיובא מהמסמך):</strong> ${esc(o.recommendation)}</div>`:''}
-      <h4 style="font-family:var(--display);margin-top:1rem">בינוי לפי מגרשים</h4>
-      ${plotsTable}
-      <h4 style="font-family:var(--display);margin-top:1rem">תיאור הפרויקט</h4>
-      <div class="pp-field no-print-border"><textarea class="${seedClass(p,'opinion.description').trim()}" onchange="setOpinion('description',this.value);this.classList.remove('ai-seeded')" placeholder="תיאור...">${o.description||''}</textarea><div class="print-only">${o.description||'—'}</div></div>
-      <h4 style="font-family:var(--display)">סיכום והמלצה</h4>
-      <div class="pp-field no-print-border"><textarea onchange="setOpinion('summary',this.value)" placeholder="סיכום...">${o.summary||''}</textarea><div class="print-only">${o.summary||'—'}</div></div>
-      <div class="pp-field"><label>המלצה סופית</label>
-        <select onchange="setOpinion('recommendation',this.value)" class="no-print">
-          <option value="">—</option>${RECOMMENDATIONS.map(r=>`<option${o.recommendation===r?' selected':''}>${r}</option>`).join('')}
-        </select>
-        <div class="print-only"><strong>המלצה:</strong> ${o.recommendation||'—'}</div>
-      </div>
-      <div style="margin-top:2rem;font-size:13px">חתימה: אדריכלית העיר ענת דוד שטיבלמן &nbsp;&nbsp; תאריך: ${todayStr()}</div>
+    <div class="opinion-doc op-doc" id="opinionDoc">
+
+      ${opinionSection('כותרת ופרטי זיהוי הפרויקט','op-grp-id',`
+        <h2 class="op-title">חוות דעת — תוכנית בינוי ${esc(p.planNum)||'תב/----'}</h2>
+        <div class="op-id-grid">
+          <div><b>שם הפרויקט:</b> ${esc(p.projectName||'—')}</div>
+          <div><b>יזם:</b> ${esc(p.developer||'—')}</div>
+          <div><b>אדריכל:</b> ${esc(p.submitter||'—')}</div>
+          <div><b>רובע:</b> ${esc(p.district||'—')}</div>
+          <div><b>גוש/חלקה:</b> ${esc(p.parcel||'—')}</div>
+          <div><b>מגרש:</b> ${esc(p.location||'—')}</div>
+        </div>`)}
+
+      ${opinionSection('תקציר המבוקש','op-grp-info',`
+        <div class="pp-field no-print-border"><textarea class="autogrow ${seedClass(p,'opinion.description').trim()}" rows="2" oninput="autoGrow(this)" onchange="setOpinion('description',this.value);this.classList.remove('ai-seeded')" placeholder="תיאור המבוקש בתוכנית...">${o.description||''}</textarea><div class="print-only">${esc(o.description||'—')}</div></div>`)}
+
+      ${opinionSection('נתוני התב״ע והמותר','op-grp-info',`
+        <div class="op-id-grid">
+          <div><b>תב״ע מקור:</b> ${esc(m.zoningPlan||'—')}</div>
+          <div><b>תב״ע מפורטת:</b> ${esc(m.zoningDetailed||'—')}</div>
+          <div><b>ייעוד קרקע:</b> ${esc(m.designation||'—')}</div>
+          <div><b>שטח:</b> ${esc(m.area||'—')} מ״ר</div>
+        </div>
+        <div class="pp-field no-print-border" style="margin-top:8px"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>`)}
+
+      ${opinionSection('טבלה 5 וזכויות הבנייה','op-grp-info', plotsTable)}
+
+      ${opinionSection('דרישות תב״ע, הנחיות מרחביות ודרישות אוגדן','op-grp-check', cmpTable(rows))}
+
+      ${opinionSection('תוצאות בדיקת ההתאמה','op-grp-check',`
+        <div class="op-scoreboard">
+          <span class="op-score op-score-ok">${conform.length} תואמים</span>
+          <span class="op-score op-score-no">${nonConform.length} אינם תואמים</span>
+          <span class="op-score op-score-na">${explains.length} הסברים</span>
+        </div>`)}
+
+      ${opinionSection('נושאים תואמים','op-grp-check', cmpTable(conform))}
+
+      ${opinionSection('נושאים שאינם תואמים','op-grp-check', cmpTable(nonConform))}
+
+      ${opinionSection('הסברי היזם לפערים','op-grp-check',
+        explains.length ? explains.map(r=>`<div class="op-explain"><b>${esc(r.label)}</b> <span class="muted">(${esc(r.source)})</span><div>${esc(r.explain)}</div></div>`).join('') : '<p class="muted" style="font-size:13px">אין הסברים שנרשמו.</p>')}
+
+      ${opinionSection('חוות דעת הגורמים והיועצים','op-grp-check', consRows)}
+
+      ${opinionSection('החלטות הפורומים','op-grp-check', forumsBlock)}
+
+      ${opinionSection('תנאים והשלמות נדרשות','op-grp-concl',
+        conditions.length ? '<ul class="op-cond">'+conditions.map(c=>`<li>${esc(c)}</li>`).join('')+'</ul>' : '<p class="muted" style="font-size:13px">אין תנאים פתוחים.</p>')}
+
+      ${opinionSection('המלצה מקצועית מסכמת','op-grp-rec',`
+        <div class="pp-field no-print-border"><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setOpinion('summary',this.value)" placeholder="נימוק ההמלצה...">${o.summary||''}</textarea><div class="print-only">${esc(o.summary||'—')}</div></div>
+        <div class="pp-field"><label>המלצה סופית</label>
+          <select onchange="setOpinion('recommendation',this.value)" class="no-print">
+            <option value="">—</option>${RECOMMENDATIONS.map(r=>`<option${o.recommendation===r?' selected':''}>${r}</option>`).join('')}
+          </select>
+          <div class="print-only"><b>המלצה:</b> ${esc(o.recommendation||'—')}</div>
+        </div>
+        <div class="op-sign">חתימה: אדריכלית העיר ענת דוד שטיבלמן · תאריך: ${todayStr()}</div>`)}
     </div>`;
+  setTimeout(autoGrowAll, 30);
 }
 function setOpinion(field,val){const p=pj();if(!p)return;p.opinion[field]=val;clearSeed(p,'opinion.'+field);p.opinion.savedAt=todayStr();savePlans();toast('נשמר');}
 /** עדכון סיכום חוות הדעת מהמודל המהיר — מבטיח מבנה אובייקט */
