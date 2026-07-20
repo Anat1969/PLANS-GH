@@ -1297,6 +1297,12 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .info-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
 .info-panel{display:none}
 .info-panel.active{display:block}
+.info-intro{background:rgba(42,95,95,0.07);border-inline-start:4px solid var(--teal);border-radius:var(--r);
+  padding:11px 14px;font-size:13px;line-height:1.7;color:var(--ink);margin-bottom:1rem}
+/* שני כרטיסים זה לצד זה כשיש מקום — ריכוזי וקומפקטי */
+.pp-cols-2{display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem}
+@media(min-width:900px){ .pp-cols-2{grid-template-columns:1fr 1fr} }
+.pp-cols-2>.pp-card{margin-bottom:0}
 /* פריסה קומפקטית: שדות בשתי עמודות כשיש מקום, כדי שהנושא ייכנס למסך אחד */
 .info-panel .pp-card{padding:1rem 1.2rem;margin-bottom:0}
 .info-panel .pp-card h4{margin-bottom:.7rem}
@@ -4930,7 +4936,8 @@ function ensureProjectData(p) {
     easements:'', reliefsAsked:'', reliefsApproved:'' };
   // השלמת מפתחות חדשים לפרויקטים שנשמרו לפני התוספת
   ['devAddress','archAddress','contactName','contactPhone','contactEmail','area',
-   'compound','block','lot','planLast','planPrev'].forEach(k=>{ if(p.meta[k]===undefined)p.meta[k]=''; });
+   'compound','block','lot','planLast','planPrev',
+   'pmName','pmPhone','pmEmail'].forEach(k=>{ if(p.meta[k]===undefined)p.meta[k]=''; });
   if (!Array.isArray(p.plots)) p.plots = [];
   if (!p.parking) p.parking = { underground:'', disabled:'', ev:'', public:'', permeable:'' };
   if (!p.access) p.access = { vehicles:'', pedestrians:'', infra:'' };
@@ -5214,12 +5221,8 @@ const esc = s => (s||'').toString().replace(/"/g,'&quot;');
    ══════════════════════════════════════════════════════ */
 const INFO_SECTIONS = [
   {id:'ident',    label:'זיהוי הפרויקט'},
-  {id:'location', label:'פרטי מיקום'},
-  {id:'developer',label:'פרטי יזם'},
-  {id:'architect',label:'פרטי אדריכל'},
-  {id:'contacts', label:'אנשי קשר נוספים'},
-  {id:'rights',   label:'תב״ע וזכויות'},
-  {id:'plots',    label:'בינוי לפי מגרשים'},
+  {id:'people',   label:'אנשים ואנשי קשר'},
+  {id:'locplot',  label:'מיקום, תב״ע ומגרשים'},
   {id:'infra',    label:'נגישות ותשתיות'},
   {id:'aspects',  label:'הערכת היבטים'},
   {id:'dates',    label:'תאריכים ומועדים'},
@@ -5238,14 +5241,10 @@ function renderInfoTab(p) {
   const sec = (id, body) => `<div class="info-panel${id===infoSection?' active':''}" data-sec="${id}">${body}</div>`;
   document.getElementById('panel-info').innerHTML = nav + `<div id="infoPanels">`
     + sec('ident', `
-    <div class="pp-card devplan-card">
-      <h4>תוכנית הפיתוח</h4>
-      <div id="devPlanFrame">${devPlanFrameHTML(p)}</div>
-    </div>
+    <div class="info-intro no-print">יש למלא את כל הנתונים והמסמכים הקשורים לפרויקט, לרבות פרטי אנשי הקשר, המיקום, המגרשים, התוכניות החלות והמבוקש בכל אחד מסעיפי התכנון. את התמונות והמסמכים יש להעלות דרך טאב „חומר גרפי”.</div>
     <div class="area-row">
       <div class="pp-card">
         <h4>זיהוי הפרויקט</h4>
-        <div class="pp-field"><label>הדמיית הפרויקט</label><div id="renderInfoFrame">${renderFrameHTML(p)}</div></div>
         <div class="pp-field"><label>שם הפרויקט</label><input class="${seedClass(p,'projectName').trim()}" value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);this.classList.remove('ai-seeded');document.getElementById('ppTitle').textContent=this.value||'תוכנית בינוי ${p.tik}'"></div>
         <div class="pp-field"><label>מספר תוכנית בינוי (תב/----)</label><input value="${esc(p.planNum)}" onchange="pjSet('planNum',this.value)"></div>
         <div class="pp-field"><label>מספר תוכנית בינוי (אוטומטי)</label><input value="${esc(p.fileNumber)}" readonly data-always="ro" style="background:var(--fog)"></div>
@@ -5262,12 +5261,41 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>סטטוס</label><select onchange="pjSet('status',this.value);renderTable()">${STATUSES.map(s=>`<option${p.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
         </div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,0)}</div>
     </div>`)
-    + sec('location', `
-    <div class="area-row">
+    + sec('people', `
+    <div class="pp-cols-2">
       <div class="pp-card">
-        <h4>פרטי מיקום</h4>
+        <h4>פרטי יזם</h4>
+        <div class="pp-field"><label>שם היזם</label><input class="${seedClass(p,'developer').trim()}" value="${esc(p.developer)}" onchange="pjSet('developer',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-cols"><div class="pp-field"><label>טלפון יזם</label><input class="${seedClass(p,'meta.devPhone').trim()}" value="${esc(m.devPhone)}" onchange="mSet('devPhone',this.value);this.classList.remove('ai-seeded')"></div>
+          <div class="pp-field"><label>מייל יזם</label><input class="${seedClass(p,'meta.devEmail').trim()}" value="${esc(m.devEmail)}" onchange="mSet('devEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
+        <div class="pp-field"><label>כתובת יזם</label><input class="${seedClass(p,'meta.devAddress').trim()}" value="${esc(m.devAddress)}" onchange="mSet('devAddress',this.value);this.classList.remove('ai-seeded')"></div>
+      </div>
+      <div class="pp-card">
+        <h4>פרטי אדריכל</h4>
+        <div class="pp-field"><label>שם האדריכל / מגיש</label><input class="${seedClass(p,'submitter').trim()}" value="${esc(p.submitter)}" onchange="pjSet('submitter',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-cols"><div class="pp-field"><label>טלפון אדריכל</label><input class="${seedClass(p,'meta.archPhone').trim()}" value="${esc(m.archPhone)}" onchange="mSet('archPhone',this.value);this.classList.remove('ai-seeded')"></div>
+          <div class="pp-field"><label>מייל אדריכל</label><input class="${seedClass(p,'meta.archEmail').trim()}" value="${esc(m.archEmail)}" onchange="mSet('archEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
+        <div class="pp-field"><label>כתובת אדריכל</label><input class="${seedClass(p,'meta.archAddress').trim()}" value="${esc(m.archAddress)}" onchange="mSet('archAddress',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-field"><label>שם משרד האדריכלים</label><input value="${esc(m.archName)}" onchange="mSet('archName',this.value)"></div>
+      </div>
+    </div>
+    <div class="pp-card">
+      <h4>מנהל הפרויקט ואנשי קשר נוספים</h4>
+      <div class="pp-cols">
+        <div class="pp-field"><label>מנהל הפרויקט</label><input value="${esc(m.pmName)}" onchange="mSet('pmName',this.value)"></div>
+        <div class="pp-field"><label>טלפון מנהל הפרויקט</label><input value="${esc(m.pmPhone)}" onchange="mSet('pmPhone',this.value)"></div>
+        <div class="pp-field"><label>מייל מנהל הפרויקט</label><input value="${esc(m.pmEmail)}" onchange="mSet('pmEmail',this.value)"></div>
+      </div>
+      <div class="pp-field"><label>איש קשר נוסף</label><input class="${seedClass(p,'meta.contactName').trim()}" value="${esc(m.contactName)}" onchange="mSet('contactName',this.value);this.classList.remove('ai-seeded')"></div>
+      <div class="pp-cols"><div class="pp-field"><label>טלפון איש קשר</label><input class="${seedClass(p,'meta.contactPhone').trim()}" value="${esc(m.contactPhone)}" onchange="mSet('contactPhone',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-field"><label>מייל איש קשר</label><input class="${seedClass(p,'meta.contactEmail').trim()}" value="${esc(m.contactEmail)}" onchange="mSet('contactEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
+    </div>
+    <div class="pp-card" id="projContacts"></div>`)
+    + sec('locplot', `
+    <div class="pp-cols-2">
+      <div class="pp-card">
+        <h4>מיקום</h4>
         <div class="pp-cols">
           <div class="pp-field"><label>רובע</label><input value="${esc(p.district)}" onchange="pjSet('district',this.value)"></div>
           <div class="pp-field"><label>מתחם</label><input value="${esc(m.compound)}" onchange="mSet('compound',this.value)"></div>
@@ -5281,71 +5309,30 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>חלקה</label><input value="${esc(m.lot)}" onchange="mSet('lot',this.value)"></div>
         </div>
         <div class="pp-field"><label>גוש / חלקה (רישום מלא)</label><input class="${seedClass(p,'parcel').trim()}" value="${esc(p.parcel)}" onchange="pjSet('parcel',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-field"><label>כתובת</label><input class="${seedClass(p,'meta.address').trim()}" value="${esc(m.address)}" onchange="mSet('address',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-field"><label>שטח (מ״ר)</label><input class="${seedClass(p,'meta.area').trim()}" value="${esc(m.area)}" onchange="mSet('area',this.value);this.classList.remove('ai-seeded')"></div>
+      </div>
+      <div class="pp-card">
+        <h4>התוכניות החלות (תב״ע)</h4>
         <div class="pp-cols">
           <div class="pp-field"><label>תוכנית אחרונה</label><input value="${esc(m.planLast)}" onchange="mSet('planLast',this.value)"></div>
           <div class="pp-field"><label>תוכנית קודמת</label><input value="${esc(m.planPrev)}" onchange="mSet('planPrev',this.value)"></div>
         </div>
-        <div class="pp-field"><label>כתובת</label><input class="${seedClass(p,'meta.address').trim()}" value="${esc(m.address)}" onchange="mSet('address',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>שטח (מ״ר)</label><input class="${seedClass(p,'meta.area').trim()}" value="${esc(m.area)}" onchange="mSet('area',this.value);this.classList.remove('ai-seeded')"></div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,1)}</div>
-    </div>`)
-    + sec('developer', `
-    <div class="area-row">
-      <div class="pp-card">
-        <h4>פרטי יזם</h4>
-        <div class="pp-field"><label>שם היזם</label><input class="${seedClass(p,'developer').trim()}" value="${esc(p.developer)}" onchange="pjSet('developer',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-cols"><div class="pp-field"><label>טלפון יזם</label><input class="${seedClass(p,'meta.devPhone').trim()}" value="${esc(m.devPhone)}" onchange="mSet('devPhone',this.value);this.classList.remove('ai-seeded')"></div>
-          <div class="pp-field"><label>מייל יזם</label><input class="${seedClass(p,'meta.devEmail').trim()}" value="${esc(m.devEmail)}" onchange="mSet('devEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
-        <div class="pp-field"><label>כתובת יזם</label><input class="${seedClass(p,'meta.devAddress').trim()}" value="${esc(m.devAddress)}" onchange="mSet('devAddress',this.value);this.classList.remove('ai-seeded')"></div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,2)}</div>
-    </div>`)
-    + sec('architect', `
-    <div class="area-row">
-      <div class="pp-card">
-        <h4>פרטי אדריכל</h4>
-        <div class="pp-field"><label>שם האדריכל / מגיש</label><input class="${seedClass(p,'submitter').trim()}" value="${esc(p.submitter)}" onchange="pjSet('submitter',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-cols"><div class="pp-field"><label>טלפון אדריכל</label><input class="${seedClass(p,'meta.archPhone').trim()}" value="${esc(m.archPhone)}" onchange="mSet('archPhone',this.value);this.classList.remove('ai-seeded')"></div>
-          <div class="pp-field"><label>מייל אדריכל</label><input class="${seedClass(p,'meta.archEmail').trim()}" value="${esc(m.archEmail)}" onchange="mSet('archEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
-        <div class="pp-field"><label>כתובת אדריכל</label><input class="${seedClass(p,'meta.archAddress').trim()}" value="${esc(m.archAddress)}" onchange="mSet('archAddress',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>שם משרד האדריכלים</label><input value="${esc(m.archName)}" onchange="mSet('archName',this.value)"></div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,3)}</div>
-    </div>`)
-    + sec('contacts', `
-    <div class="pp-card">
-      <h4>אנשי קשר נוספים</h4>
-      <div class="pp-field"><label>איש קשר</label><input class="${seedClass(p,'meta.contactName').trim()}" value="${esc(m.contactName)}" onchange="mSet('contactName',this.value);this.classList.remove('ai-seeded')"></div>
-      <div class="pp-cols"><div class="pp-field"><label>טלפון איש קשר</label><input class="${seedClass(p,'meta.contactPhone').trim()}" value="${esc(m.contactPhone)}" onchange="mSet('contactPhone',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>מייל איש קשר</label><input class="${seedClass(p,'meta.contactEmail').trim()}" value="${esc(m.contactEmail)}" onchange="mSet('contactEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
-    </div>
-    <div class="pp-card" id="projContacts"></div>`)
-    + sec('rights', `
-    <div class="area-row">
-      <div class="pp-card">
-        <h4>נתוני תב״ע וזכויות</h4>
-        <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
         <div class="pp-field"><label>תב״ע מקור</label><input class="${seedClass(p,'meta.zoningPlan').trim()}" value="${esc(m.zoningPlan)}" onchange="mSet('zoningPlan',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-field"><label>תב״ע מפורטת</label><input class="${seedClass(p,'meta.zoningDetailed').trim()}" value="${esc(m.zoningDetailed)}" onchange="mSet('zoningDetailed',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-field"><label>ייעוד קרקע</label><input class="${seedClass(p,'meta.designation').trim()}" value="${esc(m.designation)}" onchange="mSet('designation',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-field"><label>זיקות הנאה</label><input value="${esc(m.easements)}" onchange="mSet('easements',this.value)"></div>
         <div class="pp-cols"><div class="pp-field"><label>הקלות מבוקשות</label><input class="${seedClass(p,'meta.reliefsAsked').trim()}" value="${esc(m.reliefsAsked)}" onchange="mSet('reliefsAsked',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>הקלות שאושרו</label><input value="${esc(m.reliefsApproved)}" onchange="mSet('reliefsApproved',this.value)"></div></div>
+        <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,4)}</div>
-    </div>`)
-    + sec('plots', `
-    <div class="area-row">
-      <div class="pp-card">
-        <h4>בינוי לפי מגרשים</h4>
-        <div id="plotsWrap">${renderPlots(p)}</div>
-        <button class="btn btn-ghost btn-sm" onclick="addPlot()">+ הוסף מגרש</button>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,5)}</div>
+    </div>
+    <div class="pp-card">
+      <h4>בינוי לפי מגרשים</h4>
+      <div id="plotsWrap">${renderPlots(p)}</div>
+      <button class="btn btn-ghost btn-sm" onclick="addPlot()">+ הוסף מגרש</button>
     </div>`)
     + sec('infra', `
-    <div class="area-row">
       <div class="pp-card">
         <h4>נגישות ותשתיות</h4>
         <div class="pp-field"><label>תנועת רכבים</label><textarea onchange="oSet('access','vehicles',this.value)">${p.access.vehicles||''}</textarea></div>
@@ -5357,21 +5344,15 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>הכנה לטעינה חשמלית</label><input value="${esc(p.parking.ev)}" onchange="oSet('parking','ev',this.value)"></div>
           <div class="pp-field"><label>שטחי חלחול (%)</label><input type="number" value="${esc(p.parking.permeable)}" onchange="oSet('parking','permeable',this.value)"></div>
         </div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,6)}</div>
-    </div>`)
+      </div>`)
     + sec('aspects', `
-    <div class="area-row">
       <div class="pp-card">
         <h4>הערכת היבטים</h4>
         <div class="pp-field"><label>היבט סביבתי (אנרגיה, חזית חמישית ירוקה)</label><textarea class="${seedClass(p,'aspects.environmental').trim()}" onchange="oSet('aspects','environmental',this.value);this.classList.remove('ai-seeded')">${p.aspects.environmental||''}</textarea></div>
         <div class="pp-field"><label>היבט חווייתי (שהייה, חצרות, שבילים)</label><textarea class="${seedClass(p,'aspects.experiential').trim()}" onchange="oSet('aspects','experiential',this.value);this.classList.remove('ai-seeded')">${p.aspects.experiential||''}</textarea></div>
         <div class="pp-field"><label>היבט תפעולי (ריכוז והצנעת מערכות)</label><textarea class="${seedClass(p,'aspects.operational').trim()}" onchange="oSet('aspects','operational',this.value);this.classList.remove('ai-seeded')">${p.aspects.operational||''}</textarea></div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,7)}</div>
-    </div>`)
+      </div>`)
     + sec('dates', `
-    <div class="area-row">
       <div class="pp-card">
       <h4>תאריכים ומועדים</h4>
       <div class="pp-cols">
@@ -5384,11 +5365,8 @@ function renderInfoTab(p) {
         <div class="pp-field"><label>ועדה — בפועל</label><input type="date" class="date-input-${dateTrafficClass(p.committeeDate)} ${seedClass(p,'committeeDate').trim()}" value="${esc(p.committeeDate)}" onchange="saveForumDate(${p.id},'committeeDate',this);this.classList.remove('ai-seeded');renderTimelineTab(pj())"></div>
         <div class="pp-field"><label>תאריך אישור</label><input type="date" value="${esc(p.approvalDate)}" onchange="pjSet('approvalDate',this.value);renderTimelineTab(pj())"></div>
       </div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,8)}</div>
-    </div>`)
+      </div>`)
     + sec('summary', `
-    <div class="area-row">
       <div class="pp-card">
       <h4>סיכום והמלצה</h4>
       <div class="pp-field"><label>תיאור הפרויקט</label><textarea onchange="pjSet('projectDescription',this.value)">${p.projectDescription||''}</textarea></div>
@@ -5396,9 +5374,7 @@ function renderInfoTab(p) {
       <div class="pp-field"><label>הערות גורמים (מרוכז מיועצים)</label><textarea onchange="oSet('summary','consultantNotes',this.value)">${p.summary.consultantNotes||''}</textarea></div>
       <div class="pp-field"><label>החלטת ועדה</label><textarea class="${seedClass(p,'summary.committeeDecision').trim()}" onchange="oSet('summary','committeeDecision',this.value);this.classList.remove('ai-seeded')">${p.summary.committeeDecision||''}</textarea></div>
       <div class="pp-field"><label>הערות אדריכלית העיר</label><textarea onchange="oSet('summary','cityArchNotes',this.value)">${p.summary.cityArchNotes||''}</textarea></div>
-      </div>
-      <div class="area-frame">${areaFrameHTML(p,9)}</div>
-    </div>`)
+      </div>`)
     + `</div>`;
   if(typeof renderProjectContacts==='function') renderProjectContacts(p);
 }
