@@ -1204,7 +1204,12 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   display:flex;flex-direction:column;gap:2px}
 .nti-item.nti-top{background:rgba(42,95,95,0.08);border-right:3px solid var(--teal)}
 .nti-txt{overflow-wrap:anywhere;white-space:pre-wrap}
-.nti-meta{font-size:10.5px;color:var(--muted)}
+.nti-meta{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.nti-count{font-size:10.5px;font-weight:700;background:var(--teal);color:#fff;border-radius:10px;padding:0 7px}
+.nti-acts{display:flex;gap:2px;margin-right:auto}
+.nti-acts button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;
+  padding:1px 5px;border-radius:4px;font-family:inherit;line-height:1.4}
+.nti-acts button:hover{background:var(--surface);color:var(--ink)}
 .nti-empty{font-size:12px;color:var(--muted);padding:2px 0}
 .nti-add{display:flex;gap:6px;margin-top:7px}
 .nti-add input{flex:1;min-width:0;font-family:inherit;font-size:12.5px;padding:6px 9px;
@@ -8293,7 +8298,11 @@ function notesInline(p, opts){
   const list = shown.length
     ? `<div class="nti-list">${shown.map((n,i)=>`<div class="nti-item${i===0?' nti-top':''}">
         <span class="nti-txt">${esc(n.text)}</span>
-        <span class="nti-meta">${esc(n.tag||'כללי')} · ${esc(noteWhen(n.at))}</span>
+        <span class="nti-meta">${esc(n.tag||'כללי')} · ${esc(noteWhen(n.at))}${n.edited?' · נערך':''}
+          ${canEditNotes()?`<span class="nti-acts no-print">
+            <button onclick="ntInlineEdit(${p.id},'${n.id}')" title="עריכה">✎</button>
+            <button onclick="ntInlineDel(${p.id},'${n.id}')" title="מחיקה">✕</button>
+          </span>`:''}</span>
       </div>`).join('')}</div>`
     : `<div class="nti-empty">טרם נרשמו הערות.</div>`;
   const more = rest>0
@@ -8304,9 +8313,25 @@ function notesInline(p, opts){
            onkeydown="if(event.key==='Enter'){event.preventDefault();ntQuickAdd(${p.id});}">
          <button class="btn btn-sm" onclick="ntQuickAdd(${p.id})">הוספה</button>
        </div>` : '';
+  const count = notes.length ? `<span class="nti-count">${notes.length}</span>` : '';
   return `<div class="nti">
-    <div class="nti-head"><span class="dw-k">הערות תוכן</span>${more}</div>
+    <div class="nti-head"><span class="dw-k">הערות תוכן</span>${count}${more}</div>
     ${list}${add}</div>`;
+}
+/** עריכת הערה במקום — מתוך הכרטיס עצמו */
+function ntInlineEdit(pid, nid){
+  const p=plans.find(x=>String(x.id)===String(pid)); if(!p) return;
+  const n=planNotes(p).find(x=>x.id===nid); if(!n) return;
+  const v=prompt('עריכת ההערה:', n.text);
+  if(v==null) return;
+  if(!String(v).trim()){ toast('הערה ריקה לא נשמרה'); return; }
+  if(updateNote(p, nid, v)){ toast('ההערה עודכנה'); ntRerenderAll(); }
+}
+function ntInlineDel(pid, nid){
+  const p=plans.find(x=>String(x.id)===String(pid)); if(!p) return;
+  const n=planNotes(p).find(x=>x.id===nid); if(!n) return;
+  if(!confirm('למחוק את ההערה?\n\n"'+String(n.text).slice(0,80)+'"')) return;
+  if(deleteNote(p, nid)){ toast('ההערה נמחקה'); ntRerenderAll(); }
 }
 /** הוספה מהירה מתוך כרטיס — ללא מעבר דף */
 function ntQuickAdd(pid){
