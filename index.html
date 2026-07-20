@@ -1213,6 +1213,9 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 /* מתחת לכותרת התוכנית */
 .nt-head-wrap{margin-top:10px;max-width:640px}
 .nt-head-wrap .nti{border-top:none;padding-top:0;margin-top:0}
+/* פירוט שמות תוכניות בתקציר המנהלים */
+.ceo-grp{margin-top:7px;font-size:13px;line-height:1.7}
+.ceo-grp-t{font-weight:700;color:var(--teal)}
 .dw-noact{margin-top:10px;font-size:12px}
 .dw-noact summary{cursor:pointer;color:#777}
 .dw-noact>div{padding:3px 0}
@@ -2487,7 +2490,7 @@ function planKey(p) { return `${p.tik}__${p.planNum||''}`; }
 const PERSIST_FIELDS = ['district','planNum','change','submitter','location','purpose','date','handler',
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
-  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes'];
+  'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -2507,7 +2510,8 @@ function loadPlans() {
 }
 /** בונה snapshot אחיד של הפרויקטים (משמש ל-localStorage ול-Supabase) */
 function buildPlanRecords() {
-  return plans.map(p => {
+  // רשומות ריקות אינן נשמרות ואינן מסונכרנות — אחרת הן חוזרות בכל טעינה
+  return plans.filter(p => !isBlankPlan(p)).map(p => {
     const o = { __key: planKey(p) };
     PERSIST_FIELDS.forEach(f => { if (p[f] !== undefined) o[f] = p[f]; });
     o.tik = p.tik; o.year = p.year; o.month = p.month;
@@ -3323,7 +3327,19 @@ function deriveStageFromDates(p){
 
 // ── LANDING ──
 /** תוכניות "חיות" — לא כולל מחיקה רכה (_deleted). מקור אמת יחיד לכל הרשימות/המדדים. */
-function livePlans(){ return plans.filter(p=>!p._deleted); }
+function livePlans(){ return plans.filter(p=>!p._deleted && !isBlankPlan(p)); }
+
+/** רשומה ריקה: ללא מספר תוכנית וללא שדה זיהוי כלשהו.
+    נוצרת בטעות (למשל שורה שנפתחה ולא מולאה) ומנפחת מדדים
+    וסנכרון. אינה מוצגת ואינה נספרת — הנתונים עצמם נשמרים. */
+function isBlankPlan(p){
+  if(!p) return true;
+  const tik = String(p.tik==null?'':p.tik).trim();
+  if(tik && tik!=='undefined' && tik!=='null') return false;
+  // ללא תיק — נבדק אם יש בכלל תוכן מזהה
+  return ![p.projectName,p.location,p.developer,p.submitter,p.district,p.planNum,p.parcel]
+    .some(v=>String(v==null?'':v).trim());
+}
 
 /* ══════════ מדדי הדף הראשי — מוסברים ולחיצים ══════════
    כל מדד יודע: כותרת, הסבר מה הוא כולל, טווח הזמן, ופונקציה שמחזירה את
@@ -3524,6 +3540,40 @@ function populateFilters() {
   fh.innerHTML = '<option value="">כל האחראים</option>' + handlers.map(h=>`<option>${h}</option>`).join('');
 }
 
+/* ══════════════════════════════════════════════════════
+   חיפוש חופשי בכל מקום
+   סורק את כל תוכן הרשומה — כולל שם התוכנית, הערות תוכן,
+   חוות דעת, דרישות, אנשי קשר ויומן הפעולות — ולא רק
+   רשימת שדות קבועה. תומך בכמה מילות מפתח (AND).
+   ══════════════════════════════════════════════════════ */
+const _SEARCH_SKIP = new Set(['id','lat','lng','_seeded','_userEdited','locks','devCode','graphics','render','renders','areaImgs','devPlanImg','visuals']);
+/** שרשור כל הטקסט שברשומה למחרוזת אחת (ממוזערת ומטמונה) */
+function planSearchText(p){
+  // מטמון לפי חתימת עדכון — נבנה מחדש רק כשהרשומה משתנה
+  const stamp = (p.updatedAt||'')+'|'+(Array.isArray(p.notes)?p.notes.length:0)+'|'+(Array.isArray(p.actionLog)?p.actionLog.length:0);
+  if(p.__sTxt && p.__sStamp===stamp) return p.__sTxt;
+  const out=[];
+  const walk=(v,depth)=>{
+    if(v==null || depth>6) return;
+    const t=typeof v;
+    if(t==='string'){ if(v.length<400) out.push(v); else out.push(v.slice(0,400)); return; }
+    if(t==='number'||t==='boolean'){ out.push(String(v)); return; }
+    if(Array.isArray(v)){ v.forEach(x=>walk(x,depth+1)); return; }
+    if(t==='object'){ for(const k in v){ if(_SEARCH_SKIP.has(k)) continue; walk(v[k],depth+1); } }
+  };
+  for(const k in p){ if(_SEARCH_SKIP.has(k) || k.startsWith('__')) continue; walk(p[k],0); }
+  const txt=out.join(' ').toLowerCase();
+  try{ Object.defineProperty(p,'__sTxt',{value:txt,writable:true,enumerable:false,configurable:true});
+       Object.defineProperty(p,'__sStamp',{value:stamp,writable:true,enumerable:false,configurable:true}); }catch(e){}
+  return txt;
+}
+/** התאמה לשאילתה: כל מילות המפתח חייבות להופיע (בכל סדר, בכל שדה) */
+function planMatchesQuery(p, q){
+  const terms=String(q||'').toLowerCase().split(/\s+/).filter(Boolean);
+  if(!terms.length) return true;
+  const txt=planSearchText(p);
+  return terms.every(t=>txt.includes(t));
+}
 function applyFilters() {
   const vm = document.getElementById('tableViewMode');
   if (vm && vm.value !== tableViewMode) vm.value = tableViewMode; // סנכרון הבורר עם המצב השמור
@@ -3538,18 +3588,19 @@ function applyFilters() {
   filtered = livePlans().filter(p => {
     // יזם — רואה רק את התוכניות שלו (וללא סינון פעילות/הושלמו, כדי שתמיד יראה אותן)
     if (isDeveloper()) return devOwns(p);
-    // סינון לפי מצב: פעילות (ברירת מחדל) / כל / שהושלמו — לפי שדה הסטטוס
-    if (tableViewMode === 'active' && isDone(p)) return false;
-    if (tableViewMode === 'done' && !isDone(p)) return false;
+    // סינון לפי מצב: פעילות (ברירת מחדל) / כל / שהושלמו — לפי שדה הסטטוס.
+    // כשיש חיפוש חופשי — מחפשים בכל התוכניות, כולל שהושלמו,
+    // אחרת "חיפוש בכל מקום" מפספס בדיוק את מה שמחפשים.
+    if (!q) {
+      if (tableViewMode === 'active' && isDone(p)) return false;
+      if (tableViewMode === 'done' && !isDone(p)) return false;
+    }
     // 'all' — ללא סינון מצב
     if (d && normalizeDistrict(p.district) !== d) return false;
     if (y && String(p.year) !== y) return false;
     if (s && (p.stage || 'stage_1') !== s) return false;
     if (h && p.handler !== h) return false;
-    if (q) {
-      const txt = [p.tik,p.district,p.planNum,p.developer,p.submitter,p.location,p.parcel,p.purpose,p.handler,p.status].join(' ').toLowerCase();
-      if (!txt.includes(q)) return false;
-    }
+    if (q) { if (!planMatchesQuery(p, q)) return false; }
     return true;
   });
 
@@ -6389,6 +6440,22 @@ function advanceShareStatus(){
 /* ══════════ דוח מעקב חודשי למנכ״ל ══════════ */
 const CEO_ACTIVE_STATUSES = ['בטיפול','בהמתנה','דחוף']; // בתהליך/עבודה/המתנה/מעוכב
 
+/** תוכניות שאושרו בחודש נתון (YYYY-MM) — לפי תאריך האישור בפועל.
+    נבדק על כלל התוכניות ולא רק על הפעילות, כי תוכנית שאושרה
+    כבר אינה "בטיפול" ולכן לא הייתה נכללת בסינון הרגיל. */
+function ceoApprovedInMonth(ym){
+  return plans.filter(p=>{
+    const ad=(p.approvalDate||'').slice(0,7);
+    if(ad===ym) return true;
+    // גיבוי: סומנה כמאושרת בשלב, ומועד הוועדה שלה בחודש זה
+    return (p.stage==='approved') && (p.committeeDate||'').slice(0,7)===ym;
+  });
+}
+/** שם תוכנית מלא לדוח — מספר + שם/מיקום, לזיהוי חד־משמעי */
+function ceoPlanName(p){
+  const nm = p.projectName || p.location || '';
+  return 'תב/'+p.tik + (nm? ' — '+nm : '');
+}
 /** מסנן את התוכניות הרלוונטיות לדוח לפי הפילטרים */
 function ceoSelectedPlans(s){
   const f = s.filters||{};
@@ -6409,8 +6476,8 @@ function ceoStatusTable(list){
   const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
   const risk = p => (p.status==='דחוף'?'<span class="date-status ds-red">גבוה</span>':(p.status==='בהמתנה'?'<span class="date-status ds-orange">בינוני</span>':'<span class="date-status ds-green">נמוך</span>'));
   return `<div class="tbl-wrap"><table><thead><tr>
-    <th>תוכנית</th><th>מגרש</th><th>יזם</th><th>אדריכל</th><th>שלב</th><th>יעד</th><th>סיכון</th></tr></thead><tbody>${
-    list.map(p=>`<tr><td><strong>תב/${p.tik}</strong></td><td>${esc(p.location||'—')}</td><td>${esc(p.developer||'—')}</td><td>${esc(p.submitter||p.meta&&p.meta.archName||'—')}</td><td>${stageLbl[p.stage||'stage_1']}</td><td>${fmtDate(p.committeeDate)}</td><td>${risk(p)}</td></tr>`).join('')
+    <th>תוכנית</th><th>שם התוכנית</th><th>מגרש</th><th>יזם</th><th>אדריכל</th><th>שלב</th><th>יעד</th><th>סיכון</th></tr></thead><tbody>${
+    list.map(p=>`<tr><td><strong>תב/${p.tik}</strong></td><td>${esc(p.projectName||'—')}</td><td>${esc(p.location||'—')}</td><td>${esc(p.developer||'—')}</td><td>${esc(p.submitter||p.meta&&p.meta.archName||'—')}</td><td>${stageLbl[p.stage||'stage_1']}</td><td>${fmtDate(p.committeeDate)}</td><td>${risk(p)}</td></tr>`).join('')
   }</tbody></table></div>`;
 }
 
@@ -6446,13 +6513,24 @@ function autoSection(s, key){
   const stageLbl={stage_1:'פורום אדריכל העיר',stage_2:'פורום יועצים',committee:'הכנה לוועדה',approved:'מאושר'};
   const newThis = list.filter(p=>(p.date||'').slice(0,7)===ym);
   const doneThis = plans.filter(p=>p.status==='הושלם' && (p.committeeDate||'').slice(0,7)===ym);
+  // תוכניות שאושרו החודש — לפי תאריך האישור, שדה נפרד ממועד ההכנה לוועדה
+  const approvedThis = ceoApprovedInMonth(ym);
   const urgent = list.filter(p=>{ const pd=(p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate; if(!pd)return false; const d=Math.round((new Date(pd)-new Date(today))/864e5); return d>=0&&d<=14; });
   const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה');
-  const nm = p => 'תב/'+p.tik+(p.location?(' ('+p.location+')'):'');
+  const nm = p => esc(ceoPlanName(p));
   const li = arr => arr.length ? '<ul>'+arr.map(x=>'<li>'+x+'</li>').join('')+'</ul>' : '';
   switch(key){
-    case 'executive':
-      return `<p>${list.length} תוכניות בטיפול פעיל בחודש ${heMonthName(pr.month)} ${pr.year}. נקלטו החודש ${newThis.length}, הושלמו ${doneThis.length}, ובעיכוב/דחוף ${delayed.length}. ${urgent.length?('<b>'+urgent.length+' תוכניות מחייבות טיפול מיידי</b> (יעד תוך שבועיים).'):'אין תוכניות עם יעד קרוב מיידי.'}</p>`;
+    case 'executive': {
+      // סיכום מספרי ומיד אחריו פירוט השמות, לכל קבוצה שאינה ריקה
+      const grp = (ttl, arr) => arr.length
+        ? `<div class="ceo-grp"><span class="ceo-grp-t">${ttl} (${arr.length}):</span> ${arr.map(p=>esc(ceoPlanName(p))).join(' · ')}</div>` : '';
+      return `<p>${list.length} תוכניות בטיפול פעיל בחודש ${heMonthName(pr.month)} ${pr.year}. נקלטו החודש ${newThis.length}, אושרו ${approvedThis.length}, הושלמו ${doneThis.length}, ובעיכוב/דחוף ${delayed.length}. ${urgent.length?('<b>'+urgent.length+' תוכניות מחייבות טיפול מיידי</b> (יעד תוך שבועיים).'):'אין תוכניות עם יעד קרוב מיידי.'}</p>`
+        + grp('אושרו החודש', approvedThis)
+        + grp('נקלטו החודש', newThis)
+        + grp('הושלמו החודש', doneThis)
+        + grp('בעיכוב / דחוף', delayed)
+        + grp('בטיפול פעיל', list);
+    }
     case 'events':
       const ev = list.filter(p=>actedThisMonth(p,ym)).slice(0,8).map(p=>nm(p)+' — קודמה לשלב '+stageLbl[p.stage||'stage_1']);
       return ev.length ? li(ev) : '<p class="muted">לא תועדו אירועים מהותיים בחודש זה.</p>';
@@ -6462,10 +6540,13 @@ function autoSection(s, key){
         return '<b>'+nm(p)+'</b> — סטטוס '+p.status+(pd?(', יעד הכנה לוועדה '+fmtDate(pd)):'')+'. אחראי: '+(p.submitter||p.developer||'—');
       });
       return att.length ? li(att) : '<p>אין תוכניות הדורשות תשומת לב חריגה החודש.</p>';
-    case 'achievements':
-      const ach = doneThis.map(p=>nm(p)+' — הושלמה');
+    case 'achievements': {
+      const ach = approvedThis.map(p=>'<b>'+nm(p)+'</b> — אושרה'
+        + (p.approvalDate?(' ('+fmtDate(p.approvalDate)+')'):''));
+      doneThis.forEach(p=>{ if(!approvedThis.includes(p)) ach.push(nm(p)+' — הושלמה'); });
       newThis.forEach(p=>ach.push(nm(p)+' — נקלטה ונפתח טיפול'));
-      return ach.length ? li(ach.slice(0,8)) : '<p class="muted">אין הישגים מדידים שתועדו החודש.</p>';
+      return ach.length ? li(ach) : '<p class="muted">אין הישגים מדידים שתועדו החודש.</p>';
+    }
     case 'decisions':
       const dec = delayed.slice(0,5).map(p=>'<b>'+nm(p)+'</b> — נדרשת הכרעה להסרת החסם ולהמשך קידום.');
       return dec.length ? (li(dec)+'<p>מומלץ לקבל החלטה בתוך שבועיים כדי למנוע עיכוב נוסף.</p>') : '<p>אין כרגע החלטות המחייבות את המנכ״ל.</p>';
@@ -6481,6 +6562,8 @@ function renderCeoReport(s){
   const newThis = list.filter(p=>{ const d=p.date||''; const pr=s.reportingPeriod; if(!d||!pr) return false; const [y,m]=d.split('-'); return Number(y)===pr.year && Number(m)===pr.month; }).length;
   const doneThis = plans.filter(p=>p.status==='הושלם' && p.committeeDate && s.reportingPeriod && Number(p.committeeDate.split('-')[0])===s.reportingPeriod.year && Number(p.committeeDate.split('-')[1])===s.reportingPeriod.month).length;
   const delayed = list.filter(p=>p.status==='דחוף'||p.status==='בהמתנה').length;
+  const prYm = s.reportingPeriod ? (String(s.reportingPeriod.year)+'-'+String(s.reportingPeriod.month).padStart(2,'0')) : '';
+  const approvedList = prYm ? ceoApprovedInMonth(prYm) : [];
   const districts=[...new Set(plans.map(p=>normalizeDistrict(p.district)).filter(Boolean))].sort();
   const developers=[...new Set(plans.map(p=>p.developer).filter(Boolean))].sort();
   const pr=s.reportingPeriod||{month:nowMonth(),year:nowYear()};
@@ -6516,12 +6599,17 @@ function renderCeoReport(s){
     <div class="kpi-row">
       <div class="kpi"><div class="kpi-num">${list.length}</div><div class="kpi-lbl">תוכניות פעילות</div></div>
       <div class="kpi"><div class="kpi-num">${newThis}</div><div class="kpi-lbl">נקלטו החודש</div></div>
+      <div class="kpi"><div class="kpi-num">${approvedList.length}</div><div class="kpi-lbl">אושרו החודש</div></div>
       <div class="kpi"><div class="kpi-num">${doneThis}</div><div class="kpi-lbl">הושלמו החודש</div></div>
       <div class="kpi kpi-warn"><div class="kpi-num">${delayed}</div><div class="kpi-lbl">בעיכוב / דורש טיפול</div></div>
     </div>
 
     ${sectionShell(s,'executive','תקציר מנהלים', gcOr(s,'executive'))}
     ${sectionShell(s,'events','האירועים המרכזיים של החודש', gcOr(s,'events'))}
+    <section class="share-section"><div class="share-sec-head"><h3>תוכניות שאושרו החודש</h3></div>
+      ${approvedList.length
+        ? ceoStatusTable(approvedList)
+        : '<p class="muted">לא אושרו תוכניות בחודש זה.</p>'}</section>
     <section class="share-section"><div class="share-sec-head"><h3>סטטוס תוכניות</h3></div>${ceoStatusTable(list)}</section>
     ${sectionShell(s,'attention','תוכניות הדורשות תשומת לב', gcOr(s,'attention'))}
     ${sectionShell(s,'achievements','הישגים והתקדמות', gcOr(s,'achievements'))}
