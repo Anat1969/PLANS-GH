@@ -1256,6 +1256,45 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 /* מתחת לכותרת התוכנית */
 .nt-head-wrap{margin-top:10px;max-width:640px}
 .nt-head-wrap .nti{border-top:none;padding-top:0;margin-top:0}
+/* ── סינון תמונות לפי סוג ── */
+.vm-filters{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.vm-f{font-family:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--stone);
+  border-radius:20px;background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap}
+.vm-f:hover{border-color:var(--teal);color:var(--ink)}
+.vm-f.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.vm-f i{font-style:normal;font-size:10.5px;opacity:.8}
+.vm-f-add{border-style:dashed;color:var(--teal)}
+/* צופה תמונות — חיצים גדולים וכותרת */
+.viewer-stage{position:relative;background:#fff}
+.vw-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(0,0,0,.42);color:#fff;font-size:30px;line-height:1;
+  display:flex;align-items:center;justify-content:center}
+.vw-arrow:hover{background:rgba(0,0,0,.65)}
+.vw-prev{right:18px} .vw-next{left:18px}
+.vw-caption{text-align:center;color:#fff;font-size:13px;padding:8px 14px;background:rgba(0,0,0,.45)}
+.vw-caption b{font-size:14px} .vw-caption span{opacity:.8;font-size:12px}
+/* ── דף המידע: ניווט נושאי, כל נושא במסך אחד ── */
+.info-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;padding-bottom:10px;
+  border-bottom:1px solid var(--stone);position:sticky;top:0;background:var(--paper);z-index:5}
+.info-tab{font-family:inherit;font-size:12.5px;padding:7px 13px;border:1px solid var(--stone);
+  border-radius:20px;background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap}
+.info-tab:hover{border-color:var(--teal);color:var(--ink)}
+.info-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.info-panel{display:none}
+.info-panel.active{display:block}
+/* פריסה קומפקטית: שדות בשתי עמודות כשיש מקום, כדי שהנושא ייכנס למסך אחד */
+.info-panel .pp-card{padding:1rem 1.2rem;margin-bottom:0}
+.info-panel .pp-card h4{margin-bottom:.7rem}
+.info-panel .pp-field{margin-bottom:.55rem}
+.info-panel .pp-field label{margin-bottom:2px}
+@media(min-width:900px){
+  .info-panel .pp-card>.pp-field{display:grid;grid-template-columns:160px 1fr;align-items:center;gap:10px}
+  .info-panel .pp-card>.pp-field>label{margin-bottom:0}
+  .info-panel .pp-card>.pp-field>textarea{min-height:64px}
+}
+/* מסגרת התמונה שלצד כל נושא — לא גבוהה מדי */
+.info-panel .area-frame{max-width:340px}
 /* ── דף הערות: חיפוש → בחירה → תיעוד ── */
 .nt-search{position:relative;max-width:640px;margin-bottom:1rem}
 .nt-search input{width:100%;font-family:inherit;font-size:14px;padding:11px 40px 11px 14px;
@@ -4872,7 +4911,8 @@ function ensureProjectData(p) {
     zoningPlan:'', zoningDetailed:'', designation:'', area:'',
     easements:'', reliefsAsked:'', reliefsApproved:'' };
   // השלמת מפתחות חדשים לפרויקטים שנשמרו לפני התוספת
-  ['devAddress','archAddress','contactName','contactPhone','contactEmail','area'].forEach(k=>{ if(p.meta[k]===undefined)p.meta[k]=''; });
+  ['devAddress','archAddress','contactName','contactPhone','contactEmail','area',
+   'compound','block','lot','planLast','planPrev'].forEach(k=>{ if(p.meta[k]===undefined)p.meta[k]=''; });
   if (!Array.isArray(p.plots)) p.plots = [];
   if (!p.parking) p.parking = { underground:'', disabled:'', ev:'', public:'', permeable:'' };
   if (!p.access) p.access = { vehicles:'', pedestrians:'', infra:'' };
@@ -5143,18 +5183,43 @@ const PROJECT_TYPES = ['מגורים','מסחר','מעורב','ציבורי','ת
 const esc = s => (s||'').toString().replace(/"/g,'&quot;');
 
 /** דף מידע — 9 אזורים לפי FULL-ANALYSIS דף 1 */
+/* ══════════════════════════════════════════════════════
+   דף המידע — מאורגן לפי נושאים, עם מעבר בלחיצה.
+   כל תחום מרוכז במסך אחד ואינו נפרס לאורך הדף.
+   ══════════════════════════════════════════════════════ */
+const INFO_SECTIONS = [
+  {id:'ident',    label:'זיהוי הפרויקט'},
+  {id:'location', label:'פרטי מיקום'},
+  {id:'developer',label:'פרטי יזם'},
+  {id:'architect',label:'פרטי אדריכל'},
+  {id:'contacts', label:'אנשי קשר נוספים'},
+  {id:'rights',   label:'תב״ע וזכויות'},
+  {id:'plots',    label:'בינוי לפי מגרשים'},
+  {id:'infra',    label:'נגישות ותשתיות'},
+  {id:'aspects',  label:'הערכת היבטים'},
+  {id:'dates',    label:'תאריכים ומועדים'},
+  {id:'summary',  label:'סיכום והמלצה'}
+];
+let infoSection = 'ident';
+function infoGo(id){
+  infoSection = id;
+  document.querySelectorAll('#infoNav .info-tab').forEach(b=>b.classList.toggle('active', b.dataset.sec===id));
+  document.querySelectorAll('#infoPanels .info-panel').forEach(pn=>pn.classList.toggle('active', pn.dataset.sec===id));
+}
 function renderInfoTab(p) {
   const m = p.meta;
-  document.getElementById('panel-info').innerHTML = `
-    <!-- מסגרת גדולה: תוכנית הפיתוח -->
+  const nav = `<div class="info-nav no-print" id="infoNav">${INFO_SECTIONS.map(s=>
+    `<button class="info-tab${s.id===infoSection?' active':''}" data-sec="${s.id}" onclick="infoGo('${s.id}')">${s.label}</button>`).join('')}</div>`;
+  const sec = (id, body) => `<div class="info-panel${id===infoSection?' active':''}" data-sec="${id}">${body}</div>`;
+  document.getElementById('panel-info').innerHTML = nav + `<div id="infoPanels">`
+    + sec('ident', `
     <div class="pp-card devplan-card">
       <h4>תוכנית הפיתוח</h4>
       <div id="devPlanFrame">${devPlanFrameHTML(p)}</div>
     </div>
-    <!-- אזורים בפריסה אנכית; כל אזור לצד מסגרת תמונה -->
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 1 — זיהוי הפרויקט</h4>
+        <h4>זיהוי הפרויקט</h4>
         <div class="pp-field"><label>הדמיית הפרויקט</label><div id="renderInfoFrame">${renderFrameHTML(p)}</div></div>
         <div class="pp-field"><label>שם הפרויקט</label><input class="${seedClass(p,'projectName').trim()}" value="${esc(p.projectName)}" onchange="pjSet('projectName',this.value);this.classList.remove('ai-seeded');document.getElementById('ppTitle').textContent=this.value||'תוכנית בינוי ${p.tik}'"></div>
         <div class="pp-field"><label>מספר תוכנית בינוי (תב/----)</label><input value="${esc(p.planNum)}" onchange="pjSet('planNum',this.value)"></div>
@@ -5173,40 +5238,69 @@ function renderInfoTab(p) {
         </div>
       </div>
       <div class="area-frame">${areaFrameHTML(p,0)}</div>
-    </div>
+    </div>`)
+    + sec('location', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 2 — מיקום</h4>
-        <div class="pp-field"><label>רובע</label><input value="${esc(p.district)}" onchange="pjSet('district',this.value)"></div>
+        <h4>פרטי מיקום</h4>
+        <div class="pp-cols">
+          <div class="pp-field"><label>רובע</label><input value="${esc(p.district)}" onchange="pjSet('district',this.value)"></div>
+          <div class="pp-field"><label>מתחם</label><input value="${esc(m.compound)}" onchange="mSet('compound',this.value)"></div>
+        </div>
+        <div class="pp-cols">
+          <div class="pp-field"><label>מגרש</label><input class="${seedClass(p,'location').trim()}" value="${esc(p.location)}" onchange="pjSet('location',this.value);this.classList.remove('ai-seeded')"></div>
+          <div class="pp-field"><label>מספר מגרשים</label><input type="number" value="${esc(m.plotCount)}" onchange="mSet('plotCount',this.value)"></div>
+        </div>
+        <div class="pp-cols">
+          <div class="pp-field"><label>גוש</label><input value="${esc(m.block)}" onchange="mSet('block',this.value)"></div>
+          <div class="pp-field"><label>חלקה</label><input value="${esc(m.lot)}" onchange="mSet('lot',this.value)"></div>
+        </div>
+        <div class="pp-field"><label>גוש / חלקה (רישום מלא)</label><input class="${seedClass(p,'parcel').trim()}" value="${esc(p.parcel)}" onchange="pjSet('parcel',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-cols">
+          <div class="pp-field"><label>תוכנית אחרונה</label><input value="${esc(m.planLast)}" onchange="mSet('planLast',this.value)"></div>
+          <div class="pp-field"><label>תוכנית קודמת</label><input value="${esc(m.planPrev)}" onchange="mSet('planPrev',this.value)"></div>
+        </div>
         <div class="pp-field"><label>כתובת</label><input class="${seedClass(p,'meta.address').trim()}" value="${esc(m.address)}" onchange="mSet('address',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>גוש / חלקה</label><input class="${seedClass(p,'parcel').trim()}" value="${esc(p.parcel)}" onchange="pjSet('parcel',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>מיקום / מגרש</label><input class="${seedClass(p,'location').trim()}" value="${esc(p.location)}" onchange="pjSet('location',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>מספר מגרשים</label><input type="number" value="${esc(m.plotCount)}" onchange="mSet('plotCount',this.value)"></div>
         <div class="pp-field"><label>שטח (מ״ר)</label><input class="${seedClass(p,'meta.area').trim()}" value="${esc(m.area)}" onchange="mSet('area',this.value);this.classList.remove('ai-seeded')"></div>
       </div>
       <div class="area-frame">${areaFrameHTML(p,1)}</div>
-    </div>
-
+    </div>`)
+    + sec('developer', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 3 — בעלי תפקידים</h4>
+        <h4>פרטי יזם</h4>
         <div class="pp-field"><label>שם היזם</label><input class="${seedClass(p,'developer').trim()}" value="${esc(p.developer)}" onchange="pjSet('developer',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-cols"><div class="pp-field"><label>טלפון יזם</label><input class="${seedClass(p,'meta.devPhone').trim()}" value="${esc(m.devPhone)}" onchange="mSet('devPhone',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>מייל יזם</label><input class="${seedClass(p,'meta.devEmail').trim()}" value="${esc(m.devEmail)}" onchange="mSet('devEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
         <div class="pp-field"><label>כתובת יזם</label><input class="${seedClass(p,'meta.devAddress').trim()}" value="${esc(m.devAddress)}" onchange="mSet('devAddress',this.value);this.classList.remove('ai-seeded')"></div>
+      </div>
+      <div class="area-frame">${areaFrameHTML(p,2)}</div>
+    </div>`)
+    + sec('architect', `
+    <div class="area-row">
+      <div class="pp-card">
+        <h4>פרטי אדריכל</h4>
         <div class="pp-field"><label>שם האדריכל / מגיש</label><input class="${seedClass(p,'submitter').trim()}" value="${esc(p.submitter)}" onchange="pjSet('submitter',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-cols"><div class="pp-field"><label>טלפון אדריכל</label><input class="${seedClass(p,'meta.archPhone').trim()}" value="${esc(m.archPhone)}" onchange="mSet('archPhone',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>מייל אדריכל</label><input class="${seedClass(p,'meta.archEmail').trim()}" value="${esc(m.archEmail)}" onchange="mSet('archEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
         <div class="pp-field"><label>כתובת אדריכל</label><input class="${seedClass(p,'meta.archAddress').trim()}" value="${esc(m.archAddress)}" onchange="mSet('archAddress',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-field"><label>איש קשר</label><input class="${seedClass(p,'meta.contactName').trim()}" value="${esc(m.contactName)}" onchange="mSet('contactName',this.value);this.classList.remove('ai-seeded')"></div>
-        <div class="pp-cols"><div class="pp-field"><label>טלפון איש קשר</label><input class="${seedClass(p,'meta.contactPhone').trim()}" value="${esc(m.contactPhone)}" onchange="mSet('contactPhone',this.value);this.classList.remove('ai-seeded')"></div>
-          <div class="pp-field"><label>מייל איש קשר</label><input class="${seedClass(p,'meta.contactEmail').trim()}" value="${esc(m.contactEmail)}" onchange="mSet('contactEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
+        <div class="pp-field"><label>שם משרד האדריכלים</label><input value="${esc(m.archName)}" onchange="mSet('archName',this.value)"></div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,2)}</div>
+      <div class="area-frame">${areaFrameHTML(p,3)}</div>
+    </div>`)
+    + sec('contacts', `
+    <div class="pp-card">
+      <h4>אנשי קשר נוספים</h4>
+      <div class="pp-field"><label>איש קשר</label><input class="${seedClass(p,'meta.contactName').trim()}" value="${esc(m.contactName)}" onchange="mSet('contactName',this.value);this.classList.remove('ai-seeded')"></div>
+      <div class="pp-cols"><div class="pp-field"><label>טלפון איש קשר</label><input class="${seedClass(p,'meta.contactPhone').trim()}" value="${esc(m.contactPhone)}" onchange="mSet('contactPhone',this.value);this.classList.remove('ai-seeded')"></div>
+        <div class="pp-field"><label>מייל איש קשר</label><input class="${seedClass(p,'meta.contactEmail').trim()}" value="${esc(m.contactEmail)}" onchange="mSet('contactEmail',this.value);this.classList.remove('ai-seeded')"></div></div>
     </div>
+    <div class="pp-card" id="projContacts"></div>`)
+    + sec('rights', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 4 — פרמטרים סטטוטוריים</h4>
+        <h4>נתוני תב״ע וזכויות</h4>
+        <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
         <div class="pp-field"><label>תב״ע מקור</label><input class="${seedClass(p,'meta.zoningPlan').trim()}" value="${esc(m.zoningPlan)}" onchange="mSet('zoningPlan',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-field"><label>תב״ע מפורטת</label><input class="${seedClass(p,'meta.zoningDetailed').trim()}" value="${esc(m.zoningDetailed)}" onchange="mSet('zoningDetailed',this.value);this.classList.remove('ai-seeded')"></div>
         <div class="pp-field"><label>ייעוד קרקע</label><input class="${seedClass(p,'meta.designation').trim()}" value="${esc(m.designation)}" onchange="mSet('designation',this.value);this.classList.remove('ai-seeded')"></div>
@@ -5214,21 +5308,21 @@ function renderInfoTab(p) {
         <div class="pp-cols"><div class="pp-field"><label>הקלות מבוקשות</label><input class="${seedClass(p,'meta.reliefsAsked').trim()}" value="${esc(m.reliefsAsked)}" onchange="mSet('reliefsAsked',this.value);this.classList.remove('ai-seeded')"></div>
           <div class="pp-field"><label>הקלות שאושרו</label><input value="${esc(m.reliefsApproved)}" onchange="mSet('reliefsApproved',this.value)"></div></div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,3)}</div>
-    </div>
-
+      <div class="area-frame">${areaFrameHTML(p,4)}</div>
+    </div>`)
+    + sec('plots', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 5 — בינוי לפי מגרשים</h4>
+        <h4>בינוי לפי מגרשים</h4>
         <div id="plotsWrap">${renderPlots(p)}</div>
         <button class="btn btn-ghost btn-sm" onclick="addPlot()">+ הוסף מגרש</button>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,4)}</div>
-    </div>
-
+      <div class="area-frame">${areaFrameHTML(p,5)}</div>
+    </div>`)
+    + sec('infra', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 6 — נגישות ותשתיות</h4>
+        <h4>נגישות ותשתיות</h4>
         <div class="pp-field"><label>תנועת רכבים</label><textarea onchange="oSet('access','vehicles',this.value)">${p.access.vehicles||''}</textarea></div>
         <div class="pp-field"><label>הולכי רגל ואופניים</label><textarea onchange="oSet('access','pedestrians',this.value)">${p.access.pedestrians||''}</textarea></div>
         <div class="pp-field"><label>מיקומי מתקני תשתית</label><textarea onchange="oSet('access','infra',this.value)">${p.access.infra||''}</textarea></div>
@@ -5239,21 +5333,22 @@ function renderInfoTab(p) {
           <div class="pp-field"><label>שטחי חלחול (%)</label><input type="number" value="${esc(p.parking.permeable)}" onchange="oSet('parking','permeable',this.value)"></div>
         </div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,5)}</div>
-    </div>
+      <div class="area-frame">${areaFrameHTML(p,6)}</div>
+    </div>`)
+    + sec('aspects', `
     <div class="area-row">
       <div class="pp-card">
-        <h4>אזור 7 — הערכת היבטים</h4>
+        <h4>הערכת היבטים</h4>
         <div class="pp-field"><label>היבט סביבתי (אנרגיה, חזית חמישית ירוקה)</label><textarea class="${seedClass(p,'aspects.environmental').trim()}" onchange="oSet('aspects','environmental',this.value);this.classList.remove('ai-seeded')">${p.aspects.environmental||''}</textarea></div>
         <div class="pp-field"><label>היבט חווייתי (שהייה, חצרות, שבילים)</label><textarea class="${seedClass(p,'aspects.experiential').trim()}" onchange="oSet('aspects','experiential',this.value);this.classList.remove('ai-seeded')">${p.aspects.experiential||''}</textarea></div>
         <div class="pp-field"><label>היבט תפעולי (ריכוז והצנעת מערכות)</label><textarea class="${seedClass(p,'aspects.operational').trim()}" onchange="oSet('aspects','operational',this.value);this.classList.remove('ai-seeded')">${p.aspects.operational||''}</textarea></div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,6)}</div>
-    </div>
-
+      <div class="area-frame">${areaFrameHTML(p,7)}</div>
+    </div>`)
+    + sec('dates', `
     <div class="area-row">
       <div class="pp-card">
-      <h4>אזור 8 — תאריכים ומועדים</h4>
+      <h4>תאריכים ומועדים</h4>
       <div class="pp-cols">
         <div class="pp-field"><label>פורום אדריכל — מתוכנן</label><input type="date" value="${esc(p.datesPlan.forum1)}" onchange="oSet('datesPlan','forum1',this.value);renderProcessTab(pj())"></div>
         <div class="pp-field"><label>פורום אדריכל — בפועל</label><input type="date" class="date-input-${dateTrafficClass(p.forumArchitect)}" value="${esc(p.forumArchitect)}" onchange="saveForumDate(${p.id},'forumArchitect',this);renderTimelineTab(pj())"></div>
@@ -5265,22 +5360,21 @@ function renderInfoTab(p) {
         <div class="pp-field"><label>תאריך אישור</label><input type="date" value="${esc(p.approvalDate)}" onchange="pjSet('approvalDate',this.value);renderTimelineTab(pj())"></div>
       </div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,7)}</div>
-    </div>
-
+      <div class="area-frame">${areaFrameHTML(p,8)}</div>
+    </div>`)
+    + sec('summary', `
     <div class="area-row">
       <div class="pp-card">
-      <h4>אזור 9 — סיכום והמלצה</h4>
+      <h4>סיכום והמלצה</h4>
       <div class="pp-field"><label>תיאור הפרויקט</label><textarea onchange="pjSet('projectDescription',this.value)">${p.projectDescription||''}</textarea></div>
-      <div class="pp-field"><label>נתוני תב״ע (זכויות, צפיפות, גובה)</label><textarea onchange="pjSet('planningData',this.value)">${p.planningData||''}</textarea></div>
       <div class="pp-field"><label>שלביות</label><textarea onchange="oSet('summary','phasing',this.value)">${p.summary.phasing||''}</textarea></div>
       <div class="pp-field"><label>הערות גורמים (מרוכז מיועצים)</label><textarea onchange="oSet('summary','consultantNotes',this.value)">${p.summary.consultantNotes||''}</textarea></div>
       <div class="pp-field"><label>החלטת ועדה</label><textarea class="${seedClass(p,'summary.committeeDecision').trim()}" onchange="oSet('summary','committeeDecision',this.value);this.classList.remove('ai-seeded')">${p.summary.committeeDecision||''}</textarea></div>
       <div class="pp-field"><label>הערות אדריכלית העיר</label><textarea onchange="oSet('summary','cityArchNotes',this.value)">${p.summary.cityArchNotes||''}</textarea></div>
       </div>
-      <div class="area-frame">${areaFrameHTML(p,8)}</div>
-    </div>
-    <div class="pp-card" id="projContacts"></div>`;
+      <div class="area-frame">${areaFrameHTML(p,9)}</div>
+    </div>`)
+    + `</div>`;
   if(typeof renderProjectContacts==='function') renderProjectContacts(p);
 }
 function pjSet(field, val) { const p=pj(); if(!p)return; p[field]=val; clearSeed(p,field); savePlans(); toast('נשמר'); }
@@ -9531,12 +9625,16 @@ function exportContactsCsvAll(){ if(typeof bulkCsv==='function'){ const keep=con
           p.harmonica = [ { id, src, name, kind:'pdf'|'img', addedAt } ]
    שמירה ב-localStorage/ענן דרך PERSIST_FIELDS (visuals, harmonica).
    ═══════════════════════════════════════════════════════════════ */
-const VIS_CATS = [
-  {id:'render',    name:'הדמיות'},
-  {id:'binui',     name:'תוכניות בינוי'},
-  {id:'aerial',    name:'צילומי אוויר'},
-  {id:'tashrit',   name:'תשריטים'},
+const VIS_CATS_BASE = [
+  {id:'devplan',   name:'תוכנית פיתוח'},
+  {id:'render',    name:'הדמיה'},
+  {id:'tashrit',   name:'תשריט'},
+  {id:'aerial',    name:'תצ״א'},
+  {id:'roof',      name:'תוכנית גג'},
   {id:'facade',    name:'חזיתות'},
+  {id:'plans',     name:'תוכניות'},
+  {id:'render2',   name:'הדמיות נוספות'},
+  {id:'binui',     name:'תוכניות בינוי'},
   {id:'section',   name:'חתכים'},
   {id:'floor',     name:'תוכניות קומה'},
   {id:'landscape', name:'פיתוח ונוף'},
@@ -9544,7 +9642,31 @@ const VIS_CATS = [
   {id:'existing',  name:'מצב קיים'},
   {id:'other',     name:'אחר'}
 ];
-const VIS_CAT_LBL = Object.fromEntries(VIS_CATS.map(c=>[c.id,c.name]));
+/* סוגים שהמשתמשת הוסיפה ידנית — נשמרים ומצטרפים לרשימה */
+const VIS_CUSTOM_LS = 'ashdod_vis_cats_v1';
+let VIS_CATS_CUSTOM = (function(){
+  try{ const r=JSON.parse(localStorage.getItem(VIS_CUSTOM_LS)||'[]'); return Array.isArray(r)?r:[]; }catch(e){ return []; }
+})();
+function visCats(){ return VIS_CATS_BASE.concat(VIS_CATS_CUSTOM); }
+function saveVisCats(){ try{ localStorage.setItem(VIS_CUSTOM_LS, JSON.stringify(VIS_CATS_CUSTOM)); }catch(e){} }
+/** הוספת סוג תמונה חדש בשם חופשי */
+function visAddCat(){
+  const name=prompt('שם סוג התמונה החדש:');
+  if(name==null) return;
+  const nm=String(name).trim();
+  if(!nm){ toast('לא הוזן שם'); return; }
+  if(visCats().some(c=>c.name===nm)){ toast('סוג בשם זה כבר קיים'); return; }
+  VIS_CATS_CUSTOM.push({id:'c_'+Date.now().toString(36), name:nm});
+  saveVisCats();
+  toast('נוסף סוג: '+nm);
+  if(typeof renderVisuals==='function') renderVisuals();
+}
+// תאימות לאחור: קוד קיים משתמש ב-VIS_CATS
+const VIS_CATS = VIS_CATS_BASE;
+const VIS_CAT_LBL = new Proxy({}, { get:(t,k)=>{ const c=visCats().find(x=>x.id===String(k)); return c?c.name:String(k); },
+  has:(t,k)=>visCats().some(x=>x.id===String(k)),
+  ownKeys:()=>visCats().map(c=>c.id),
+  getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true}) });
 
 /* ── סיווג אוטומטי לפי שם קובץ / כותרת (לא דורסת בחירה ידנית) ── */
 function classifyVisual(name, hint){
@@ -9615,10 +9737,14 @@ function visualsByCat(p, cat){ _visInit(p); return p.visuals.filter(v=>v.cat===c
 function _visId(p){ _visInit(p); let mx=0; p.visuals.forEach(v=>{const n=parseInt(String(v.id).replace(/\D/g,''))||0; if(n>mx)mx=n;}); return 'v'+(mx+1); }
 
 /* ══════════ רינדור אזור חומר חזותי ══════════ */
+let visCatFilter = '';   // '' = הכל
+function visSetFilter(id){ visCatFilter = (visCatFilter===id? '' : id); const p=pj(); if(p) renderVisualMaterial(p); }
 function renderVisualMaterial(p){
   _visInit(p);
   const el=document.getElementById('visualMaterial'); if(!el) return;
-  const catBlocks = VIS_CATS.map(c=>{
+  const cats = visCats();
+  const shown = visCatFilter ? cats.filter(c=>c.id===visCatFilter) : cats;
+  const catBlocks = shown.map(c=>{
     const items=visualsByCat(p,c.id);
     const thumbs = items.map(v=>`
       <div class="vm-thumb" draggable="${uiCanEdit('graphics')?'true':'false'}" data-vid="${v.id}"
@@ -9626,7 +9752,8 @@ function renderVisualMaterial(p){
         <img src="${v.src}" alt="${esc(v.title||'')}" loading="lazy" onclick="openViewer(${p.id},'${v.id}')">
         <div class="vm-thumb-meta">${esc(v.title||VIS_CAT_LBL[v.cat])}${v.page?(' · עמ׳ '+v.page):''}</div>
         ${uiCanEdit('graphics')?`<div class="vm-thumb-tools no-print">
-          <select onchange="vmSetCat('${p.id}','${v.id}',this.value)" title="שינוי סיווג">${VIS_CATS.map(x=>`<option value="${x.id}" ${x.id===v.cat?'selected':''}>${x.name}</option>`).join('')}</select>
+          <select onchange="vmSetCat('${p.id}','${v.id}',this.value)" title="שינוי סיווג">${cats.map(x=>`<option value="${x.id}" ${x.id===v.cat?'selected':''}>${x.name}</option>`).join('')}</select>
+          <button class="btn btn-xs" onclick="vmRename('${p.id}','${v.id}')" title="שם התמונה">✎</button>
           <button class="btn btn-xs" onclick="vmDelete('${p.id}','${v.id}')">✕</button>
         </div>`:''}
       </div>`).join('');
@@ -9647,9 +9774,24 @@ function renderVisualMaterial(p){
     <div class="detail-section-title">חומר חזותי</div>
     <div class="muted" style="font-size:12px;margin-bottom:8px">גלריית התמונות של התוכנית לפי קטגוריה. ניתן לגרור/להדביק/להעלות, לשנות סיווג, ולפתוח כל תמונה במסך מלא. שינוי סיווג ידני נשמר וגובר על הסיווג האוטומטי.</div>
     <input type="file" id="vmFileInput" accept="image/*,application/pdf" multiple style="display:none" onchange="vmFilesSelected(this)">
+    <div class="vm-filters no-print">
+      <button class="vm-f${visCatFilter?'':' active'}" onclick="visSetFilter('')">הכל <i>${(p.visuals||[]).length}</i></button>
+      ${cats.map(c=>{ const n=visualsByCat(p,c.id).length;
+        return `<button class="vm-f${visCatFilter===c.id?' active':''}" onclick="visSetFilter('${c.id}')">${esc(c.name)}${n?` <i>${n}</i>`:''}</button>`;}).join('')}
+      ${uiCanEdit('graphics')?`<button class="vm-f vm-f-add" onclick="visAddCat()" title="הוספת סוג תמונה חדש">+ סוג חדש</button>`:''}
+    </div>
     <div class="vm-cats">${catBlocks}</div>`;
   // paste support בהקשר הדף
   if(!window._vmPasteBound){ window._vmPasteBound=true; document.addEventListener('paste', vmPasteHandler); }
+}
+/** שינוי שם התמונה — כל תמונה יכולה לקבל שם משלה */
+function vmRename(pid,vid){
+  const p=plans.find(x=>x.id==pid); if(!p) return;
+  const v=(p.visuals||[]).find(x=>x.id===vid); if(!v) return;
+  const nm=prompt('שם התמונה:', v.title||'');
+  if(nm==null) return;
+  v.title=String(nm).trim();
+  savePlans(); renderVisualMaterial(p); toast('השם עודכן');
 }
 let _vmTargetCat='other';
 function vmPickFile(pid,cat){ _vmTargetCat=cat; window._vmPid=pid; document.getElementById('vmFileInput').click(); }
@@ -9710,7 +9852,12 @@ function openViewer(pid,vid){
         <button onclick="closeViewer()" title="סגירה (Esc)">✕</button>
       </div>
     </div>
-    <div class="viewer-stage" id="vwStage"><img id="vwImg" draggable="false"></div>
+    <div class="viewer-stage" id="vwStage">
+      <button class="vw-arrow vw-prev no-print" onclick="event.stopPropagation();vwNav(-1)" title="הקודם">›</button>
+      <img id="vwImg" draggable="false">
+      <button class="vw-arrow vw-next no-print" onclick="event.stopPropagation();vwNav(1)" title="הבא">‹</button>
+    </div>
+    <div class="vw-caption" id="vwCaption"></div>
     <div class="viewer-strip" id="vwStrip"></div>
     <div class="viewer-info" id="vwInfo" style="display:none"></div>`;
   ov.style.display='flex';
@@ -9721,6 +9868,10 @@ function vwLoad(){
   _iviewer.scale=1;_iviewer.rot=0;_iviewer.tx=0;_iviewer.ty=0;
   const img=document.getElementById('vwImg'); img.src=v.src; vwApply();
   document.getElementById('vwTitle').textContent=(v.title||VIS_CAT_LBL[v.cat])+(v.page?(' · עמ׳ '+v.page):'')+' ('+(_iviewer.idx+1)+'/'+_iviewer.list.length+')';
+  // כותרת התמונה מוצגת גם מתחת לתמונה עצמה
+  const cap=document.getElementById('vwCaption');
+  if(cap) cap.innerHTML='<b>'+esc(v.title||VIS_CAT_LBL[v.cat])+'</b> <span>'+esc(VIS_CAT_LBL[v.cat])
+    +(v.page?(' · עמ׳ '+v.page):'')+' · '+(_iviewer.idx+1)+' מתוך '+_iviewer.list.length+'</span>';
   const dl=document.getElementById('vwDownload'); dl.href=v.src; dl.download=(v.title||'image')+'.'+((v.src.match(/^data:image\/(\w+)/)||[])[1]||'png');
   const strip=document.getElementById('vwStrip');
   strip.innerHTML=_iviewer.list.map((x,i)=>`<img src="${x.src}" class="${i===_iviewer.idx?'on':''}" onclick="_iviewer.idx=${i};vwLoad()">`).join('');
