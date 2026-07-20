@@ -1194,6 +1194,25 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .nt-edit{width:100%;min-height:70px;font-family:inherit;font-size:13px;padding:8px 10px;
   border:1px solid var(--teal);border-radius:var(--r);resize:vertical;line-height:1.6;background:var(--surface);color:var(--ink)}
 .nt-empty{color:var(--muted);font-size:13px;padding:10px 0}
+/* ── בלוק הערות קומפקטי (כרטיסי עבודה + ראש הרשומה) ── */
+.nti{margin-top:10px;padding-top:9px;border-top:1px dashed var(--stone)}
+.nti-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.nti-more{background:none;border:none;cursor:pointer;color:var(--teal);font-size:11.5px;
+  font-family:inherit;padding:0;margin-right:auto;text-decoration:underline}
+.nti-list{display:flex;flex-direction:column;gap:5px}
+.nti-item{font-size:12.5px;line-height:1.55;padding:6px 9px;border-radius:6px;background:var(--fog);
+  display:flex;flex-direction:column;gap:2px}
+.nti-item.nti-top{background:rgba(42,95,95,0.08);border-right:3px solid var(--teal)}
+.nti-txt{overflow-wrap:anywhere;white-space:pre-wrap}
+.nti-meta{font-size:10.5px;color:var(--muted)}
+.nti-empty{font-size:12px;color:var(--muted);padding:2px 0}
+.nti-add{display:flex;gap:6px;margin-top:7px}
+.nti-add input{flex:1;min-width:0;font-family:inherit;font-size:12.5px;padding:6px 9px;
+  border:1px solid var(--stone);border-radius:6px;background:var(--surface);color:var(--ink)}
+.nti-add input:focus{outline:none;border-color:var(--teal)}
+/* מתחת לכותרת התוכנית */
+.nt-head-wrap{margin-top:10px;max-width:640px}
+.nt-head-wrap .nti{border-top:none;padding-top:0;margin-top:0}
 .dw-noact{margin-top:10px;font-size:12px}
 .dw-noact summary{cursor:pointer;color:#777}
 .dw-noact>div{padding:3px 0}
@@ -1743,6 +1762,7 @@ tbody tr{transition:background .12s}
     <!-- קבוצה: עבודה יומיומית -->
     <button class="active" data-nav="landing" onclick="go('landing',this)" title="עבודה">דף ראשי</button>
     <button data-nav="exec" onclick="go('exec',this)" title="עבודה">תמונת מצב</button>
+    <button data-nav="notes" onclick="go('notes',this)" title="הערות תוכן וסיכומי יום — לכל התוכניות">הערות וסיכומי יום</button>
     <button data-nav="devhome" onclick="go('devhome',this)" style="display:none">דף הבית</button>
     <button data-nav="table" onclick="go('table',this)" title="עבודה">טבלת תוכניות</button>
     <button data-nav="map" onclick="go('map',this)" title="עבודה">מפה</button>
@@ -1851,6 +1871,15 @@ tbody tr{transition:background .12s}
 
 <!-- ════════ תמונת מצב — דשבורד הנהלה ════════ -->
 <div id="exec" class="page"><div id="execBody"></div></div>
+
+<!-- ════════ הערות תוכן וסיכומי יום ════════ -->
+<div id="notes" class="page">
+  <div class="section-title">הערות וסיכומי יום</div>
+  <p class="muted" style="font-size:13px;margin-bottom:1rem;max-width:70ch">
+    הערות תוכן שנכתבות ידנית — מה נאמר בעל־פה, מה סוכם, מה דורש המשך. נשמרות בהיסטוריה של כל תיק ומופיעות גם בדף התוכנית ובתוכנית העבודה.
+  </p>
+  <div id="ntHubBody" class="nt-wrap"></div>
+</div>
 
 <!-- ════════ עזרה ומדריך למשתמש ════════ -->
 <div id="help" class="page"><div id="helpBody"></div></div>
@@ -2137,6 +2166,7 @@ tbody tr{transition:background .12s}
     <div>
       <div class="pp-title" id="ppTitle">—</div>
       <div class="pp-sub" id="ppSub">—</div>
+      <div id="ntHeadBody" class="nt-head-wrap"></div>
     </div>
     <div class="pp-actions">
       <span id="ppStageBadge"></span>
@@ -2941,9 +2971,10 @@ function go(id, btn, isBack) {
   if (id === 'exec' && typeof renderExecDash === 'function') { renderExecDash(); }
   if (id === 'devhome' && typeof renderDevHome === 'function') { renderDevHome(); }
   if (id === 'help' && typeof renderHelp === 'function') { renderHelp(); }
+  if (id === 'notes' && typeof renderNotesHub === 'function') { _ntEditing=null; renderNotesHub(); }
   if (id === 'table') { syncTableEditMode(); } // רענון מצב עריכת הטבלה אחרי ניווט (המצב אולי הוחלף בדף אחר)
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
+  const routable = ['landing','exec','notes','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -2964,7 +2995,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','exec','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
+  const routable = ['landing','exec','notes','devhome','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(raw)) {
     const allow = session ? NAV_VISIBLE[session.role] : null;
     if (allow && !allow.includes(raw)) return; // דף שאינו זמין לתפקיד הנוכחי
@@ -4809,6 +4840,7 @@ function openProject(id, isBack) {
   renderWorkflowBar(p);
   applyProjectRole(); // מיישם את מצב הצפייה (אדריכל/עיר)
   applyLocksUI(p);    // באנרים וחסימות של סעיפים שאושרו וננעלו
+  renderHeadNotes();  // הערות תוכן מתחת לכותרת התוכנית
   const dc=document.getElementById('devCodeChip');
   if(dc && isArchitect()) dc.textContent='🔑 קוד יזם: '+devCodeFor(p);
   // אם פאנל הסייען פתוח — רענן את ההקשר לפרויקט החדש
@@ -8138,6 +8170,62 @@ function noteCardHtml(n, opts){
         <button onclick="ntDelete('${n.pid!=null?n.pid:opts.pid}','${n.id}')">מחיקה</button></div>`:''}
     </div></div>`;
 }
+/** בלוק הערות קומפקטי — לכרטיסי תוכנית העבודה ולראש דף התוכנית.
+    מציג את ההערות האחרונות ומאפשר הוספה מהירה במקום. */
+function notesInline(p, opts){
+  if(!p) return '';
+  opts=opts||{};
+  const max = opts.max || 3;
+  const notes = planNotes(p);
+  const shown = notes.slice(0, max);
+  const rest = notes.length - shown.length;
+  const list = shown.length
+    ? `<div class="nti-list">${shown.map((n,i)=>`<div class="nti-item${i===0?' nti-top':''}">
+        <span class="nti-txt">${esc(n.text)}</span>
+        <span class="nti-meta">${esc(n.tag||'כללי')} · ${esc(noteWhen(n.at))}</span>
+      </div>`).join('')}</div>`
+    : `<div class="nti-empty">טרם נרשמו הערות.</div>`;
+  const more = rest>0
+    ? `<button class="nti-more" onclick="openProjectNotes(${p.id})">עוד ${rest} הערות ›</button>` : '';
+  const add = canEditNotes()
+    ? `<div class="nti-add no-print">
+         <input type="text" id="nti_${p.id}" placeholder="הערה חדשה — מה נאמר, מה סוכם..."
+           onkeydown="if(event.key==='Enter'){event.preventDefault();ntQuickAdd(${p.id});}">
+         <button class="btn btn-sm" onclick="ntQuickAdd(${p.id})">הוספה</button>
+       </div>` : '';
+  return `<div class="nti">
+    <div class="nti-head"><span class="dw-k">הערות תוכן</span>${more}</div>
+    ${list}${add}</div>`;
+}
+/** הוספה מהירה מתוך כרטיס — ללא מעבר דף */
+function ntQuickAdd(pid){
+  const inp=document.getElementById('nti_'+pid); if(!inp) return;
+  const p=plans.find(x=>String(x.id)===String(pid)); if(!p) return;
+  if(!inp.value.trim()){ toast('לא נכתבה הערה'); return; }
+  addNote(p, inp.value, 'כללי');
+  inp.value='';
+  toast('ההערה נשמרה');
+  ntRerenderAll();
+}
+/** הערות מתחת לכותרת התוכנית — "מה נעשה ונאמר" בראש הרשומה */
+function renderHeadNotes(){
+  const el=document.getElementById('ntHeadBody'); if(!el) return;
+  const p=pj(); if(!p){ el.innerHTML=''; return; }
+  el.innerHTML = notesInline(p, {max:2});
+}
+/** פתיחת התוכנית ישירות בטאב ההערות */
+function openProjectNotes(pid){
+  openProject(pid);
+  setTimeout(()=>{ const b=[...document.querySelectorAll('#ppTabs .pp-tab')]
+    .find(x=>x.textContent.trim()==='הערות'); if(b) b.click(); }, 90);
+}
+/** ריענון כל המשטחים שמציגים הערות — כולל הכרטיסים והראש */
+function ntRerenderAll(){
+  ntRerender();
+  if(document.getElementById('ntHeadBody')) renderHeadNotes();
+  if(document.getElementById('dailyWork') && typeof renderDailyWork==='function'
+     && document.getElementById('landing').classList.contains('active')) renderDailyWork();
+}
 function ntStartEdit(id){ _ntEditing=id; ntRerender(); }
 function ntCancelEdit(){ _ntEditing=null; ntRerender(); }
 function ntSaveEdit(pid,id){
@@ -8295,6 +8383,7 @@ function taskCard(t){
           <div><span class="dw-k">ללא התקדמות</span>${t.daysNoProgress>=9999?'—':t.daysNoProgress+' ימים'}</div>
         </div>
       </div>
+      ${notesInline(p)}
       <div class="dw-tools no-print">
         <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
         <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">✉ מייל לאדריכל היזם</button>
@@ -8335,12 +8424,8 @@ function renderDailyWork(){
   el.innerHTML = `
     <div class="section-title" style="margin-top:2.5rem">תוכנית עבודה יומית</div>
     ${tiers}
-    <div id="dwDone"></div>
-    <div class="section-title" style="margin-top:2rem">הערות תוכן</div>
-    <p class="muted" style="font-size:13px;margin-bottom:10px">הערות שנכתבות ידנית — לצד "מה נעשה" שמתעד פעולות במערכת. ההערה האחרונה מוצגת ראשונה ובולטת.</p>
-    <div id="ntHubBody" class="nt-wrap"></div>`;
+    <div id="dwDone"></div>`;
   renderDoneThisMonth();
-  renderNotesHub();
 }
 function actionTypeLabel(t){ return ({mail:'מייל נשלח/הוכן', status:'שינוי סטטוס', doc:'מסמך הועלה', note:'הערה נענתה', meeting:'פגישה', approval:'אישור התקבל', date:'מועד נקבע', reminder:'תזכורת', task:'משימה'})[t]||t; }
 
@@ -10044,8 +10129,8 @@ const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ו
 const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose|approvalDate)'|oSet\('(datesPlan|summary)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(|cycleStatus|changeStatus|setCommitteeReady/;
 // אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
-  architect: ['landing','exec','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'],
-  manager: ['exec','landing','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','help'],
+  architect: ['landing','exec','notes','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','settings','help'],
+  manager: ['exec','landing','notes','table','guidelines','map','trends','shares','muni','spatial','calchub','contacts','help'],
   developer: ['devhome','table','guidelines','muni','spatial','calchub','help']
 };
 
