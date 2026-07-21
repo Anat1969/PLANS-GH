@@ -909,6 +909,15 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .ds-red{background:rgba(184,64,64,0.14);color:var(--err)}
 .ds-blue{background:rgba(59,139,212,0.14);color:var(--info)}
 .ds-teal{background:rgba(42,95,95,0.14);color:var(--teal,#2A5F5F)}
+/* ── שורת מסנן סטטוס (מפה + סטטיסטיקה) ── */
+.status-filter-bar{display:flex;flex-wrap:wrap;gap:6px}
+.sf-btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;
+  padding:7px 13px;border:1px solid var(--stone);border-radius:20px;background:var(--surface);
+  color:var(--ink);cursor:pointer;transition:all .12s}
+.sf-btn:hover{border-color:var(--teal)}
+.sf-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700;box-shadow:0 1px 4px rgba(42,95,95,.25)}
+.sf-dot{width:11px;height:11px;border-radius:50%;flex:none;border:1.5px solid rgba(255,255,255,.7)}
+.sf-btn.active .sf-dot{border-color:#fff}
 /* ── לוח שנה ── */
 .cal-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
 .cal-nav{display:flex;gap:4px}
@@ -2357,14 +2366,10 @@ tbody tr{transition:background .12s}
         </div>
       </div>
       <button id="boxZoomBtn" class="btn btn-ghost btn-sm no-print" style="width:100%;margin-top:10px" onclick="toggleBoxZoom()">🔍 זום לפי מלבן</button>
-      <div class="section-title" style="margin-top:1.5rem">מקרא</div>
-      <div class="map-legend" id="mapLegend">
-        <div class="ml-group">סטטוס תוכנית</div>
-        <div class="ml-row"><span class="ml-dot" style="background:#c47a20"></span>בטיפול</div>
-        <div class="ml-row"><span class="ml-dot" style="background:#3d8b5e"></span>הושלם</div>
-        <div class="ml-row"><span class="ml-dot" style="background:#b84040"></span>דחוף / נסגר</div>
-        <div class="ml-row"><span class="ml-dot" style="background:#3b8bd4"></span>ממתין / טרם עודכן</div>
-        <div class="ml-group" style="margin-top:8px">שכבות</div>
+      <div class="section-title" style="margin-top:1.5rem">מקרא — סינון לפי סטטוס</div>
+      <div id="mapFilterBar"></div>
+      <div class="map-legend" id="mapLegend" style="margin-top:10px">
+        <div class="ml-group">שכבות ומקרא נוסף</div>
         <div class="ml-row"><span class="ml-dot" style="background:#3d8b5e"></span>שטח ירוק / פארק</div>
         <div class="ml-row"><span class="ml-sq" style="background:#c9a227"></span>ייעודי קרקע (GIS ארצי)</div>
       </div>
@@ -2392,6 +2397,9 @@ tbody tr{transition:background .12s}
 <div id="trends" class="page">
   <div class="page-title">מגמות, דפוסים וסיכום</div>
   <div class="page-subtitle">ניתוח נתונים — תוכניות לפי שנה ורובע</div>
+
+  <div class="section-title" style="margin-top:1rem">סינון לפי סטטוס</div>
+  <div id="trendsFilterBar"></div>
 
   <div class="counter-wrap">
     <div style="text-align:center">
@@ -3339,7 +3347,8 @@ function go(id, btn, isBack) {
   if (id === 'landing') { renderLanding(); }
   if (id === 'table') { applyFilters(); } // רענון הטבלה מהנתונים בכל חזרה אליה
   if (id === 'map' && !window._mapInit) { setTimeout(initMap, 150); window._mapInit = true; }
-  else if (id === 'map') { setTimeout(()=>{ try{ if(gisMap) gisMap.invalidateSize(); }catch(e){} }, 120); }
+  else if (id === 'map') { setTimeout(()=>{ try{ if(gisMap) gisMap.invalidateSize(); }catch(e){} drawMapMarkers(); }, 120); }
+  if (id === 'map') { const fb=document.getElementById('mapFilterBar'); if(fb) fb.innerHTML=statusFilterBarHTML(); }
   // מגמות/הנחיות — מרנדר בכל כניסה (לא רק פעם אחת) כדי לשקף שינויי נתונים
   if (id === 'trends') { renderTrends(); window._trendsInit = true; }
   if (id === 'calendar' && typeof renderCalendar === 'function') { renderCalendar(); }
@@ -3706,6 +3715,51 @@ function deriveStageFromDates(p){
 /** תוכניות "חיות" — לא כולל מחיקה רכה (_deleted). מקור אמת יחיד לכל הרשימות/המדדים. */
 function livePlans(){ return plans.filter(p=>!p._deleted && !isBlankPlan(p)); }
 
+/* ══════════════════════════════════════════════════════
+   מסנן סטטוס משותף — למפה, למקרא ולסטטיסטיקה.
+   בחירה יחידה (לא מצטבר): כל לחיצה מנקה את הקודמת.
+   „הכול” = כל התוכניות הפעילות, והוא ברירת המחדל.
+   ══════════════════════════════════════════════════════ */
+const STATUS_FILTERS = [
+  { key:'all',      label:'הכול',    color:'var(--teal,#2A5F5F)' },
+  { key:'בטיפול',   label:'בטיפול',  color:'#c47a20' },
+  { key:'בהמתנה',   label:'בהמתנה',  color:'#3B8BD4' },
+  { key:'דחוף',     label:'דחוף',    color:'#b84040' },
+  { key:'הושלם',    label:'הושלם',   color:'#3d8b5e' }
+];
+let statusFilter = 'all';
+/** התוכניות התואמות למסנן הנוכחי (חיות; „הכול” = פעילות בלבד) */
+function statusFilteredPlans(){
+  const live=livePlans();
+  if(statusFilter==='all') return live.filter(planIsActive);
+  return live.filter(p=>p.status===statusFilter);
+}
+/** קביעת המסנן והחלה מסונכרנת על כל המשטחים */
+function setStatusFilter(key){
+  statusFilter = key || 'all';
+  // טבלה — סנכרון מצב התצוגה: הושלם→done, סטטוס פעיל ספציפי→active (וימוקד בסטטוס), הכול→active
+  if(typeof tableViewMode!=='undefined'){
+    tableViewMode = (statusFilter==='הושלם') ? 'done' : 'active';
+    try{ localStorage.setItem('ashdod_tableview', tableViewMode); }catch(e){}
+  }
+  syncStatusFilterUI();
+  if(typeof drawMapMarkers==='function') drawMapMarkers();
+  if(document.getElementById('table') && document.getElementById('table').classList.contains('active') && typeof applyFilters==='function') applyFilters();
+  if(document.getElementById('trends') && document.getElementById('trends').classList.contains('active') && typeof renderTrends==='function') renderTrends();
+}
+/** בונה שורת כפתורי מסנן סטטוס (משמש במפה ובסטטיסטיקה) */
+function statusFilterBarHTML(){
+  return `<div class="status-filter-bar">${STATUS_FILTERS.map(f=>
+    `<button class="sf-btn${statusFilter===f.key?' active':''}" data-sf="${f.key}" onclick="setStatusFilter('${f.key}')">
+       <span class="sf-dot" style="background:${f.color}"></span>${f.label}
+     </button>`).join('')}</div>`;
+}
+/** מסמן את הכפתור הפעיל בכל שורות המסנן בדף */
+function syncStatusFilterUI(){
+  document.querySelectorAll('.status-filter-bar .sf-btn').forEach(b=>
+    b.classList.toggle('active', b.dataset.sf===statusFilter));
+}
+
 /** רשומה ריקה: ללא מספר תוכנית וללא שדה זיהוי כלשהו.
     נוצרת בטעות (למשל שורה שנפתחה ולא מולאה) ומנפחת מדדים
     וסנכרון. אינה מוצגת ואינה נספרת — הנתונים עצמם נשמרים. */
@@ -3971,6 +4025,8 @@ function applyFilters() {
     if (!q) {
       if (tableViewMode === 'active' && isDone(p)) return false;
       if (tableViewMode === 'done' && !isDone(p)) return false;
+      // מסנן הסטטוס המשותף (מפה/סטטיסטיקה) — סטטוס ספציפי מצמצם גם את הטבלה
+      if (typeof statusFilter!=='undefined' && statusFilter!=='all' && p.status!==statusFilter) return false;
     }
     // 'all' — ללא סינון מצב
     if (d && normalizeDistrict(p.district) !== d) return false;
@@ -4684,7 +4740,24 @@ function initMap() {
   const districtCnt = {};
   plans.forEach(p => { districtCnt[p.district] = (districtCnt[p.district]||0)+1; });
 
-  plans.forEach(p => {
+  drawMapMarkers();   // ציור מרקרים לפי המסנן הנוכחי (ניתן לרענון)
+
+  const districtCounts = {};
+  plans.forEach(p => { districtCounts[p.district] = (districtCounts[p.district]||0)+1; });
+  const sorted = Object.entries(districtCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('mapStats').innerHTML = sorted.map(([d,c]) =>
+    `<div style="display:flex;justify-content:space-between"><span>${d}</span><strong>${c}</strong></div>`
+  ).join('');
+}
+
+/** ציור/רענון מרקרי התוכניות לפי מסנן הסטטוס המשותף */
+function drawMapMarkers(){
+  if(typeof gisMap==='undefined' || !gisMap || !gisLayers.plans) return;
+  gisLayers.plans.clearLayers();
+  const list = statusFilteredPlans();
+  const districtCnt={}, districtIdx={};
+  list.forEach(p=>{ districtCnt[p.district]=(districtCnt[p.district]||0)+1; });
+  list.forEach(p => {
     let lat = p.lat, lng = p.lng;
     if (!lat || !lng) {
       const coords = ASHDOD_DISTRICTS[p.district];
@@ -4692,9 +4765,8 @@ function initMap() {
       districtIdx[p.district] = (districtIdx[p.district]||0);
       const i = districtIdx[p.district]++;
       const total = districtCnt[p.district];
-      if (total === 1) {
-        lat = coords[0]; lng = coords[1];
-      } else {
+      if (total === 1) { lat = coords[0]; lng = coords[1]; }
+      else {
         const angle = (2 * Math.PI * i) / total;
         const r = 0.0015 + (i % 2) * 0.0008;
         lat = coords[0] + r * Math.cos(angle);
@@ -4709,15 +4781,7 @@ function initMap() {
     marker.on('click', () => openDetail(p.id));
     gisLayers.plans.addLayer(marker);
   });
-
-  const districtCounts = {};
-  plans.forEach(p => { districtCounts[p.district] = (districtCounts[p.district]||0)+1; });
-  const sorted = Object.entries(districtCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  document.getElementById('mapStats').innerHTML = sorted.map(([d,c]) =>
-    `<div style="display:flex;justify-content:space-between"><span>${d}</span><strong>${c}</strong></div>`
-  ).join('');
 }
-
 function toggleGIS(el, layerName) {
   const toggle = el.querySelector('.layer-toggle');
   toggle.classList.toggle('on');
@@ -4881,12 +4945,16 @@ function calGoto(pid, tab){
 }
 
 function renderTrends() {
-  // Counter
-  document.getElementById('totalCounter').textContent = plans.length;
+  // שורת מסנן הסטטוס המשותפת
+  const fb=document.getElementById('trendsFilterBar'); if(fb) fb.innerHTML=statusFilterBarHTML();
+  // התוכניות שבמסנן — מזינות את המונה ואת פילוח הרובעים
+  const fp = statusFilteredPlans();
+  // Counter — משקף את המסנן הפעיל
+  document.getElementById('totalCounter').textContent = fp.length;
 
   // Line chart
   const yearCounts = {};
-  plans.forEach(p => { if (p.year) yearCounts[p.year] = (yearCounts[p.year]||0)+1; });
+  fp.forEach(p => { if (p.year) yearCounts[p.year] = (yearCounts[p.year]||0)+1; });
   const years = Object.keys(yearCounts).sort();
   const maxY = Math.max(...Object.values(yearCounts));
   const curYear=String(new Date().getFullYear());
@@ -4905,9 +4973,9 @@ function renderTrends() {
     if(!sel.value) sel.value = yrsWithData[yrsWithData.length-1]||'all'; }
   renderMonthlyTrend();
 
-  // Top districts
+  // Top districts — לפי המסנן
   const distCounts = {};
-  plans.forEach(p => { if (p.district && p.district !== 'לא צוין') distCounts[p.district] = (distCounts[p.district]||0)+1; });
+  fp.forEach(p => { if (p.district && p.district !== 'לא צוין') distCounts[p.district] = (distCounts[p.district]||0)+1; });
   const topDist = Object.entries(distCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const maxD = topDist[0]?.[1] || 1;
   document.getElementById('topDistricts').innerHTML = topDist.map(([d,c],i) => `
