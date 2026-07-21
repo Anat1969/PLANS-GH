@@ -6604,12 +6604,15 @@ function extractRights(pid){
 let _tbaFillUndo = null;   // { planId, snapshot, when } — שחזור חד-שלבי
 const _TBA_SETBACK_KEYS = ['setbackF','setbackB','setbackS'];
 
-/** שורות החילוץ המאושרות (מהעותק בזיכרון, או מהדוגמה עם status='מאושר') */
+/** שורות החילוץ הזמינות למילוי: מאושרות או תקינות („נמצא"),
+    ולעולם לא „שגוי"/„דורש בדיקה"/„לא נמצא". הבחירה הסופית היא בתיבות הסימון. */
 function tbaApprovedRows(){
   let src = (typeof TBA_EXTRACT!=='undefined') ? TBA_EXTRACT : null;
   if(!src && window.TBA_EXTRACT_SAMPLE) src = JSON.parse(JSON.stringify(window.TBA_EXTRACT_SAMPLE));
   if(!src || !Array.isArray(src.fields)) return { src:null, rows:[] };
-  const rows = src.fields.filter(f => f._approved || f.status==='מאושר');
+  const rows = src.fields.filter(f =>
+    !f._rejected && f.status!=='שגוי' && f.status!=='דורש בדיקה' && f.status!=='לא נמצא'
+    && (f._approved || f.status==='מאושר' || f.status==='נמצא'));
   return { src, rows };
 }
 /** מיפוי appField → מפתח בטבלה 5 (רק 10 המפתחות הקיימים), אחרת null */
