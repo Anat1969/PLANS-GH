@@ -6563,6 +6563,7 @@ function renderTable5(p){
     <div class="t5-extract no-print">
       <button class="btn btn-primary btn-sm" onclick="extractRights(${p.id})">חילוץ מהוראות התוכנית (טבלת זכויות)</button>
       <button class="btn btn-ghost btn-sm" onclick="showPlanSource(${p.id})">הצגת הוראות התב״ע / מקור</button>
+      ${String(p.tik)==='1887' ? `<button class="btn btn-sm" style="background:#e8f0ef" onclick="tbaFillPreview(${p.id})" title="מילוי מבוקר של „מותר" מנתוני החילוץ המאושרים — עם תצוגה מקדימה, בחירה, אישור וביטול">🧪 מלא נתוני תב״ע מהחילוץ</button>` : ''}
       <span class="muted" style="font-size:11px">ממלא את עמודת „מותר” מתוך הנתונים הידועים; מה שאינו במקור מסומן „להשלמה מהוראות התוכנית”.</span>
     </div>
     <div class="t5-note">המערכת מחשבת אוטומטית חריגות וחוסרים. „חוסם הגשה” (אדום) מונע הגשה עד תיקון/הקלה; „דורש הסבר” (כתום) ניתן להמשך לאחר נימוק.</div>
@@ -6593,6 +6594,120 @@ function extractRights(pid){
   savePlans(); renderReviewTab(p);
   toast(filled? ('חולצו '+filled+' ערכים ל„מותר”; השאר לסימון „להשלמה”') : 'לא נמצאו ערכים מובנים — יש להשלים מהוראות התוכנית/טבלת הזכויות');
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   מילוי מבוקר של „מותר לפי התב״ע" (עמודת allowed בטבלה 5) מנתוני החילוץ
+   המאושרים — לנאות ספיר בלבד. תצוגה מקדימה → בחירת שדות → אישור → מילוי,
+   עם ביטול/שחזור. תוספתי בלבד; לא נוגע ב-proposed („המבוקש") או בשדות אחרים.
+   ══════════════════════════════════════════════════════════════════════ */
+let _tbaFillUndo = null;   // { planId, snapshot, when } — שחזור חד-שלבי
+const _TBA_SETBACK_KEYS = ['setbackF','setbackB','setbackS'];
+
+/** שורות החילוץ המאושרות (מהעותק בזיכרון, או מהדוגמה עם status='מאושר') */
+function tbaApprovedRows(){
+  let src = (typeof TBA_EXTRACT!=='undefined') ? TBA_EXTRACT : null;
+  if(!src && window.TBA_EXTRACT_SAMPLE) src = JSON.parse(JSON.stringify(window.TBA_EXTRACT_SAMPLE));
+  if(!src || !Array.isArray(src.fields)) return { src:null, rows:[] };
+  const rows = src.fields.filter(f => f._approved || f.status==='מאושר');
+  return { src, rows };
+}
+/** מיפוי appField → מפתח בטבלה 5 (רק 10 המפתחות הקיימים), אחרת null */
+function tbaMapToTable5Key(appField){
+  const keys = new Set(TABLE5_FIELDS.map(f=>f.key));
+  const head = String(appField||'').split('·')[0].trim();
+  let m = head.match(/^table5\.([a-zA-Z]+)\.allowed$/);
+  if(m && keys.has(m[1])) return m[1];
+  m = head.match(/^([a-zA-Z]+)$/);
+  if(m && keys.has(m[1])) return m[1];
+  return null;
+}
+/** תצוגה מקדימה + בחירה — נאות ספיר בלבד */
+function tbaFillPreview(pid){
+  const p = plans.find(x=>x.id==pid) || pj(); if(!p) return;
+  if(String(p.tik)!=='1887'){ toast('הפעולה זמינה לנאות ספיר בלבד'); return; }
+  ensureTable5(p);
+  const { src, rows } = tbaApprovedRows();
+  const t5label = k => (TABLE5_FIELDS.find(f=>f.key===k)||{}).label || k;
+  const mapped=[], unmapped=[];
+  rows.forEach((f,ri)=>{
+    const key = tbaMapToTable5Key(f.appField);
+    if(key && !_TBA_SETBACK_KEYS.includes(key)){
+      mapped.push({ key, label:t5label(key), value:f.value, conflict: !!(p.table5[key]&&p.table5[key].allowed), field:f });
+    } else {
+      unmapped.push(f);
+    }
+  });
+  // סימון מראש: רק מפתח עם מועמד יחיד וללא התנגשות
+  const keyCount={}; mapped.forEach(x=>{ keyCount[x.key]=(keyCount[x.key]||0)+1; });
+  const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const mrows = mapped.map((x,i)=>{
+    const pre = (!x.conflict && keyCount[x.key]===1);
+    const st = x.conflict ? '<span class="tba-badge tba-b-miss">⚠ קיים ערך — יוחלף</span>'
+             : (keyCount[x.key]>1 ? '<span class="tba-badge tba-b-check">מספר מועמדים — בחרו אחד</span>' : '<span class="tba-badge tba-b-found">חדש</span>');
+    return `<tr>
+      <td><input type="checkbox" class="tba-fill-chk" data-key="${esc(x.key)}" data-val="${esc(String(x.value))}" data-sec="${esc(String(x.field.sourceSection||''))}" data-page="${esc(String(x.field.sourcePage||''))}" data-quote="${esc(String(x.field.sourceQuote||''))}" data-conf="${esc(String(x.field.confidence||''))}" ${pre?'checked':''}></td>
+      <td>${esc(x.label)}</td>
+      <td class="tba-val">${esc(String(x.value))}</td>
+      <td class="tba-quote">${esc(String(x.field.sourceSection||''))} · עמ׳ ${esc(String(x.field.sourcePage||''))}</td>
+      <td>${st}</td></tr>`;
+  }).join('');
+  const urows = unmapped.map(f=>`<tr><td>${esc(f.appField||'')}</td><td>${esc(String(f.value||''))}</td><td class="tba-quote">${esc(String(f.category||''))} · עמ׳ ${esc(String(f.sourcePage||''))}</td></tr>`).join('');
+  ov.innerHTML = `<div class="ver-modal" style="max-width:900px">
+    <h3 style="margin-bottom:.2rem">מילוי „מותר לפי התב״ע" מהחילוץ — נאות ספיר (תמל/2024)</h3>
+    <div class="tba-warnbar">מוצגות שורות מאושרות בלבד · השמירה מתבצעת רק לאחר אישור מפורש · אין שינוי בעמודת „המבוקש על ידי אדריכל היזם"</div>
+    ${mapped.length ? `<div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table class="tba-table">
+      <thead><tr><th>מילוי</th><th>שדה יעד (מותר)</th><th>ערך מהחילוץ</th><th>מקור</th><th>סטטוס</th></tr></thead>
+      <tbody>${mrows}</tbody></table></div>`
+      : '<p class="muted" style="padding:1rem 0">לא נמצאו שורות מאושרות הממופות לשדות „מותר". יש לאשר שורות במסך „בדיקת חילוץ תב״ע".</p>'}
+    ${unmapped.length ? `<div class="tba-group-title">נתוני תב״ע ללא שדה מתאים (לא ימולאו)</div>
+      <div class="tbl-wrap" style="max-height:26vh;overflow:auto"><table class="tba-table tba-unmapped">
+      <thead><tr><th>נתון</th><th>ערך</th><th>מקור</th></tr></thead><tbody>${urows}</tbody></table></div>` : ''}
+    <div class="mail-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      ${mapped.length?`<button class="btn btn-primary btn-sm" onclick="tbaFillCommit(${p.id})">אישור ומילוי השדות המסומנים</button>`:''}
+      ${_tbaFillUndo && _tbaFillUndo.planId===p.id ? `<button class="btn btn-sm" onclick="tbaFillUndo();this.closest('.render-lightbox').remove()">↺ ביטול מילוי אחרון / שחזור</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגירה</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+/** מילוי בפועל — רק שורות מסומנות; snapshot לפני; תוספתי; לא נוגע ב-proposed */
+function tbaFillCommit(pid){
+  const p = plans.find(x=>x.id==pid) || pj(); if(!p) return;
+  if(String(p.tik)!=='1887'){ toast('הפעולה זמינה לנאות ספיר בלבד'); return; }
+  ensureTable5(p);
+  const modal = document.querySelector('.render-lightbox');
+  const checks = modal ? [...modal.querySelectorAll('.tba-fill-chk:checked')] : [];
+  if(!checks.length){ toast('לא נבחרו שדות למילוי'); return; }
+  const { src } = tbaApprovedRows();
+  const planNumber = (src&&src.planNumber)||'תמל/2024';
+  const planName = (src&&src.planName)||'';
+  _tbaFillUndo = { planId:p.id, snapshot: JSON.parse(JSON.stringify(p.table5)), when: todayStr() };
+  let n=0;
+  checks.forEach(ch=>{
+    const key = ch.dataset.key;
+    if(!key || !p.table5[key] || _TBA_SETBACK_KEYS.includes(key)) return;
+    p.table5[key].allowed = String(ch.dataset.val||'');
+    p.table5[key].source = planName + (ch.dataset.sec?(' · סעיף '+ch.dataset.sec):'');
+    p.table5[key].allowedSource = {
+      planNumber, planName, section: ch.dataset.sec||'', page: ch.dataset.page||'',
+      quote: ch.dataset.quote||'', date: todayStr(), confidence: ch.dataset.conf||''
+    };
+    n++;
+  });
+  savePlans(); renderReviewTab(p);
+  if(modal) modal.remove();
+  toast('מולאו '+n+' שדות „מותר" · ניתן לבטל ולשחזר');
+}
+/** שחזור המצב שלפני המילוי האחרון */
+function tbaFillUndo(){
+  if(!_tbaFillUndo){ toast('אין מילוי לביטול'); return; }
+  const p = plans.find(x=>x.id==_tbaFillUndo.planId); if(!p){ _tbaFillUndo=null; return; }
+  p.table5 = JSON.parse(JSON.stringify(_tbaFillUndo.snapshot));
+  _tbaFillUndo = null;
+  savePlans(); renderReviewTab(p);
+  toast('שוחזר המצב הקודם של „מותר לפי התב״ע"');
+}
+
 /* ── הצגת מקור: טקסט החלטת הוועדה/הוראות התב״ע לתוכנית ── */
 function showPlanSource(pid){
   const p=plans.find(x=>x.id==pid)||pj(); if(!p) return;
