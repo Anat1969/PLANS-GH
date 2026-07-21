@@ -1382,6 +1382,9 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   padding:1px 5px;border-radius:4px;font-family:inherit;line-height:1.4}
 .nti-acts button:hover{background:var(--surface);color:var(--ink)}
 .nti-empty{font-size:12px;color:var(--muted);padding:2px 0}
+.nti-editing{display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--teal)}
+.nti-edit{width:100%;font-family:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--stone);
+  border-radius:6px;resize:vertical;min-height:44px;line-height:1.5;background:var(--surface);color:var(--ink)}
 .nti-add{display:flex;gap:6px;margin-top:7px}
 .nti-add input{flex:1;min-width:0;font-family:inherit;font-size:12.5px;padding:6px 9px;
   border:1px solid var(--stone);border-radius:6px;background:var(--surface);color:var(--ink)}
@@ -9258,14 +9261,25 @@ function notesInline(p, opts){
   const shown = notes.slice(0, max);
   const rest = notes.length - shown.length;
   const list = shown.length
-    ? `<div class="nti-list">${shown.map((n,i)=>`<div class="nti-item${i===0?' nti-top':''}">
+    ? `<div class="nti-list">${shown.map((n,i)=>{
+        const editing = _ntEditing===n.id;
+        if(editing){
+          return `<div class="nti-item nti-editing">
+            <textarea class="nti-edit" id="ntiEd_${n.id}">${esc(n.text)}</textarea>
+            <span class="nti-acts no-print">
+              <button class="btn btn-xs" onclick="ntInlineSave(${p.id},'${n.id}')">שמירה</button>
+              <button class="btn btn-ghost btn-xs" onclick="ntCancelEdit()">ביטול</button>
+            </span>
+          </div>`;
+        }
+        return `<div class="nti-item${i===0?' nti-top':''}">
         <span class="nti-txt">${esc(n.text)}</span>
         <span class="nti-meta">${esc(n.tag||'כללי')} · ${esc(noteWhen(n.at))}${n.edited?' · נערך':''}
           ${canEditNotes()?`<span class="nti-acts no-print">
-            <button onclick="ntInlineEdit(${p.id},'${n.id}')" title="עריכה">✎</button>
-            <button onclick="ntInlineDel(${p.id},'${n.id}')" title="מחיקה">✕</button>
+            <button onclick="ntStartEdit('${n.id}')" title="עריכה">עריכה</button>
+            <button onclick="ntInlineDel(${p.id},'${n.id}')" title="מחיקה">מחיקה</button>
           </span>`:''}</span>
-      </div>`).join('')}</div>`
+      </div>`;}).join('')}</div>`
     : `<div class="nti-empty">טרם נרשמו הערות.</div>`;
   const more = rest>0
     ? `<button class="nti-more" onclick="openProjectNotes(${p.id})">עוד ${rest} הערות ›</button>` : '';
@@ -9281,13 +9295,13 @@ function notesInline(p, opts){
     ${list}${add}</div>`;
 }
 /** עריכת הערה במקום — מתוך הכרטיס עצמו */
-function ntInlineEdit(pid, nid){
+/** שמירת עריכה מתוך בלוק ההערות המוזח */
+function ntInlineSave(pid, nid){
+  const ta=document.getElementById('ntiEd_'+nid); if(!ta) return;
   const p=plans.find(x=>String(x.id)===String(pid)); if(!p) return;
-  const n=planNotes(p).find(x=>x.id===nid); if(!n) return;
-  const v=prompt('עריכת ההערה:', n.text);
-  if(v==null) return;
-  if(!String(v).trim()){ toast('הערה ריקה לא נשמרה'); return; }
-  if(updateNote(p, nid, v)){ toast('ההערה עודכנה'); ntRerenderAll(); }
+  if(!String(ta.value).trim()){ toast('הערה ריקה לא נשמרה'); return; }
+  if(updateNote(p, nid, ta.value)) toast('ההערה עודכנה');
+  _ntEditing=null; ntRerenderAll();
 }
 function ntInlineDel(pid, nid){
   const p=plans.find(x=>String(x.id)===String(pid)); if(!p) return;
@@ -9324,8 +9338,8 @@ function ntRerenderAll(){
   if(document.getElementById('dailyWork') && typeof renderDailyWork==='function'
      && document.getElementById('landing').classList.contains('active')) renderDailyWork();
 }
-function ntStartEdit(id){ _ntEditing=id; ntRerender(); }
-function ntCancelEdit(){ _ntEditing=null; ntRerender(); }
+function ntStartEdit(id){ _ntEditing=id; ntRerenderAll(); }
+function ntCancelEdit(){ _ntEditing=null; ntRerenderAll(); }  // ביטול — סוגר בלי לשמור, בכל המשטחים
 function ntSaveEdit(pid,id){
   const ta=document.getElementById('ntEd_'+id); if(!ta) return;
   const p=plans.find(x=>String(x.id)===String(pid));
