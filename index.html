@@ -502,6 +502,7 @@ tbody tr:hover{background:var(--teal-pale)}
 .stg-dot{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:var(--fog,#f2f0ec);color:var(--muted,#6b6259);border:2px solid var(--stone,#e8e5df)}
 .stg-name{font-weight:700;font-size:14px;color:var(--ink,#1a1a1a)}
 .stg-date{font-size:11px;color:var(--muted,#6b6259);margin-top:1px}
+.stg-done{font-size:11px;font-weight:700;color:#3d8b5e;margin-top:1px}
 .stg-line{flex:1;min-width:24px;height:3px;border-radius:2px;background:var(--stone,#e8e5df)}
 .stg-done .stg-dot{background:var(--ok,#3d8b5e);color:#fff;border-color:var(--ok,#3d8b5e)}
 .stg-current .stg-dot{background:var(--teal,#2A5F5F);color:#fff;border-color:var(--teal,#2A5F5F);box-shadow:0 0 0 4px rgba(42,95,95,.15)}
@@ -909,29 +910,29 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .cal-lg-note{margin-inline-start:auto}
 /* חודש בודד — פריסה מלאה לרוחב, תאים גדולים וקריאים */
 .cal-months{width:100%;margin:0 auto}
-.cal-month{border:1px solid var(--stone);border-radius:12px;padding:16px 18px;background:var(--surface)}
-.cal-month-title{font-family:var(--display);font-size:22px;text-align:center;margin-bottom:14px;color:var(--ink)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%}
-.cal-dow{margin-bottom:6px}
-.cal-dowc{text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:4px 0}
-/* תא יום — מלבני, רחב, גבוה; כל שורות השבוע בגובה אחיד */
-.cal-cell{min-height:190px;border:1px solid var(--stone);border-radius:10px;padding:14px;
-  display:flex;flex-direction:column;gap:8px;background:#fff;min-width:0}
+.cal-month{border:1px solid var(--stone);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.cal-month-title{font-family:var(--display);font-size:19px;text-align:center;margin-bottom:10px;color:var(--ink)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;width:100%}
+.cal-dow{margin-bottom:4px}
+.cal-dowc{text-align:center;font-size:12.5px;font-weight:700;color:var(--muted);padding:3px 0}
+/* תא יום — מלבני (רחב מגובה), קומפקטי; כל שורות השבוע בגובה אחיד */
+.cal-cell{min-height:104px;border:1px solid var(--stone);border-radius:8px;padding:8px;
+  display:flex;flex-direction:column;gap:5px;background:#fff;min-width:0}
 .cal-out{background:var(--fog);opacity:.55}         /* ימים מחוץ לחודש — מעומעמים, תא מלא */
-.cal-today{outline:3px solid var(--teal);outline-offset:-3px}
-.cal-daynum{font-size:22px;font-weight:700;color:var(--ink);text-align:left;flex:none;line-height:1}
+.cal-today{outline:2px solid var(--teal);outline-offset:-2px}
+.cal-daynum{font-size:16px;font-weight:700;color:var(--ink);text-align:left;flex:none;line-height:1}
 /* עומס חריג בלבד — גלילה פנימית; אחרת התא גדל */
-.cal-cell-events{display:flex;flex-direction:column;gap:8px;min-height:0}
-.cal-cell-events.cal-scroll{max-height:340px;overflow-y:auto}
+.cal-cell-events{display:flex;flex-direction:column;gap:5px;min-height:0}
+.cal-cell-events.cal-scroll{max-height:220px;overflow-y:auto}
 /* תגית אירוע רחבה — רקע בצבע הפורום, טקסט בניגודיות גבוהה */
-.cal-chip{display:block;width:100%;text-align:right;border:none;border-radius:8px;
-  padding:10px 12px;font-size:16px;line-height:1.4;cursor:pointer;font-family:inherit;
+.cal-chip{display:block;width:100%;text-align:right;border:none;border-radius:6px;
+  padding:6px 9px;font-size:13px;line-height:1.35;cursor:pointer;font-family:inherit;
   color:#fff;white-space:normal;overflow-wrap:anywhere}
 .cal-chip:hover{filter:brightness(1.08)}
 .cal-chip-name{font-weight:700;display:block}
-.cal-chip-sub{font-size:13.5px;opacity:.95;display:block;margin-top:2px}
-.cal-more{border:none;background:var(--fog);color:var(--teal);font-size:14px;font-weight:600;cursor:pointer;
-  font-family:inherit;text-align:center;padding:8px;border-radius:8px;width:100%}
+.cal-chip-sub{font-size:11.5px;opacity:.95;display:block;margin-top:1px}
+.cal-more{border:none;background:var(--fog);color:var(--teal);font-size:12.5px;font-weight:600;cursor:pointer;
+  font-family:inherit;text-align:center;padding:6px;border-radius:6px;width:100%}
 /* חלונית אירוע / יום */
 .cal-pop{background:var(--surface);border-radius:12px;max-width:460px;width:92%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:86vh;overflow-y:auto}
 .cal-pop-bar{height:6px}
@@ -942,15 +943,16 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
   border-radius:8px;padding:11px 14px;margin:5px 20px;cursor:pointer;font-family:inherit;font-size:14.5px;width:calc(100% - 40px)}
 .cal-day-row:hover{background:var(--stone)}
 @media(max-width:1100px){
-  .cal-cell{min-height:150px;padding:10px}
-  .cal-daynum{font-size:19px}
-  .cal-chip{font-size:14px;padding:8px 10px}
+  .cal-cell{min-height:92px;padding:7px}
+  .cal-daynum{font-size:15px}
+  .cal-chip{font-size:12px;padding:5px 8px}
 }
 @media(max-width:720px){
-  /* במסך צר — פחות עומס אך ללא עיוות: התאים נשארים מלבניים */
-  .cal-cell{min-height:120px;padding:8px}
-  .cal-chip{font-size:13px}
-  .cal-dowc{font-size:12px}
+  /* במסך צר — התאים נשארים מלבניים */
+  .cal-cell{min-height:76px;padding:6px}
+  .cal-chip{font-size:11.5px;padding:4px 7px}
+  .cal-dowc{font-size:11px}
+  .cal-daynum{font-size:14px}
 }
 /* צביעת תאריכים לפי זמן אמת: עבר=כחול בהיר · הווה=כחול בינוני · עתיד=כחול כהה+לבן */
 .dt-past{background:#e8f1fb;color:#3a6ea5}
@@ -2799,7 +2801,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
-  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2'];
+  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -3181,6 +3183,29 @@ function clearSeed(p, key) { if (!p) return; if (!p._userEdited) p._userEdited =
 loadPlans();
 migrateForumDates();
 migrateCompletedGantt();
+migrateHistoricalForums();
+/* ── עדכון חד־פעמי: תוכנית שהושלמה והוזנה כתיעוד היסטורי → ──
+   כל שלבי סרגל הפורומים ירוקים + „בוצע”. חל רק על רקורדי עבר
+   (הושלמו אך לא נוהלו דרך האפליקציה — ללא פעילות פורומים),
+   פעם אחת (דגל _forumsHistDone). אינו משנה את הלוגיקה השוטפת:
+   תוכניות חדשות/פעילות ממשיכות להיצבע לפי הסכמה והשלבים. */
+function planHadForumActivity(p){
+  return !!((p.forumDecision && (p.forumDecision.approved || p.forumDecision.text || p.forumDecision.date))
+    || p.consultantsPlanApproved || (Array.isArray(p.consultants)&&p.consultants.length)
+    || (p.committeeReady && Object.values(p.committeeReady).some(Boolean))
+    || p.signDate);
+}
+function migrateHistoricalForums(){
+  let changed=false;
+  plans.forEach(p=>{
+    if(p._forumsHistDone) return;             // כבר עודכן — לא לגעת שוב
+    if(p.status!=='הושלם') return;            // רק תוכניות שהושלמו
+    if(planHadForumActivity(p)) return;       // נוהלה דרך האפליקציה — לא רקורד היסטורי
+    p._forumsHistDone = true;                 // סימון פנימי חד־פעמי
+    changed=true;
+  });
+  if(changed){ try{ savePlans(); }catch(e){} }
+}
 /* ── עדכון חד־פעמי: תוכניות שהושלמו → כל שלבי הגאנט „הושלם”. ──
    חל רק על הנתונים הקיימים כעת, פעם אחת לכל תוכנית (דגל _ganttDoneMig2).
    אינו משנה את לוגיקת הגאנט העתידית — מכאן ואילך התהליך הרגיל. */
@@ -3244,6 +3269,7 @@ async function initCloud() {
   if (loaded === true) {
     migrateForumDates(); // תיקון תאריכים גם על נתוני הענן
     migrateCompletedGantt(); // עדכון חד־פעמי לגאנט של תוכניות שהושלמו (כולל נתוני ענן)
+    migrateHistoricalForums(); // עדכון חד־פעמי לסרגל הפורומים של רקורדי עבר
     applyForumChainAll(); // השלמת שרשרת 3 התאריכים לכל התוכניות הפעילות
     applyFilters(); renderLanding();
     if (currentProjectId != null) { const p = pj(); if (p) openProject(currentProjectId); }
@@ -5573,6 +5599,10 @@ const STAGE_FLOW = [
 ];
 /** צבע רמזור לשלב: ירוק=הושלם, צהוב=בטיפול, אדום=חסרים תנאים/אישורים */
 function stageColor(p, key){
+  // תיעוד היסטורי: תוכנית שהושלמה והוזנה כרקורד עבר — כל השלבים ירוקים.
+  // הדגל נקבע פעם אחת במיגרציה; חל רק כל עוד הסטטוס נותר „הושלם”,
+  // כך ששינוי סטטוס מחזיר את הצביעה ללוגיקה השוטפת.
+  if(p._forumsHistDone && p.status==='הושלם') return 'green';
   const forumOk = {
     // ירוק = התנאי המהותי הושלם (החלטת הפורום). התאריך מידע נלווה, לא חוסם.
     stage_1: !!(p.forumDecision&&p.forumDecision.approved),
@@ -5604,10 +5634,13 @@ function renderStageStrip(p){
     const isCur = s.key===curKey;
     const dv = s.dateField ? p[s.dateField] : '';
     const dstate = dv ? (_occurred(dv,today) ? 'התקיים '+fmtDate(dv) : 'מתוכנן '+fmtDate(dv)) : '';
+    // תוכנית היסטורית שהושלמה — מציגים „בוצע” תחת כל שלב
+    const hist = p._forumsHistDone && p.status==='הושלם';
+    const sub = hist ? '<span class="stg-done">בוצע</span>' : (dstate?`<span class="stg-date">${dstate}</span>`:'');
     // לחיצה על כל שלב עוברת לתחנת העבודה שלו — ללא חסימה
     return `<button class="stg-step stg-${color}${isCur?' stg-cur':''}" onclick="gotoForumStation('${s.forum}','${s.key}')" title="${colorLbl[color]}">
       <span class="stg-light stg-light-${color}"></span>
-      <span class="stg-txt"><span class="stg-name">${s.label}</span>${dstate?`<span class="stg-date">${dstate}</span>`:''}</span>
+      <span class="stg-txt"><span class="stg-name">${s.label}</span>${sub}</span>
     </button>`;
   }).join('<span class="stg-line"></span>');
   el.innerHTML = `
