@@ -918,6 +918,28 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .sf-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700;box-shadow:0 1px 4px rgba(42,95,95,.25)}
 .sf-dot{width:11px;height:11px;border-radius:50%;flex:none;border:1.5px solid rgba(255,255,255,.7)}
 .sf-btn.active .sf-dot{border-color:#fff}
+/* ── מצב בדיקה: חילוץ תב״ע ── */
+.tba-warnbar{background:#fef3e0;border:1px solid #e0a92e;color:#7a5f2e;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;margin:8px 0}
+.tba-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.tba-summary{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tba-stat{background:var(--surface);border:1px solid var(--stone);border-radius:10px;padding:8px 14px;font-size:13px;min-width:110px;text-align:center}
+.tba-stat .tba-stat-n{font-size:22px;font-weight:800;display:block;color:var(--teal)}
+.tba-stat.ok .tba-stat-n{color:#3d8b5e}.tba-stat.warn .tba-stat-n{color:#c47a20}.tba-stat.miss .tba-stat-n{color:#b84040}.tba-stat.pct .tba-stat-n{color:var(--bronze,#c9a227)}
+.tba-group-title{font-weight:800;font-size:14px;color:var(--teal);margin:18px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--stone)}
+.tba-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px}
+.tba-table th,.tba-table td{border:1px solid var(--stone);padding:5px 7px;text-align:right;vertical-align:top}
+.tba-table th{background:rgba(42,95,95,.08);font-weight:700;white-space:nowrap;position:sticky;top:0}
+.tba-table td.tba-val{font-weight:700;min-width:120px}
+.tba-table .tba-quote{color:#666;font-size:11px;max-width:240px}
+.tba-row-approved{background:rgba(61,139,94,.10)}
+.tba-row-rejected{background:rgba(184,64,64,.10);text-decoration:line-through;opacity:.7}
+.tba-row-check{background:rgba(196,122,32,.08)}
+.tba-badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:9px;padding:1px 7px;white-space:nowrap}
+.tba-b-found{background:#3d8b5e;color:#fff}.tba-b-miss{background:#b84040;color:#fff}.tba-b-check{background:#e0a92e;color:#fff}
+.tba-conf-high{color:#3d8b5e;font-weight:700}.tba-conf-mid{color:#c47a20}.tba-conf-low{color:#b84040}
+.tba-acts button{border:none;background:transparent;cursor:pointer;font-size:14px;padding:1px 3px;border-radius:4px}
+.tba-acts button:hover{background:rgba(0,0,0,.08)}
+.tba-unmapped td{background:rgba(0,0,0,.03)}
 /* ── לוח שנה ── */
 .cal-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
 .cal-nav{display:flex;gap:4px}
@@ -2117,6 +2139,7 @@ tbody tr{transition:background .12s}
     <button data-nav="muni" onclick="go('muni',this)" title="ידע ודרישות">אוגדן דרישות העירייה</button>
     <button data-nav="spatial" onclick="go('spatial',this)" title="ידע ודרישות">הנחיות מרחביות (מהדורה 18)</button>
     <button data-nav="calchub" onclick="go('calchub',this)" title="ידע ודרישות">מחשבונים</button>
+    <button data-nav="tba" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">🧪 בדיקת חילוץ תב״ע</button>
     <span class="nav-sep" aria-hidden="true"></span>
     <!-- קבוצה: קשר ושיתוף -->
     <button data-nav="shares" onclick="go('shares',this)" title="קשר ושיתוף">חוות דעת, דיווחים ושיתופים</button>
@@ -2678,6 +2701,29 @@ tbody tr{transition:background .12s}
   </div>
 </div>
 
+<!-- ════════ מצב בדיקה: בדיקת חילוץ תב״ע (זמני) ════════ -->
+<div id="tba" class="page">
+  <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>בדיקת חילוץ תב״ע</span></div>
+  <div class="page-title">🧪 בדיקת חילוץ תב״ע — מצב בדיקה</div>
+  <div class="page-subtitle">שלב ניסיוני: העלאת מסמך תב״ע, חילוץ הנתונים והצגתם מול שדות האפליקציה — לבדיקה ואישור בלבד. <strong>אין שמירה ברשומות התוכניות ואין מילוי אוטומטי.</strong></div>
+  <div class="tba-warnbar">מצב בדיקה מבודד · הנתונים אינם נשמרים במערכת · המספרים לתצוגה בלבד עד לאישור מבנה הנתונים</div>
+  <div class="tba-toolbar no-print">
+    <label class="btn btn-sm btn-primary" style="cursor:pointer">📄 העלאת מסמך תב״ע
+      <input type="file" id="tbaFileInput" accept="application/pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="tbaFilePick(this)" style="display:none">
+    </label>
+    <button class="btn btn-sm" onclick="tbaLoadSample()">טעינת דוגמה: נאות ספיר</button>
+    <button class="btn btn-sm btn-ghost" onclick="tbaExportJson()">⬇ הורדת JSON</button>
+    <button class="btn btn-sm btn-ghost" onclick="tbaExportExcel()">⬇ הורדת Excel/CSV</button>
+    <span id="tbaSrcName" class="muted" style="margin-inline-start:8px"></span>
+  </div>
+  <div id="tbaSummary" class="tba-summary"></div>
+  <div id="tbaPreview"></div>
+  <div id="tbaSourceWrap" style="display:none;margin-top:1rem">
+    <div class="section-title">מקור המסמך</div>
+    <iframe id="tbaSourceFrame" style="width:100%;height:70vh;border:1px solid var(--stone);border-radius:8px;background:#fff"></iframe>
+  </div>
+</div>
+
 <!-- ════════ MUNI REQUIREMENTS PAGE ════════ -->
 <div id="muni" class="page">
   <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>אוגדן</span></div>
@@ -2701,6 +2747,8 @@ tbody tr{transition:background .12s}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <!-- הנחיות מרחביות 18 — הנתונים כ-JS מקומי (עובד גם ב-file:// שבו fetch חסום) -->
 <script src="spatial18.js"></script>
+<!-- מצב בדיקה: נתוני חילוץ תב״ע לדוגמה (נאות ספיר) — זמני, לבדיקה בלבד -->
+<script src="tba-extract-sample.js"></script>
 <script>
 const STATUSES = ['טרם עודכן','בטיפול','הושלם','בהמתנה','סגור','דחוף','תוכנית נסגרה'];
 const STATUS_COLORS = {'טרם עודכן':'rgba(0,0,0,0.25)','בטיפול':'#c47a20','הושלם':'#3d8b5e','בהמתנה':'#3B8BD4','סגור':'#b84040','דחוף':'#b84040','תוכנית נסגרה':'#b84040'};
@@ -3368,6 +3416,7 @@ function go(id, btn, isBack) {
   if (id === 'contacts' && typeof renderContactsPage === 'function') { renderContactsPage(); }
   if (id === 'calchub' && typeof renderCalcHub === 'function') { renderCalcHub(); }
   if (id === 'spatial' && typeof renderSpatial === 'function') { renderSpatial(); }
+  if (id === 'tba' && typeof renderTba === 'function') { renderTba(); }
   if (id === 'settings' && typeof renderSettings === 'function') { renderSettings(); }
   if (id === 'exec' && typeof renderExecDash === 'function') { renderExecDash(); }
   if (id === 'devhome' && typeof renderDevHome === 'function') { renderDevHome(); }
@@ -11601,6 +11650,179 @@ function spatialSearch(q){
   const first=content.querySelector('.sp-hit'); if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   מצב בדיקה: בדיקת חילוץ תב״ע (זמני)
+   טוען נתוני חילוץ לדוגמה, מציג טבלת תצוגה מקדימה ומאפשר עריכה/אישור/ייצוא.
+   מבודד לחלוטין — אינו נוגע ב-plans ואינו קורא ל-savePlans().
+   ══════════════════════════════════════════════════════════════════════ */
+let TBA_EXTRACT = null;        // עותק עבודה בזיכרון בלבד
+let _tbaSourceUrl = '';        // כתובת המסמך שהועלה (להצגת מקור)
+/* סדר קבוצות התצוגה כפי שנדרש */
+const TBA_GROUP_ORDER = ['נתונים כלליים','ייעודי קרקע','זכויות בנייה','שטחים עיקריים ושירות','מספר יחידות דיור','צפיפות','גובה ומספר קומות','קווי בניין','תכסית','הוראות בינוי','חניה','שטחים ציבוריים','מסחר ותעסוקה','הנחיות עיצוביות','תנאים להיתר','טבלאות הקצאה ואיזון'];
+
+function renderTba(){
+  if(!TBA_EXTRACT){
+    // טעינה ראשונית מהדוגמה המוטמעת (עותק עמוק — לא נוגעים במקור)
+    if(window.TBA_EXTRACT_SAMPLE) TBA_EXTRACT = JSON.parse(JSON.stringify(window.TBA_EXTRACT_SAMPLE));
+    else TBA_EXTRACT = { planNumber:'', planName:'', sourceFile:'', extractionDate:'', fields:[], unmappedData:[] };
+  }
+  tbaRenderPreview();
+}
+function tbaLoadSample(){
+  if(window.TBA_EXTRACT_SAMPLE) TBA_EXTRACT = JSON.parse(JSON.stringify(window.TBA_EXTRACT_SAMPLE));
+  const nm=document.getElementById('tbaSrcName'); if(nm) nm.textContent = 'מקור: '+(TBA_EXTRACT.sourceFile||'—')+' · '+(TBA_EXTRACT.planNumber||'');
+  tbaRenderPreview();
+  toast('נטענה דוגמת החילוץ (נאות ספיר)');
+}
+/* העלאת מסמך — במצב בדיקה זה מציגה את המקור בלבד (אין פרסור בדפדפן). */
+function tbaFilePick(input){
+  const f = input && input.files && input.files[0]; if(!f) return;
+  try{ if(_tbaSourceUrl) URL.revokeObjectURL(_tbaSourceUrl); }catch(e){}
+  _tbaSourceUrl = URL.createObjectURL(f);
+  const nm=document.getElementById('tbaSrcName'); if(nm) nm.textContent = 'הועלה: '+f.name;
+  if(!TBA_EXTRACT) renderTba();
+  if(TBA_EXTRACT) TBA_EXTRACT.sourceFile = f.name;
+  // הצגת המסמך (PDF/תמונה) — שאר הסוגים ירדו להורדה בלבד
+  const wrap=document.getElementById('tbaSourceWrap'), frame=document.getElementById('tbaSourceFrame');
+  if(/pdf$/i.test(f.name) || f.type==='application/pdf' || /^image\//.test(f.type)){
+    if(frame) frame.src=_tbaSourceUrl; if(wrap) wrap.style.display='';
+  } else if(wrap){ wrap.style.display='none'; }
+  toast('המסמך נטען לתצוגה. החילוץ במצב בדיקה מוצג מהדוגמה — אין פרסור בדפדפן בשלב זה.');
+  tbaRenderPreview();
+}
+/* פתיחת עמוד המקור (PDF שהועלה) בעמוד הרלוונטי */
+function tbaOpenSource(page){
+  if(_tbaSourceUrl){
+    const url = _tbaSourceUrl + (page? ('#page='+String(page).replace(/\D/g,'')) : '');
+    window.open(url,'_blank','noopener');
+  } else {
+    toast('להצגת עמוד המקור — יש להעלות תחילה את מסמך ה-PDF');
+  }
+}
+function tbaSummary(){
+  const f=(TBA_EXTRACT&&TBA_EXTRACT.fields)||[];
+  const found=f.filter(x=>x.status==='נמצא').length;
+  const miss=f.filter(x=>x.status==='לא נמצא').length;
+  const check=f.filter(x=>x.status==='דורש בדיקה').length;
+  const unmapped=(TBA_EXTRACT&&TBA_EXTRACT.unmappedData||[]).length;
+  const total=f.length;
+  const pct = total? Math.round(found/total*100) : 0;
+  return {found,miss,check,unmapped,total,pct};
+}
+function tbaRenderPreview(){
+  const host=document.getElementById('tbaPreview'); if(!host) return;
+  const s=tbaSummary();
+  const sumHost=document.getElementById('tbaSummary');
+  if(sumHost) sumHost.innerHTML =
+    `<div class="tba-stat ok"><span class="tba-stat-n">${s.found}</span>נמצאו</div>`+
+    `<div class="tba-stat miss"><span class="tba-stat-n">${s.miss}</span>לא נמצאו</div>`+
+    `<div class="tba-stat warn"><span class="tba-stat-n">${s.check}</span>דורש בדיקה</div>`+
+    `<div class="tba-stat"><span class="tba-stat-n">${s.unmapped}</span>ללא שדה מתאים</div>`+
+    `<div class="tba-stat pct"><span class="tba-stat-n">${s.pct}%</span>הצלחת חילוץ</div>`;
+
+  const fields=(TBA_EXTRACT&&TBA_EXTRACT.fields)||[];
+  const byGroup={}; fields.forEach((fld,i)=>{ (byGroup[fld.category]=byGroup[fld.category]||[]).push(i); });
+  // קבוצות בסדר הנדרש, ואז כל קבוצה נוספת שלא ברשימה
+  const groups=[...TBA_GROUP_ORDER.filter(g=>byGroup[g]), ...Object.keys(byGroup).filter(g=>!TBA_GROUP_ORDER.includes(g))];
+  const head=`<thead><tr>
+    <th>קבוצת מידע</th><th>שם השדה באפליקציה</th><th>הערך שנמצא</th><th>יחידה</th>
+    <th>מגרש/ת״ש</th><th>ייעוד</th><th>סעיף/טבלה</th><th>עמ׳</th><th>ציטוט המקור</th>
+    <th>ודאות</th><th>סטטוס</th><th>פעולות</th></tr></thead>`;
+  let html='';
+  groups.forEach(g=>{
+    html += `<div class="tba-group-title">${esc(g)} <span class="muted" style="font-weight:400">(${byGroup[g].length})</span></div>`;
+    html += `<div style="overflow-x:auto"><table class="tba-table">${head}<tbody>`;
+    byGroup[g].forEach(i=>{ html += tbaRowHTML(fields[i], i); });
+    html += `</tbody></table></div>`;
+  });
+  // נתונים ללא שדה מתאים
+  const un=(TBA_EXTRACT&&TBA_EXTRACT.unmappedData)||[];
+  if(un.length){
+    html += `<div class="tba-group-title">נתונים ללא שדה מתאים באפליקציה <span class="muted" style="font-weight:400">(${un.length})</span></div>`;
+    html += `<div style="overflow-x:auto"><table class="tba-table tba-unmapped"><thead><tr><th>נושא</th><th>הערך</th><th>סעיף</th><th>עמ׳</th><th>הערה</th></tr></thead><tbody>`;
+    un.forEach(u=>{ html += `<tr><td class="tba-val">${esc(u.label||'')}</td><td>${esc(u.value||'')}</td><td>${esc(u.sourceSection||'')}</td><td>${esc(u.sourcePage||'')}</td><td class="tba-quote">${esc(u.note||'')}</td></tr>`; });
+    html += `</tbody></table></div>`;
+  }
+  host.innerHTML = html;
+}
+function tbaRowClass(f){
+  if(f.status==='מאושר'||f._approved) return 'tba-row-approved';
+  if(f.status==='שגוי'||f._rejected) return 'tba-row-rejected';
+  if(f.status==='דורש בדיקה') return 'tba-row-check';
+  return '';
+}
+function tbaStatusBadge(f){
+  if(f._approved) return '<span class="tba-badge tba-b-found">מאושר ✓</span>';
+  if(f._rejected) return '<span class="tba-badge tba-b-miss">שגוי ✕</span>';
+  if(f.status==='נמצא') return '<span class="tba-badge tba-b-found">נמצא</span>';
+  if(f.status==='לא נמצא') return '<span class="tba-badge tba-b-miss">לא נמצא</span>';
+  return '<span class="tba-badge tba-b-check">דורש בדיקה</span>';
+}
+function tbaConfCls(c){ return c==='גבוהה'?'tba-conf-high':(c==='נמוכה'?'tba-conf-low':'tba-conf-mid'); }
+function tbaRowHTML(f, i){
+  return `<tr class="${tbaRowClass(f)}" id="tbaRow_${i}">
+    <td>${esc(f.category||'')}</td>
+    <td>${esc(f.appField||'')}</td>
+    <td class="tba-val" contenteditable="true" onblur="tbaEditCell(${i},'value',this.textContent)">${esc(f.value||'')}</td>
+    <td>${esc(f.unit||'')}</td>
+    <td>${esc(f.lot||'')}</td>
+    <td>${esc(f.landUse||'')}</td>
+    <td>${esc(f.sourceSection||'')}</td>
+    <td>${esc(f.sourcePage||'')}</td>
+    <td class="tba-quote">${esc(f.sourceQuote||'')}</td>
+    <td class="${tbaConfCls(f.confidence)}">${esc(f.confidence||'')}</td>
+    <td>${tbaStatusBadge(f)}</td>
+    <td class="tba-acts no-print">
+      <button title="אישור" onclick="tbaSetStatus(${i},'approved')">✔</button>
+      <button title="סימון כשגוי" onclick="tbaSetStatus(${i},'rejected')">✕</button>
+      <button title="עמוד המקור" onclick="tbaOpenSource('${esc(String(f.sourcePage||''))}')">📄</button>
+    </td>
+  </tr>`;
+}
+function tbaEditCell(i, key, val){
+  if(!TBA_EXTRACT||!TBA_EXTRACT.fields[i]) return;
+  TBA_EXTRACT.fields[i][key] = (val||'').trim();   // עדכון בזיכרון בלבד — אין savePlans
+}
+function tbaSetStatus(i, kind){
+  const f=TBA_EXTRACT&&TBA_EXTRACT.fields[i]; if(!f) return;
+  if(kind==='approved'){ f._approved=true; f._rejected=false; }
+  else { f._rejected=true; f._approved=false; }
+  const row=document.getElementById('tbaRow_'+i);
+  if(row){ row.className=tbaRowClass(f); const stCell=row.children[10]; if(stCell) stCell.innerHTML=tbaStatusBadge(f); }
+}
+/* ייצוא JSON — דפוס exportBackup */
+function tbaExportJson(){
+  if(!TBA_EXTRACT){ toast('אין נתונים לייצוא'); return; }
+  const out=JSON.parse(JSON.stringify(TBA_EXTRACT));
+  out.extractionDate = todayStr();
+  // ניקוי דגלי-עזר פנימיים; שיקוף אישור/דחייה לשדה status
+  (out.fields||[]).forEach(f=>{ if(f._approved) f.status='מאושר'; else if(f._rejected) f.status='שגוי'; delete f._approved; delete f._rejected; });
+  const blob=new Blob(['﻿'+JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='tba-extract-'+(out.planNumber||'plan').replace(/[^\w֐-׿]+/g,'_')+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('הורד קובץ JSON');
+}
+/* ייצוא Excel/CSV — דפוס bulkCsv (BOM + ציטוט) */
+function tbaExportExcel(){
+  if(!TBA_EXTRACT){ toast('אין נתונים לייצוא'); return; }
+  const cols=['קבוצת מידע','שם השדה','ערך','יחידה','מגרש/ת״ש','ייעוד','סעיף/טבלה','עמוד','ציטוט המקור','ודאות','סטטוס'];
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const lines=[cols.map(q).join(',')];
+  (TBA_EXTRACT.fields||[]).forEach(f=>{
+    const st = f._approved?'מאושר':(f._rejected?'שגוי':f.status);
+    lines.push([f.category,f.appField,f.value,f.unit,f.lot,f.landUse,f.sourceSection,f.sourcePage,f.sourceQuote,f.confidence,st].map(q).join(','));
+  });
+  (TBA_EXTRACT.unmappedData||[]).forEach(u=>{
+    lines.push([u.label,'(ללא שדה מתאים)',u.value,'','','',u.sourceSection,u.sourcePage,u.note,'','ללא שדה'].map(q).join(','));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='tba-extract-'+(TBA_EXTRACT.planNumber||'plan').replace(/[^\w֐-׿]+/g,'_')+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('הורד קובץ CSV/Excel');
+}
+
 
 /* ══════════ מערכת תפקידים והרשאות — אדריכלית העיר / הנהלה / יזמים ══════════
    שלושה סוגי משתמשים:
@@ -11621,7 +11843,7 @@ const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ו
 const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose|approvalDate)'|oSet\('(datesPlan|summary)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(|cycleStatus|changeStatus|setCommitteeReady/;
 // אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
-  architect: ['landing','exec','notes','table','guidelines','map','calendar','trends','shares','muni','spatial','calchub','contacts','settings','help'],
+  architect: ['landing','exec','notes','table','guidelines','map','calendar','trends','shares','muni','spatial','calchub','tba','contacts','settings','help'],
   manager: ['exec','landing','notes','table','guidelines','map','calendar','trends','shares','muni','spatial','calchub','contacts','help'],
   developer: ['devhome','table','guidelines','muni','spatial','calchub','help']
 };
