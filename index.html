@@ -2699,6 +2699,8 @@ tbody tr{transition:background .12s}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+<!-- הנחיות מרחביות 18 — הנתונים כ-JS מקומי (עובד גם ב-file:// שבו fetch חסום) -->
+<script src="spatial18.js"></script>
 <script>
 const STATUSES = ['טרם עודכן','בטיפול','הושלם','בהמתנה','סגור','דחוף','תוכנית נסגרה'];
 const STATUS_COLORS = {'טרם עודכן':'rgba(0,0,0,0.25)','בטיפול':'#c47a20','הושלם':'#3d8b5e','בהמתנה':'#3B8BD4','סגור':'#b84040','דחוף':'#b84040','תוכנית נסגרה':'#b84040'};
@@ -11525,6 +11527,11 @@ let _spatialData = null;
 let _spOpenChapters = {};
 async function loadSpatial(){
   if(_spatialData) return _spatialData;
+  // מקור ראשי: הנתונים המקומיים (spatial18.js) — עובד גם ב-file:// שבו fetch חסום.
+  if(typeof window!=='undefined' && window.SPATIAL18_DATA && Array.isArray(window.SPATIAL18_DATA.chapters)){
+    _spatialData = window.SPATIAL18_DATA; return _spatialData;
+  }
+  // גיבוי: fetch (כאשר מוגש דרך http, למשל GitHub Pages)
   const res = await fetch('spatial18.json', {cache:'no-store'});
   if(!res.ok) throw new Error('spatial json missing');
   _spatialData = await res.json();
