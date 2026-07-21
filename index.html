@@ -940,6 +940,7 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .tba-acts button{border:none;background:transparent;cursor:pointer;font-size:14px;padding:1px 3px;border-radius:4px}
 .tba-acts button:hover{background:rgba(0,0,0,.08)}
 .tba-unmapped td{background:rgba(0,0,0,.03)}
+.tba-fill-selbar{display:flex;gap:8px;margin:6px 0}
 /* ── לוח שנה ── */
 .cal-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
 .cal-nav{display:flex;gap:4px}
@@ -6641,7 +6642,7 @@ function tbaFillPreview(pid){
   const keyCount={}; mapped.forEach(x=>{ keyCount[x.key]=(keyCount[x.key]||0)+1; });
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const mrows = mapped.map((x,i)=>{
-    const pre = (!x.conflict && keyCount[x.key]===1);
+    const pre = true;  // ברירת מחדל: הכל מסומן (בחר הכל) — האזהרות עדיין מוצגות
     const st = x.conflict ? '<span class="tba-badge tba-b-miss">⚠ קיים ערך — יוחלף</span>'
              : (keyCount[x.key]>1 ? '<span class="tba-badge tba-b-check">מספר מועמדים — בחרו אחד</span>' : '<span class="tba-badge tba-b-found">חדש</span>');
     return `<tr>
@@ -6655,15 +6656,17 @@ function tbaFillPreview(pid){
   ov.innerHTML = `<div class="ver-modal" style="max-width:900px">
     <h3 style="margin-bottom:.2rem">מילוי „מותר לפי התב״ע" מהחילוץ — נאות ספיר (תמל/2024)</h3>
     <div class="tba-warnbar">מוצגות שורות מאושרות בלבד · השמירה מתבצעת רק לאחר אישור מפורש · אין שינוי בעמודת „המבוקש על ידי אדריכל היזם"</div>
-    ${mapped.length ? `<div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table class="tba-table">
-      <thead><tr><th>מילוי</th><th>שדה יעד (מותר)</th><th>ערך מהחילוץ</th><th>מקור</th><th>סטטוס</th></tr></thead>
+    ${mapped.length ? `<div class="tba-fill-selbar no-print"><button class="btn btn-sm btn-ghost" onclick="tbaFillSelectAll(true)">בחר הכל</button><button class="btn btn-sm btn-ghost" onclick="tbaFillSelectAll(false)">נקה הכל</button></div>
+      <div class="tbl-wrap" style="max-height:46vh;overflow:auto"><table class="tba-table">
+      <thead><tr><th><input type="checkbox" id="tbaFillAll" checked onclick="tbaFillSelectAll(this.checked)" title="בחר/נקה הכל"></th><th>שדה יעד (מותר)</th><th>ערך מהחילוץ</th><th>מקור</th><th>סטטוס</th></tr></thead>
       <tbody>${mrows}</tbody></table></div>`
       : '<p class="muted" style="padding:1rem 0">לא נמצאו שורות מאושרות הממופות לשדות „מותר". יש לאשר שורות במסך „בדיקת חילוץ תב״ע".</p>'}
     ${unmapped.length ? `<div class="tba-group-title">נתוני תב״ע ללא שדה מתאים (לא ימולאו)</div>
       <div class="tbl-wrap" style="max-height:26vh;overflow:auto"><table class="tba-table tba-unmapped">
       <thead><tr><th>נתון</th><th>ערך</th><th>מקור</th></tr></thead><tbody>${urows}</tbody></table></div>` : ''}
     <div class="mail-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      ${mapped.length?`<button class="btn btn-primary btn-sm" onclick="tbaFillCommit(${p.id})">אישור ומילוי השדות המסומנים</button>`:''}
+      ${mapped.length?`<button class="btn btn-primary btn-sm" onclick="tbaFillSelectAll(true);tbaFillCommit(${p.id})">מלא הכל</button>`:''}
+      ${mapped.length?`<button class="btn btn-sm" onclick="tbaFillCommit(${p.id})">מילוי השדות המסומנים</button>`:''}
       ${_tbaFillUndo && _tbaFillUndo.planId===p.id ? `<button class="btn btn-sm" onclick="tbaFillUndo();this.closest('.render-lightbox').remove()">↺ ביטול מילוי אחרון / שחזור</button>`:''}
       <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגירה</button>
     </div>
@@ -6706,6 +6709,12 @@ function tbaFillUndo(){
   _tbaFillUndo = null;
   savePlans(); renderReviewTab(p);
   toast('שוחזר המצב הקודם של „מותר לפי התב״ע"');
+}
+/** בחר/נקה את כל תיבות הסימון במודל המילוי */
+function tbaFillSelectAll(on){
+  const modal=document.querySelector('.render-lightbox'); if(!modal) return;
+  modal.querySelectorAll('.tba-fill-chk').forEach(c=>{ c.checked=!!on; });
+  const all=modal.querySelector('#tbaFillAll'); if(all) all.checked=!!on;
 }
 
 /* ── הצגת מקור: טקסט החלטת הוועדה/הוראות התב״ע לתוכנית ── */
