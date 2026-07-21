@@ -533,16 +533,24 @@ tbody tr:hover{background:var(--teal-pale)}
   width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;box-sizing:border-box}
 .pp-tab:hover{background:#f5f2ec}
 .pp-tab.active{background:var(--bordeaux,var(--bordeaux));color:#fff;font-weight:700}
-/* שלוש קבוצות-על */
-.pp-groups{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
-.pp-group{text-align:right;padding:10px 12px;font-size:13.5px;font-weight:700;color:var(--ink);
+/* ── שלושת הכפתורים הראשיים (בורדו) + תת-טאבים מוזחים ── */
+.pp-groups{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.pp-group{text-align:right;padding:11px 14px;font-size:14px;font-weight:700;color:var(--ink);
   border:1px solid var(--stone);background:#fff;border-radius:9px;cursor:pointer;font-family:var(--sans);
   line-height:1.35;transition:all .13s;
-  width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:break-word;min-height:44px;display:flex;align-items:center}
+  width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:break-word;min-height:46px;display:flex;align-items:center;gap:8px}
+.pp-group::before{content:'';width:4px;align-self:stretch;border-radius:3px;background:var(--stone);flex:none}
 .pp-group:hover{border-color:var(--bordeaux);background:#faf6f0}
+.pp-group:hover::before{background:var(--bordeaux)}
 .pp-group.active{background:var(--bordeaux);border-color:var(--bordeaux);color:#fff}
-.pp-subtabs{display:flex;flex-direction:column;gap:3px;padding-top:8px;border-top:1px solid var(--stone)}
-.pp-subtabs .pp-tab{font-size:12.5px;padding:7px 11px}
+.pp-group.active::before{background:#fff}
+/* תת-הטאבים — מוזחים פנימה תחת הכפתור הראשי הפעיל, מופרדים בקו וברווח */
+.pp-subtabs{display:flex;flex-direction:column;gap:4px;margin:4px 0 6px;padding:8px 0 8px 0;
+  border-inline-start:2px solid var(--bordeaux);padding-inline-start:10px;margin-inline-start:6px}
+.pp-subtabs .pp-tab{font-size:12.5px;padding:7px 11px;border-radius:7px;position:relative}
+.pp-subtabs .pp-tab.active{background:var(--bordeaux);color:#fff;font-weight:700}
+.pp-subtabs .pp-tab.active::before{content:'▸';position:absolute;inset-inline-end:-16px;color:var(--bordeaux);font-size:12px}
+.pp-subtabs .pp-tab:not(.active):hover{background:#f5f2ec}
 @media(max-width:900px){
   .pp-with-rail{flex-direction:column}
   .pp-rail{position:static;width:100%;flex:none;max-height:none;order:-1;margin-bottom:10px}
@@ -3189,19 +3197,21 @@ migrateHistoricalForums();
    (הושלמו אך לא נוהלו דרך האפליקציה — ללא פעילות פורומים),
    פעם אחת (דגל _forumsHistDone). אינו משנה את הלוגיקה השוטפת:
    תוכניות חדשות/פעילות ממשיכות להיצבע לפי הסכמה והשלבים. */
-function planHadForumActivity(p){
+/** האם התוכנית נוהלה דרך האפליקציה (פעילות פורומים מובנית) */
+function planManagedInApp(p){
   return !!((p.forumDecision && (p.forumDecision.approved || p.forumDecision.text || p.forumDecision.date))
     || p.consultantsPlanApproved || (Array.isArray(p.consultants)&&p.consultants.length)
-    || (p.committeeReady && Object.values(p.committeeReady).some(Boolean))
-    || p.signDate);
+    || (p.committeeReady && Object.values(p.committeeReady).some(Boolean)));
 }
 function migrateHistoricalForums(){
   let changed=false;
   plans.forEach(p=>{
     if(p._forumsHistDone) return;             // כבר עודכן — לא לגעת שוב
     if(p.status!=='הושלם') return;            // רק תוכניות שהושלמו
-    if(planHadForumActivity(p)) return;       // נוהלה דרך האפליקציה — לא רקורד היסטורי
+    if(planManagedInApp(p)) return;           // נוהלה דרך האפליקציה — לא רקורד היסטורי
     p._forumsHistDone = true;                 // סימון פנימי חד־פעמי
+    // הושלמו ונחתמו מחוץ לאפליקציה — נחשבות חתומות; לא דורשות תיעוד ולא חוזרות אחורה
+    if(!p.signDate) p.signDate = p.approvalDate || p.committeeDate || todayStr();
     changed=true;
   });
   if(changed){ try{ savePlans(); }catch(e){} }
@@ -5517,31 +5527,33 @@ function backButtonLabel(){
    ══════════════════════════════════════════════════════ */
 const PP_GROUPS = [
   { id:'requested', label:'מידע על המבוקש',
-    tabs:[['info','מידע וזיהוי'],['data','נתוני פרויקט'],['team','צוות היזם'],
-          ['graphics','חומר גרפי וגלריה'],['docs','מסמכים'],['comm','תקשורת'],
-          ['notes','הערות'],['timeline','ציר זמן']] },
+    tabs:[['info','זיהוי הפרויקט'],['data','נתוני פרויקט'],
+          ['graphics','חומרי גלם'],['docs','מסמכים'],['comm','תקשורת'],
+          ['timeline','ציר זמן']] },
   { id:'rules', label:'עקרונות, הנחיות, דרישות והוראות',
     tabs:[['guidelines','עקרונות והנחיות'],['muni','דרישות אוגדן'],['calc','מחשבונים']] },
   { id:'check', label:'בדיקת התאמה',
-    tabs:[['review','מותר · מבוקש · השוואה'],['opinion','חוות דעת'],
-          ['forums','פורומים ותהליך'],['process','תהליך וגאנט']] }
+    tabs:[['review','מותר · מבוקש · השוואה'],['forums','פורומים ותהליך'],
+          ['process','תהליך וגאנט'],['opinion','חוות דעת']] }
 ];
 function tabGroup(name){ const g=PP_GROUPS.find(g=>g.tabs.some(t=>t[0]===name)); return g?g.id:PP_GROUPS[0].id; }
 let ppActiveGroup = 'requested';
-function renderPpGroups(){
-  const gEl=document.getElementById('ppGroups'); if(!gEl) return;
-  gEl.innerHTML = PP_GROUPS.map(g=>
-    `<button class="pp-group${g.id===ppActiveGroup?' active':''}" data-grp="${g.id}" onclick="ppGo('${g.id}')">${g.label}</button>`).join('');
-  renderPpSubtabs();
-}
-function renderPpSubtabs(){
-  const sEl=document.getElementById('ppSubtabs'); if(!sEl) return;
+function ppSubtabsHTML(){
   const g=PP_GROUPS.find(g=>g.id===ppActiveGroup)||PP_GROUPS[0];
   const cur=document.querySelector('.pp-panel.active');
   const curName=cur?cur.id.replace('panel-',''):'';
-  sEl.innerHTML = g.tabs.map(([id,lbl])=>
-    `<button class="pp-tab${id===curName?' active':''}" onclick="ppTab('${id}',this)">${lbl}</button>`).join('');
+  return `<div class="pp-subtabs">${g.tabs.map(([id,lbl])=>
+    `<button class="pp-tab${id===curName?' active':''}" onclick="ppTab('${id}',this)">${lbl}</button>`).join('')}</div>`;
 }
+function renderPpGroups(){
+  const gEl=document.getElementById('ppGroups'); if(!gEl) return;
+  // תת-הטאבים מוזחים מיד תחת הכפתור הראשי הפעיל — היררכיה ברורה
+  gEl.innerHTML = PP_GROUPS.map(g=>
+    `<button class="pp-group${g.id===ppActiveGroup?' active':''}" data-grp="${g.id}" onclick="ppGo('${g.id}')">${g.label}</button>`
+    + (g.id===ppActiveGroup ? ppSubtabsHTML() : '')).join('');
+  const legacy=document.getElementById('ppSubtabs'); if(legacy) legacy.innerHTML='';   // הישן — לא בשימוש
+}
+function renderPpSubtabs(){ renderPpGroups(); }   // תאימות לאחור
 /** מעבר לקבוצה — פותח את התת-טאב הראשון שבה */
 function ppGo(gid){
   ppActiveGroup=gid;
@@ -5553,11 +5565,10 @@ function ppTab(name, btn) {
   // ודא שקבוצת-העל תואמת לטאב הנבחר (גם בקריאה תכנותית)
   const grp=tabGroup(name);
   if(grp!==ppActiveGroup){ ppActiveGroup=grp; }
-  renderPpGroups();
+  // קודם מסמנים את הפאנל הפעיל — כדי שהתת-טאבים ייבנו עם הסימון הנכון
   document.querySelectorAll('.pp-panel').forEach(pn=>pn.classList.remove('active'));
   const panel=document.getElementById('panel-'+name); if(panel) panel.classList.add('active');
-  // סימון התת-טאב הפעיל
-  document.querySelectorAll('#ppSubtabs .pp-tab').forEach(b=>b.classList.toggle('active', (b.getAttribute('onclick')||'').includes("ppTab('"+name+"'")));
+  renderPpGroups();   // בונה את הכפתורים הראשיים + התת-טאבים המוזחים תחת הפעיל
   if(name==='muni'){ const p=pj(); if(p) renderProjectMuni(p); }
   else { muniInProject=false; } // יציאה מהקשר פרויקט למחלקות
   if(name==='team'){ const p=pj(); if(p) renderTeam(p); }
@@ -6428,6 +6439,7 @@ const REVIEW_TOPICS = [
   {id:'muni',   label:'דרישות התב״ע והעירייה', fn:p=>renderRequirements(p)},
   {id:'spatial',label:'הנחיות מרחביות', fn:p=>renderSpatialChecks(p)},
   {id:'stage',  label:'בדיקת שלב', fn:p=>((p.stage==='stage_2'||p.stage==='committee'||p.stage==='approved')?renderStage2(p):renderStage1(p))},
+  {id:'notes',  label:'הערות', fn:p=>'<div class="pp-card"><h4>הערות התוכנית</h4><div id="ntPlanBody" class="nt-wrap"></div></div>'},
   {id:'summary',label:'סיכום והמלצה', fn:p=>reviewSummaryHTML(p)}
 ];
 let reviewTopic = 'table5';
@@ -6435,6 +6447,7 @@ function reviewGo(id){
   reviewTopic=id;
   document.querySelectorAll('#reviewNav .info-tab').forEach(b=>b.classList.toggle('active', b.dataset.rt===id));
   document.querySelectorAll('#reviewPanels .review-panel').forEach(pn=>pn.classList.toggle('active', pn.dataset.rt===id));
+  if(id==='notes'){ _ntEditing=null; renderPlanNotes(); }
   setTimeout(autoGrowAll, 30);
 }
 function reviewSummaryHTML(p){
@@ -6451,12 +6464,14 @@ function renderReviewTab(p) {
   const el = document.getElementById('panel-review');
   const nav = `<div class="info-nav no-print" id="reviewNav">${REVIEW_TOPICS.map(t=>
     `<button class="info-tab${t.id===reviewTopic?' active':''}" data-rt="${t.id}" onclick="reviewGo('${t.id}')">${t.label}</button>`).join('')}</div>`;
+  const CHECK_TOPICS=['table5','muni','spatial','stage'];
   const panels = REVIEW_TOPICS.map(t=>
     `<div class="review-panel${t.id===reviewTopic?' active':''}" data-rt="${t.id}">
-       <div class="t5-note" style="margin-bottom:10px">מבנה אחיד: <b>דרישה · מותר · מבוקש · תוצאה</b>, וכל אי-התאמה מחייבת <b>הסבר</b>.</div>
+       ${CHECK_TOPICS.includes(t.id)?'<div class="t5-note" style="margin-bottom:10px">מבנה אחיד: <b>דרישה · מותר · מבוקש · תוצאה</b>, וכל אי-התאמה מחייבת <b>הסבר</b>.</div>':''}
        ${t.fn(p)}
      </div>`).join('');
   el.innerHTML = nav + `<div id="reviewPanels">${panels}</div>`;
+  if(reviewTopic==='notes'){ _ntEditing=null; renderPlanNotes(); }
   updateProgress(p);
   setTimeout(autoGrowAll, 30);
 }
