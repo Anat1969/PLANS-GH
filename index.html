@@ -907,40 +907,50 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .cal-lg{display:inline-flex;align-items:center;gap:5px}
 .cal-lg i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .cal-lg-note{margin-inline-start:auto}
-/* חודש בודד — גריד אחיד ויציב */
-.cal-months{max-width:960px;margin:0 auto}
-.cal-month{border:1px solid var(--stone);border-radius:10px;padding:12px 14px;background:var(--surface)}
-.cal-month-title{font-family:var(--display);font-size:18px;text-align:center;margin-bottom:10px;color:var(--ink)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-dow{margin-bottom:4px}
-.cal-dowc{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:2px 0}
-/* כל התאים ביחס קבוע 1:1 — שורות בגובה זהה, לא נמתחות לפי תוכן */
-.cal-cell{aspect-ratio:1/1;border:1px solid var(--fog);border-radius:6px;padding:3px;
-  display:flex;flex-direction:column;gap:2px;background:#fff;overflow:hidden;min-width:0}
-.cal-out{background:var(--fog);opacity:.5}          /* ימים מחוץ לחודש — מעומעמים, תא מלא */
-.cal-today{outline:2px solid var(--teal);outline-offset:-2px}
-.cal-daynum{font-size:11px;color:var(--muted);text-align:left;padding:0 2px;flex:none}
-.cal-cell-events{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
-.cal-chip{display:flex;align-items:center;gap:3px;width:100%;text-align:right;border:none;background:var(--fog);
-  border-inline-start:3px solid var(--stone);border-radius:4px;padding:2px 4px;cursor:pointer;font-family:inherit;overflow:hidden;flex:none}
-.cal-chip:hover{background:var(--stone)}
-.cal-chip-dot{width:7px;height:7px;border-radius:50%;flex:none}
-.cal-chip-txt{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.cal-more{border:none;background:none;color:var(--teal);font-size:9.5px;cursor:pointer;font-family:inherit;text-align:right;padding:0 2px}
+/* חודש בודד — פריסה מלאה לרוחב, תאים גדולים וקריאים */
+.cal-months{width:100%;margin:0 auto}
+.cal-month{border:1px solid var(--stone);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.cal-month-title{font-family:var(--display);font-size:22px;text-align:center;margin-bottom:14px;color:var(--ink)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%}
+.cal-dow{margin-bottom:6px}
+.cal-dowc{text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:4px 0}
+/* תא יום — מלבני, רחב, גבוה; כל שורות השבוע בגובה אחיד */
+.cal-cell{min-height:190px;border:1px solid var(--stone);border-radius:10px;padding:14px;
+  display:flex;flex-direction:column;gap:8px;background:#fff;min-width:0}
+.cal-out{background:var(--fog);opacity:.55}         /* ימים מחוץ לחודש — מעומעמים, תא מלא */
+.cal-today{outline:3px solid var(--teal);outline-offset:-3px}
+.cal-daynum{font-size:22px;font-weight:700;color:var(--ink);text-align:left;flex:none;line-height:1}
+/* עומס חריג בלבד — גלילה פנימית; אחרת התא גדל */
+.cal-cell-events{display:flex;flex-direction:column;gap:8px;min-height:0}
+.cal-cell-events.cal-scroll{max-height:340px;overflow-y:auto}
+/* תגית אירוע רחבה — רקע בצבע הפורום, טקסט בניגודיות גבוהה */
+.cal-chip{display:block;width:100%;text-align:right;border:none;border-radius:8px;
+  padding:10px 12px;font-size:16px;line-height:1.4;cursor:pointer;font-family:inherit;
+  color:#fff;white-space:normal;overflow-wrap:anywhere}
+.cal-chip:hover{filter:brightness(1.08)}
+.cal-chip-name{font-weight:700;display:block}
+.cal-chip-sub{font-size:13.5px;opacity:.95;display:block;margin-top:2px}
+.cal-more{border:none;background:var(--fog);color:var(--teal);font-size:14px;font-weight:600;cursor:pointer;
+  font-family:inherit;text-align:center;padding:8px;border-radius:8px;width:100%}
 /* חלונית אירוע / יום */
-.cal-pop{background:var(--surface);border-radius:12px;max-width:420px;width:92%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:86vh;overflow-y:auto}
-.cal-pop-bar{height:5px}
-.cal-pop h3{padding:14px 18px 4px;font-family:var(--display);font-size:16px}
-.cal-pop-row{padding:2px 18px;font-size:13px;line-height:1.7}
-.cal-pop-acts{display:flex;gap:8px;padding:14px 18px}
-.cal-day-row{display:flex;align-items:center;gap:7px;width:100%;text-align:right;border:none;background:var(--fog);
-  border-radius:7px;padding:8px 12px;margin:4px 18px;cursor:pointer;font-family:inherit;font-size:13px;width:calc(100% - 36px)}
+.cal-pop{background:var(--surface);border-radius:12px;max-width:460px;width:92%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:86vh;overflow-y:auto}
+.cal-pop-bar{height:6px}
+.cal-pop h3{padding:16px 20px 4px;font-family:var(--display);font-size:17px}
+.cal-pop-row{padding:3px 20px;font-size:14px;line-height:1.7}
+.cal-pop-acts{display:flex;gap:8px;padding:16px 20px}
+.cal-day-row{display:flex;align-items:center;gap:8px;text-align:right;border:none;background:var(--fog);
+  border-radius:8px;padding:11px 14px;margin:5px 20px;cursor:pointer;font-family:inherit;font-size:14.5px;width:calc(100% - 40px)}
 .cal-day-row:hover{background:var(--stone)}
-@media(max-width:640px){
-  .cal-month-title{font-size:16px}
-  .cal-cell{padding:2px}
-  .cal-chip-txt{font-size:9px}
-  .cal-dowc{font-size:9.5px}
+@media(max-width:1100px){
+  .cal-cell{min-height:150px;padding:10px}
+  .cal-daynum{font-size:19px}
+  .cal-chip{font-size:14px;padding:8px 10px}
+}
+@media(max-width:720px){
+  /* במסך צר — פחות עומס אך ללא עיוות: התאים נשארים מלבניים */
+  .cal-cell{min-height:120px;padding:8px}
+  .cal-chip{font-size:13px}
+  .cal-dowc{font-size:12px}
 }
 /* צביעת תאריכים לפי זמן אמת: עבר=כחול בהיר · הווה=כחול בינוני · עתיד=כחול כהה+לבן */
 .dt-past{background:#e8f1fb;color:#3a6ea5}
@@ -4716,7 +4726,7 @@ function toggleBoxZoom(force){
 const CAL_STAGES = [
   { key:'forumArchitect',   label:'פורום אדריכל', tab:'forums', color:'#7a1f2b' },   // בורדו
   { key:'forumConsultants', label:'פורום יועצים', tab:'forums', color:'#9c7a3c' },   // ברונזה
-  { key:'committee',        label:'יעד השלמה / אישור', tab:'process', color:'#2A5F5F' } // טורקיז
+  { key:'committee',        label:'פורום הכנה לוועדה', tab:'process', color:'#2A5F5F' } // טורקיז
 ];
 let _calOffset = 0;   // 0 = החודש הנוכחי המוצג
 function calShift(d){ _calOffset += d; renderCalendar(); }
@@ -4759,16 +4769,21 @@ function calCellHTML(y,m,d,events,outside){
   const ymd=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
   const today=todayStr();
   const evs=events[ymd]||[];
-  const MAXV=3;                            // תוכן ארוך מקוצר עם „עוד”
-  const shown=evs.slice(0,MAXV);
-  const chips=shown.map((e,i)=>`<button class="cal-chip" style="border-inline-start-color:${e.color}" title="${esc(e.name)} · ${esc(e.stage)}" onclick="calOpenEvent('${ymd}',${i})">
-      <span class="cal-chip-dot" style="background:${e.color}"></span>
-      <span class="cal-chip-txt">תב/${esc(String(e.tik))} · ${esc(e.stage)}${e.time?(' · '+e.time):''}</span>
-    </button>`).join('');
-  const more=evs.length>MAXV?`<button class="cal-more" onclick="calOpenDay('${ymd}')">+${evs.length-MAXV} נוספים</button>`:'';
+  // מציגים את כל האירועים בתגיות מלאות (ללא הסתרה ב-ellipsis).
+  // רק בעומס חריג (יותר מ-6) — גלילה פנימית בתא.
+  const HEAVY=6;
+  const scroll = evs.length>HEAVY;
+  const chips=evs.map((e,i)=>{
+    // שם התוכנית ללא כפילות "תב/" (buildProjectTitle כבר כולל אותו)
+    const nm = String(e.name||'').replace(/^תב\/\S+\s*-\s*/,'').trim();
+    return `<button class="cal-chip" style="background:${e.color}" title="${esc(e.name)} · ${esc(e.stage)}" onclick="calOpenEvent('${ymd}',${i})">
+      <span class="cal-chip-name">תב/${esc(String(e.tik))}${nm?(' — '+esc(nm)):''}</span>
+      <span class="cal-chip-sub">${esc(e.stage)} · ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</span>
+    </button>`;
+  }).join('');
   return `<div class="cal-cell${ymd===today?' cal-today':''}${outside?' cal-out':''}">
     <div class="cal-daynum">${d}</div>
-    <div class="cal-cell-events">${chips}${more}</div>
+    <div class="cal-cell-events${scroll?' cal-scroll':''}">${chips}</div>
   </div>`;
 }
 function calMonthHTML(y,m,events){
