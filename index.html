@@ -948,6 +948,8 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .cal-chip:hover{filter:brightness(1.08)}
 .cal-chip-name{font-weight:700;display:block}
 .cal-chip-sub{font-size:11.5px;opacity:.95;display:block;margin-top:1px}
+.cal-chip-appr{display:inline-block;margin-top:3px;font-size:10px;font-weight:700;background:rgba(255,255,255,.9);color:#3d8b5e;border-radius:8px;padding:1px 6px}
+.cal-chip-appr.cal-chip-wait{color:#7a5f2e}
 .cal-more{border:none;background:var(--fog);color:var(--teal);font-size:12.5px;font-weight:600;cursor:pointer;
   font-family:inherit;text-align:center;padding:6px;border-radius:6px;width:100%}
 /* חלונית אירוע / יום */
@@ -955,7 +957,13 @@ body.view-mode .pp-field label{color:rgba(0,0,0,0.4)}
 .cal-pop-bar{height:6px}
 .cal-pop h3{padding:16px 20px 4px;font-family:var(--display);font-size:17px}
 .cal-pop-row{padding:3px 20px;font-size:14px;line-height:1.7}
-.cal-pop-acts{display:flex;gap:8px;padding:16px 20px}
+.cal-pop-acts{display:flex;gap:8px;padding:16px 20px;flex-wrap:wrap}
+.cal-pop-edit{padding:4px 20px 8px}
+.cal-edit-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.cal-edit-row input{font-family:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--stone);border-radius:6px;background:var(--surface);color:var(--ink)}
+.cal-appr{font-size:11.5px;font-weight:700;border-radius:10px;padding:2px 9px;margin-inline-start:6px}
+.cal-appr-ok{background:#3d8b5e;color:#fff}
+.cal-appr-wait{background:#e0a92e;color:#fff}
 .cal-day-row{display:flex;align-items:center;gap:8px;text-align:right;border:none;background:var(--fog);
   border-radius:8px;padding:11px 14px;margin:5px 20px;cursor:pointer;font-family:inherit;font-size:14.5px;width:calc(100% - 40px)}
 .cal-day-row:hover{background:var(--stone)}
@@ -2126,6 +2134,7 @@ tbody tr{transition:background .12s}
       <span id="ppStageBadge"></span>
       <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
       <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
+      <button class="btn btn-sm arch-only no-print" id="ppDeleteBtn" onclick="deleteCurrentPlan()" title="מחיקת התוכנית מהתצוגה (מחיקה רכה — אינה זהה ל„נסגרה”)">🗑 מחיקה</button>
       <div class="role-toggle" id="roleToggle">
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
@@ -2820,7 +2829,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
-  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone'];
+  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -4377,9 +4386,11 @@ function renderTable() {
   const tbody = document.getElementById('tableBody');
   const keys = ['tik','district','location','planNum','developer','submitter','parcel','date','forumArchitect','forumConsultants','committeeDate','status'];
   const sortKey = sortCol >= 0 ? keys[sortCol] : null;
-  // מספר סידורי כמותי: 1..N לפי סדר עולה של מספר התב (הקטן=1) — יציב ללא תלות במיון/סינון
+  // מספר סידורי לתצוגה בלבד: 1..N רציף לפי סדר עולה של מספר התב.
+  // רק תוכניות חיות (ללא מחוקות/ריקות) — כדי שהמספור יתחיל ב-1 וללא דילוגים.
+  // אינו משנה מזהים פנימיים (p.id) — הקישורים והמידע נשמרים.
   const serialMap = {};
-  [...plans].sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0))
+  livePlans().sort((a,b)=>(parseFloat(String(a.tik).replace(/\D/g,''))||0)-(parseFloat(String(b.tik).replace(/\D/g,''))||0))
     .forEach((p,i)=>{ serialMap[p.id]=i+1; });
 
   let prevGroupVal = null;
@@ -4839,6 +4850,27 @@ function calStageDate(p, key){
   if(key==='committee') return (p.datesPlan&&p.datesPlan.committeePrep)||p.committeeDate||'';
   return p[key]||'';
 }
+/** כתיבת מועד (תאריך+שעה) לשלב — ומעדכן בכל האפליקציה */
+function calSetStageDate(pid, key, dateVal, timeVal){
+  const p=plans.find(x=>x.id===pid); if(!p) return;
+  const combined = dateVal ? (dateVal + (timeVal? ('T'+timeVal) : '')) : '';
+  if(key==='committee'){ if(!p.datesPlan)p.datesPlan={}; p.datesPlan.committeePrep=combined; }
+  else { p[key]=combined; }
+  p.updatedAt=todayStr();
+  savePlans();
+  if(typeof refreshAll==='function') refreshAll();   // סנכרון בכל חלקי האפליקציה
+  renderCalendar();
+}
+/** מפתח אירוע לשמירת סטטוס אישור מועד (per תוכנית+שלב) */
+function calEvKey(pid, stageKey){ return pid+'::'+stageKey; }
+function calGetApproval(pid, stageKey){ const p=plans.find(x=>x.id===pid); return (p&&p.forumSched&&p.forumSched[stageKey])||null; }
+function calSetApproval(pid, stageKey, state){
+  const p=plans.find(x=>x.id===pid); if(!p) return;
+  if(!p.forumSched) p.forumSched={};
+  if(state) p.forumSched[stageKey]={ state, at:new Date().toISOString() };
+  else delete p.forumSched[stageKey];
+  p.updatedAt=todayStr(); savePlans(); renderCalendar();
+}
 /** כל אירועי הלוח לתוכניות שבטיפול, מקובצים לפי יום (YYYY-MM-DD) */
 function calEvents(){
   const byDay={};
@@ -4847,9 +4879,10 @@ function calEvents(){
       const raw=calStageDate(p,st.key); if(!raw) return;
       const day=String(raw).slice(0,10); if(day.length<10) return;
       const timeM=String(raw).match(/[T ](\d{2}:\d{2})/);
+      const appr=(p.forumSched&&p.forumSched[st.key])||null;
       (byDay[day]=byDay[day]||[]).push({ pid:p.id, tik:p.tik, name:buildProjectTitle(p),
         stage:st.label, stageKey:st.key, tab:st.tab, color:st.color, status:p.status,
-        time:timeM?timeM[1]:'' });
+        time:timeM?timeM[1]:'', appr:appr?appr.state:'' });
     });
   });
   return byDay;
@@ -4879,9 +4912,12 @@ function calCellHTML(y,m,d,events,outside){
   const chips=evs.map((e,i)=>{
     // שם התוכנית ללא כפילות "תב/" (buildProjectTitle כבר כולל אותו)
     const nm = String(e.name||'').replace(/^תב\/\S+\s*-\s*/,'').trim();
+    const apprBadge = e.appr==='approved' ? '<span class="cal-chip-appr">✓ אושר</span>'
+      : (e.appr==='pending' ? '<span class="cal-chip-appr cal-chip-wait">⏳ ממתין לאישור</span>' : '');
     return `<button class="cal-chip" style="background:${e.color}" title="${esc(e.name)} · ${esc(e.stage)}" onclick="calOpenEvent('${ymd}',${i})">
       <span class="cal-chip-name">תב/${esc(String(e.tik))}${nm?(' — '+esc(nm)):''}</span>
       <span class="cal-chip-sub">${esc(e.stage)} · ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</span>
+      ${apprBadge}
     </button>`;
   }).join('');
   return `<div class="cal-cell${ymd===today?' cal-today':''}${outside?' cal-out':''}">
@@ -4919,24 +4955,95 @@ function calOpenDay(ymd){
   </div>`;
   document.body.appendChild(ov);
 }
-/** לחיצה על אירוע — חלונית עם פרטים וקישור ישיר לתוכנית ולשלב */
+/** לחיצה על אירוע — עריכת מועד, שליחה למזכירה, ואישור מועד. הכל בחלון האירוע. */
 function calOpenEvent(ymd, idx){
   const e=(calEvents()[ymd]||[])[idx]; if(!e) return;
   const p=plans.find(x=>x.id===e.pid); if(!p) return;
+  const appr=calGetApproval(p.id, e.stageKey);
+  const apprLbl = appr ? (appr.state==='approved' ? '<span class="cal-appr cal-appr-ok">✓ המועד אושר</span>' : '<span class="cal-appr cal-appr-wait">⏳ ממתין לאישור מועד</span>') : '';
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=ev=>{if(ev.target===ov)ov.remove();};
+  const canEdit=isArchitect();
   ov.innerHTML=`<div class="cal-pop">
     <div class="cal-pop-bar" style="background:${e.color}"></div>
     <h3>תב/${esc(String(p.tik))} — ${esc(buildProjectTitle(p))}</h3>
-    <div class="cal-pop-row"><b>שלב:</b> ${esc(e.stage)}</div>
-    <div class="cal-pop-row"><b>תאריך:</b> ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</div>
-    <div class="cal-pop-row"><b>סטטוס:</b> ${statusChip?statusChip(p.status):esc(p.status||'')}</div>
-    <div class="cal-pop-row"><b>יזם:</b> ${esc(p.developer||'—')} · <b>רובע:</b> ${esc(p.district||'—')}</div>
+    <div class="cal-pop-row"><b>פורום:</b> ${esc(e.stage)} ${apprLbl}</div>
+    <div class="cal-pop-row"><b>סטטוס תוכנית:</b> ${statusChip?statusChip(p.status):esc(p.status||'')}</div>
+    <div class="cal-pop-row"><b>אדריכל היזם:</b> ${esc(p.submitter||p.developer||'—')}${(p.meta&&p.meta.archPhone)?(' · '+esc(p.meta.archPhone)):''}${(p.meta&&p.meta.archEmail)?(' · '+esc(p.meta.archEmail)):''}</div>
+    ${canEdit?`<div class="cal-pop-edit">
+      <div class="cal-pop-row"><b>מועד הפורום:</b></div>
+      <div class="cal-edit-row">
+        <input type="date" id="calDt_${p.id}_${e.stageKey}" value="${esc(ymd)}">
+        <input type="time" id="calTm_${p.id}_${e.stageKey}" value="${esc(e.time||'')}">
+        <button class="btn btn-sm" onclick="calSaveFromPopup(${p.id},'${e.stageKey}')">שמירת מועד</button>
+      </div>
+    </div>`:`<div class="cal-pop-row"><b>מועד:</b> ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</div>`}
     <div class="cal-pop-acts">
-      <button class="btn btn-primary btn-sm" onclick="calGoto(${p.id},'${e.tab}')">מעבר לתוכנית ולשלב ›</button>
+      ${canEdit?`<button class="btn btn-primary btn-sm" onclick="calMailSecretary(${p.id},'${e.stageKey}','${esc(ymd)}')">✉ שליחה למזכירה לתיאום</button>`:''}
+      ${canEdit&&appr&&appr.state==='pending'?`<button class="btn btn-sm" onclick="calApproveSlot(${p.id},'${e.stageKey}')">המועד אושר</button>`:''}
+      ${canEdit&&appr?`<button class="btn btn-ghost btn-sm" onclick="calSetApproval(${p.id},'${e.stageKey}',null);calRefreshPopup(${p.id},'${e.stageKey}','${esc(ymd)}')">ניקוי סטטוס</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="calGoto(${p.id},'${e.tab}')">מעבר לתוכנית ›</button>
       <button class="btn btn-ghost btn-sm" onclick="this.closest('.render-lightbox').remove()">סגירה</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
+}
+/** שמירת המועד מתוך החלונית + רענון החלונית עצמה (ללא פתיחת דף) */
+function calSaveFromPopup(pid, stageKey){
+  const d=document.getElementById('calDt_'+pid+'_'+stageKey);
+  const t=document.getElementById('calTm_'+pid+'_'+stageKey);
+  if(!d||!d.value){ toast('נא לבחור תאריך'); return; }
+  calSetStageDate(pid, stageKey, d.value, t?t.value:'');
+  toast('המועד עודכן ונשמר בכל האפליקציה');
+  calRefreshPopup(pid, stageKey, d.value);
+}
+/** רענון תוכן החלונית לאותו אירוע (לאחר שינוי) */
+function calRefreshPopup(pid, stageKey, ymd){
+  document.querySelectorAll('.render-lightbox').forEach(x=>x.remove());
+  const evs=calEvents()[ymd]||[];
+  const i=evs.findIndex(x=>x.pid===pid && x.stageKey===stageKey);
+  if(i>=0) calOpenEvent(ymd, i);
+}
+/** בונה נושא+גוף המייל למזכירה (מופרד לצורך בדיקה) */
+function calSecretaryMail(pid, stageKey, ymd, timeVal){
+  const p=plans.find(x=>x.id===pid); if(!p) return {subject:'',body:''};
+  const stage=(CAL_STAGES.find(s=>s.key===stageKey)||{}).label||'';
+  const when=(ymd||'')+(timeVal?(' '+timeVal):'');
+  const arch=p.submitter||p.developer||'—';
+  const archPhone=(p.meta&&p.meta.archPhone)||'';
+  const archEmail=(p.meta&&p.meta.archEmail)||'';
+  const cts=(typeof projectContacts==='function')?projectContacts(p.tik):[];
+  const ctLines=cts.map(c=>`  · ${c.name||''}${c.type?(' ('+c.type+')'):''}${c.phone?(' · '+c.phone):''}${c.email?(' · '+c.email):''}`).join('\n');
+  const subject='תיאום מועד '+stage+' — תב/'+p.tik;
+  const body=[
+    'שלום,','',
+    'נא לתאם ולאשר את המועד הבא מול אדריכל היזם:','',
+    'תוכנית הבינוי: '+buildProjectTitle(p),
+    'סוג הפורום: '+stage,
+    'המועד המוצע: '+when,'',
+    'אדריכל היזם: '+arch+(archPhone?(' · '+archPhone):'')+(archEmail?(' · '+archEmail):''),
+    cts.length?('אנשי קשר נוספים:\n'+ctLines):'','',
+    'נא לבדוק ולאשר את המועד מול אדריכל היזם ולחזור אליי.','',
+    'תודה,','אדריכלית העיר'
+  ].filter(x=>x!==undefined).join('\n');
+  return {subject, body};
+}
+/** הפקת מייל מוכן למזכירה + סימון „ממתין לאישור מועד” */
+function calMailSecretary(pid, stageKey, ymd){
+  const t=document.getElementById('calTm_'+pid+'_'+stageKey);
+  const d=document.getElementById('calDt_'+pid+'_'+stageKey);
+  const m=calSecretaryMail(pid, stageKey, (d&&d.value)||ymd, (t&&t.value)||'');
+  window.location.href='mailto:?subject='+encodeURIComponent(m.subject)+'&body='+encodeURIComponent(m.body);
+  calSetApproval(pid, stageKey, 'pending');
+  toast('נפתחה טיוטת מייל למזכירה · האירוע סומן „ממתין לאישור מועד”');
+  calRefreshPopup(pid, stageKey, ymd);
+}
+/** סימון „המועד אושר” */
+function calApproveSlot(pid, stageKey){
+  const d=document.querySelector('.cal-pop input[type=date]');
+  const ymd=d?d.value:'';
+  calSetApproval(pid, stageKey, 'approved');
+  toast('המועד אושר');
+  if(ymd) calRefreshPopup(pid, stageKey, ymd);
 }
 function calGoto(pid, tab){
   document.querySelectorAll('.render-lightbox').forEach(x=>x.remove());
@@ -4987,14 +5094,15 @@ function renderTrends() {
     </div>
   `).join('');
 
-  // Donut - status
+  // Donut - status — רק תוכניות חיות (ללא מחוקות/ריקות)
+  const _live = livePlans();
   const statusCounts = {};
-  plans.forEach(p => { statusCounts[p.status] = (statusCounts[p.status]||0)+1; });
+  _live.forEach(p => { statusCounts[p.status] = (statusCounts[p.status]||0)+1; });
   const donutData = Object.entries(statusCounts).sort((a,b)=>b[1]-a[1]);
   const colors = donutData.map(([s]) => STATUS_COLORS[s]||'#ccc');
   drawDonut('donutCanvas', donutData.map(d=>d[1]), colors,
     i=>{ const st=donutData[i][0];
-      const inSt=plans.filter(p=>p.status===st);
+      const inSt=_live.filter(p=>p.status===st);
       const byD={}; inSt.forEach(p=>{ if(p.district&&p.district!=='לא צוין') byD[p.district]=(byD[p.district]||0)+1; });
       const top=Object.entries(byD).sort((a,b)=>b[1]-a[1])[0];
       // פירוט התוכניות באותו סטטוס — רשימה אנכית
@@ -5009,12 +5117,12 @@ function renderTrends() {
       return {label:st, sub};
     });
   document.getElementById('donutLegend').innerHTML = donutData.map(([s,c],i) =>
-    `<div><span class="dot" style="background:${colors[i]}"></span>${s}: <strong>${c}</strong> (${Math.round(c/plans.length*100)}%)</div>`
+    `<div><span class="dot" style="background:${colors[i]}"></span>${s}: <strong>${c}</strong> (${_live.length?Math.round(c/_live.length*100):0}%)</div>`
   ).join('');
 
   // Patterns
-  const recentYear = plans.filter(p=>p.year===2025).length;
-  const futureYear = plans.filter(p=>p.year===2026).length;
+  const recentYear = _live.filter(p=>p.year===2025).length;
+  const futureYear = _live.filter(p=>p.year===2026).length;
   const topDistrict = topDist[0];
   const peakYear = years.reduce((a,b)=>yearCounts[a]>yearCounts[b]?a:b);
   const openCount = statusCounts['טרם עודכן']||0;
@@ -5039,7 +5147,7 @@ function renderTrends() {
     </div>
     <div class="pattern-card" style="border-right:4px solid var(--err)">
       <strong>${openCount} טרם עודכנו</strong>
-      <p>${Math.round(openCount/plans.length*100)}% מהתוכניות טרם עודכנו. ${inProgress} בטיפול פעיל. הזדמנות לעדכן סטטוסים ולהשלים מידע חסר.</p>
+      <p>${_live.length?Math.round(openCount/_live.length*100):0}% מהתוכניות טרם עודכנו. ${inProgress} בטיפול פעיל. הזדמנות לעדכן סטטוסים ולהשלים מידע חסר.</p>
     </div>
     <div class="pattern-card" style="border-right:4px solid var(--ok)">
       <strong>פיזור גיאוגרפי</strong>
@@ -5387,6 +5495,7 @@ function ensureProjectData(p) {
   if (typeof p.consultantsPlanApproved !== 'boolean') p.consultantsPlanApproved = false;
   if (p.consultantsSignDate === undefined) p.consultantsSignDate = '';
   if (p.signDate === undefined) p.signDate = '';               // חתימה פיזית על התוכנית המאושרת
+  if (!p.forumSched || typeof p.forumSched!=='object') p.forumSched = {};   // סטטוס אישור מועד פר-פורום
   if (!p.aspects) p.aspects = { environmental:'', experiential:'', operational:'' };
   if (!p.datesPlan) p.datesPlan = { forum1:'', forum2:'', committeePrep:'', committee:'' };
   if (!p.summary) p.summary = { phasing:'', consultantNotes:'', finalRec:'', committeeDecision:'', cityArchNotes:'' };
@@ -5576,6 +5685,19 @@ function workflowStatus(p){
 function projToolbarShow(on){
   const el=document.getElementById('projToolbar');
   if(el) el.style.display = on ? 'flex' : 'none';
+}
+/** מחיקה רכה של התוכנית הנוכחית — שונה מ„נסגרה”.
+    מוסתרת מכל התצוגות והספירות; המזהה הפנימי והקישורים נשמרים. */
+function deleteCurrentPlan(){
+  const p=pj(); if(!p) return;
+  if(!isArchitect()){ toast('מחיקה — לאדריכלית העיר בלבד'); return; }
+  if(!confirm('למחוק את תב/'+p.tik+' מהתצוגה?\n\nמחיקה אינה זהה לסטטוס „נסגרה”: התוכנית לא תופיע ולא תיספר בגרפים, בסטטיסטיקות ובדוחות. המזהה והמידע נשמרים.')) return;
+  p._deleted = true;
+  p.updatedAt = todayStr();
+  savePlans();
+  toast('התוכנית נמחקה מהתצוגה');
+  if(typeof refreshAll==='function') refreshAll();   // מספור/גרפים/סטטיסטיקות מתעדכנים מיד
+  closeProject();
 }
 function closeProject() {
   currentProjectId = null;
@@ -9489,7 +9611,7 @@ function buildReport(kind){
     title='סיכום מצב תוכניות בינוי — '+fmtDate(todayStr());
     const byStage={}; active.forEach(p=>{ const s=stageLbl[p.stage||'stage_1']; byStage[s]=(byStage[s]||0)+1; });
     const done=livePlans().length-active.length;
-    lines.push(`סה״כ תוכניות: ${plans.length} · בטיפול: ${active.length} · הושלמו/נסגרו: ${done}`);
+    lines.push(`סה״כ תוכניות: ${livePlans().length} · בטיפול: ${active.length} · הושלמו/נסגרו: ${done}`);
     Object.entries(byStage).forEach(([s,n])=>lines.push(`• ${s}: ${n}`));
     html=lines.map(l=>`<div>${esc(l)}</div>`).join('');
   } else if(kind==='delayed'){
