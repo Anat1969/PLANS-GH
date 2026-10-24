@@ -2117,6 +2117,7 @@ tbody tr{transition:background .12s}
 /* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
 .dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
+<script src="https://appofapp-gh.vercel.app/ai-menu.js"></script>
 </head>
 <body>
 
@@ -2158,7 +2159,6 @@ tbody tr{transition:background .12s}
       <span id="ppStageBadge"></span>
       <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
       <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
-      <button class="btn btn-sm arch-only no-print" id="ppDeleteBtn" onclick="deleteCurrentPlan()" title="מחיקת התוכנית מהתצוגה (מחיקה רכה — אינה זהה ל„נסגרה”)">🗑 מחיקה</button>
       <div class="role-toggle" id="roleToggle">
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
@@ -2167,13 +2167,9 @@ tbody tr{transition:background .12s}
     <div class="search-bar">
       <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" data-nolock="1" oninput="globalSearchFn(this.value)">
     </div>
-    <div class="mode-toggle" onclick="toggleGlobalMode()" title="החלף בין מצב תצוגה למצב עריכה" role="switch" tabindex="0" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleGlobalMode()}">
-      <span class="mode-light" id="modeLight"></span>
-      <span class="mode-label" id="modeLabel">תצוגה</span>
-      <span class="mode-switch"><span class="mode-knob"></span></span>
-    </div>
     <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">☁ מתחבר…</span>
-    <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-info" onclick="openPermsModal()" title="מה מותר לי במסלול הזה?">i</span> <span class="rc-out" onclick="logoutRole()">החלפת משתמש</span></span>
+    <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-info" onclick="openPermsModal()" title="מה מותר לי במסלול הזה?">i</span></span>
+    <ai-menu id="aiMenu"></ai-menu>
   </div>
 </div>
 </header>
@@ -12816,5 +12812,23 @@ function aiSyncContext() {
     <button onclick="aiAsk()">שלח</button>
   </div>
 </div>
+<script>
+/* כפתור הלוגו A&I: מצב עריכה, מחיקת תוכנית והחלפת משתמש נמצאים רק בתוכו */
+(function(){
+  const menu=document.getElementById('aiMenu'); if(!menu) return;
+  function items(){
+    const b=document.body, list=[];
+    if(!b.classList.contains('role-manager') && !b.classList.contains('role-developer'))
+      list.push({label: globalEdit?'סיום עריכה':'מצב עריכה', hint: globalEdit?'עריכה':'תצוגה', pressed: globalEdit, onSelect: toggleGlobalMode});
+    const tb=document.getElementById('projToolbar');
+    if(isArchitect() && tb && tb.style.display!=='none' && pj())
+      list.push({label:'מחיקת התוכנית', hint:'מחיקה רכה', onSelect: deleteCurrentPlan});
+    if(session) list.push({label:'החלפת משתמש', onSelect: logoutRole});
+    menu.items=list;
+  }
+  menu.addEventListener('click', items, true);
+  items();
+})();
+</script>
 </body>
 </html>
