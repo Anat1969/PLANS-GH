@@ -2198,30 +2198,28 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
 <div class="masthead-inner">
   <div class="logo" onclick="go('landing',this)">אשדוד <span>תוכניות בינוי</span></div>
   <!-- קבוצת ניווט/מידע -->
-  <nav id="mainNav" class="toolbar-nav">
-    <!-- קבוצה: עבודה יומיומית -->
+  <nav id="mainNav" class="toolbar-nav" aria-label="ניווט ראשי">
     <button class="active" data-nav="landing" onclick="go('landing',this)" title="עבודה">דף ראשי</button>
-    <button data-nav="exec" onclick="go('exec',this)" title="עבודה">תמונת מצב</button>
-    <button data-nav="notes" onclick="go('notes',this)" title="הערות תוכן וסיכומי יום — לכל התוכניות">הערות וסיכומי יום</button>
     <button data-nav="devhome" onclick="go('devhome',this)" style="display:none">דף הבית</button>
+    <span class="nav-grp" aria-hidden="true">תהליך</span>
+    <button data-nav="exec" onclick="go('exec',this)" title="עבודה">תמונת מצב</button>
     <button data-nav="table" onclick="go('table',this)" title="עבודה">טבלת תוכניות</button>
-    <button data-nav="map" onclick="go('map',this)" title="עבודה">מפה</button>
-    <button data-nav="calendar" onclick="go('calendar',this)" title="עבודה">לוח שנה</button>
     <button data-nav="timeline" onclick="go('timeline',this)" title="עבודה">ציר זמן</button>
+    <button data-nav="calendar" onclick="go('calendar',this)" title="עבודה">לוח שנה</button>
+    <button data-nav="map" onclick="go('map',this)" title="עבודה">מפה</button>
+    <button data-nav="notes" onclick="go('notes',this)" title="הערות תוכן וסיכומי יום — לכל התוכניות">הערות וסיכומי יום</button>
+    <button data-nav="contacts" onclick="go('contacts',this)" title="קשר ושיתוף">רשימות קשר</button>
     <button data-nav="trends" onclick="go('trends',this)" title="עבודה">מגמות וסיכום</button>
-    <span class="nav-sep" aria-hidden="true"></span>
-    <!-- קבוצה: ידע ודרישות -->
+    <span class="nav-grp" aria-hidden="true">מידע</span>
+    <button data-nav="library" onclick="go('library',this)" title="מידע">ספריית ידע</button>
     <button data-nav="guidelines" onclick="go('guidelines',this)" title="ידע ודרישות">הנחיות להגשת תוכנית</button>
     <button data-nav="muni" onclick="go('muni',this)" title="ידע ודרישות">אוגדן דרישות העירייה</button>
     <button data-nav="spatial" onclick="go('spatial',this)" title="ידע ודרישות">הנחיות מרחביות (מהדורה 18)</button>
     <button data-nav="calchub" onclick="go('calchub',this)" title="ידע ודרישות">מחשבונים</button>
-    <button data-nav="tba" hidden data-sys="1" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">בדיקת חילוץ תב״ע</button>
-    <span class="nav-sep" aria-hidden="true"></span>
-    <!-- קבוצה: קשר ושיתוף -->
+    <span class="nav-grp" aria-hidden="true">תוצרים</span>
+    <button data-nav="outputs" onclick="go('outputs',this)" title="תוצרים">מאגר תוצרים</button>
     <button data-nav="shares" onclick="go('shares',this)" title="קשר ושיתוף">חוות דעת, דיווחים ושיתופים</button>
-    <button data-nav="contacts" onclick="go('contacts',this)" title="קשר ושיתוף">רשימות קשר</button>
-    <span class="nav-sep" aria-hidden="true"></span>
-    <!-- קבוצה: מערכת -->
+    <button data-nav="tba" hidden data-sys="1" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">בדיקת חילוץ תב״ע</button>
     <button data-nav="settings" hidden data-sys="1" onclick="go('settings',this)" title="מערכת">הגדרות</button>
     <button data-nav="help" hidden data-sys="1" onclick="go('help',this)" title="מערכת">עזרה ומדריך</button>
   </nav>
@@ -2486,6 +2484,10 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     </div>
   </div>
 </div>
+
+<!-- ════════ ספריית ידע ומאגר תוצרים (plans-process.js) ════════ -->
+<div id="library" class="page"><div id="libraryBody"></div></div>
+<div id="outputs" class="page"><div id="outputsBody"></div></div>
 
 <!-- ════════ ציר זמן ושלבים (plans-plus.js) ════════ -->
 <div id="timeline" class="page"><div id="timelineBody"></div></div>
@@ -2958,7 +2960,8 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'status','developer','parcel','lat','lng','approvalDate','forumArchitect','forumConsultants',
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
-  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched'];
+  'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
+  'proc','reviewGrid','meet','_est','openDateIssue'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -3568,7 +3571,7 @@ function go(id, btn, isBack) {
   if (id === 'notes' && typeof renderNotesHub === 'function') { _ntEditing=null; renderNotesHub(); }
   if (id === 'table') { syncTableEditMode(); } // רענון מצב עריכת הטבלה אחרי ניווט (המצב אולי הוחלף בדף אחר)
   // hash-routing — כתובת ישירה ורענון ללא 404 (דפים ראשיים בלבד)
-  const routable = ['landing','exec','notes','devhome','table','guidelines','map','calendar','timeline','trends','shares','muni','spatial','calchub','contacts','settings','help'];
+  const routable = ['landing','exec','notes','devhome','table','guidelines','map','calendar','timeline','trends','library','outputs','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(id)) { if (('#'+id) !== location.hash) history.replaceState(null,'','#'+id); }
   window.scrollTo({top: 0});
   updateBackBtn();
@@ -3589,7 +3592,7 @@ function routeFromHash() {
     const p = plans.find(x=>String(x.tik)===String(tik));
     if (p) { openProject(p.id); return; }
   }
-  const routable = ['landing','exec','notes','devhome','table','guidelines','map','calendar','timeline','trends','shares','muni','spatial','calchub','contacts','settings','help'];
+  const routable = ['landing','exec','notes','devhome','table','guidelines','map','calendar','timeline','trends','library','outputs','shares','muni','spatial','calchub','contacts','settings','help'];
   if (routable.includes(raw)) {
     const allow = session ? NAV_VISIBLE[session.role] : null;
     if (allow && !allow.includes(raw)) return; // דף שאינו זמין לתפקיד הנוכחי
@@ -9562,7 +9565,7 @@ function planIsActive(p){ return !DONE_STATUSES.includes(p.status); }
 // כל כלל: { id, when(p,ctx)->bool, action, reason, urgency('high'|'med'|'low'), owner, dueOffsetDays }
 let workRules = { overrides: {} }; // overrides לפי id: {enabled, dueOffsetDays...}
 // עוזר: תאריך יעד = היום + ימים, בפורמט DD.MM.YYYY (ללא Date.now — נגזר מ-ctx.today)
-function _due(today, days){ const d=new Date(today); d.setDate(d.getDate()+days); return fmtDate(d.toISOString().slice(0,10)); }
+function _due(today, days){ const d=new Date(today+'T00:00:00'); d.setDate(d.getDate()+days); return fmtDate(_toISO(d)); }
 // עוזר: למי לפנות — נגזר מצוות היזם/מאגר אנשי הקשר של התוכנית (ללא המצאה)
 function whoToContact(p, role){
   const rec=(typeof teamRecipients==='function')?teamRecipients(p):{to:[]};
@@ -12113,9 +12116,9 @@ const DEV_SECTIONS = { info:'מידע וזיהוי', guidelines:'הנחיות ו
 const DEV_FIELD_BLOCK = /pjSet\('(status|stage|handler|opinion|date|purpose|approvalDate)'|oSet\('(datesPlan|summary)'|onStageChange|saveForumDate|setForumEvent|addForumEvent|delForumEvent|setDecision|setOpinion|setModalOpinion|setGantt|saveField\(|cycleStatus|changeStatus|setCommitteeReady/;
 // אילו דפים ראשיים זמינים לכל תפקיד
 const NAV_VISIBLE = {
-  architect: ['landing','exec','notes','table','guidelines','map','calendar','timeline','trends','shares','muni','spatial','calchub','tba','contacts','settings','help'],
-  manager: ['exec','landing','notes','table','guidelines','map','calendar','timeline','trends','shares','muni','spatial','calchub','contacts','help'],
-  developer: ['devhome','table','guidelines','muni','spatial','calchub','help']
+  architect: ['landing','exec','notes','table','guidelines','map','calendar','timeline','trends','library','outputs','library','outputs','shares','muni','spatial','calchub','tba','contacts','settings','help'],
+  manager: ['exec','landing','notes','table','guidelines','map','calendar','timeline','trends','library','outputs','library','outputs','shares','muni','spatial','calchub','contacts','help'],
+  developer: ['devhome','library','table','guidelines','muni','spatial','calchub','help']
 };
 
 function isArchitect(){ return !!session && session.role==='architect'; }
@@ -12404,7 +12407,7 @@ const EXEC_STAGES = [
 ];
 function execUpcoming(days){
   const today=todayStr(); const limit=new Date(); limit.setDate(limit.getDate()+days);
-  const lim=limit.toISOString().slice(0,10);
+  const lim=_toISO(limit);
   const out=[];
   plans.forEach(p=>{
     [['forumArchitect','פורום אדריכל העיר'],['forumConsultants','פורום יועצים'],['committeeDate','ועדה']].forEach(([f,lbl])=>{
@@ -12983,5 +12986,6 @@ function aiSyncContext() {
 </script>
 <script src="plans-geo.js"></script>
 <script src="plans-plus.js"></script>
+<script src="plans-process.js"></script>
 </body>
 </html>

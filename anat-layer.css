@@ -93,7 +93,7 @@ tbody tr:hover{background:#fafaf8 !important}
 td,th{font-variant-numeric:tabular-nums}
 
 /* ── בוררים (צ'יפים) בלי מסגרת: טקסט עם צל, הנבחר שחור ומודגש ── */
-.sf-chip,.status-filter button,.sf-btn,.chip,.filter-chip,.tl-chip,.cal-chip,.muni-chip,.ex-plan-chip{
+.sf-chip,.status-filter button,.sf-btn,.chip,.filter-chip,.tl-chip,.muni-chip,.ex-plan-chip{
   background:none !important;border:0 !important;box-shadow:none !important;color:var(--ink-mute) !important;
   text-shadow:0 1px 1px rgba(0,0,0,.08);font-weight:500;padding:4px 6px !important;cursor:pointer;transition:color .15s,transform .15s}
 .sf-chip:hover,.status-filter button:hover,.sf-btn:hover,.chip:hover,.filter-chip:hover{color:var(--ink) !important;transform:translateY(-1px)}
@@ -198,3 +198,176 @@ td,th{font-variant-numeric:tabular-nums}
 .city-logo{display:inline-flex;align-items:center;padding:2px 4px;transition:transform .15s}
 .city-logo:hover{transform:translateY(-1px)}
 .city-logo img{height:32px;width:auto;display:block}
+
+/* ══════════ מפרט 03.11.2026: מדרג טיפוגרפי, כפתורים, כרטיסים, ניווט בקבוצות ══════════ */
+body{font-size:16px}
+/* הגדלת פונטים קטנים: אף טקסט מתחת ל-12px */
+[style*="font-size:10px"],[style*="font-size:10.5px"],[style*="font-size:11px"],[style*="font-size: 11px"],[style*="font-size:11.5px"]{font-size:12.5px !important}
+.badge,.pp-src,.muted,.cal-chip-sub,.stg-date,.lm-tile small,.hero-stat .sub,.tl-lab2,.tl-clock,.pr-when{font-size:max(12px,1em) !important}
+.page-subtitle{font-size:15px !important}
+td,th{font-size:14px}
+/* כפתור משני: שקוף, בלי מסגרת גלויה, צל רך בריחוף; פוקוס ברור */
+.btn-ghost,.btn.btn-ghost{background:transparent !important;border-color:transparent !important;box-shadow:none !important;color:var(--ink-soft) !important}
+.btn-ghost:hover{background:#fff !important;box-shadow:var(--shadow-2) !important;color:var(--ink) !important;border-color:transparent !important}
+.btn{min-height:36px;padding:8px 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-sm{min-height:32px;padding:6px 12px !important;font-size:13.5px !important}
+.btn + .btn{margin-inline-start:8px}
+.btn.is-loading{pointer-events:none;opacity:.7}
+.btn.is-loading::after{content:"";width:12px;height:12px;border:2px solid currentColor;border-inline-end-color:transparent;border-radius:50% !important;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* כרטיסים מקבילים באותה מידה; טקסט ארוך נקצר עם אפשרות פתיחה בריחוף (title) */
+.quick-cards,.lm-strip,.lib-grid,.home-zones{align-items:stretch}
+.lm-tile{display:flex;flex-direction:column;justify-content:center;min-height:130px}
+.lm-tile p,.quick-card p,.lib-d{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* ניווט בשלוש קבוצות */
+.nav-grp{flex:0 0 auto;font-family:var(--mono);font-size:11px;color:var(--ink-mute);padding:0 4px 0 2px;margin-inline-start:12px;border-inline-start:1px solid var(--stone);padding-inline-start:12px;align-self:center}
+.nav-sep{display:none !important}
+
+/* ══════════ חיפוש גלובלי ══════════ */
+.search-bar input{width:260px !important;padding-inline-end:26px !important}
+.gs-x{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--ink-mute);font-size:18px;cursor:pointer;line-height:1;padding:2px 4px}
+.gs-x:hover{color:var(--ink)}
+.gs-pop{position:absolute;top:calc(100% + 6px);inset-inline-start:0;width:min(440px,92vw);max-height:70vh;overflow:auto;background:#fff;box-shadow:var(--shadow-2);border:1px solid var(--stone);z-index:2000;padding:6px 0}
+.gs-h{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);padding:8px 14px 2px}
+.gs-i{display:flex;gap:8px;align-items:baseline;width:100%;text-align:start;background:none;border:0;padding:7px 14px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer}
+.gs-i:hover,.gs-i:focus-visible{background:#f6f5f1}
+.gs-s{margin-inline-start:auto;color:var(--ink-mute);font-size:12.5px}
+.gs-none{padding:10px 14px;color:var(--muted);font-size:13.5px}
+@media (max-width:560px){.search-bar input{width:150px !important}.gs-pop{position:fixed;top:110px;inset-inline:8px;width:auto}}
+
+/* ══════════ ארבעת השלבים ══════════ */
+.pr-wrap{margin:12px 0;background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow)}
+.pr-head{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;padding:12px 16px 0}
+.pr-head h3{margin:0;font-size:18px;font-weight:600}
+.pr-tabs{display:flex;align-items:stretch;gap:0;padding:10px 12px;overflow-x:auto}
+.pr-tab{flex:1 1 0;min-width:150px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;text-align:start;background:none;border:0;border-bottom:3px solid transparent;padding:8px 10px;cursor:pointer;font:inherit;color:var(--ink-soft);transition:transform .15s,color .15s,background .15s}
+.pr-tab:hover{background:#fafaf8;transform:translateY(-1px)}
+.pr-tab.on{border-bottom-color:var(--ink);color:var(--ink);font-weight:600}
+.pr-n{grid-row:1 / span 2;width:26px;height:26px;display:inline-grid;place-items:center;background:var(--ink);color:#fff;font-weight:700;font-size:13px}
+.pr-t{font-size:14.5px}
+.pr-s{font-size:12px;font-weight:600;color:var(--ink-mute)}
+.pr-s-1{color:var(--warn)}.pr-s-2,.pr-s-3{color:var(--info)}.pr-s-4{color:var(--ok)}
+.pr-arrow{align-self:center;color:var(--ink-mute);padding:0 2px}
+.pr-body{padding:4px 16px 16px;border-top:1px solid var(--stone)}
+.pr-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:10px 0}
+.pr-top h4{margin:0;font-size:17px;font-weight:600}
+.pr-stat select{font:inherit;padding:5px 8px;border:1px solid var(--stone)}
+.pr-tag{font-size:12px;font-weight:600;color:var(--bordeaux);margin-inline-start:6px}.pr-tag-c{color:var(--ink-mute)}
+.pr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.pr-col{background:#fafaf8;padding:10px 12px;border-top:3px solid var(--stone)}
+.pr-col:nth-child(2){border-top-color:var(--teal)}.pr-col:nth-child(3){border-top-color:var(--bronze)}.pr-col:nth-child(4){border-top-color:var(--ok)}
+.pr-k{font-family:var(--mono);font-size:12px;color:var(--ink-mute);margin:6px 0 6px;display:block}
+.pr-list{list-style:none;margin:0;padding:0}
+.pr-list li{font-size:14px;line-height:1.5;padding:3px 0}
+.pr-list label{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
+.pr-list input{margin-top:4px}
+.pr-when{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
+.pr-doc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:12px}
+.pr-add{display:flex;gap:8px}.pr-add input{flex:1}
+.pr-notes{list-style:none;margin:6px 0 0;padding:0;max-height:220px;overflow:auto}
+.pr-notes li{font-size:14px;padding:5px 0;border-bottom:1px solid var(--fog)}
+.pr-appr{margin:12px 0;padding:12px 14px;border-inline-start:4px solid var(--err);background:#fdf3f3}
+.pr-appr.ok{border-color:var(--ok);background:#eff8f2}
+.pr-appr h4{margin:0 0 8px;font-size:16px}
+.pr-ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 16px;font-size:14px}
+.pr-miss{color:var(--err);font-size:13.5px}.pr-ok{color:var(--ok);font-size:13.5px;margin-top:8px}
+.pr-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+@media (max-width:1000px){.pr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pr-doc{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.pr-grid{grid-template-columns:minmax(0,1fr)}.pr-arrow{display:none}}
+/* מועדים */
+.mt-row{border-inline-start:4px solid var(--stone);padding:8px 12px;margin:6px 0;background:#fff;box-shadow:var(--shadow)}
+.mt-row.mt-held{border-color:var(--ok)}.mt-row.mt-due{border-color:var(--warn)}.mt-row.mt-miss{border-color:var(--err)}.mt-row.mt-est{border-color:#c9c6bd;border-inline-start-style:dashed}.mt-row.mt-plan{border-color:var(--teal)}
+.mt-h{display:flex;gap:8px;align-items:baseline;font-size:15px}
+.mt-st{font-size:12.5px;font-weight:600;color:var(--ink-mute)}
+.mt-held .mt-st{color:var(--ok)}.mt-due .mt-st{color:var(--warn)}.mt-miss .mt-st{color:var(--err)}
+.mt-d{font-size:14px;margin-top:2px}.mt-late{color:var(--err);font-weight:600;margin-inline-start:8px}.mt-estn{color:var(--ink-mute);font-size:13px}
+.mt-sum,.mt-hist{font-size:13.5px;color:var(--ink-soft);margin-top:4px}.mt-hist s{color:var(--ink-mute)}
+.mt-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.mt-in{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--stone);background:#fff}
+textarea.mt-in{min-width:220px;resize:vertical}
+.mt-new{display:inline-flex;gap:6px;align-items:center}
+.mt-chip{display:inline-block;font-size:11.5px;font-weight:700;padding:0 4px;margin-inline-end:4px;background:#fff;color:var(--ink)}
+.mt-chip.mt-held{color:var(--ok)}.mt-chip.mt-due{color:var(--warn)}.mt-chip.mt-miss{color:var(--err)}.mt-chip.mt-est,.mt-chip.mt-moved{color:var(--ink-mute)}
+.mt-lg{display:inline-block;width:10px;height:10px;border:2px solid}.mt-lg.mt-held{border-color:var(--ok)}.mt-lg.mt-due{border-color:var(--warn)}.mt-lg.mt-miss{border-color:var(--err)}.mt-lg.mt-est{border-color:#c9c6bd;border-style:dashed}
+.cal-meet{margin:8px 0}
+/* לוח שנה ברצף */
+.cal-modes{display:inline-flex;gap:8px;margin-inline-end:12px}
+.cal-range{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:16px}
+.cal-range .cal-month{margin:0}
+.cal-range .cal-cur .cal-month-title{color:var(--ink);font-weight:700;box-shadow:inset 0 -2px 0 var(--ink)}
+.cal-range-note{font-size:14px;color:var(--ink-soft);margin:0 0 10px}
+/* טבלת בדיקה */
+.rv-wrap{margin:12px 0}
+.rv-scroll{overflow:auto;max-height:62vh;border:1px solid var(--stone)}
+.rv-table{border-collapse:collapse;width:100%;min-width:980px}
+.rv-table th,.rv-table td{border-bottom:1px solid var(--fog);padding:4px 6px;text-align:start;vertical-align:top;font-size:13.5px}
+.rv-table thead th{position:sticky;top:0;background:#fff;z-index:1}
+.rv-table tbody th{background:#fafaf8;font-weight:600;width:110px}
+.rv-in{width:100%;min-width:80px;font:inherit;font-size:13.5px;padding:4px 6px;border:1px solid transparent;background:transparent}
+.rv-in:hover,.rv-in:focus{border-color:var(--stone);background:#fff}
+.rv-table select{font:inherit;font-size:13px;padding:3px}
+.rv-ok td{background:#f3faf5}.rv-no td{background:#fdf3f3}.rv-missing td{background:#fffbe8}.rv-check td{background:#fff6ec}
+.rv-t5{font-family:var(--mono);font-size:10.5px;color:var(--teal);margin-inline-start:6px}
+.rv-gaps{margin-top:10px}.rv-gaps ol{margin:4px 22px 0 0;font-size:14px;line-height:1.8}
+.rv-g-no b{color:var(--err)}.rv-g-missing b{color:var(--warn)}.rv-g-check b{color:#b86e12}
+/* ספריית ידע ומאגר */
+.lib-g{font-size:16px;font-weight:600;margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--stone)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.lib-card{background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-height:150px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.lib-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.lib-card.lib-dis{cursor:default;opacity:.8}.lib-card.lib-dis:hover{transform:none;box-shadow:var(--shadow)}
+.lib-t{font-weight:600;font-size:15.5px}.lib-d{font-size:14px;color:var(--ink-soft)}
+.lib-f{margin-top:auto;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.lib-ok{font-size:12px;font-weight:600}.lib-ok.lib-ok{color:var(--ok)}.lib-unk{color:var(--warn) !important}.lib-miss{color:var(--err) !important}
+.lib-url{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
+.lib-pdf{font-size:13px}
+.out-f{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.out-f select,.out-q{font:inherit;padding:7px 10px;border:1px solid var(--stone);background:#fff}
+.out-q{flex:1 1 280px;border-width:1.5px;border-color:var(--ink)}
+/* אנשי קשר */
+.ct-search{margin:4px 0 10px;display:flex;flex-direction:column;gap:2px}
+.ct-search input{font-size:16px !important;padding:10px 14px !important;border:1.5px solid var(--ink) !important;max-width:560px;width:100%}
+.ct-fl{margin:0 0 0 8px !important}
+.ct-team{display:inline-flex;flex-wrap:wrap;gap:4px 10px}
+.c-wa{color:#1e7e4f !important}
+/* דף הבית: חזון ושלושה אזורים */
+.home-zones{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.hz-vision{background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow);padding:12px 14px}
+.hz-vision p{margin:0 0 4px;font-size:14.5px;line-height:1.6}
+.hz-steps{list-style:none;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:0;margin:8px 0}
+.hz-steps li{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500}
+.hz-steps .pr-n{width:22px;height:22px;font-size:12px}
+.hz-ar{color:var(--ink-mute)}
+.hz-val{display:grid;gap:2px;font-size:13.5px;color:var(--ink-soft)}
+.zone{background:#fff;border:1px solid var(--stone);border-top:4px solid var(--teal);box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column}
+.zone-info{border-top-color:var(--bronze)}.zone-out{border-top-color:var(--ok)}
+.zone-k{font-size:16px;font-weight:600}
+.zone p{margin:2px 0 8px;font-size:13.5px;color:var(--ink-soft)}
+.zone-l{display:grid;gap:2px;margin-top:auto}
+.zone-l button{display:flex;justify-content:space-between;align-items:baseline;background:none;border:0;border-bottom:1px solid var(--fog);padding:6px 2px;font:inherit;font-size:14.5px;color:var(--ink);cursor:pointer;text-align:start;transition:background .15s,transform .15s}
+.zone-l button:hover{background:#fafaf8;transform:translateX(-2px)}
+.zone-l b{font-family:var(--mono);font-weight:600}
+@media (max-width:1100px){.home-zones{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.home-zones{grid-template-columns:minmax(0,1fr)}}
+/* מפה */
+.map-find{display:grid;gap:6px;margin-bottom:12px}
+.map-q{display:flex;gap:6px}.map-q input{flex:1;min-width:0;font:inherit;font-size:14px;padding:7px 10px;border:1.5px solid var(--ink)}
+#mapDistrict{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--stone)}
+.map-res{display:grid;max-height:180px;overflow:auto}
+.map-note{font-size:13.5px;padding:8px 10px;margin-bottom:10px;border-inline-start:4px solid var(--warn);background:#fff8ec}
+.map-note.bad{border-color:var(--err);background:#fdf3f3}
+.map-fail{display:grid;place-items:center;height:100%;text-align:center;padding:24px;font-size:15px;color:var(--err);background:#fdf3f3}
+.leaflet-control-layers{font-family:var(--sans);font-size:13px}
+/* לוח שנה ברצף: תאים קומפקטיים, אירוע = מספר תוכנית ושלב */
+.cal-range{grid-template-columns:repeat(auto-fill,minmax(min(100%,600px),1fr)) !important}
+.cal-range .cal-cell{min-height:64px !important}
+.cal-range .cal-chip{padding:2px 4px !important;font-size:11.5px !important;line-height:1.25;white-space:normal}
+.cal-range .cal-chip-name{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.cal-range .cal-chip-sub{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px !important;opacity:.9}
+.cal-chip .mt-chip{display:inline-block;margin-top:2px}
+/* ביטול כפילות: סרגל השלבים הישן מוחלף בפאנל ארבעת השלבים */
+#stageStrip .stg-strip,#stageStrip .stg-legend{display:none !important}
+#stageStrip .rn-card{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;padding:8px 14px}
+#stageStrip .rn-card .pp-src{width:100%;margin:0}
+#stageStrip .rn-card .rn-go{margin:0}
+.lib-url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
