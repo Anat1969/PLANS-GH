@@ -1,6 +1,6 @@
 /* תוכניות בינוי · אשדוד — service worker: הדף מהרשת, נכסים מהמטמון */
-const CACHE = 'plans-v1';
-const ASSETS = ['icon.svg', 'icon-192.png', 'icon-512.png', 'plans-geo.js'];
+const CACHE = 'plans-v2';
+const ASSETS = ['ashdod-logo.png', 'icon.svg', 'icon-192.png', 'icon-512.png', 'plans-geo.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
