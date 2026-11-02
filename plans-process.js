@@ -233,6 +233,9 @@ function stagePanelHTML(p){
         <div class="pr-col"><div class="pr-k">פעולות אדריכל היזם</div>${listHTML(p, st, 'dev', st.dev)}</div>
         <div class="pr-col"><div class="pr-k">פלט: התוצר לסיום השלב</div>${listHTML(p, st, 'out', st.output)}</div>
       </div>
+      ${st.k==='a' && p.openDateIssue ? `<div class="mt-row mt-due"><div class="mt-h"><b>תאריך פתיחת התיק לא עקבי</b></div>
+        <div class="mt-d">תאריך הפתיחה <b>${F(p.date)}</b> מאוחר מפורום אדריכל העיר <b>${F(p.openDateIssue)}</b>. כנראה תאריך הזנה ולא תאריך פתיחה. המערכת לא משנה אותו לבד.</div>
+        ${canEdit()?`<div class="mt-acts"><button class="btn btn-sm" onclick="fixOpenDate(${p.id},'first')">עדכון לתאריך הפורום (${F(p.openDateIssue)})</button><span class="pp-src">או תיקון ידני בלשונית זיהוי הפרויקט.</span></div>`:''}</div>` : ''}
       <div class="pr-k">מועדים: מתוכנן, בפועל, איחור</div>${meets}
       ${st.k==='a'||st.k==='b'?`<div class="pr-links"><button class="btn btn-ghost btn-sm" onclick="gotoForumStation('${st.k==='a'?'forumArchitect':'forumConsultants'}','${st.k==='a'?'stage_1':'stage_2'}')">תחנת העבודה של ${st.k==='a'?'פורום אדריכל העיר':'פורום היועצים'}: החלטות, יועצים וגרסאות</button></div>`:''}
       ${extra}
