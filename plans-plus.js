@@ -365,7 +365,7 @@ function renderTimelinePage(){
 window.renderTimelinePage = renderTimelinePage;
 
 /* ── בדיקת עקביות הנתונים (עלתה מהשוואת קובץ האקסל לאפליקציה) ── */
-function renderDataChecks(){
+function dataChecks(){
   const L_ = live(), out = [];
   const byTik = {}; L_.forEach(p => (byTik[p.tik] = byTik[p.tik] || []).push(p));
   Object.entries(byTik).filter(([,a])=>a.length>1).forEach(([t,a]) =>
@@ -380,6 +380,10 @@ function renderDataChecks(){
     const rn = planRenewal(p);
     if(rn && rn.how==='name') out.push({ p, txt:`<b>${H(p.planNum)}</b> (${H(p.location)}) שויכה ל<b>${H(rn.r.t)}</b> לפי השם. התב"ע בתיק: <b>${H(p.change||'ריקה')}</b>, ב"מה נבנה סביבי": <b>${H(rn.r.n)}</b>.` });
   });
+  return out;
+}
+function renderDataChecks(){
+  const out = dataChecks();
   if(!out.length) return `<div class="tl-checks"><h3 class="tl-h3">בדיקת עקביות הנתונים</h3><div class="tl-good">לא נמצאו פערים.</div></div>`;
   return `<details class="tl-checks"><summary class="tl-h3">בדיקת עקביות הנתונים: <span class="tl-bad"><b>${out.length}</b> פערים לתיקון</span></summary>
     <ol>${out.map(o=>`<li><a href="javascript:void 0" onclick="openDetail(${o.p.id})">${o.txt}</a></li>`).join('')}</ol></details>`;
@@ -450,6 +454,150 @@ async function syncRenewal(){
   }catch(e){ /* נשארים על העותק — הכרטיס אומר זאת */ }
 }
 
+
+/* ══════════ 6. דף הבית: שורת תובנה, מספרים, מודל שלבים איזומטרי ══════════ */
+const ISO_STAGES = [
+  { k:'stage_1',   label:'פורום אדריכל העיר', color:'#7a1f2b' },
+  { k:'stage_2',   label:'פורום יועצים',      color:'#9c7a3c' },
+  { k:'committee', label:'הכנה לוועדה',       color:'#5B4A8A' },
+  { k:'approved',  label:'אושר, לחתימה',      color:'#2f7d55' },
+  { k:'done',      label:'הושלמו',             color:'#1f5c58' }
+];
+function stageOf(p){ if(!active(p)) return 'done'; const k = p.stage || 'stage_1'; return ISO_STAGES.some(s=>s.k===k) ? k : 'stage_1'; }
+function isoSVG(groups){
+  const C = .866, S = 34, gap = 1.75, n = ISO_STAGES.length;
+  const max = Math.max(1, ...ISO_STAGES.map(s => groups[s.k].length));
+  const P = (x,y,z) => [ (x - y) * C * S, (x + y) * .5 * S - z * S ];
+  const pts = [], polys = [];
+  const poly = (arr, fill, extra='') => { arr.forEach(a=>pts.push(a)); return `<polygon points="${arr.map(a=>a[0].toFixed(1)+','+a[1].toFixed(1)).join(' ')}" fill="${fill}" ${extra}/>`; };
+  // לוח בסיס: שולחן השרטוט
+  const L0 = -.5, L1 = (n-1)*gap + 1.5, D0 = -.6, D1 = 1.6, T = .18;
+  const base = [
+    poly([P(L0,D0,0),P(L1,D0,0),P(L1,D1,0),P(L0,D1,0)], '#f4f3ef', 'stroke="#d9d7d0" stroke-width="1"'),
+    poly([P(L1,D0,0),P(L1,D1,0),P(L1,D1,-T),P(L1,D0,-T)], '#e2e0d9'),
+    poly([P(L0,D1,0),P(L1,D1,0),P(L1,D1,-T),P(L0,D1,-T)], '#d3d1c9')
+  ].join('');
+  // קו הזרימה על הלוח: מהפתיחה (ימין) להשלמה
+  const f0 = P((n-1)*gap+.5, 1.25, 0), f1 = P(.5, 1.25, 0);
+  const flow = `<line x1="${f0[0]}" y1="${f0[1]}" x2="${f1[0]}" y2="${f1[1]}" stroke="#1a1a18" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#isoArrow)"/>`;
+  const cols = ISO_STAGES.map((st, i) => {
+    const cnt = groups[st.k].length;
+    const x0 = (n-1-i)*gap, y0 = 0, w = 1, d = 1;
+    const h = cnt ? .35 + 2.5*Math.sqrt(cnt/max) : .06;
+    const top = [P(x0,y0,h),P(x0+w,y0,h),P(x0+w,y0+d,h),P(x0,y0+d,h)];
+    const fx = [P(x0+w,y0,0),P(x0+w,y0+d,0),P(x0+w,y0+d,h),P(x0+w,y0,h)];
+    const fy = [P(x0,y0+d,0),P(x0+w,y0+d,0),P(x0+w,y0+d,h),P(x0,y0+d,h)];
+    const tc = P(x0+w/2, y0+d/2, h);
+    // קווי קומות: כל תוכנית היא "קומה" בנפח
+    const floors = [];
+    for(let f=1, step=cnt>20?5:1; f<cnt; f+=step){ const z = h*f/cnt; const a=P(x0+w,y0+d,z), b=P(x0+w,y0,z), c=P(x0,y0+d,z);
+      floors.push(`<polyline points="${b[0]},${b[1]} ${a[0]},${a[1]} ${c[0]},${c[1]}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".8"/>`); }
+    return `<g class="iso-col" data-k="${st.k}" style="animation-delay:${.08*i}s" tabindex="0" role="button" aria-label="${H(st.label)}: ${cnt} תוכניות">
+      ${poly(fx, st.color)}${poly(fx, '#000', 'fill-opacity=".14"')}
+      ${poly(fy, st.color)}${poly(fy, '#000', 'fill-opacity=".32"')}
+      ${poly(top, st.color, 'class="iso-top"')}${poly(top, '#fff', 'fill-opacity=".22"')}
+      ${floors.join('')}
+      <text x="${tc[0]}" y="${tc[1]-10}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20" fill="#1a1a18">${cnt}</text>
+    </g>`;
+  }).join('');
+  pts.push(P(.5,.5,4.6));
+  const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+  const vb = [Math.min(...xs)-12, Math.min(...ys)-28, Math.max(...xs)-Math.min(...xs)+24, Math.max(...ys)-Math.min(...ys)+40];
+  return `<svg viewBox="${vb.map(v=>v.toFixed(0)).join(' ')}" role="img" aria-label="מודל איזומטרי: מספר התוכניות בכל שלב">
+    <defs><marker id="isoArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a18"/></marker></defs>
+    ${base}${flow}${cols}</svg>`;
+}
+let _isoGroups = {};
+function isoFocus(k){
+  const box = document.querySelector('.home-iso'); if(!box) return;
+  box.classList.toggle('hl', !!k);
+  box.querySelectorAll('.iso-col').forEach(g => g.classList.toggle('on', g.dataset.k===k));
+  document.querySelectorAll('.iso-lg button').forEach(b => b.classList.toggle('on', b.dataset.k===k));
+  const cap = document.getElementById('isoCap'); if(!cap) return;
+  if(!k){ cap.textContent = 'כל נפח הוא שלב. כל קומה היא תוכנית. ריחוף מציג את התוכניות.'; return; }
+  const st = ISO_STAGES.find(s=>s.k===k), list = _isoGroups[k] || [];
+  cap.innerHTML = `<b>${H(st.label)}</b>: ` + (list.length ? list.slice(0,8).map(p=>H(p.planNum||p.tik)).join(' · ') + (list.length>8?` ועוד ${list.length-8}`:'') : 'אין תוכניות בשלב הזה');
+}
+window.isoFocus = isoFocus;
+window.isoGo = function(k){ if(k==='done'){ if(typeof setStatusFilter==='function') setStatusFilter('הושלם'); go('table', navBtn('table')); } else { tlFilter='active'; go('timeline', navBtn('timeline')); } };
+
+function renderHome(){
+  const hero = document.querySelector('#landing .hero'); if(!hero) return;
+  const L_ = live(), act = L_.filter(active), done = L_.length - act.length;
+  const bm = stageBenchmarks(), t = today();
+  let next = null;
+  act.forEach(p => milestones(p).forEach(m => { if(m.d > t && (!next || m.d < next.m.d)) next = { p, m }; }));
+  const exact = L_.filter(p => { const g = planGeo(p); return g && PREC[g.prec].exact; }).length;
+  const issues = dataChecks().length;
+  const rnAct = act.filter(p => planRenewal(p));
+  const groups = {}; ISO_STAGES.forEach(s => groups[s.k] = []); L_.forEach(p => groups[stageOf(p)].push(p));
+  _isoGroups = groups;
+  const head = next
+    ? `<span class="n">${act.length}</span> תוכניות בטיפול. הבאה בתור בעוד <span class="n">${days(t, next.m.d)}</span> ימים`
+    : `<span class="n">${act.length}</span> תוכניות בטיפול, <span class="n">${act.length}</span> בלי מועד הבא`;
+  const nextLine = next ? `<br>הבא: <b>${H(next.m.label)}</b> של <b>${H(next.p.planNum)}</b> (${H(next.p.location||'')}), ב-<b>${fmt(next.m.d)}</b>.` : '';
+  hero.innerHTML = `
+  <div class="home">
+    <div class="home-txt rise">
+      <div class="home-k">עיריית <b>אשדוד</b> <i>Ashdod</i> · אדריכלית העיר ענת דוד שטיבלמן</div>
+      <h1>${head}</h1>
+      <p class="home-ex">ניהול, מעקב, תיאום ובדיקה של <b>${L_.length}</b> תוכניות בינוי, מפתיחת התיק ועד החתימה.${nextLine}</p>
+      <div class="home-stats">
+        <div onclick="go('table',navBtn('table'))"><span class="l">סה״כ תוכניות</span><span class="v">${L_.length}</span><span class="s">במערכת</span></div>
+        <div onclick="go('timeline',navBtn('timeline'))"><span class="l">בטיפול</span><span class="v">${act.length}</span><span class="s">פורום עד חתימה</span></div>
+        <div onclick="isoGo('done')"><span class="l">הושלמו</span><span class="v">${done}</span><span class="s">נחתמו או נסגרו</span></div>
+        <div onclick="go('timeline',navBtn('timeline'))"><span class="l">חציון לוועדה</span><span class="v">${bm.total.med!=null?bm.total.med:'—'}</span><span class="s">ימים מפתיחה</span></div>
+        <div onclick="go('map',navBtn('map'))"><span class="l">במגרש מדויק</span><span class="v">${exact}<small style="font-size:.55em;color:var(--ink-mute)">/${L_.length}</small></span><span class="s">על המפה</span></div>
+      </div>
+      <div id="heroStats" hidden></div>
+    </div>
+    <div class="home-iso rise" style="animation-delay:.1s" onmouseleave="isoFocus(null)">
+      ${isoSVG(groups)}
+      <div class="iso-lg">${ISO_STAGES.map(s=>`<button data-k="${s.k}" style="--c:${s.color}" onmouseenter="isoFocus('${s.k}')" onfocus="isoFocus('${s.k}')" onclick="isoGo('${s.k}')"><i></i>${H(s.label)} <span class="tl-n">${groups[s.k].length}</span></button>`).join('')}</div>
+      <div class="iso-cap" id="isoCap"></div>
+    </div>
+  </div>
+  <div class="tones">
+    <div class="tone tone-problem rise" style="animation-delay:.15s" onclick="go('timeline',navBtn('timeline'));setTimeout(()=>{const d=document.querySelector('.tl-checks');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'});}},120)">
+      <div class="k">בעיה</div><h4><b>${issues}</b> פערים בנתוני התוכניות</h4><p>סדר מועדים הפוך, תאריכי פתיחה חסרים ומסמכים ששויכו לתיק הלא נכון.</p></div>
+    <div class="tone tone-solution rise" style="animation-delay:.2s" onclick="go('timeline',navBtn('timeline'))">
+      <div class="k">פתרון</div><h4>ציר זמן אחד לכל השלבים</h4><p>כל מועד של כל תוכנית, משך כל שלב, והשוואה לחציון העיר.</p></div>
+    <div class="tone tone-insight rise" style="animation-delay:.25s" onclick="go('map',navBtn('map'))">
+      <div class="k">תובנה</div><h4><mark>${rnAct.length} מתוך ${act.length} תוכניות בטיפול הן בהתחדשות עירונית</mark></h4><p>${rnAct.length?`רובעים: <b>${H([...new Set(rnAct.map(p=>p.district))].join(', '))}</b>. `:''}המפה מחברת כל תוכנית למתחם שלה ולמספר יח"ד המתוכנן.</p></div>
+  </div>`;
+  // מספר מפתח בכל כרטיס במפת התוכן
+  const qn = { table: L_.length, map: exact, timeline: act.length, trends: new Set(L_.map(p=>p.district).filter(Boolean)).size };
+  document.querySelectorAll('#landing .quick-card').forEach(c => {
+    const m = (c.getAttribute('onclick')||'').match(/go\('(\w+)'/); if(!m || qn[m[1]]==null) return;
+    let el = c.querySelector('.qn'); if(!el){ el = document.createElement('span'); el.className='qn'; c.appendChild(el); }
+    el.textContent = qn[m[1]];
+  });
+  // מעקב ותוכנית עבודה: זה לצד זה, גלילה בתוך הרכיב ולא בדף (סעיף 2.9 א)
+  const at = document.getElementById('activeTracking'), dw = document.getElementById('dailyWork');
+  if(at && dw && !at.closest('.home-work')){
+    const wrap = document.createElement('div'); wrap.className = 'home-work';
+    at.parentNode.insertBefore(wrap, at); wrap.appendChild(at); wrap.appendChild(dw);
+  }
+  let src = document.getElementById('homeSrc');
+  if(!src){ src = document.createElement('div'); src.id='homeSrc'; src.className='home-src'; document.getElementById('landing').appendChild(src); }
+  src.innerHTML = 'השראה: תרשים הגאנט של <b>הנרי גאנט</b> Henry Gantt, 1910, וערימות הנפח של תוכניות בינוי. מקורות: GIS עיריית אשדוד (גושים וחלקות), "מה נבנה סביבי" (מתחמי התחדשות).';
+  isoFocus(null);
+}
+function patchHome(){
+  const _rl = window.renderLanding;
+  if(typeof _rl==='function') window.renderLanding = function(){ _rl(); try{ renderHome(); }catch(e){ console.warn('home', e); } };
+  try{ renderHome(); }catch(e){}
+  // הנתונים משתנים אחרי טעינת ה-seed והענן: מרעננים את דף הבית כשהוא פתוח
+  ['applySeedOpinions','fixDataIssues','applyFilters'].forEach(fn => {
+    const o = window[fn]; if(typeof o!=='function') return;
+    window[fn] = function(){ const r = o.apply(this, arguments);
+      const pg = document.querySelector('.page.active'); if(pg && pg.id==='landing') requestAnimationFrame(()=>{ try{ renderHome(); }catch(e){} });
+      return r; };
+  });
+  document.addEventListener('mouseover', e => { const g = e.target.closest && e.target.closest('.iso-col'); if(g) isoFocus(g.dataset.k); });
+  document.addEventListener('click', e => { const g = e.target.closest && e.target.closest('.iso-col'); if(g) isoGo(g.dataset.k); });
+}
+
 /* ══════════ חיבור לניווט ══════════ */
 function patchNav(){
   const _go = window.go;
@@ -464,7 +612,7 @@ function patchNav(){
 
 function boot(){
   if(typeof plans==='undefined'){ return setTimeout(boot, 50); }
-  patchMap(); patchProject(); patchModal(); patchNav();
+  patchMap(); patchProject(); patchModal(); patchNav(); patchHome();
   syncRenewal();
   if((location.hash||'')==='#timeline'){ const b=document.querySelector('#mainNav button[data-nav="timeline"]'); window.go('timeline', b); }
   if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});

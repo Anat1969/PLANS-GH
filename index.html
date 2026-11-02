@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Rubik:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -2117,6 +2117,7 @@ tbody tr{transition:background .12s}
 /* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
 .dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
+<link rel="stylesheet" href="anat-layer.css">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2214,15 +2215,15 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <button data-nav="muni" onclick="go('muni',this)" title="ידע ודרישות">אוגדן דרישות העירייה</button>
     <button data-nav="spatial" onclick="go('spatial',this)" title="ידע ודרישות">הנחיות מרחביות (מהדורה 18)</button>
     <button data-nav="calchub" onclick="go('calchub',this)" title="ידע ודרישות">מחשבונים</button>
-    <button data-nav="tba" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">🧪 בדיקת חילוץ תב״ע</button>
+    <button data-nav="tba" hidden data-sys="1" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">בדיקת חילוץ תב״ע</button>
     <span class="nav-sep" aria-hidden="true"></span>
     <!-- קבוצה: קשר ושיתוף -->
     <button data-nav="shares" onclick="go('shares',this)" title="קשר ושיתוף">חוות דעת, דיווחים ושיתופים</button>
     <button data-nav="contacts" onclick="go('contacts',this)" title="קשר ושיתוף">רשימות קשר</button>
     <span class="nav-sep" aria-hidden="true"></span>
     <!-- קבוצה: מערכת -->
-    <button data-nav="settings" onclick="go('settings',this)" title="מערכת">הגדרות</button>
-    <button data-nav="help" onclick="go('help',this)" title="מערכת">❓ עזרה ומדריך</button>
+    <button data-nav="settings" hidden data-sys="1" onclick="go('settings',this)" title="מערכת">הגדרות</button>
+    <button data-nav="help" hidden data-sys="1" onclick="go('help',this)" title="מערכת">עזרה ומדריך</button>
   </nav>
   <!-- קבוצת ניהול: חיפוש · מצב עריכה · שדרוג -->
   <div class="toolbar-manage">
@@ -2230,8 +2231,8 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <!-- כפתורי התוכנית הפתוחה — מוצגים רק בדף תוכנית -->
     <div class="proj-toolbar no-print" id="projToolbar" style="display:none">
       <span id="ppStageBadge"></span>
-      <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">🔑 —</span>
-      <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">🔒 אישורים ונעילה</button>
+      <span class="dev-code-chip arch-only no-print" id="devCodeChip" onclick="copyDevLink()" title="קוד הגישה של היזם לתוכנית זו — לחיצה מעתיקה קישור כניסה ישיר">—</span>
+      <button class="btn btn-sm arch-only no-print" id="ppLocksBtn" onclick="openLocksModal()">אישורים ונעילה</button>
       <div class="role-toggle" id="roleToggle">
         <button class="role-btn active" data-role="architect" onclick="setProjectRole('architect')" title="מילוי שדות ובדיקת התאמה לדרישות">נציג היזם / אדריכל</button>
         <button class="role-btn" data-role="city" onclick="setProjectRole('city')">אדריכלית העיר</button>
@@ -2240,7 +2241,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <div class="search-bar">
       <input type="text" placeholder="חיפוש תוכנית, יזם, רובע..." id="globalSearch" data-nolock="1" oninput="globalSearchFn(this.value)">
     </div>
-    <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">☁ מתחבר…</span>
+    <span class="cloud-status" id="cloudStatus" title="מצב שמירה אונליין">מתחבר…</span>
     <span class="role-chip no-print" id="roleChip" style="display:none"><span id="roleChipName"></span> <span class="rc-info" onclick="openPermsModal()" title="מה מותר לי במסלול הזה?">i</span></span>
     <ai-menu id="aiMenu"></ai-menu>
   </div>
@@ -2259,15 +2260,15 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <div class="login-sub">בחרו סוג משתמש כדי להיכנס</div>
     <div class="login-cards">
       <button class="login-card" onclick="loginPick('architect')">
-        <div class="lc-top"><div class="lc-icon">👩‍💼</div><h4>אדריכלית העיר</h4></div>
+        <div class="lc-top"><div class="lc-icon">‍</div><h4>אדריכלית העיר</h4></div>
         <p>ענת דוד שטיבלמן — צפייה ועריכה מלאה, אישור ונעילת סעיפים</p>
       </button>
       <button class="login-card" onclick="loginPick('manager')">
-        <div class="lc-top"><div class="lc-icon">🏛️</div><h4>הנהלת העירייה</h4></div>
+        <div class="lc-top"><div class="lc-icon"></div><h4>הנהלת העירייה</h4></div>
         <p>מנכ״ל העירייה / ראש העיר — תמונת מצב מלאה, צפייה בלבד</p>
       </button>
       <button class="login-card" onclick="loginPick('developer')">
-        <div class="lc-top"><div class="lc-icon">🏗️</div><h4>יזם / נציג יזם</h4></div>
+        <div class="lc-top"><div class="lc-icon"></div><h4>יזם / נציג יזם</h4></div>
         <p>הפרויקט שלכם, המדריכים ומה נדרש להגיש — סעיף שאושר ננעל לעריכה</p>
       </button>
     </div>
@@ -2471,7 +2472,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
           <div class="layer-toggle on" data-layer="green"></div>
         </div>
       </div>
-      <button id="boxZoomBtn" class="btn btn-ghost btn-sm no-print" style="width:100%;margin-top:10px" onclick="toggleBoxZoom()">🔍 זום לפי מלבן</button>
+      <button id="boxZoomBtn" class="btn btn-ghost btn-sm no-print" style="width:100%;margin-top:10px" onclick="toggleBoxZoom()">זום לפי מלבן</button>
       <div class="section-title" style="margin-top:1.5rem">מקרא — סינון לפי סטטוס</div>
       <div id="mapFilterBar"></div>
       <div class="map-legend" id="mapLegend" style="margin-top:10px">
@@ -2609,7 +2610,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
         <div style="font-size:13px;color:#2a5f5f;margin-bottom:6px">התוכנית נוספה. שלחי ליזם/אדריכל קישור כניסה (כולל קוד גישה) למילוי שדות הבקשה:</div>
         <div id="addPlanDevCode" style="font-size:13px;margin-bottom:6px"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="copyFillLink()">📋 העתק קישור כניסה ליזם</button>
+          <button class="btn btn-primary btn-sm" onclick="copyFillLink()">העתק קישור כניסה ליזם</button>
           <button class="btn btn-ghost btn-sm" onclick="openFillLink()">פתח את דף הפרויקט</button>
         </div>
       </div>
@@ -2754,7 +2755,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
   <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>מחשבונים</span></div>
   <div class="page-title">מחשבונים לתהליך האישור</div>
   <div class="page-subtitle">כל סוגי המחשבונים המשרתים את תהליך האישור מול הגורמים השונים. לכל מחשבון: נושא, מקור, משתנים, קבועים, הסברים, חישוב, קלט, פלט ותובנות.</div>
-  <div class="calc-warn-banner" style="margin-bottom:12px">⚠ הערכים והנוסחאות להמחשה בלבד — יש לאמת מול המקור הרשמי (אוגדן / תקן / תב״ע) לפני שימוש. נוסחאות מקצועיות מוזנות רק ממקור מאושר.</div>
+  <div class="calc-warn-banner" style="margin-bottom:12px">הערכים והנוסחאות להמחשה בלבד — יש לאמת מול המקור הרשמי (אוגדן / תקן / תב״ע) לפני שימוש. נוסחאות מקצועיות מוזנות רק ממקור מאושר.</div>
   <div class="calchub-picker no-print">
     <label style="font-size:13px;font-weight:600">הרצה על תוכנית:</label>
     <select id="calchubPlan" onchange="renderCalcHub()" style="font-size:13px;padding:5px 10px;border:1px solid var(--stone);border-radius:6px"></select>
@@ -2767,7 +2768,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
 <div id="spatial" class="page">
   <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>הנחיות מרחביות 18</span></div>
   <div class="page-title">הנחיות מרחביות לעיר אשדוד — מהדורה 18</div>
-  <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח. <a class="src-doc-btn" href="source-spatial18.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור</a></div>
+  <div class="page-subtitle">מקרא ההנחיות המרחביות: ניווט בראשי הפרקים, הפרקים והסעיפים כמו במסמך המקורי, וחיפוש חופשי לפי מילת מפתח. <a class="src-doc-btn" href="source-spatial18.pdf" target="_blank" rel="noopener">פתיחת מסמך המקור</a></div>
   <div class="sp-search no-print">
     <input type="text" id="spSearch" placeholder="חיפוש מילת מפתח בכל ההנחיות…" oninput="spatialSearch(this.value)">
     <span id="spSearchCount" class="muted"></span>
@@ -2781,11 +2782,11 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
 <!-- ════════ מצב בדיקה: בדיקת חילוץ תב״ע (זמני) ════════ -->
 <div id="tba" class="page">
   <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>בדיקת חילוץ תב״ע</span></div>
-  <div class="page-title">🧪 בדיקת חילוץ תב״ע — מצב בדיקה</div>
+  <div class="page-title">בדיקת חילוץ תב״ע — מצב בדיקה</div>
   <div class="page-subtitle">שלב ניסיוני: העלאת מסמך תב״ע, חילוץ הנתונים והצגתם מול שדות האפליקציה — לבדיקה ואישור בלבד. <strong>אין שמירה ברשומות התוכניות ואין מילוי אוטומטי.</strong></div>
   <div class="tba-warnbar">מצב בדיקה מבודד · הנתונים אינם נשמרים במערכת · המספרים לתצוגה בלבד עד לאישור מבנה הנתונים</div>
   <div class="tba-toolbar no-print">
-    <label class="btn btn-sm btn-primary" style="cursor:pointer">📄 העלאת מסמך תב״ע
+    <label class="btn btn-sm btn-primary" style="cursor:pointer">העלאת מסמך תב״ע
       <input type="file" id="tbaFileInput" accept="application/pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="tbaFilePick(this)" style="display:none">
     </label>
     <button class="btn btn-sm" onclick="tbaLoadSample()">טעינת דוגמה: נאות ספיר</button>
@@ -2806,7 +2807,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
   <div class="pp-breadcrumb"><a onclick="go('landing', navBtn('landing'))">ראשי</a> ‹ <span>אוגדן</span></div>
   <div class="page-title">אוגדן — דרישות גורמי העירייה לתוכנית בינוי ועיצוב</div>
   <div class="page-subtitle">מידע כללי: הנספחים, הדרישות והתיאומים הנדרשים מול גורמי העירייה, לפי מחלקות.</div>
-  <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <a class="src-doc-btn" href="source-aoggdan.pdf" target="_blank" rel="noopener">📄 פתיחת מסמך המקור (האוגדן)</a> · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
+  <div class="muni-source">מקור: אוגדן עיריית אשדוד, 30.06.2025 · <a class="src-doc-btn" href="source-aoggdan.pdf" target="_blank" rel="noopener">פתיחת מסמך המקור (האוגדן)</a> · <b>יש לוודא את עדכניות פרטי הקשר והדרישות לפני הגשה.</b></div>
 
   <div class="muni-filters" id="muniFilters"></div>
   <div class="muni-topbar">
@@ -3038,7 +3039,7 @@ async function cloudSaveNow() {
       const s = JSON.stringify(rec);
       if (_syncBase.get(rec.__key) !== s) changed.push({ key: rec.__key, rec, s });
     });
-    if (!changed.length) { _cloudDirty = false; setCloudStatus('ok', '☁ מסונכרן'); return; }
+    if (!changed.length) { _cloudDirty = false; setCloudStatus('ok', 'מסונכרן'); return; }
     const rows = changed.map(c => ({ plan_key: c.key, data: c.rec, updated_at: now }));
     const res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?on_conflict=plan_key', {
       method: 'POST',
@@ -3048,10 +3049,10 @@ async function cloudSaveNow() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     changed.forEach(c => { _syncBase.set(c.key, c.s); _remoteStamp.set(c.key, now); });
     _cloudDirty = false;
-    setCloudStatus('ok', '☁ נשמר אונליין');
+    setCloudStatus('ok', 'נשמר אונליין');
   } catch (e) {
     console.warn('cloud save failed', e);
-    setCloudStatus('err', '⚠ שמור מקומית בלבד');
+    setCloudStatus('err', 'שמור מקומית בלבד');
   } finally { _cloudBusy = false; }
 }
 
@@ -3119,11 +3120,11 @@ async function cloudLoad() {
         plans.push(np); byKey[planKey(np)] = np;
       }
     });
-    setCloudStatus('ok', '☁ מסונכרן');
+    setCloudStatus('ok', 'מסונכרן');
     return true;
   } catch (e) {
     console.warn('cloud load failed', e);
-    setCloudStatus('err', '⚠ לא מחובר לענן');
+    setCloudStatus('err', 'לא מחובר לענן');
     return 'error'; // שגיאת רשת — שונה מ"ענן ריק"! אסור לדחוף את המצב המקומי במקרה כזה
   }
 }
@@ -3173,8 +3174,8 @@ function refreshAfterRemoteUpdate(n) {
     if (id === 'exec' && typeof renderExecDash === 'function') renderExecDash();
     if (id === 'devhome' && typeof renderDevHome === 'function') renderDevHome();
     if (currentProjectId != null) { const p = pj(); if (p) refreshProjectPanels(p); }
-    setCloudStatus('ok', '☁ עודכן ממשתמש אחר');
-    setTimeout(() => setCloudStatus('ok', '☁ מסונכרן'), 4000);
+    setCloudStatus('ok', 'עודכן ממשתמש אחר');
+    setTimeout(() => setCloudStatus('ok', 'מסונכרן'), 4000);
   } catch (e) { console.warn('remote refresh render failed', e); }
 }
 
@@ -3257,11 +3258,74 @@ const SEED_FORUM_DATES = {
   "1912": { forumArchitect: "2026-03-11", forumConsultants: "2026-06-28", committeePrep: "2026-08-28" },
   "1913": { forumArchitect: "2026-03-11", forumConsultants: "2026-07-08", committeePrep: "" }
 };
+/* ══════════ מפתח ה-seed: מספר תוכנית הבינוי, לא מספר התיק ══════════
+   המסמכים ב-seed-data.json ממוספרים לפי מספר המסמך (תב/XXXX). כשמספר התיק שונה ממספר
+   התוכנית (למשל תיק 1807 = תב/1815), השיוך לפי התיק הדביק נתוני מרינה לתוכנית ברובע המיוחד. */
+const SEED_SKIP = {
+  '1910': 'מסמך תב/1910 בארכיון שייך לתוכנית אחרת (שינוי קווי בניין, בוזגלו 40-50, רובע ט\')',
+  '1778': 'המסמך מתאר את מגרש 22 ברובע ט"ז, ולא את תב/1750 בפארק לכיש'
+};
+function seedKey(p){
+  const pn = String((p && p.planNum) || '').replace(/[^0-9]/g,'');
+  return (pn && !SEED_SKIP[pn]) ? pn : '';
+}
+/** מנקה שדות שמולאו מ-seed של תוכנית אחרת (שיוך לפי התיק). רק שדות שעדיין מסומנים
+    כמיובאים וערכם זהה בדיוק לערך השגוי. ערכים שהוקלדו ידנית לא נוגעים בהם. */
+function cleanMisSeeded(){
+  let changed = 0;
+  plans.forEach(p => {
+    const wrong = String(p.tik);
+    if (wrong === seedKey(p) || !p._seeded) return;
+    const so = SEED_OPINIONS[wrong], sf = SEED_FIELDS[wrong], sr = SEED_RENDERS[wrong];
+    if (!so && !sf && !sr) return;
+    const raw = RAW_DATA.find(r => String(r[0])===wrong && String(r[2]).replace(/[^0-9]/g,'')===String(p.planNum).replace(/[^0-9]/g,'')) || [];
+    const restore = { submitter: raw[4]||'', location: raw[5]||'' };
+    const drop = (key, getCur, setVal, wrongVal) => {
+      if (!p._seeded[key] || !wrongVal) return;
+      if (getCur() === wrongVal) { setVal(restore[key] !== undefined ? restore[key] : ''); delete p._seeded[key]; changed++; }
+    };
+    const top = k => [()=>p[k], v=>{p[k]=v;}];
+    if (so) {
+      drop('projectName', ...top('projectName'), so.projectName);
+      drop('committeeDate', ...top('committeeDate'), so.committeeDate);
+      if (p.opinion) { drop('opinion.description', ()=>p.opinion.description, v=>{p.opinion.description=v;}, so.text);
+                       drop('opinion.recommendation', ()=>p.opinion.recommendation, v=>{p.opinion.recommendation=v;}, so.decision); }
+      if (p.summary) drop('summary.committeeDecision', ()=>p.summary.committeeDecision, v=>{p.summary.committeeDecision=v;},
+                          'ישיבה ' + (so.session||'') + (so.committeeDate?(' · '+so.committeeDate):'') + ' — ' + so.decision);
+    }
+    if (sf) {
+      ['projectName','developer','parcel','location'].forEach(k => drop(k, ...top(k), sf[k]));
+      drop('submitter', ...top('submitter'), sf.archName || sf.submitter);
+      if (p.meta) ['devPhone','devEmail','devAddress','archName','archPhone','archEmail','archAddress','contactName','contactPhone','contactEmail',
+                   'zoningPlan','zoningDetailed','designation','area','reliefsAsked','address']
+        .forEach(k => drop('meta.'+k, ()=>p.meta[k], v=>{p.meta[k]=v;}, k==='address'?sf.devAddress:sf[k]));
+      if (p.aspects) ['environmental','experiential','operational'].forEach(k => drop('aspects.'+k, ()=>p.aspects[k], v=>{p.aspects[k]=v;}, sf[k]));
+    }
+    if (sr && p._seeded.render && p.render === sr[0]) {
+      p.render = ''; if (JSON.stringify(p.renders||[]) === JSON.stringify(sr)) p.renders = [];
+      delete p._seeded.render; changed++;
+    }
+  });
+  return changed;
+}
+/** תיקוני נתונים שזוהו בבדיקת קובץ האקסל (02.11.2026). אידמפוטנטי. */
+function fixDataIssues(){
+  let changed = cleanMisSeeded();
+  // 1911, מתחם הרב מימון: התב"ע חסרה. לפי "מה נבנה סביבי" ומבא"ת: תמל/2047
+  const p1911 = plans.find(p => String(p.tik)==='1911');
+  if (p1911 && !p1911.change) { p1911.change = 'תמל/2047'; if(!p1911._seeded) p1911._seeded={}; p1911._seeded.change = 1; changed++; }
+  // שורות בדיקה (תב/1111, תב/2222) בלי תוכן: מחיקה רכה, ניתנת לשחזור
+  plans.forEach(p => {
+    const pn = String(p.planNum||'').replace(/[^0-9]/g,'') || String(p.tik).replace(/[^0-9]/g,'');
+    if (!p._deleted && /^(1111|2222)$/.test(pn) && !p.developer && !p.committeeDate && !p.forumArchitect) { p._deleted = true; changed++; }
+  });
+  return changed;
+}
 /** ממלא נתוני חוות דעת ועדה לתוך הפרויקטים — רק שדות ריקים, לא דורס עריכה.
    כל שדה שממולא נרשם ב-p._seeded כדי להציגו בכחול (תוכן חיצוני מיובא). */
 function applySeedOpinions() {
   plans.forEach(p => {
-    const s = SEED_OPINIONS[String(p.tik)];
+    const s = SEED_OPINIONS[seedKey(p)];
     if (!s) return;
     ensureProjectData(p);
     if (!p._seeded) p._seeded = {};
@@ -3285,7 +3349,7 @@ function applySeedOpinions() {
       p.summary.committeeDecision = put('summary.committeeDecision', p.summary.committeeDecision, dec);
     }
     // ── שדות מפורקים מהמסמך (SEED_FIELDS) ──
-    const f = (typeof SEED_FIELDS !== 'undefined') ? SEED_FIELDS[String(p.tik)] : null;
+    const f = (typeof SEED_FIELDS !== 'undefined') ? SEED_FIELDS[seedKey(p)] : null;
     if (f) {
       if (f.projectName) p.projectName = put('projectName', p.projectName, f.projectName);
       p.developer = put('developer', p.developer, f.developer);
@@ -3311,8 +3375,8 @@ function applySeedOpinions() {
       p.meta.area = put('meta.area', p.meta.area, s.area);
     }
     // ── הדמיות מיובאות (מערך; יכול להיות יותר מאחת) ──
-    if (typeof SEED_RENDERS !== 'undefined' && SEED_RENDERS[String(p.tik)]) {
-      const imgs = SEED_RENDERS[String(p.tik)];
+    if (typeof SEED_RENDERS !== 'undefined' && SEED_RENDERS[seedKey(p)]) {
+      const imgs = SEED_RENDERS[seedKey(p)];
       p.render = put('render', p.render, imgs[0]);
       if (!p.renders || !p.renders.length) { if (!p._userEdited || !p._userEdited['render']) p.renders = imgs.slice(); }
     }
@@ -3392,6 +3456,7 @@ async function loadSeedData(){
     }
   }catch(e){ console.warn('seed data unavailable', e); }
   try{ applySeedOpinions(); }catch(e){ console.warn('seed apply failed', e); }
+  try{ if(fixDataIssues()) savePlans(); }catch(e){ console.warn('data fix failed', e); }
 }
 // רשת ביטחון: ניסיון סנכרון חוזר רק כשיש שינויים שטרם עלו לענן.
 // טאב סרק ללא עריכות לא דוחף כלום — וכך אינו דורס עריכות של משתמשים אחרים.
@@ -3428,6 +3493,7 @@ async function initCloud() {
     migrateCompletedGantt(); // עדכון חד־פעמי לגאנט של תוכניות שהושלמו (כולל נתוני ענן)
     migrateHistoricalForums(); // עדכון חד־פעמי לסרגל הפורומים של רקורדי עבר
     applyForumChainAll(); // השלמת שרשרת 3 התאריכים לכל התוכניות הפעילות
+    try{ fixDataIssues(); }catch(e){ console.warn('data fix failed', e); } // הענן גובר — מתקנים שוב אחריו
     applyFilters(); renderLanding();
     if (currentProjectId != null) { const p = pj(); if (p) openProject(currentProjectId); }
     savePlans(); // מסנכרן חזרה כדי לכלול פרויקטים חדשים/seed
@@ -3764,7 +3830,7 @@ function notifyForumDate(plan, field, dateVal){
     `• מגיש/עורך: ${plan.submitter || '—'}\n` +
     `• מיקום: ${plan.location || '—'}\n` +
     `• רובע: ${plan.district}\n\n` +
-    `📅 תאריך שנקבע: ${fmtD}\n\n` +
+    `תאריך שנקבע: ${fmtD}\n\n` +
     `══════════════════════════════\n` +
     `חומרים נדרשים ל${info.label}:\n` +
     `══════════════════════════════\n` +
@@ -4251,7 +4317,7 @@ function renderFrameHTML(p) {
     return `<div class="render-frame${seeded}" title="הדמיית הפרויקט — לחצי להגדלה"
       ondragover="renderDragOver(event)" ondragleave="renderDragLeave(event)" ondrop="renderDrop(event,${p.id})">
       <img src="${p.render}" onclick="event.stopPropagation();renderZoom(${p.id})" alt="הדמייה">
-      ${n>1?`<span class="render-count" onclick="event.stopPropagation();renderZoom(${p.id})">${n}📷</span>`:''}
+      ${n>1?`<span class="render-count" onclick="event.stopPropagation();renderZoom(${p.id})">${n}</span>`:''}
       <button class="render-swap" title="החלפת תמונה" onclick="event.stopPropagation();renderPick(${p.id})">⇄</button>
       <button class="render-clear" title="הסר" onclick="event.stopPropagation();renderClear(${p.id})">✕</button>
     </div>`;
@@ -4505,7 +4571,7 @@ function submitterMailHTML(p){
   const email = (p.meta && (p.meta.archEmail || p.meta.reqEmail)) || p.submitterEmail || '';
   if (!email) return '';
   const subj = encodeURIComponent(`תוכנית ${p.planNum||p.tik||''} — ${p.location||''}`);
-  return ` <a class="submit-mail" href="mailto:${email}?subject=${subj}" title="שליחת מייל ל${esc(p.submitter||'מגיש')}" onclick="event.stopPropagation()">✉</a>`;
+  return ` <a class="submit-mail" href="mailto:${email}?subject=${subj}" title="שליחת מייל ל${esc(p.submitter||'מגיש')}" onclick="event.stopPropagation()">מייל</a>`;
 }
 
 function renderTable() {
@@ -4865,7 +4931,7 @@ function initMap() {
       if (!lat || !lng) { const c = ASHDOD_DISTRICTS[p.district]; if (c) { lat=c[0]; lng=c[1]; } }
       if (lat && lng) {
         L.circleMarker([lat, lng], { radius: 9, fillColor:'#3d8b5e', color:'#fff', weight:2, opacity:1, fillOpacity:0.7 })
-          .bindTooltip(`🌳 תב/${p.tik} — ${p.purpose}`, {direction:'top'}).addTo(greenSpaces);
+          .bindTooltip(`תב/${p.tik} — ${p.purpose}`, {direction:'top'}).addTo(greenSpaces);
       }
     }
   });
@@ -5041,7 +5107,7 @@ function calCellHTML(y,m,d,events,outside){
     // שם התוכנית ללא כפילות "תב/" (buildProjectTitle כבר כולל אותו)
     const nm = String(e.name||'').replace(/^תב\/\S+\s*-\s*/,'').trim();
     const apprBadge = e.appr==='approved' ? '<span class="cal-chip-appr">✓ אושר</span>'
-      : (e.appr==='pending' ? '<span class="cal-chip-appr cal-chip-wait">⏳ ממתין לאישור</span>' : '');
+      : (e.appr==='pending' ? '<span class="cal-chip-appr cal-chip-wait">ממתין לאישור</span>' : '');
     return `<button class="cal-chip" style="background:${e.color}" title="${esc(e.name)} · ${esc(e.stage)}" onclick="calOpenEvent('${ymd}',${i})">
       <span class="cal-chip-name">תב/${esc(String(e.tik))}${nm?(' — '+esc(nm)):''}</span>
       <span class="cal-chip-sub">${esc(e.stage)} · ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</span>
@@ -5088,7 +5154,7 @@ function calOpenEvent(ymd, idx){
   const e=(calEvents()[ymd]||[])[idx]; if(!e) return;
   const p=plans.find(x=>x.id===e.pid); if(!p) return;
   const appr=calGetApproval(p.id, e.stageKey);
-  const apprLbl = appr ? (appr.state==='approved' ? '<span class="cal-appr cal-appr-ok">✓ המועד אושר</span>' : '<span class="cal-appr cal-appr-wait">⏳ ממתין לאישור מועד</span>') : '';
+  const apprLbl = appr ? (appr.state==='approved' ? '<span class="cal-appr cal-appr-ok">✓ המועד אושר</span>' : '<span class="cal-appr cal-appr-wait">ממתין לאישור מועד</span>') : '';
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=ev=>{if(ev.target===ov)ov.remove();};
   const canEdit=isArchitect();
   ov.innerHTML=`<div class="cal-pop">
@@ -5106,7 +5172,7 @@ function calOpenEvent(ymd, idx){
       </div>
     </div>`:`<div class="cal-pop-row"><b>מועד:</b> ${fmtDate(ymd)}${e.time?(' · '+e.time):''}</div>`}
     <div class="cal-pop-acts">
-      ${canEdit?`<button class="btn btn-primary btn-sm" onclick="calMailSecretary(${p.id},'${e.stageKey}','${esc(ymd)}')">✉ שליחה למזכירה לתיאום</button>`:''}
+      ${canEdit?`<button class="btn btn-primary btn-sm" onclick="calMailSecretary(${p.id},'${e.stageKey}','${esc(ymd)}')">שליחה למזכירה לתיאום</button>`:''}
       ${canEdit&&appr&&appr.state==='pending'?`<button class="btn btn-sm" onclick="calApproveSlot(${p.id},'${e.stageKey}')">המועד אושר</button>`:''}
       ${canEdit&&appr?`<button class="btn btn-ghost btn-sm" onclick="calSetApproval(${p.id},'${e.stageKey}',null);calRefreshPopup(${p.id},'${e.stageKey}','${esc(ymd)}')">ניקוי סטטוס</button>`:''}
       <button class="btn btn-ghost btn-sm" onclick="calGoto(${p.id},'${e.tab}')">מעבר לתוכנית ›</button>
@@ -5715,7 +5781,7 @@ function openProject(id, isBack) {
   ppActiveGroup='requested'; renderPpGroups();  // שלוש קבוצות-העל + תת-הטאבים
   projToolbarShow(true);   // כפתורי התוכנית בסרגל העליון
   const dc=document.getElementById('devCodeChip');
-  if(dc && isArchitect()) dc.textContent='🔑 קוד יזם: '+devCodeFor(p);
+  if(dc && isArchitect()) dc.textContent='קוד יזם: '+devCodeFor(p);
   // אם פאנל הסייען פתוח — רענן את ההקשר לפרויקט החדש
   const aip = document.getElementById('aiPanel');
   if (aip && aip.classList.contains('open')) { const b=document.getElementById('aiBody'); if(b) delete b.dataset.hasResult; aiSyncContext(); }
@@ -6622,7 +6688,7 @@ function renderTable5(p){
       <td>${badge(r.level)}${r.delta?(' <span class="t5-delta">'+r.delta+'</span>'):''}</td>
     </tr>
     ${needExplain?`<tr class="t5-explain-row"><td colspan="4">
-      <div class="t5-explain"><label>${r.level==='block'?'⛔ חוסם הגשה — נדרש תיקון או הקלה:':'הסבר/הצדקה + אסמכתה:'}</label>
+      <div class="t5-explain"><label>${r.level==='block'?'חוסם הגשה — נדרש תיקון או הקלה:':'הסבר/הצדקה + אסמכתה:'}</label>
       <textarea placeholder="נימוק, הקלה או מקור..." onchange="setTable5('${f.key}','note',this.value)">${esc(row.note)}</textarea>
       <input class="t5-source" value="${esc(row.source)}" placeholder="מקור / סעיף בתב״ע" onchange="setTable5('${f.key}','source',this.value)"></div>
     </td></tr>`:''}`;
@@ -6640,13 +6706,13 @@ function renderTable5(p){
     <div class="t5-extract no-print">
       <button class="btn btn-primary btn-sm" onclick="extractRights(${p.id})">חילוץ מהוראות התוכנית (טבלת זכויות)</button>
       <button class="btn btn-ghost btn-sm" onclick="showPlanSource(${p.id})">הצגת הוראות התב״ע / מקור</button>
-      ${String(p.tik)==='1887' ? `<button class="btn btn-sm" style="background:#e8f0ef" onclick="tbaFillPreview(${p.id})" title="מילוי מבוקר של „מותר" מנתוני החילוץ המאושרים — עם תצוגה מקדימה, בחירה, אישור וביטול">🧪 מלא נתוני תב״ע מהחילוץ</button>` : ''}
+      ${String(p.tik)==='1887' ? `<button class="btn btn-sm" style="background:#e8f0ef" onclick="tbaFillPreview(${p.id})" title="מילוי מבוקר של „מותר" מנתוני החילוץ המאושרים — עם תצוגה מקדימה, בחירה, אישור וביטול">מלא נתוני תב״ע מהחילוץ</button>` : ''}
       <span class="muted" style="font-size:11px">ממלא את עמודת „מותר” מתוך הנתונים הידועים; מה שאינו במקור מסומן „להשלמה מהוראות התוכנית”.</span>
     </div>
     <div class="t5-note">המערכת מחשבת אוטומטית חריגות וחוסרים. „חוסם הגשה” (אדום) מונע הגשה עד תיקון/הקלה; „דורש הסבר” (כתום) ניתן להמשך לאחר נימוק.</div>
     <div class="tbl-wrap"><table class="t5-table"><thead><tr><th>נושא</th><th>מותר לפי התב״ע</th><th>מוצע</th><th>תוצאה</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${sm.block? `<div class="t5-block-banner">⛔ קיימות ${sm.block} אי־התאמות חוסמות — לא ניתן להגיש עד תיקון.</div>`
-      : (sm.explain? `<div class="t5-warn-banner">⚠️ ${sm.explain} נושאים דורשים הסבר לפני הגשה.</div>` : `<div class="t5-ok-banner">✓ אין אי־התאמות חוסמות.</div>`)}
+    ${sm.block? `<div class="t5-block-banner">קיימות ${sm.block} אי־התאמות חוסמות — לא ניתן להגיש עד תיקון.</div>`
+      : (sm.explain? `<div class="t5-warn-banner">${sm.explain} נושאים דורשים הסבר לפני הגשה.</div>` : `<div class="t5-ok-banner">✓ אין אי־התאמות חוסמות.</div>`)}
   </div>`;
 }
 
@@ -6722,7 +6788,7 @@ function tbaFillPreview(pid){
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
   const mrows = mapped.map((x,i)=>{
     const pre = true;  // ברירת מחדל: הכל מסומן (בחר הכל) — האזהרות עדיין מוצגות
-    const st = x.conflict ? '<span class="tba-badge tba-b-miss">⚠ קיים ערך — יוחלף</span>'
+    const st = x.conflict ? '<span class="tba-badge tba-b-miss">קיים ערך — יוחלף</span>'
              : (keyCount[x.key]>1 ? '<span class="tba-badge tba-b-check">מספר מועמדים — בחרו אחד</span>' : '<span class="tba-badge tba-b-found">חדש</span>');
     return `<tr>
       <td><input type="checkbox" class="tba-fill-chk" data-key="${esc(x.key)}" data-val="${esc(String(x.value))}" data-sec="${esc(String(x.field.sourceSection||''))}" data-page="${esc(String(x.field.sourcePage||''))}" data-quote="${esc(String(x.field.sourceQuote||''))}" data-conf="${esc(String(x.field.confidence||''))}" ${pre?'checked':''}></td>
@@ -6799,7 +6865,7 @@ function tbaFillSelectAll(on){
 /* ── הצגת מקור: טקסט החלטת הוועדה/הוראות התב״ע לתוכנית ── */
 function showPlanSource(pid){
   const p=plans.find(x=>x.id==pid)||pj(); if(!p) return;
-  const seed = (typeof SEED_OPINIONS!=='undefined') ? SEED_OPINIONS[String(p.tik)] : null;
+  const seed = (typeof SEED_OPINIONS!=='undefined') ? SEED_OPINIONS[seedKey(p)] : null;
   const txt = seed && seed.text ? seed.text : '';
   const ov=document.createElement('div'); ov.className='render-lightbox'; ov.onclick=e=>{if(e.target===ov)ov.remove();};
   ov.innerHTML=`<div class="ver-modal" style="max-width:820px;width:92vw;max-height:86vh;display:flex;flex-direction:column">
@@ -6834,7 +6900,7 @@ function renderRequirements(p){
         <button class="chk2-btn chk2-yes${c.met===true?' on':''}" title="מולא" onclick="setMuni('${r.id}','met',true)">✓</button>
         <button class="chk2-btn chk2-no${c.met===false?' on':''}" title="לא מולא" onclick="setMuni('${r.id}','met',false)">✗</button>
       </div>
-      ${c.met===false?`<div class="req-note-row"><label>${r.blocks?'⛔ חוסם — ':''}הסבר מדוע הדרישה אינה מתקיימת והפתרון:</label><textarea onchange="setMuni('${r.id}','note',this.value)" placeholder="פירוט...">${esc(c.note)}</textarea></div>`:''}
+      ${c.met===false?`<div class="req-note-row"><label>${r.blocks?'חוסם — ':''}הסבר מדוע הדרישה אינה מתקיימת והפתרון:</label><textarea onchange="setMuni('${r.id}','note',this.value)" placeholder="פירוט...">${esc(c.note)}</textarea></div>`:''}
     </div>`;
   }).join('');
   return `<div class="pp-card">
@@ -6843,7 +6909,7 @@ function renderRequirements(p){
     </div>
     <div class="t5-note">המערכת מפעילה אוטומטית רק את הדרישות הרלוונטיות למאפייני הפרויקט (${reqs.length} דרישות). ✗ פותח שדה הסבר חובה.</div>
     ${rows}
-    ${sm.block?`<div class="t5-block-banner">⛔ ${sm.block} דרישות חוסמות לא מולאו.</div>`:''}
+    ${sm.block?`<div class="t5-block-banner">${sm.block} דרישות חוסמות לא מולאו.</div>`:''}
   </div>`;
 }
 
@@ -7581,7 +7647,7 @@ function renderSharesList(){
     const open = _libOpen[type];
     return `<div class="share-lib">
       <div class="share-lib-head" onclick="toggleLib('${type}')">
-        <span class="lib-icon">📁</span>
+        <span class="lib-icon"></span>
         <h3>${name}</h3>
         <span class="lib-count">${items.length}</span>
         <span class="flow-chevron"${open?' style="transform:rotate(180deg)"':''}>▾</span>
@@ -7703,7 +7769,7 @@ function ceoMonthlyReminder(s){
   const pr=s.reportingPeriod||{};
   const prevM = now.getMonth()===0?12:now.getMonth(); const prevY = now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
   if(pr.month===prevM && pr.year===prevY && s.status!=='draft') return '';
-  return `<div class="ceo-reminder no-print">📅 תחילת חודש — מומלץ להפיק את דוח <b>${heMonthName(prevM)} ${prevY}</b>.
+  return `<div class="ceo-reminder no-print">תחילת חודש — מומלץ להפיק את דוח <b>${heMonthName(prevM)} ${prevY}</b>.
     <button class="btn btn-primary btn-xs" onclick="ceoSetPeriod(${prevM},${prevY});ceoProduce()">הפקת דוח לחודש הקודם</button></div>`;
 }
 function ceoSetPeriod(m,y){ const s=sh(); if(!s)return; if(!s.reportingPeriod)s.reportingPeriod={}; s.reportingPeriod.month=m; s.reportingPeriod.year=y; touchShare(s); }
@@ -7830,7 +7896,7 @@ function sectionShell(s, key, title, bodyHtml){
       <h3>${title}</h3>
       <div class="share-sec-tools no-print">
         <button class="btn btn-ghost btn-sm" onclick="regenSection('${key}')" ${locked?'disabled':''}>יצירה מחדש</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleLockSection('${key}')">${locked?'🔒 נעול':'🔓 פתוח'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleLockSection('${key}')">${locked?'נעול':'פתוח'}</button>
       </div>
     </div>
     <div class="share-sec-body" contenteditable="false" data-seckey="${key}">${bodyHtml}</div>
@@ -8024,7 +8090,7 @@ function renderMayorShare(s){
   <div class="share-toolbar no-print">
     <button class="btn btn-ghost btn-sm" onclick="backToShares()">← חזרה</button>
     <div class="share-tb-right">
-      <button class="btn btn-primary btn-sm" onclick="saveMayorVersion()">💾 שמירת גרסה</button>
+      <button class="btn btn-primary btn-sm" onclick="saveMayorVersion()">שמירת גרסה</button>
       <button class="btn btn-ghost btn-sm" onclick="showMayorVersions()">גרסאות שמורות${nver?(' ('+nver+')'):''}</button>
       <button class="btn btn-ghost btn-sm" onclick="window.print()">הדפסה / PDF</button>
     </div>
@@ -8202,7 +8268,7 @@ async function generateShareContent(){
   const s=sh(); if(!s)return;
   const secs = SHARE_SECTIONS[s.shareType].filter(k=>!isLocked(s,k));
   if(!secs.length){ toast('כל הסעיפים נעולים'); return; }
-  toast('מפיק תוכן… ⏳');
+  toast('מפיק תוכן… ');
   const payload = shareDataPayload(s);
   if ((s.shareType==='monthly-ceo-report' && !payload.plans.length) || (s.shareType==='mayor-facade-review' && !payload.project)) {
     toast('מידע חסר להשלמת השיתוף'); return;
@@ -8219,7 +8285,7 @@ async function generateShareContent(){
 /** יצירה מחדש של סעיף בודד */
 async function regenSection(key){
   const s=sh(); if(!s||isLocked(s,key))return;
-  toast('מפיק מחדש… ⏳');
+  toast('מפיק מחדש… ');
   const payload=shareDataPayload(s);
   try {
     const r = await callAssistant('generate_share', { prompt: buildShareSectionPrompt(s,key,payload) });
@@ -8648,8 +8714,8 @@ function muniContactHTML(dept){
       <span dir="ltr">${c.phone?`<a class="c-link" href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:'—'}</span> · <span dir="ltr">${c.email?`<a class="c-link" href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'—'}</span>
     </div>
     <div class="mc-actions no-print">
-      <button class="btn btn-ghost btn-sm" onclick="copyMuniEmail('${c.email}')">📋 העתק מייל</button>
-      <a class="btn btn-ghost btn-sm" href="mailto:${c.email}">✉ שלח מייל</a>
+      <button class="btn btn-ghost btn-sm" onclick="copyMuniEmail('${c.email}')">העתק מייל</button>
+      <a class="btn btn-ghost btn-sm" href="mailto:${c.email}">שלח מייל</a>
       ${muniIsAdmin()?`<button class="btn btn-ghost btn-sm" onclick="editMuniContact('${dept.id}',${ci})">✎ עריכה</button>`:''}
     </div>
   </div>`).join('');
@@ -8750,7 +8816,7 @@ function muniReqRow(dept, r, idx){
       <div class="muni-req-title">${esc(r.title)}${r.category==='conditional'?'<span class="muni-cond-tag">מותנה</span>':''}</div>
     </div>
     ${(needComment||needNa)?`<div class="muni-req-detail${c.status==='non_compliant'&&!String(c.applicantComment||'').trim()?' need-explain':''}">
-      <label>${c.status==='non_compliant'?'⛔ לא עומד — הסבר חובה:':(c.status==='clarification_required'?'נדרש בירור — פרטי:':'לא רלוונטי — נימוק קצר:')}</label>
+      <label>${c.status==='non_compliant'?'לא עומד — הסבר חובה:':(c.status==='clarification_required'?'נדרש בירור — פרטי:':'לא רלוונטי — נימוק קצר:')}</label>
       <textarea onchange="setMuniCheck('${dept.id}',${idx},'applicantComment',this.value)" placeholder="הערה...">${esc(c.applicantComment)}</textarea>
       <div class="muni-req-fields">
         <input value="${esc(c.drawingReference)}" placeholder="מיקום בתוכנית/מסמך" onchange="setMuniCheck('${dept.id}',${idx},'drawingReference',this.value)">
@@ -8827,7 +8893,7 @@ function deptDocFrameHTML(deptId){
 }
 function docThumbHTML(d, scope, key, i){
   const url = docPublicUrl(d.path);
-  const inner = docIsImage(d.name) ? `<img src="${url}">` : (docIsPdf(d.name)?'<span class="doc-ic">📄 PDF</span>':`<span class="doc-ic">📎 ${esc(docExt(d.name))}</span>`);
+  const inner = docIsImage(d.name) ? `<img src="${url}">` : (docIsPdf(d.name)?'<span class="doc-ic">PDF</span>':`<span class="doc-ic">${esc(docExt(d.name))}</span>`);
   return `<div class="doc-thumb" title="${esc(d.name)}">
     <div class="doc-thumb-inner" onclick="docOpen('${scope}','${key}',${i})">${inner}</div>
     <div class="doc-thumb-name">${esc((d.name||'').slice(0,22))}</div>
@@ -9058,7 +9124,7 @@ function renderCalcShell(p, def){
   return `<div class="pp-card calc-card">
     <div class="calc-head"><h4>${def.name}</h4></div>
     <div class="calc-desc">${def.desc}</div>
-    <div class="calc-warn-banner">⚠ הערכים והנוסחאות אינם מאושרים אוטומטית — הם להמחשה בלבד וחייבים אימות מול המקור הרשמי (אוגדן/תקן/תב״ע) לפני שימוש.${unverified?' <b>יש כללים שטרם אומתו.</b>':''}</div>
+    <div class="calc-warn-banner">הערכים והנוסחאות אינם מאושרים אוטומטית — הם להמחשה בלבד וחייבים אימות מול המקור הרשמי (אוגדן/תקן/תב״ע) לפני שימוש.${unverified?' <b>יש כללים שטרם אומתו.</b>':''}</div>
     <details class="calc-sec" open><summary>נתוני קלט</summary>${inputsHtml}</details>
     ${hints.length?`<details class="calc-sec"><summary>קבועים אפשריים (טעונים אימות)</summary>${renderConstantHints(def.id)}</details>`:''}
     <details class="calc-sec"><summary>מקור הדרישה והקבועים</summary>
@@ -9347,11 +9413,11 @@ function calcExampleHTML(calcId){
     <span class="ical-in"><input type="number" id="${f.id}" value="${f.def}" oninput="runICalc('${calcId}')" onkeydown="if(event.key==='Enter')runICalc('${calcId}')"><span class="ical-u">${esc(f.unit)}</span></span></label>`).join('');
   return `<div class="ical">
     <div class="cex-title">${esc(c.title)}</div>
-    <div class="ical-example">💡 ${esc(c.example)}</div>
+    <div class="ical-example">${esc(c.example)}</div>
     <div class="ical-guide">① הזיני את הערכים שלך בשדות · ② לחצי „חשב” · ③ עקבי אחר החישוב שלב-אחר-שלב מטה</div>
     <div class="ical-inputs">${inputs}</div>
     <div class="ical-actions no-print">
-      <button class="btn btn-primary ical-calc-btn" onclick="runICalc('${calcId}')">🧮 חשב את הדוגמה שלי</button>
+      <button class="btn btn-primary ical-calc-btn" onclick="runICalc('${calcId}')">חשב את הדוגמה שלי</button>
       <button class="btn btn-ghost btn-sm" onclick="resetICalc('${calcId}')">איפוס לדוגמה</button>
     </div>
     <div id="icalOut_${calcId}" class="ical-out"></div>
@@ -9390,7 +9456,7 @@ function runICalc(calcId){
       <table class="ical-tbl"><thead><tr><th>#</th><th>רכיב</th><th>איך מחשבים</th><th>תוצאה</th></tr></thead>
         <tbody>${stepRows}</tbody></table>
       <div class="ical-bottomline"><span class="ical-bl-label">השורה התחתונה:</span> <span class="ical-bl-val">${esc(bottom[0].replace(/[—\-]/g,'').replace('סה״כ','').trim()||bottom[0])}: ${esc(bottom[2])}</span></div>
-      <div class="cex-note">⚠ ${esc(r.note)}</div>
+      <div class="cex-note">${esc(r.note)}</div>
     </div>`;
   // פידבק ויזואלי: הבהוב קצר + גלילה לתוצאה
   const panel=out.querySelector('.ical-result-panel');
@@ -9942,7 +10008,7 @@ function taskCard(t){
       </div>
       <div class="dw-tools no-print">
         <button class="btn btn-ghost btn-sm" onclick="openProject(${t.id})">מעבר לתוכנית</button>
-        <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">✉ מייל לאדריכל היזם</button>
+        <button class="btn btn-primary btn-sm" onclick="composeMail(${t.id},'${t.rule}')">מייל לאדריכל היזם</button>
         ${t.tool!=='mail'&&t.tool!=='doc'&&t.tool!=='complete'?mailBtn:''}
       </div>
     </div>
@@ -10292,10 +10358,10 @@ function openMailComposer(p, subject, body, toList, rec){
       <span class="muted">${esc(m.addr)}</span>
     </label>`).join('') : '<span class="muted">אין אנשי קשר עם מייל — הוסיפי בטאב „צוות היזם” או ברשימות הקשר.</span>';
   const noEmailBlock = rec.noEmail && rec.noEmail.length ? `
-    <div class="mail-noemail">⚠ אנשי קשר ללא מייל (להשלמה): ${rec.noEmail.map(c=>esc(c.name)+(c.type?(' · '+esc(c.type)):'')).join(' · ')}</div>` : '';
+    <div class="mail-noemail">אנשי קשר ללא מייל (להשלמה): ${rec.noEmail.map(c=>esc(c.name)+(c.type?(' · '+esc(c.type)):'')).join(' · ')}</div>` : '';
   ov.innerHTML=`<div class="ver-modal mail-modal">
     <h3>מייל לפעולה המומלצת — תב/${p.tik}</h3>
-    ${noRecipient?'<div class="calc-warn-banner">⚠ אין כתובת מייל תקינה. ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
+    ${noRecipient?'<div class="calc-warn-banner">אין כתובת מייל תקינה. ניתן לנסח, אך יש להוסיף נמען לפני שליחה.</div>':''}
     <label class="mail-lbl">נמענים (אל) — אדריכל היזם וכל נציגי היזם המשויכים לתוכנית</label>
     <div class="mail-recipients" id="mailRecList">${recRows}</div>
     ${noEmailBlock}
@@ -10604,8 +10670,8 @@ function contactRow(c){
     <td>${esc(c.type||'—')}</td>
     <td>${esc(c.org||'—')}</td>
     <td>${esc(c.title||'—')}</td>
-    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">☎</a>`:_missing(c)}</td>
-    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">✉</a>`:_missing(c)}</td>
+    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')" title="העתק">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}" title="חיוג">חיוג</a>`:_missing(c)}</td>
+    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')" title="העתק">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}" title="מייל">מייל</a>`:_missing(c)}</td>
     <td>${plansTxt==='—'?_missing(c):esc(plansTxt)}</td>
     <td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></td>
   </tr>`;
@@ -10618,8 +10684,8 @@ function contactCard(c){
     <div class="cc-top"><label class="chk-inline"><input type="checkbox" ${v.selected[c.id]?'checked':''} onchange="contactToggleSel('${c.id}',this.checked)"> <b>${esc(c.name||'—')}</b></label>${c.sample?'<span class="samp-tag">דוגמה</span>':''}<span class="cc-type">${esc(c.type||'')}</span></div>
     ${c.org?`<div class="cc-row"><span class="cc-k">חברה/משרד:</span> ${esc(c.org)}</div>`:''}
     ${c.title?`<div class="cc-row"><span class="cc-k">תפקיד:</span> ${esc(c.title)}</div>`:''}
-    ${c.phone?`<div class="cc-row"><span class="cc-k">נייד:</span> <a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a></div>`:''}
-    ${c.email?`<div class="cc-row"><span class="cc-k">דוא״ל:</span> <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a></div>`:''}
+    ${c.phone?`<div class="cc-row"><span class="cc-k">נייד:</span> <a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">חיוג</a></div>`:''}
+    ${c.email?`<div class="cc-row"><span class="cc-k">דוא״ל:</span> <a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">מייל</a></div>`:''}
     <div class="cc-row"><span class="cc-k">תוכניות:</span> ${esc(plansTxt)}</div>
     ${c.notes?`<div class="cc-row"><span class="cc-k">הערות:</span> ${esc(c.notes)}</div>`:''}
     <div class="cc-actions no-print"><button class="btn btn-ghost btn-xs" onclick="contactEdit('${c.id}')">עריכה</button> <button class="btn btn-ghost btn-xs" onclick="contactDelete('${c.id}')">מחק</button></div>
@@ -10775,8 +10841,8 @@ function renderProjectContacts(p){
   const list=projectContacts(p.tik);
   const rows=list.map(c=>`<tr>
     <td><strong>${esc(c.name||'—')}</strong></td><td>${esc(c.type||'')}</td><td>${esc(c.org||'')}</td>
-    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">☎</a>`:'—'}</td>
-    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">✉</a>`:'—'}</td>
+    <td>${c.phone?`<a class="c-link" onclick="copyText('${esc(c.phone)}')">${esc(c.phone)}</a> <a class="c-ico" href="tel:${esc(c.phone)}">חיוג</a>`:'—'}</td>
+    <td>${c.email?`<a class="c-link" onclick="copyText('${esc(c.email)}')">${esc(c.email)}</a> <a class="c-ico" href="mailto:${esc(c.email)}">מייל</a>`:'—'}</td>
     <td class="no-print"><button class="btn btn-ghost btn-xs" onclick="projUnassign('${c.id}','${esc(p.tik)}')">הסר שיוך</button></td>
   </tr>`).join('');
   el.innerHTML=`
@@ -11333,7 +11399,7 @@ function qcConflicts(){
   const out=[];
   if(typeof SEED_OPINIONS==='undefined') return out;
   plans.forEach(p=>{
-    const seed=SEED_OPINIONS[String(p.tik)]; if(!seed) return;
+    const seed=SEED_OPINIONS[seedKey(p)]; if(!seed) return;
     // שם הפרויקט — אם המקור שונה מהקיים
     const cur=_val(p,'projectName'), src=(seed.projectName||'').trim();
     if(cur && src && cur!==src && _norm(cur)!==_norm(src)){
@@ -11413,7 +11479,7 @@ function qcShow(title){
 }
 function qcApply(id,field){
   const p=plans.find(x=>x.id==id); if(!p)return;
-  const seed=SEED_OPINIONS[String(p.tik)]; if(!seed)return;
+  const seed=SEED_OPINIONS[seedKey(p)]; if(!seed)return;
   const before=p[field];
   if(field==='projectName' && seed.projectName){
     p._qcHistory=p._qcHistory||[]; p._qcHistory.push({field,before,at:todayStr()});
@@ -11552,7 +11618,7 @@ function renderForumsTab(p){
 function forumDecisionHTML(p){
   const d=p.forumDecision||{};
   return `<div class="forum-decision ${d.approved?'fd-approved':''}">
-    <div class="fd-title">🏛️ החלטת פורום אדריכל העיר <span class="fd-gate">תנאי למעבר לפורום יועצים</span></div>
+    <div class="fd-title">החלטת פורום אדריכל העיר <span class="fd-gate">תנאי למעבר לפורום יועצים</span></div>
     <div class="pp-field"><label>ההחלטה</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setForumDecision('text',this.value)" ${globalEdit?'':'disabled'}>${d.text||''}</textarea></div>
     <div class="pp-field"><label>הערות</label><textarea class="autogrow" rows="2" oninput="autoGrow(this)" onchange="setForumDecision('notes',this.value)" ${globalEdit?'':'disabled'}>${d.notes||''}</textarea></div>
     <div class="fd-row">
@@ -11978,7 +12044,7 @@ function tbaRowHTML(f, i){
     <td class="tba-acts no-print">
       <button title="אישור" onclick="tbaSetStatus(${i},'approved')">✔</button>
       <button title="סימון כשגוי" onclick="tbaSetStatus(${i},'rejected')">✕</button>
-      <button title="עמוד המקור" onclick="tbaOpenSource('${esc(String(f.sourcePage||''))}')">📄</button>
+      <button title="עמוד המקור" onclick="tbaOpenSource('${esc(String(f.sourcePage||''))}')">מקור</button>
     </td>
   </tr>`;
 }
@@ -12109,7 +12175,7 @@ function renderRoleAdmin(){
   el.innerHTML = `
     <div class="pp-field"><label>קוד גישה — אדריכלית העיר</label><input type="text" data-nolock="1" value="${esc(roleCodes.architect)}" onchange="setRoleCode('architect',this.value)"></div>
     <div class="pp-field"><label>קוד גישה — הנהלת העירייה (צפייה בלבד)</label><input type="text" data-nolock="1" value="${esc(roleCodes.manager)}" onchange="setRoleCode('manager',this.value)"></div>
-    <p class="set-desc" style="margin-top:8px">קוד גישה ליזם מופיע בכותרת של כל דף תוכנית (🔑) — לחיצה מעתיקה קישור כניסה ישיר לשליחה ליזם. הקודים מגבילים את הממשק בלבד ואינם תחליף לאבטחת מידע מלאה.</p>`;
+    <p class="set-desc" style="margin-top:8px">קוד גישה ליזם מופיע בכותרת של כל דף תוכנית () — לחיצה מעתיקה קישור כניסה ישיר לשליחה ליזם. הקודים מגבילים את הממשק בלבד ואינם תחליף לאבטחת מידע מלאה.</p>`;
 }
 
 /* ── מסך כניסה ── */
@@ -12255,7 +12321,7 @@ function openPermsModal(){
   const allow=NAV_VISIBLE[session.role]||[];
   const navNames=allow.map(id=>{
     const b=document.querySelector('#mainNav button[data-nav="'+id+'"]');
-    return b? b.textContent.trim().replace(/^❓\s*/,'') : id;
+    return b? b.textContent.trim().replace(/^\s*/,'') : id;
   });
   const abil=permAbilities();
   let html='<div class="perm-head"><b>'+esc(R.name)+'</b> — '+esc(R.tone)+
@@ -12326,7 +12392,7 @@ function applyLocksUI(p){
     } else if(banner) banner.remove();
   });
   const btn=document.getElementById('ppLocksBtn');
-  if(btn){ const L=p.locks||{}; const n=Object.keys(L).length; btn.textContent='🔒 אישורים ונעילה'+(n?(' ('+(L.__all?'הכל':n)+')'):''); }
+  if(btn){ const L=p.locks||{}; const n=Object.keys(L).length; btn.textContent='אישורים ונעילה'+(n?(' ('+(L.__all?'הכל':n)+')'):''); }
 }
 
 /* ══════════ תמונת מצב — דשבורד הנהלה (מנכ"ל / ראש העיר) ══════════ */
@@ -12405,7 +12471,7 @@ function renderExecDash(){
       <div class="ex-title">תמונת מצב — תוכניות בינוי</div>
       <div style="display:flex;gap:10px;align-items:center">
         <div class="ex-date">נכון ל-${new Date().toLocaleDateString('he-IL')} · לשכת אדריכלית העיר · תב/ = מספר התוכנית בעירייה</div>
-        <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="הדפסת הדוח או שמירה כ-PDF">🖨 הדפסת דוח</button>
+        <button class="btn btn-ghost btn-sm no-print" onclick="window.print()" title="הדפסת הדוח או שמירה כ-PDF">הדפסת דוח</button>
       </div>
     </div>
     <div class="ex-sub"><b>${active.length}</b> תוכניות פעילות בטיפול · <b>${stuck.length}</b> ללא התקדמות מעל שבועיים · <b>${doneYear.length}</b> הושלמו השנה · <b>${upcoming.length}</b> פורומים ב-14 הימים הקרובים.</div>
@@ -12447,7 +12513,7 @@ function renderExecDash(){
                 <div class="ex-att-blocker">${esc(t.blocker||'')}</div>
                 <div class="ex-att-action">→ ${esc(t.action||'')}</div>
               </div>`;
-            }).join('')||'<div class="ex-empty">אין חסמים פתוחים 🎉</div>'}
+            }).join('')||'<div class="ex-empty">אין חסמים פתוחים </div>'}
           </div>
         </div>
         <div class="ex-sec">
@@ -12473,7 +12539,7 @@ const GLOSSARY = [
   ['בדיקת התאמה','הצ׳ק-ליסטים שהיזם ממלא: התאמה להנחיות, לדרישות העירייה ולהנחיות המרחביות. „לא תואם” מחייב נימוק ופתרון.'],
   ['חוות דעת','המסמך הרשמי שאדריכלית העיר מנסחת בסוף הבדיקה — ההמלצה לוועדה.'],
   ['אישור ונעילה','כשאדריכלית העיר מאשרת סעיף בתוכנית — הוא ננעל, והיזם אינו יכול לשנותו עוד. כך אישור נשאר אישור.'],
-  ['קוד גישה','לכל תוכנית קוד אישי (🔑) שאדריכלית העיר מוסרת ליזם. איתו נכנסים למערכת ורואים את התוכנית שלכם בלבד.'],
+  ['קוד גישה','לכל תוכנית קוד אישי () שאדריכלית העיר מוסרת ליזם. איתו נכנסים למערכת ורואים את התוכנית שלכם בלבד.'],
   ['ללא התקדמות','מספר הימים שעברו מאז הפעולה המתועדת האחרונה בתוכנית — המדד המרכזי לזיהוי תוכניות תקועות.'],
 ];
 function renderHelp(){
@@ -12487,7 +12553,7 @@ function renderHelp(){
       התחילו שם. לפני שמתכננים: קראו את „הנחיות להגשת תוכנית”, את „האוגדן” ואת „הנחיות מרחביות 18” — הם חלים על כל תוכנית בעיר,
       ובדקו חניה ואשפה ב„מחשבונים”. בתוך התוכנית מלאו את נתוני הפרויקט ואת „בדיקת ההתאמה”; סעיף שאושר ע״י אדריכלית העיר יינעל ויסומן.</div>`,
     architect: `<div class="hp-role-tip"><b>תזכורת מהירה:</b> „דף ראשי” — תוכנית העבודה היומית לפי חסמים. „תמונת מצב” — מה שההנהלה רואה.
-      בכל תוכנית: 🔑 קוד היזם להעתקה, ו„🔒 אישורים ונעילה” לנעילת סעיפים שאושרו. קודי הגישה מנוהלים ב„הגדרות”.</div>`
+      בכל תוכנית: קוד היזם להעתקה, ו„אישורים ונעילה” לנעילת סעיפים שאושרו. קודי הגישה מנוהלים ב„הגדרות”.</div>`
   }[role] || '';
   el.innerHTML = `
     <div class="ex-head"><div class="ex-title">עזרה ומדריך למשתמש</div></div>
@@ -12502,7 +12568,7 @@ function renderHelp(){
           <li><b>כפתורי „מה צריך לעשות עכשיו” / „עדכן רשומה”</b> (תוכנית עבודה) — מבצעים פעולה בתוך המערכת ומעדכנים את הנתונים.</li>
           <li><b>כפתור עם ↗ (קישור חיצוני)</b> — נפתח באתר/מסמך <b>חיצוני בכרטיסייה חדשה</b>. אפשר להזין כתובת אתר גם בלי „https://” — המערכת משלימה אוטומטית, כך שאתר חדש יעבוד כמו כל אתר.</li>
           <li><b>אזור „גררי / הדביקי / העלאה”</b> — לצירוף קבצים (תמונות · PDF · Word). הקובץ נשמר בתוך התוכנית, לא כקישור.</li>
-          <li><b>✉ מייל</b> — פותח טיוטה בתוכנת המייל שלך; השליחה בידייך.</li>
+          <li><b>מייל</b> — פותח טיוטה בתוכנת המייל שלך; השליחה בידייך.</li>
         </ul>
       </section>
       <section class="hp-sec">
@@ -12513,9 +12579,9 @@ function renderHelp(){
       <section class="hp-sec">
         <h3>שלושת המשתמשים</h3>
         <div class="hp-roles">
-          <div><b>👩‍💼 אדריכלית העיר</b><span>רואה ועורכת הכל, מאשרת ונועלת סעיפים, מנהלת את קודי הגישה.</span></div>
-          <div><b>🏛️ הנהלת העירייה</b><span>מנכ״ל וראש העיר — רואים את כל הנתונים והדוחות, ללא יכולת עריכה.</span></div>
-          <div><b>🏗️ יזמים</b><span>כל יזם רואה ועורך רק את התוכנית שלו. סעיף שאושר — ננעל לשינויים.</span></div>
+          <div><b>‍אדריכלית העיר</b><span>רואה ועורכת הכל, מאשרת ונועלת סעיפים, מנהלת את קודי הגישה.</span></div>
+          <div><b>הנהלת העירייה</b><span>מנכ״ל וראש העיר — רואים את כל הנתונים והדוחות, ללא יכולת עריכה.</span></div>
+          <div><b>יזמים</b><span>כל יזם רואה ועורך רק את התוכנית שלו. סעיף שאושר — ננעל לשינויים.</span></div>
         </div>
       </section>
       <section class="hp-sec hp-wide">
@@ -12542,10 +12608,10 @@ function renderHelp(){
         <h3>שאלות נפוצות</h3>
         <div class="hp-faq">
           <div><b>איפה משיגים קוד גישה ליזם?</b><span>אדריכלית העיר שולחת לכל יזם קישור כניסה אישי עם הקוד. אבד? פנו ללשכת אדריכלית העיר.</span></div>
-          <div><b>ערכתי משהו — איפה כפתור השמירה?</b><span>אין צורך — כל שינוי נשמר אוטומטית ומסונכרן לענן. חיווי „☁ נשמר אונליין” בסרגל העליון מאשר.</span></div>
+          <div><b>ערכתי משהו — איפה כפתור השמירה?</b><span>אין צורך — כל שינוי נשמר אוטומטית ומסונכרן לענן. חיווי „נשמר אונליין” בסרגל העליון מאשר.</span></div>
           <div><b>למה אני לא מצליח לערוך שדה מסוים?</b><span>או שהשדה שייך לעירייה (סטטוס, מועדי פורומים, החלטות), או שהסעיף כבר אושר וננעל — יופיע באנר ✔ מעל הסעיף.</span></div>
           <div><b>שני אנשים עורכים במקביל — מה קורה?</b><span>המערכת מסנכרנת כל דקה. כל אחד עורך תוכניות שלו; עריכה שלך לעולם לא נדרסת על ידי רענון.</span></div>
-          <div><b>איך מפיקים דוח למנכ״ל?</b><span>דף „תמונת מצב” ניתן להדפסה ישירות (כפתור 🖨), ודוחות מפורטים יותר בדף „חוות דעת, דיווחים ושיתופים”.</span></div>
+          <div><b>איך מפיקים דוח למנכ״ל?</b><span>דף „תמונת מצב” ניתן להדפסה ישירות (כפתור ), ודוחות מפורטים יותר בדף „חוות דעת, דיווחים ושיתופים”.</span></div>
         </div>
       </section>
     </div>`;
@@ -12557,17 +12623,17 @@ const TOURS = {
   manager: [
     { t:'ברוכים הבאים לתמונת המצב', d:'הדף שנפתח עכשיו עונה על השאלות המרכזיות: כמה תוכניות בטיפול, מה תקוע ולמה, ומה קצב העבודה — הכל מתעדכן אוטומטית מהנתונים החיים.' },
     { t:'הכל בלחיצה אחת', d:'כל מספר, תוכנית או חסם — לחיצים. לחיצה על תוכנית פותחת את התיק המלא שלה: נתונים, מסמכים, בדיקות וחוות דעת.' },
-    { t:'צפייה בלבד — בלי חשש', d:'החשבון שלכם רואה הכל אך אינו יכול לשנות דבר. אפשר ללחוץ על כל דבר בחופשיות. מדריך מלא — בכפתור „❓ עזרה ומדריך” בתפריט.' },
+    { t:'צפייה בלבד — בלי חשש', d:'החשבון שלכם רואה הכל אך אינו יכול לשנות דבר. אפשר ללחוץ על כל דבר בחופשיות. מדריך מלא — בכפתור „עזרה ומדריך” בתפריט.' },
   ],
   developer: [
     { t:'ברוכים הבאים', d:'זהו דף הבית של התוכנית שלכם: ההתקדמות בתהליך האישור, והצעדים הבאים שעליכם להשלים — מסודרים לפי החשיבות.' },
     { t:'קראו לפני שמתכננים', d:'ארבעת המדריכים (הנחיות הגשה, אוגדן, הנחיות מרחביות 18, מחשבונים) חלים על כל תוכנית בעיר. קריאה מוקדמת חוסכת סבבי תיקונים ומזרזת את האישור שלכם.' },
     { t:'מילוי ושמירה', d:'כל מה שתמלאו נשמר אוטומטית ונראה לאדריכלית העיר. סעיף שהיא אישרה — ננעל ומסומן ✔. שדות של העירייה (סטטוס, מועדים) אינם פתוחים לעריכה.' },
-    { t:'עזרה', d:'מדריך מלא ומילון מונחים — בכפתור „❓ עזרה ומדריך” בתפריט העליון. שאלות? לשכת אדריכלית העיר.' },
+    { t:'עזרה', d:'מדריך מלא ומילון מונחים — בכפתור „עזרה ומדריך” בתפריט העליון. שאלות? לשכת אדריכלית העיר.' },
   ],
   architect: [
     { t:'מה חדש במערכת', d:'נוספו: מסך כניסה עם שלושה סוגי משתמשים, דשבורד „תמונת מצב” להנהלה, דף בית ליזם, אישור ונעילת סעיפים, וסנכרון רב-משתמשים בטוח.' },
-    { t:'קודי הגישה', d:'בכל דף תוכנית: 🔑 קוד היזם (לחיצה מעתיקה קישור כניסה לשליחה), ו„🔒 אישורים ונעילה” לנעילת סעיפים שאושרו. שינוי קודים — ב„הגדרות”.' },
+    { t:'קודי הגישה', d:'בכל דף תוכנית: קוד היזם (לחיצה מעתיקה קישור כניסה לשליחה), ו„אישורים ונעילה” לנעילת סעיפים שאושרו. שינוי קודים — ב„הגדרות”.' },
   ],
 };
 function maybeShowTour(){
@@ -12621,7 +12687,7 @@ function renderDevHome(){
         <div class="dh-prog"><div class="lbl"><span>הכנה לוועדה</span><span>${pv.done}/${pv.total}</span></div><div class="track"><div class="fill" style="width:${pv.pct}%"></div></div></div>
       </div>
       <button class="btn btn-primary" onclick="devGoTab('')">מעבר לדף התוכנית המלא ←</button>
-      ${locksN?`<div style="font-size:12px;color:var(--muted);margin-top:8px">🔒 ${locksN===1?'סעיף אחד אושר וננעל':locksN+' סעיפים אושרו וננעלו'} על ידי אדריכלית העיר</div>`:''}
+      ${locksN?`<div style="font-size:12px;color:var(--muted);margin-top:8px">${locksN===1?'סעיף אחד אושר וננעל':locksN+' סעיפים אושרו וננעלו'} על ידי אדריכלית העיר</div>`:''}
     </div>
     <div class="dh-next">
       <div class="ex-sec-h">מה עליך להשלים עכשיו</div>
@@ -12632,10 +12698,10 @@ function renderDevHome(){
       <div class="ex-sec-h">המדריכים והכלים — חשוב להכיר</div>
       <div class="ex-sec-sub">התכנים האלו חלים על כל תוכנית בעיר, ללא קשר לפרויקט שלך — קריאה מוקדמת חוסכת סבבי תיקונים</div>
       <div class="dh-guides">
-        <div class="dh-guide" onclick="activateNavFor('guidelines')"><div class="gi">📘</div><b>הנחיות להגשת תוכנית</b><span>תהליך האישור המלא, לוחות זמנים, חומרי ההגשה הנדרשים ושאלות נפוצות</span></div>
-        <div class="dh-guide" onclick="activateNavFor('muni')"><div class="gi">🏛️</div><b>אוגדן דרישות העירייה</b><span>הדרישות והתיאומים מול כל מחלקות העירייה, לפי גורם אחראי</span></div>
-        <div class="dh-guide" onclick="activateNavFor('spatial')"><div class="gi">🗺️</div><b>הנחיות מרחביות 18</b><span>מסמך ההנחיות המרחביות המלא של העיר — מה מותר ומה אסור בתכנון</span></div>
-        <div class="dh-guide" onclick="activateNavFor('calchub')"><div class="gi">🧮</div><b>מחשבונים</b><span>חניה, אשפה, זכויות בנייה — בדקו את המספרים שלכם לפני ההגשה</span></div>
+        <div class="dh-guide" onclick="activateNavFor('guidelines')"><div class="gi"></div><b>הנחיות להגשת תוכנית</b><span>תהליך האישור המלא, לוחות זמנים, חומרי ההגשה הנדרשים ושאלות נפוצות</span></div>
+        <div class="dh-guide" onclick="activateNavFor('muni')"><div class="gi"></div><b>אוגדן דרישות העירייה</b><span>הדרישות והתיאומים מול כל מחלקות העירייה, לפי גורם אחראי</span></div>
+        <div class="dh-guide" onclick="activateNavFor('spatial')"><div class="gi"></div><b>הנחיות מרחביות 18</b><span>מסמך ההנחיות המרחביות המלא של העיר — מה מותר ומה אסור בתכנון</span></div>
+        <div class="dh-guide" onclick="activateNavFor('calchub')"><div class="gi"></div><b>מחשבונים</b><span>חניה, אשפה, זכויות בנייה — בדקו את המספרים שלכם לפני ההגשה</span></div>
       </div>
     </div>
     <div class="dh-rules">
@@ -12796,29 +12862,29 @@ function aiMd(s) {
 
 const AI_ACTIONS = [
   { id:'pros_cons_analysis', label:'יתרונות, חסרונות והצעות', icon:'⚖️' },
-  { id:'generate_opinion', label:'נסח חוות דעת', icon:'📝' },
-  { id:'parking_calculator', label:'חשב תקני חניה', icon:'🅿️' },
+  { id:'generate_opinion', label:'נסח חוות דעת', icon:'' },
+  { id:'parking_calculator', label:'חשב תקני חניה', icon:'' },
 ];
 
 async function runAiAction(actionId) {
   if (!currentProjectId) { toast('פתחי דף פרויקט תחילה'); return; }
-  aiRender('<div class="ai-loading">מנתח… ⏳</div>');
+  aiRender('<div class="ai-loading">מנתח… </div>');
   try {
     const r = await callAssistant(actionId, aiPayloadFor(actionId));
     let html = '<div class="ai-msg">' + aiMd(r.text || '(אין תשובה)') + '</div>';
     if (r.findings && r.findings.length) {
-      const smap = {V:'✅',X:'❌','?':'⚠️','-':'➖'};
+      const smap = {V:'✓',X:'✗','?':'?','-':'–'};
       html += '<div class="ai-findings"><h4>ממצאים</h4>' + r.findings.map(f =>
         `<div class="ai-finding">${smap[f.status]||''} <b>${aiMd(f.criterion)}</b>${f.notes?' — '+aiMd(f.notes):''}${f.source?`<span class="ai-src">${aiMd(f.source)}</span>`:''}</div>`
       ).join('') + '</div>';
     }
     if (r.warnings && r.warnings.length) {
-      html += '<div class="ai-warn">⚠️ ' + r.warnings.map(aiMd).join('<br>⚠️ ') + '</div>';
+      html += '<div class="ai-warn">' + r.warnings.map(aiMd).join('<br>') + '</div>';
     }
     // כפתור העתקה לחוות הדעת
     if (actionId === 'generate_opinion' && r.text) {
       window._aiLastOpinion = r.text;
-      html += '<button class="ai-btn-copy" onclick="aiCopyToOpinion()">📋 העתק לטאב חוות דעת</button>';
+      html += '<button class="ai-btn-copy" onclick="aiCopyToOpinion()">העתק לטאב חוות דעת</button>';
     }
     aiRender(html);
   } catch (e) {
@@ -12840,7 +12906,7 @@ async function aiAsk() {
   const inp = document.getElementById('aiInput');
   const q = inp.value.trim(); if (!q) return;
   inp.value = '';
-  aiRender('<div class="ai-loading">חושב… ⏳</div>');
+  aiRender('<div class="ai-loading">חושב… </div>');
   try {
     const ctx = currentProjectId ? aiPayloadFor('pros_cons_analysis') : {};
     const r = await callAssistant('ask', { question: q, ...ctx });
@@ -12867,7 +12933,7 @@ function aiSyncContext() {
   if (!body.dataset.hasResult) {
     if (p) {
       const name = p.projectName || `תוכנית בינוי ${p.tik}`;
-      body.innerHTML = `<div class="ai-ctx">📂 פרויקט פעיל: <b>${aiMd(name)}</b><br>בחרי פעולה למעלה, או שאלי שאלה למטה.</div>`;
+      body.innerHTML = `<div class="ai-ctx">פרויקט פעיל: <b>${aiMd(name)}</b><br>בחרי פעולה למעלה, או שאלי שאלה למטה.</div>`;
     } else {
       body.innerHTML = `<div class="ai-hint">אינך בדף פרויקט. פתחי פרויקט מהטבלה כדי להפעיל את הפעולות, או שאלי שאלה מקצועית כללית למטה.</div>`;
     }
@@ -12876,11 +12942,11 @@ function aiSyncContext() {
 </script>
 
 <!-- ══════════ סייען AI — כפתור צף + פאנל ══════════ -->
-<button id="aiFab" onclick="toggleAi()" title="מנוע הבדיקה של אדריכל/ת העיר">🏛️</button>
+<button id="aiFab" onclick="toggleAi()" title="מנוע הבדיקה של אדריכל/ת העיר"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square"><path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-6 10 6z"/></svg></button>
 <div id="aiPanel">
   <div id="aiHeader">
     <div>
-      <div class="ai-title">מנוע הבדיקה 🏛️</div>
+      <div class="ai-title">מנוע הבדיקה </div>
       <div class="ai-sub">אדריכל/ת העיר · אשדוד</div>
     </div>
     <button class="ai-close" onclick="toggleAi()">✕</button>
@@ -12903,6 +12969,10 @@ function aiSyncContext() {
     const tb=document.getElementById('projToolbar');
     if(isArchitect() && tb && tb.style.display!=='none' && pj())
       list.push({label:'מחיקת התוכנית', hint:'מחיקה רכה', onSelect: deleteCurrentPlan});
+    // כפתורי מערכת: רק בתוך הלוגו, לא בסרגל (שפת העיצוב, סעיף 1)
+    const allow = session ? NAV_VISIBLE[session.role] : null;
+    const sys = [['tba','בדיקת חילוץ תב״ע','מצב בדיקה'],['settings','הגדרות',''],['help','עזרה ומדריך','']];
+    sys.forEach(([id,label,hint]) => { if(!allow || allow.includes(id)) list.push({label, hint, onSelect: ()=>go(id, null)}); });
     if(session) list.push({label:'החלפת משתמש', onSelect: logoutRole});
     menu.items=list;
   }
