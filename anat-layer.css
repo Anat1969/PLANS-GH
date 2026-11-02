@@ -1,0 +1,197 @@
+/* ══════════════════════════════════════════════════════════════════
+   anat-layer.css — השכבה הקבועה של שפת העיצוב של ענת (anat-design-language).
+   נטען אחרון ודורס את שכבות העיצוב הקודמות בלי לשנות את המבנה שלהן:
+   מסך בהיר (לבן, אוויר ושחור), IBM Plex, מרובע ולחיץ, צבע רק עם תפקיד.
+   השכבה הייחודית (תעודת DNA ב-CLAUDE.md): שולחן שרטוט. טורקיז עירוני לליבה,
+   בורדו לפורום אדריכל, ברונזה ליועצים ולהתחדשות, סגול להכנה לוועדה.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#ffffff; --surface:#ffffff; --sheet:#ffffff;
+  --ink:#1a1a18; --ink-soft:#4a4945; --muted:#6b6a66; --ink-mute:#8a8984;
+  --stone:#e5e4e0; --fog:#f0efeb; --rule:#e5e4e0;
+  --teal:#1f5c58; --teal-light:#2a7470; --teal-pale:rgba(31,92,88,.07);
+  --bordeaux:#7a1f2b; --bordeaux-deep:#5f1620;
+  --bronze:#9c7a3c; --bronze-gold:#b8913f;
+  --ok:#2f7d55; --warn:#b86e12; --err:#a83232; --info:#2f74b8;
+  --marker:#ffe45c;
+  --sans:"IBM Plex Sans Hebrew",-apple-system,"Segoe UI",system-ui,sans-serif;
+  --serif:var(--sans); --display:var(--sans);
+  --mono:"IBM Plex Mono","IBM Plex Sans Hebrew",ui-monospace,monospace;
+  --r:0px;
+  --shadow:0 1px 0 rgba(26,26,24,.06),0 2px 6px rgba(26,26,24,.06);
+  --shadow-2:0 2px 0 rgba(26,26,24,.08),0 10px 24px rgba(26,26,24,.10);
+}
+html,body{background:#fff !important;color:var(--ink);font-family:var(--sans)}
+body{font-size:15px;line-height:1.65}
+h1,h2,h3,h4,.page-title,.ex-title,.dh-title,.pp-title,.login-title{font-family:var(--sans) !important;letter-spacing:-.01em}
+.page-title{font-weight:600 !important;font-size:clamp(24px,2.2vw,32px) !important;color:var(--ink)}
+.page-subtitle{color:var(--muted) !important;font-weight:400 !important;font-size:14px !important;margin-bottom:16px !important}
+.section-title{font-family:var(--sans);font-weight:600;color:var(--ink-soft);letter-spacing:0;border-bottom:1px solid var(--stone);padding-bottom:6px}
+strong,b{font-weight:600}
+mark{background:linear-gradient(transparent 42%,var(--marker) 42%,var(--marker) 92%,transparent 92%) !important;color:inherit;padding:0 2px}
+
+/* ── מרובע: כפתורים, שדות, כרטיסים, צ'יפים. עיגול רק לנקודות מקרא ונוריות ── */
+*:not([class*="dot"]):not([class*="light"]):not(.tl-lg i):not(.ml-dot):not(.leaflet-marker-icon){border-radius:0 !important}
+
+/* ── כל מה שלוחצים עליו לחיץ: צל, הרמה בריחוף, שקיעה בלחיצה ── */
+.btn,.quick-card,.lm-card,.login-card,.dh-guide,.dh-step,.layer-item,.ex-att-row,.pp-tab,.info-tab,.stg-step,.src-doc-btn,.upgrade-btn{
+  box-shadow:var(--shadow) !important;transition:transform .15s ease,box-shadow .15s ease,color .15s,background .15s !important}
+.btn:hover,.quick-card:hover,.lm-card:hover,.login-card:hover,.dh-guide:hover,.dh-step:hover,.layer-item:hover,.stg-step:hover,.src-doc-btn:hover{
+  transform:translateY(-2px);box-shadow:var(--shadow-2) !important}
+.btn:active,.quick-card:active,.lm-card:active,.login-card:active,.dh-guide:active,.stg-step:active{transform:translateY(1px);box-shadow:none !important}
+.btn:focus-visible,button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn{font-family:var(--sans);font-weight:500;letter-spacing:0;border:1px solid var(--stone)}
+.btn-primary{background:var(--ink) !important;color:#fff !important;border-color:var(--ink) !important}
+.btn-primary:hover{background:#000 !important}
+.btn-ghost{background:#fff !important;color:var(--ink-soft) !important}
+.btn-ghost:hover{color:var(--ink) !important;border-color:var(--ink) !important}
+.btn:disabled,.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none !important}
+input,select,textarea{font-family:var(--sans)}
+
+/* ── סרגל עליון בהיר: אייקון ושם, ניווט תוכן, חיפוש, לוגו ── */
+.masthead{background:rgba(255,255,255,.95) !important;backdrop-filter:blur(8px);color:var(--ink) !important;
+  border-bottom:1px solid var(--stone);box-shadow:0 8px 22px -20px rgba(0,0,0,.35) !important}
+.masthead-inner{max-width:1800px !important;padding:4px clamp(12px,2vw,32px) !important;gap:8px 18px !important;min-height:52px !important}
+.logo{display:flex !important;align-items:center;gap:10px;color:var(--ink) !important;font-family:var(--sans) !important;font-weight:600 !important;font-size:17px !important;letter-spacing:0 !important;white-space:nowrap}
+.logo::before{content:"";width:30px;height:30px;flex:0 0 30px;background:url(icon.svg) center/cover;box-shadow:var(--shadow)}
+.logo span{color:var(--teal) !important;font-weight:400 !important}
+.toolbar-nav{gap:0 !important;flex-wrap:nowrap !important;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1 1 auto}
+.toolbar-nav::-webkit-scrollbar{display:none}
+.toolbar-nav button,nav button{background:none !important;border:0 !important;color:var(--ink-mute) !important;padding:14px 10px !important;
+  font-size:14px !important;font-weight:500 !important;letter-spacing:0 !important;text-shadow:0 1px 1px rgba(0,0,0,.06);
+  box-shadow:none !important;transition:color .15s,transform .15s !important;white-space:nowrap;flex:0 0 auto}
+.toolbar-nav button:hover{color:var(--ink) !important;transform:translateY(-1px)}
+.toolbar-nav button:active{transform:translateY(1px)}
+.toolbar-nav button.active{color:var(--ink) !important;font-weight:700 !important;box-shadow:inset 0 -2px 0 var(--ink) !important}
+.toolbar-nav [data-sys]{display:none !important}
+.nav-sep{background:var(--stone) !important;margin:0 6px !important}
+.toolbar-manage{border-inline-start:1px solid var(--stone) !important;gap:8px !important}
+.search-bar input{background:#fff !important;color:var(--ink) !important;border:1px solid var(--stone) !important;padding:7px 12px !important;font-size:13px !important}
+.search-bar input::placeholder{color:var(--ink-mute) !important}
+.search-bar input:focus{border-color:var(--ink) !important;outline:none}
+.cloud-status{background:none !important;color:var(--ink-soft) !important;padding:4px 0 !important;font-weight:500 !important;box-shadow:none !important;gap:6px}
+.cloud-status::before{content:"";width:8px;height:8px;border-radius:50% !important;background:var(--ink-mute);flex:0 0 8px}
+.cloud-status.cloud-ok::before{background:var(--ok)}
+.cloud-status.cloud-pending::before{background:var(--warn)}
+.cloud-status.cloud-err{color:var(--err) !important}.cloud-status.cloud-err::before{background:var(--err)}
+.mast-back{background:#fff !important;color:var(--ink) !important;border:1px solid var(--stone) !important;box-shadow:var(--shadow);font-weight:500 !important}
+.mast-back:hover{border-color:var(--ink) !important}
+.mode-toggle,.role-chip{background:#fff !important;color:var(--ink-soft) !important;border:1px solid var(--stone) !important}
+.proj-toolbar{border-inline-end:1px solid var(--stone) !important}
+.proj-toolbar .dev-code-chip{background:#fff !important;color:var(--ink) !important;border:1px dashed var(--stone) !important;font-family:var(--mono)}
+.proj-toolbar .role-toggle{border:1px solid var(--stone) !important}
+.proj-toolbar .role-btn{background:#fff !important;color:var(--ink-mute) !important;border:0 !important}
+.proj-toolbar .role-btn.active{background:var(--ink) !important;color:#fff !important}
+
+/* ── דפים: רוחב מלא, אוויר, בלי רקע צבעוני ── */
+.page{max-width:1800px !important;padding:clamp(14px,1.6vw,24px) clamp(12px,2vw,32px) !important}
+.hero,.hero-bg{background:#fff !important;color:var(--ink) !important;box-shadow:none !important;margin:0 !important;padding:0 !important;text-align:start !important}
+.hero-bg::before{display:none !important}
+.card,.pp-card,.hp-sec,.set-card,.tbl-wrap,.metric,.ex-kpis,.lm-card,.dw-card,.share-section{background:#fff !important;border:1px solid var(--stone) !important;box-shadow:var(--shadow) !important}
+table thead th{background:#fff !important;color:var(--ink) !important;font-weight:600;border-bottom:1.5px solid var(--ink) !important;font-family:var(--sans)}
+tbody tr:hover{background:#fafaf8 !important}
+td,th{font-variant-numeric:tabular-nums}
+
+/* ── בוררים (צ'יפים) בלי מסגרת: טקסט עם צל, הנבחר שחור ומודגש ── */
+.sf-chip,.status-filter button,.sf-btn,.chip,.filter-chip,.tl-chip,.cal-chip,.muni-chip,.ex-plan-chip{
+  background:none !important;border:0 !important;box-shadow:none !important;color:var(--ink-mute) !important;
+  text-shadow:0 1px 1px rgba(0,0,0,.08);font-weight:500;padding:4px 6px !important;cursor:pointer;transition:color .15s,transform .15s}
+.sf-chip:hover,.status-filter button:hover,.sf-btn:hover,.chip:hover,.filter-chip:hover{color:var(--ink) !important;transform:translateY(-1px)}
+.sf-chip.active,.sf-chip.on,.status-filter button.active,.sf-btn.active,.chip.active,.chip.on,.filter-chip.active{color:var(--ink) !important;font-weight:700 !important}
+.badge{font-family:var(--sans);letter-spacing:0;font-weight:600}
+
+/* ── מסך כניסה בהיר ── */
+#loginOverlay{background:#fff !important}
+.login-box{box-shadow:var(--shadow-2) !important;border:1px solid var(--stone) !important}
+.login-card{border:1px solid var(--stone) !important}
+.login-card.sel{border-color:var(--ink) !important}
+.lc-icon:empty,.gi:empty,.lib-icon:empty{display:none}
+
+/* ── מספרים במונוספייס ── */
+.hero-stat .val,.ex-kpi .xk-num,.lm-num,.metric .val,.tl-flow-val b,.pp-num{font-family:var(--mono) !important;font-weight:600 !important;color:var(--ink) !important;font-variant-numeric:tabular-nums}
+
+/* ══════════ דף הבית החדש (plans-plus.js: renderHome) ══════════ */
+.home{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(16px,2.4vw,40px);align-items:center;padding:clamp(8px,1.4vw,20px) 0 8px}
+.home-k{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
+.home-k i{font-style:normal;color:var(--ink-mute);font-family:var(--sans)}
+.home h1{font-size:clamp(28px,3.1vw,48px) !important;font-weight:600 !important;line-height:1.15;margin:6px 0 10px;color:var(--ink)}
+.home h1 .n{font-family:var(--mono);font-weight:600}
+.home-ex{font-size:clamp(14px,1.1vw,17px);color:var(--ink-soft);line-height:1.7;margin:0 0 14px}
+.home-ex b{color:var(--ink)}
+.home-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border-top:1.5px solid var(--ink);border-bottom:1px solid var(--stone)}
+.home-stats > div{padding:10px 12px 10px 4px;border-inline-start:1px solid var(--stone);cursor:pointer;transition:background .15s}
+.home-stats > div:first-child{border-inline-start:0}
+.home-stats > div:hover{background:#fafaf8}
+.home-stats .l{font-family:var(--mono);font-size:11px;color:var(--ink-mute);display:block}
+.home-stats .v{font-family:var(--mono);font-size:clamp(22px,2vw,30px);font-weight:600;line-height:1.2;display:block}
+.home-stats .s{font-size:11.5px;color:var(--muted);display:block}
+.home-iso{position:relative}
+.home-iso svg{width:100%;height:auto;display:block;max-height:46vh}
+.iso-col{cursor:pointer;transition:opacity .2s}
+.iso-col:hover .iso-top{filter:brightness(1.08)}
+.home-iso.hl .iso-col:not(.on){opacity:.28}
+.iso-lg{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;margin-top:4px;font-size:12.5px}
+.iso-lg button{background:none;border:0;font:inherit;color:var(--ink-soft);cursor:pointer;display:inline-flex;gap:6px;align-items:center;padding:2px 0;text-shadow:0 1px 1px rgba(0,0,0,.06)}
+.iso-lg button:hover,.iso-lg button.on{color:var(--ink);font-weight:700}
+.iso-lg i{width:10px;height:10px;display:inline-block;background:var(--c)}
+.iso-cap{font-size:12px;color:var(--ink-mute);text-align:center;margin-top:2px;min-height:18px}
+.tones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 4px}
+.tone{border-inline-start:4px solid;padding:12px 14px;background:#fff;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.tone:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.tone .k{font-family:var(--mono);font-size:11px;color:var(--ink-mute)}
+.tone h4{margin:2px 0 4px;font-size:15px;font-weight:600}
+.tone p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink-soft)}
+.tone-problem{border-color:var(--err);background:#fdf3f3}
+.tone-solution{border-color:var(--ok);background:#eff8f2}
+.tone-insight{border-color:#e8c400;background:#fffbe0}
+.quick-cards{gap:12px !important;margin-top:12px !important}
+.quick-card{text-align:start !important;padding:12px 14px !important;border:1px solid var(--stone) !important;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px}
+.quick-card h3{font-size:15px !important;font-weight:600 !important;margin:0 !important;font-family:var(--sans) !important}
+.quick-card p{font-size:12.5px !important;color:var(--muted) !important;margin:2px 0 0 !important;grid-column:1}
+.quick-card .qn{grid-row:1 / span 2;grid-column:2;font-family:var(--mono);font-size:24px;font-weight:600;color:var(--ink)}
+.home-src{font-size:11px;color:var(--ink-mute);margin-top:10px}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.iso-col{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@media (max-width:1100px){.home{grid-template-columns:minmax(0,1fr)}.home-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.tones{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.home-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.logo{font-size:15px !important}.toolbar-manage .search-bar input{width:140px !important}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+@media print{.masthead{display:none !important}}
+.lm-val{font-family:var(--mono) !important;font-weight:600 !important}
+.lm-strip{margin-top:14px !important;gap:12px !important}
+.lm-tile{box-shadow:var(--shadow) !important}
+.sf-dot{border-radius:50% !important}
+/* תיקונים אחרי בדיקה בעין */
+#mainNav button[data-sys],body #mainNav button[data-sys].arch-only{display:none !important}
+.hero p,.hero .home-ex{color:var(--ink-soft) !important;max-width:none !important;margin:0 0 14px !important;font-weight:400 !important}
+.hero h1{color:var(--ink) !important;margin:6px 0 10px !important}
+.hero h1 span.n{color:var(--ink) !important}
+.home-k{font-family:var(--sans) !important}
+/* סרגל בשתי שורות: שם ופעולות למעלה, ניווט תוכן מתחת */
+.masthead-inner{flex-wrap:wrap !important}
+.masthead-inner > .logo{order:1}
+.masthead-inner > .toolbar-manage{order:2;margin-inline-start:auto !important;width:auto !important;flex:0 1 auto}
+.masthead-inner > .toolbar-nav{order:3;flex:1 1 100% !important;margin-top:-4px}
+.toolbar-nav button{padding:8px 10px 10px !important}
+.ml-dot,.ml-sq{flex:0 0 auto !important;width:11px !important;height:11px !important;display:inline-block}
+.ml-row{display:flex;align-items:center;gap:8px}
+#gis-map{height:calc(100dvh - 250px) !important;min-height:420px}
+.home-work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
+.home-work > div{max-height:min(62dvh,560px);overflow:auto;background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow);padding:10px 14px;scrollbar-width:thin}
+.home-work > div:empty{display:none}
+@media (max-width:900px){.home-work{grid-template-columns:minmax(0,1fr)}.home-work > div{max-height:60dvh}}
+@media (max-width:560px){.lm-strip{grid-template-columns:repeat(2,minmax(0,1fr)) !important}.tones{gap:8px}.tone p{display:none}.home-iso svg{max-height:30vh}.quick-card p{display:none}}
+.home-iso svg{max-height:40vh}
+/* רצועת הקצב: שורה אחת קומפקטית */
+.tl-flow-seg{flex-direction:row !important;align-items:baseline;gap:10px !important;padding:6px 10px !important;min-width:0 !important}
+.tl-flow-val b{font-size:18px !important}
+.tl-flow{margin-bottom:10px !important}
+.tl-insight{font-size:clamp(17px,1.6vw,22px) !important;margin:2px 0 !important}
+.tl-explain{margin-bottom:8px !important;font-size:13.5px !important}
+/* מפה: הטור הצדדי גולל בתוך עצמו */
+#map .g2{grid-template-columns:minmax(0,1fr) 250px !important}
+#map .g2 > div:last-child{max-height:calc(100dvh - 230px);overflow:auto;scrollbar-width:thin;padding-inline-end:4px}
+#map .page-title{margin-bottom:0 !important}
+#gis-map{height:calc(100dvh - 230px) !important;min-height:360px}
+@media (max-width:820px){#map .g2{grid-template-columns:minmax(0,1fr) !important}#map .g2 > div:last-child{max-height:none}#gis-map{height:45dvh !important;min-height:280px}}
