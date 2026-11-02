@@ -371,3 +371,37 @@ textarea.mt-in{min-width:220px;resize:vertical}
 #stageStrip .rn-card .pp-src{width:100%;margin:0}
 #stageStrip .rn-card .rn-go{margin:0}
 .lib-url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ══════════ שקט: פחות כפתורים ופחות מלל (ענת, 03.11.2026) ══════════ */
+/* סרגל: 8 יעדים. השאר נגיש מדף הבית ומהספרייה */
+#mainNav button[data-more]{display:none !important}
+.nav-grp,#roleChip,#devCodeChip,#ppLocksBtn,#ppStageBadge{display:none !important}
+.cloud-status{font-size:0 !important;padding:0 !important;gap:0 !important}
+.cloud-status::before{width:10px !important;height:10px !important;flex-basis:10px !important}
+.mast-back .gb-label{font-size:0}.mast-back .gb-label::after{content:"חזרה";font-size:13px}
+.toolbar-nav button{padding:8px 12px 10px !important;font-size:14.5px !important}
+/* בלי כותרות משנה והסברים ארוכים: הכותרת אומרת את העיקר */
+.page-subtitle,.pr-head .pp-src,.rv-wrap > .pp-src,.cal-range-note,#timeline .tl-explain,#timeline .tl-grid + .pp-src,
+.tones,.home-src,.hz-vision p,.hz-val,.iso-cap,.zone p,.lm-explain,.lm-range,.lib-url,.lib-d,#mapPrecision .pp-src,.mt-estn{display:none !important}
+.home-stats > div:nth-child(2){display:none}
+.home-stats{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+.zone-l button:nth-child(n+5){display:none}
+.lm-tile{min-height:96px !important}
+/* מפה: רק השכבות שעובדים איתן */
+#map .layer-item[onclick*="'parcels'"],#map .layer-item[onclick*="'landuse'"],#boxZoomBtn,#mapStats{display:none !important}
+#mapStats{display:none}#map .section-title:has(+ #mapStats){display:none}
+/* אנשי קשר: פעולות שורה רק במצב עריכה; מייל וחיוג דרך בחירה או WhatsApp */
+.cq-quick,.contacts-toolbar > .btn-primary,.c-ico:not(.c-wa){display:none !important}
+body:not(.edit-on) .contacts-table td:last-child button,body:not(.edit-on) .contacts-table th:last-child{visibility:hidden}
+/* פריטים מקופלים: שורה אחת עם מספר */
+details.calm-fold{margin:10px 0;background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow)}
+details.calm-fold > summary{list-style:none;cursor:pointer;display:flex;justify-content:flex-start;align-items:center;gap:12px;padding:10px 14px;font-weight:600;font-size:15px;transition:background .15s}
+details.calm-fold > summary::-webkit-details-marker{display:none}
+details.calm-fold > summary::after{content:"+";font-family:var(--mono);color:var(--ink-mute);font-size:18px;margin-inline-start:auto}
+details.calm-fold[open] > summary::after{content:"−"}
+details.calm-fold > summary b{font-family:var(--mono);font-weight:600;color:var(--ink-soft)}
+details.calm-fold > summary:hover{background:#fafaf8}
+details.calm-fold[open] > summary{border-bottom:1px solid var(--fog)}
+details.calm-fold > :not(summary){margin:10px 14px}
+.home-work{display:block !important}
+.home-work > details.calm-fold > div{max-height:none !important;border:0 !important;box-shadow:none !important;padding:0 !important}
