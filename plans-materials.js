@@ -118,6 +118,9 @@ function materials(p){
   const lib = p.docsLib || {};
   [].concat(lib.taba||[], lib.developer||[], ...Object.values(lib.byTopic||{})).forEach(d => { if(!d) return; const nm = d.name || d.title || '';
     add(classify(nm + ' ' + (d.type||'')), { t:nm || 'מסמך', src:'ספריית המסמכים', href:d.url || d.href || '' }); });
+  // מייל: רק סוג, תאריך וקישור ל-Outlook (נפתח רק לבעלת התיבה). הקבצים נשארים במייל.
+  ((window.MAIL_INDEX||{})[String(p.tik)] || []).forEach(m => add(m.cat || 'other',
+    { t:`במייל, ${fmtDate(m.date)}${m.n>1?` (${m.n} קבצים)`:''}`, src:'תיבת הדואר של אדריכלית העיר. נפתח ב-Outlook', href:m.link, mail:true }));
   rnMediaFor(p).forEach(m => {
     const cat = m.k==='kml' ? 'boundary' : m.k==='render' ? 'render' : m.k==='video' ? 'render' : classify(m.c || m.u || m.s);
     add(cat, { t:(m.c || (m.k==='video'?'סרטון':'מסמך')) + ` (${m.n})`, src:'התב"ע החלה, מה נבנה סביבי', href:rnHref(m), ext:true });
@@ -154,13 +157,13 @@ function panelHTML(p){
     return `<div class="mat-row${list.length?'':' mat-miss'}"><div class="mat-k">${H(c.l)} <b>${list.length || 'חסר'}</b></div>
       <div class="mat-items">${list.map(it => it.img
         ? `<button class="mat-thumb" title="${H(it.t)} · ${H(it.src)}" onclick="matShowImg(${p.id},${idxOf.get(it)})"><img src="${H(it.img)}" alt="${H(it.t)}" loading="lazy"></button>`
-        : it.href ? `<a class="mat-doc" href="${H(it.href)}" target="_blank" rel="noopener" title="${H(it.src)}">${H(it.t)}</a>`
+        : it.href ? `<a class="mat-doc${it.mail?' mat-mail':''}" href="${H(it.href)}" target="_blank" rel="noopener" title="${H(it.src)}">${H(it.t)}</a>`
         : it.act ? `<button class="mat-doc" onclick="${it.act}" title="${H(it.src)}">${H(it.t)}</button>`
         : `<span class="mat-doc">${H(it.t)}</span>`).join('')}</div></div>`;
   };
   return `<div id="matPanel" class="mat-wrap">
     ${CATS.map(row).join('')}
-    <div class="pp-src">מקורות: קבצי חוות הדעת, מסמכים שהועלו, ו"מה נבנה סביבי"${RN_MEDIA_LIVE?'':' (עותק 03.11.2026)'}. הסיווג לפי שם הקובץ.</div>
+    <div class="pp-src">מקורות: קבצי חוות הדעת, מסמכים שהועלו, המייל שלך, ו"מה נבנה סביבי"${RN_MEDIA_LIVE?'':' (עותק 03.11.2026)'}. הסיווג לפי שם הקובץ.</div>
   </div>`;
 }
 function renderPanel(p){
