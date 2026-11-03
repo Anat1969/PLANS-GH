@@ -424,3 +424,4 @@ details.calm-fold > :not(summary){margin:10px 14px}
 .mx-table tbody tr{cursor:pointer}.mx-table tbody tr:hover td{background:#fafaf8}
 .mx-ok{color:var(--ok);font-weight:600}.mx-no{color:var(--err)}
 @media (max-width:640px){.mat-row{grid-template-columns:minmax(0,1fr)}}
+.mat-doc.mat-mail{background:#eef4fb;color:#1f4f86}
