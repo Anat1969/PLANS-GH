@@ -425,3 +425,21 @@ details.calm-fold > :not(summary){margin:10px 14px}
 .mx-ok{color:var(--ok);font-weight:600}.mx-no{color:var(--err)}
 @media (max-width:640px){.mat-row{grid-template-columns:minmax(0,1fr)}}
 .mat-doc.mat-mail{background:#eef4fb;color:#1f4f86}
+/* ══════════ תאריכי הפורומים: רקע מעודן בשלושה גווני כחול, תאריך שחור (ענת, 03.11.2026) ══════════
+   עבר = כחול אפרפר דהוי · הווה (היום עד שבוע) = כחול בהיר ברור · עתיד = כחול שמיים עדין עם קו */
+:root{--dt-past:#eceff3;--dt-present:#d6e6f7;--dt-future:#f1f7fd;--dt-line:#9bbbe0}
+.dt-past,.dt-present,.dt-future{color:#1a1a18 !important;font-weight:700 !important;font-variant-numeric:tabular-nums}
+.dt-past{background:var(--dt-past) !important}
+.dt-present{background:var(--dt-present) !important;box-shadow:inset 0 0 0 1px var(--dt-line)}
+.dt-future{background:var(--dt-future) !important;outline:1px dashed var(--dt-line);outline-offset:-1px}
+.dt-none{background:transparent !important;color:var(--ink-mute) !important}
+.plans-table .col-date .date-status{font-size:15px !important;font-weight:700 !important;padding:4px 8px !important}
+.date-legend span{color:#1a1a18 !important;font-weight:600}
+/* כרטיסי תוכנית העבודה */
+.dw-date input[type=date]{color:#1a1a18 !important;font-weight:700}
+.dw-date-dt-past input[type=date]{background:var(--dt-past) !important;border-color:#cdd3db !important}
+.dw-date-dt-present input[type=date]{background:var(--dt-present) !important;border-color:var(--dt-line) !important}
+.dw-date-dt-future input[type=date]{background:var(--dt-future) !important;border:1px dashed var(--dt-line) !important}
+.dw-date-dt-past .dw-date-state,.dw-date-dt-present .dw-date-state,.dw-date-dt-future .dw-date-state{background:transparent !important;color:#1a1a18 !important;font-weight:600}
+/* עריכה בטבלה */
+.plans-table .col-date input[type=date]{color:#1a1a18 !important;border:1px solid var(--dt-line) !important;background:#fff !important}

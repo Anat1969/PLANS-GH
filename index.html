@@ -2408,7 +2408,7 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <span class="filter-count" id="filterCount"></span>
     <button class="btn btn-ghost btn-sm" onclick="resetFilters()">נקה סינון</button>
     <span class="date-legend" title="צביעת התאריכים לפי התאריך הנוכחי">
-      מקרא תאריכים: <span class="dt-present">עבר / היום</span> <span class="dt-future">עתיד</span>
+      <span class="dt-past">עבר</span> <span class="dt-present">השבוע</span> <span class="dt-future">עתיד</span>
     </span>
   </div>
 
@@ -3743,9 +3743,11 @@ function dateTimeClass(dateStr){
   const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return 'dt-none';
   const today=_todayISO();
   const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  // שתי משפחות צבע בלבד: עבר+היום = צבע ההווה · עתיד = צבע העתיד.
+  // שלושה גווני כחול לפי זמן אמת (ענת, 03.11.2026): עבר · הווה (היום ועד שבוע קדימה) · עתיד.
   // מחושב מ-new Date בפועל, כך שהצבעים מתעדכנים אוטומטית בכל יום.
-  return dd>today ? 'dt-future' : 'dt-present';
+  const week=new Date(today); week.setDate(week.getDate()+7);
+  if(dd<today) return 'dt-past';
+  return dd<=week ? 'dt-present' : 'dt-future';
 }
 /* טווח תאריכים: הסתיים=עבר · כולל היום=הווה · טרם התחיל=עתיד */
 function rangeTimeClass(startStr,endStr){
@@ -3888,8 +3890,14 @@ function saveForumDate(id, field, el){
   const p = plans.find(x=>x.id===id);
   if(!p) return;
   const oldVal = p[field];
-  p[field] = el.value;
-  clearSeed(p, field); // סימון עריכה ידנית — כדי שה-seed לא ידרוס את התאריך בטעינה הבאה
+  // העמודה השלישית היא "הכנה לוועדה": בתוכנית פעילה נכתבת להכנה לוועדה, ולא לתאריך הוועדה עצמה
+  if(field==='committeeDate' && planIsActive(p)){
+    if(!p.datesPlan) p.datesPlan={};
+    p.datesPlan.committeePrep = el.value; clearSeed(p,'datesPlan.committeePrep'); if(p._est) delete p._est.committeePrep;
+  } else {
+    p[field] = el.value;
+    clearSeed(p, field); // סימון עריכה ידנית — כדי שה-seed לא ידרוס את התאריך בטעינה הבאה
+  }
   p.updatedAt = todayStr();
   // שרשרת אוטומטית: שינוי תאריך מוקדם מחשב מחדש את הבאים אחריו — אלא אם נערכו ידנית
   ensureForumChain(p);
@@ -4276,7 +4284,7 @@ function sortTable(col) {
   const key = SORT_KEYS[col];
   const collator = new Intl.Collator('he', {numeric:true, sensitivity:'base'});
   filtered.sort((a,b) => {
-    let va = a[key], vb = b[key];
+    let va = key==='committeeDate'?prepDate(a):a[key], vb = key==='committeeDate'?prepDate(b):b[key];
     const ea = (va===undefined||va===null||va==='');
     const eb = (vb===undefined||vb===null||vb==='');
     if (ea && eb) return 0;
@@ -4618,7 +4626,7 @@ function renderTable() {
         <td class="col-txt"><input value="${esc(p.submitter||'')}" onchange="saveField(${p.id},'submitter',this)">${submitterMailHTML(p)}</td>
         <td class="col-date grp-sep-start"><input type="date" value="${p.forumArchitect||''}" onchange="saveForumDate(${p.id},'forumArchitect',this)"></td>
         <td class="col-date"><input type="date" value="${p.forumConsultants||''}" onchange="saveForumDate(${p.id},'forumConsultants',this)"></td>
-        <td class="col-date grp-sep-end"><input type="date" value="${p.committeeDate||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
+        <td class="col-date grp-sep-end"><input type="date" value="${prepDate(p)||''}" onchange="saveForumDate(${p.id},'committeeDate',this)"></td>
         <td class="col-status"><select onchange="saveField(${p.id},'status',this)">${STATUSES.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
         <td class="col-note">${noteCellHTML(p)}</td>
       </tr>`;
@@ -4634,7 +4642,7 @@ function renderTable() {
       <td class="col-txt" title="${esc(p.submitter||'')}">${p.submitter||'—'}${submitterMailHTML(p)}</td>
       <td class="col-date grp-sep-start"><span class="date-status ${dateTimeClass(p.forumArchitect)}">${fmtDate(p.forumArchitect)}</span></td>
       <td class="col-date"><span class="date-status ${dateTimeClass(p.forumConsultants)}">${fmtDate(p.forumConsultants)}</span></td>
-      <td class="col-date grp-sep-end"><span class="date-status ${dateTimeClass(p.committeeDate)}">${fmtDate(p.committeeDate)}</span></td>
+      <td class="col-date grp-sep-end"><span class="date-status ${dateTimeClass(prepDate(p))}">${fmtDate(prepDate(p))}</span></td>
       <td class="col-status">${statusChip(p.status)}</td>
       <td class="col-note" onclick="event.stopPropagation()">${noteCellHTML(p)}</td>
     </tr>`;
@@ -9975,7 +9983,7 @@ function taskCard(t){
   const today = todayStr();
   // תאריך גדול וצבוע לפי עבר/עתיד + תווית מצב (התקיים/מתוכנן)
   const dateField = (field,label)=>{
-    const val=p[field]||'';
+    const val=(field==='committeeDate'?prepDate(p):p[field])||'';
     const cls = val ? dateTimeClass(val) : 'dt-none';
     const state = !val ? 'טרם נקבע' : (_occurred(val,today) ? 'התקיים' : 'מתוכנן');
     return `<label class="dw-date dw-date-${cls}"><span class="dw-date-lbl">${label}</span>
