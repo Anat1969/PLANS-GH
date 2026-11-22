@@ -162,8 +162,8 @@ function panelHTML(p){
         : `<span class="mat-doc">${H(it.t)}</span>`).join('')}</div></div>`;
   };
   return `<div id="matPanel" class="mat-wrap">
-    ${CATS.map(row).join('')}
-    <div class="pp-src">מקורות: קבצי חוות הדעת, מסמכים שהועלו, המייל שלך, ו"מה נבנה סביבי"${RN_MEDIA_LIVE?'':' (עותק 03.11.2026)'}. הסיווג לפי שם הקובץ.</div>
+    ${typeof window.layersLinkHTML==='function' ? window.layersLinkHTML(p) : ''}${CATS.map(row).join('')}
+    <div class="pp-src">מקורות: חוות דעת, מסמכים, מייל ו"מה נבנה סביבי"${RN_MEDIA_LIVE?'':' (עותק 03.11.2026)'}. סיווג לפי שם הקובץ.</div>
   </div>`;
 }
 function renderPanel(p){

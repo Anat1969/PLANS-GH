@@ -2961,7 +2961,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
   'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
-  'proc','reviewGrid','meet','_est','openDateIssue'];
+  'proc','reviewGrid','meet','_est','openDateIssue','layerReview'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -12999,5 +12999,6 @@ function aiSyncContext() {
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js"></script>
+<script src="plans-layers.js"></script>
 </body>
 </html>
