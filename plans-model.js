@@ -50,7 +50,14 @@ const KINDS = [
  { id:'fire', topic:'fire', label:'רחבת כיבוי וכבאית', color:'#c8202a', desc:'כבאית באורך 9.5 מ\' עומדת בכל רחבה שסומנה.' },
  { id:'firemark', topic:'fire', label:'סימון הרחבות', color:'#e23b3b', desc:'הסימון האדום מהשרטוט.' },
  { id:'fireroute', topic:'fire', label:'מסלול רכב הכיבוי', color:'#e23b3b', desc:'רדיוסי הסיבוב והגישה.' }
+ ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
+ { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
+ { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
+ { id:'rnEnvelope', topic:'renewal', label:'המעטפת המותרת', color:'#ffffff', desc:'השטח שבין קווי הבניין, עד הגובה המרבי.' }
 ];
+/* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
+const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
+const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
 /* ── רשת ישראל החדשה ↔ WGS84 ── */
@@ -299,9 +306,14 @@ function create(el, model, opts){
     windG.children.forEach(m => { const t = ((windT + m.userData.o) % 400) - 200; m.position.set(dx*t - dz*m.userData.s, m.userData.y, dz*t + dx*m.userData.s); m.rotation.y = Math.atan2(-dz, dx); }); }
 
   // תצוגה: שכבות פעילות, רפאים לשאר
-  let active = null; const kindOff = new Set();
+  let active = null, state = 'design', envOn = false; const kindOff = new Set();
+  const solidOn = (g, v) => { g.visible = v; g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = v && x.userData.solid; } }); };
   function applyActive(){
-    for(const k in groups){ const g = groups[k], on = !kindOff.has(k) && (!active || active.has(KIND[k].topic));
+    for(const k in groups){ const g = groups[k];
+      if(state !== 'design'){ solidOn(g, STATE_KINDS[state].includes(k) && !kindOff.has(k)); continue; }
+      if(k==='exBuild' || k==='rnParcel' || k==='rnMass'){ g.visible = false; continue; }
+      if(k==='rnEnvelope'){ solidOn(g, envOn); continue; }
+      const on = !kindOff.has(k) && (!active || active.has(KIND[k].topic));
       const off = kindOff.has(k), ctx = ['asphalt','paving','green','wall','brt','bike'].includes(k);
       g.visible = on || (!off && ctx);
       g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = on ? x.userData.mat : ghost; x.castShadow = on && x.userData.solid; } });
@@ -310,12 +322,40 @@ function create(el, model, opts){
   }
   function setActive(set){ active = set ? new Set(set) : null; applyActive(); }
   function setKind(k, on){ if(on) kindOff.delete(k); else kindOff.add(k); applyActive(); }
+  function setState(st){ state = st; applyActive(); }
+  function setEnvelope(on){ envOn = !!on; applyActive(); }
+
+  /* התחדשות עירונית (נפחים לפי הזכויות) ומצב קיים. הנתונים ב-WGS84, ומומרים לרשת ישראל */
+  function setRenewal(rn){
+    const loc = c => { const [E, N] = wgs2itm(c[1], c[0]); return [E-model.e0, N-model.n0]; }, fl = r => r.flatMap(p => [Math.round(p[0]*10), Math.round(p[1]*10)]);
+    const lots = Object.fromEntries((rn.lots||[]).map(l => [l.lot, l]));
+    add('rnParcel', new T.Mesh(flatGeo(T, rn.parcels.map(p => [(ZONES[p.cat]||ZONES.road)[1], fl(p.c.map(loc))]), .02, 1), M.std({ vertexColors:true, transparent:true, opacity:.92 })));
+    add('rnParcel', new T.LineSegments(lineGeo(T, rn.parcels.map(p => { const r = p.c.map(loc); return fl(r.concat([r[0]])); }), .06), new T.LineBasicMaterial({ color:'#3a3a3a' })));
+    const edge = new T.LineBasicMaterial({ color:'#2b2b2b', transparent:true, opacity:.45 }), envEdge = new T.LineBasicMaterial({ color:'#5b6470' });
+    (rn.massing||[]).forEach(f => {
+      const r = f.c.map(loc), lot = lots[f.lot] || {}, closed = fl(r.concat([r[0]]));
+      if(f.kind==='envelope'){
+        add('rnEnvelope', new T.Mesh(extrudeGeo(T, [r], f.base, f.top-f.base), new T.MeshBasicMaterial({ color:'#ffffff', transparent:true, opacity:.16, side:T.DoubleSide, depthWrite:false })), { noReceive:true });
+        const pos = []; r.forEach(p => pos.push(p[0], f.base, -p[1], p[0], f.top, -p[1])); const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+        add('rnEnvelope', new T.LineSegments(g, envEdge)); add('rnEnvelope', new T.LineSegments(lineGeo(T, [closed], f.top), envEdge)); return; }
+      add('rnMass', new T.Mesh(extrudeGeo(T, [r], f.base, f.top-f.base), M.std({ color:(ZONES[f.cat]||ZONES.residential)[1], roughness:.75 })), { cast:true, solid:true });
+      // קווי הקומות: גובה קומה לפי הגובה המרבי חלקי מספר הקומות בטבלה 5
+      const fh = lot.floors ? (lot.height || f.top) / lot.floors : 3.3, lines = []; for(let y = f.base + fh; y < f.top - .2; y += fh) lines.push(y);
+      const pos = []; lines.forEach(y => { for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length]; pos.push(a[0], y, -a[1], b[0], y, -b[1]); } });
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); add('rnMass', new T.LineSegments(g, edge));
+      if(f.kind==='tower'){ const c = document.createElement('canvas'); c.width = 512; c.height = 96; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 512, 96); x.fillStyle = '#1a1a18'; x.font = '600 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+        x.fillText(`מגרש ${f.lot} · ${lot.floors||''} קומות`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(34, 6.4, 1);
+        sp.position.set(r.reduce((s, p) => s+p[0], 0)/r.length, f.top + 7, -r.reduce((s, p) => s+p[1], 0)/r.length); add('rnMass', sp); }
+    });
+    (rn.demolish||[]).forEach(d => add('exBuild', new T.Mesh(extrudeGeo(T, [d.c.map(loc)], 0, d.h || 13), M.std({ color:KIND.exBuild.color })), { cast:true, solid:true }));
+    applyActive();
+  }
 
   // מצלמה
   const [bx0, by0, bx1, by1] = model.bbox;
   function view(name){
     const R = Math.max(bx1-bx0, by1-by0);
-    if(name==='top'){ cam.position.set(0, R*1.25, 0.01); ctl.target.set(0, 0, 0); }
+    if(name==='top'){ cam.position.set(0, R*(state==='renewal' ? 1.9 : 1.25), 0.01); ctl.target.set(0, 0, 0); }
     else if(name==='eye'){ // גובה עיניים: עומדים על הריצוף הקרוב למרכז, ומביטים צפונה לאורך המגרש
       const obs = [].concat(O.treeNew||[], O.treeOld||[], O.lamp||[], (O.bench||[]).map(b => [b[0], b[1]]));
       (S.wall||[]).forEach(p => obs.push([p[1][0]/10, p[1][1]/10])); (L.lowwall||[]).forEach(f => { for(let i = 0; i < f.length; i += 6) obs.push([f[i]/10, f[i+1]/10]); });
@@ -324,6 +364,7 @@ function create(el, model, opts){
         let d = 14; for(const o of obs){ const dd = Math.hypot(o[0]-cx, o[1]-cy); if(dd < d) d = dd; } if(d > bs){ bs = d; best = [cx, cy]; } });
       const dl = Math.hypot(best[0], best[1]) || 1;
       cam.position.set(best[0], 1.65, -best[1]); ctl.target.set(best[0] - best[0]/dl*25, 2.2, -best[1] + best[1]/dl*25); }
+    else if(state==='renewal'){ cam.position.set(-R*.95, R*.9, R*1.15); ctl.target.set(20, 45, 0); }   // נפחים גבוהים: מתרחקים
     else { cam.position.set(-R*.42, R*.5, R*.62); ctl.target.set(8, 0, 0); }
     ctl.update(); draw();
   }
@@ -338,7 +379,7 @@ function create(el, model, opts){
   ctl.addEventListener('change', draw);
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
-  return { setActive, setKind, setSun, setFloors, setWind, view, resize, center, groups,
+  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, view, resize, center, groups,
     setMap(on){ if(on) loadMap(); mapG.visible = on; draw(); },
     dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
@@ -351,6 +392,6 @@ function loadThree(){
   const js = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error(src)); document.head.appendChild(s); });
   return loading = js('vendor/three.min.js').then(() => js('vendor/OrbitControls.js'));
 }
-const api = { KINDS, KIND, create, loadThree, measure, itm2wgs, wgs2itm, sunPos, ilDate };
+const api = { KINDS, KIND, ZONES, STATE_KINDS, create, loadThree, measure, itm2wgs, wgs2itm, sunPos, ilDate };
 if(typeof module !== 'undefined' && module.exports) module.exports = api; else window.PlanModel = api;
 })();

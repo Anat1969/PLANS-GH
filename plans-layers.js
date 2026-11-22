@@ -8,7 +8,7 @@
    ══════════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
-const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026' } };
+const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true } };
 
 /* הדרישות של הנחיות ההגשה, ולכל דרישה: השכבות שמראות אותה */
 const TOPICS = [
@@ -42,7 +42,9 @@ const DISC = [
  { id:'fire', name:'כיבוי אש וחירום', who:'יועץ הבטיחות', layers:['fire','road'], ask:['move.5'] },
  { id:'all', name:'הכול יחד', who:'סיכום הפגישה', layers:null, ask:null }
 ];
-const LAYER_NAME = { site:'גבולות', build:'מבנים', road:'כבישים', park:'חניה', bike:'אופניים', walk:'ריצוף והולכי רגל', level:'קירות וגדרות', green:'גינון', trees:'עצים', shade:'הצללה ושהייה', water:'מים וניקוז', power:'חשמל ותאורה', waste:'אשפה', fire:'כיבוי אש', anno:'טקסט' };
+const LAYER_NAME = { site:'גבולות', build:'מבנים', road:'כבישים', park:'חניה', bike:'אופניים', walk:'ריצוף והולכי רגל', level:'קירות וגדרות', green:'גינון', trees:'עצים', shade:'הצללה ושהייה', water:'מים וניקוז', power:'חשמל ותאורה', waste:'אשפה', fire:'כיבוי אש', anno:'טקסט', exist:'קיים', renewal:'התחדשות עירונית' };
+/* שלושת המצבים של כל תוכנית: מה יש, מה מותר, מה מוצע */
+const STATES = [ ['exist', 'קיים', 'מה יש היום'], ['renewal', 'התחדשות עירונית', 'מה מותר לפי התב"ע'], ['design', 'תוכנית בינוי ועיצוב', 'מה מוצע בפועל'] ];
 const SEASONS = [ ['קיץ', 6, 21], ['אביב וסתיו', 3, 21], ['חורף', 12, 21] ];
 /* כיווני רוח: הערכה כללית לחוף הדרומי, לא נתון מדוד */
 const WINDS = [ ['בלי', null], ['קיץ: בריזת ים', 300], ['חורף: מזרחית', 90] ];
@@ -52,7 +54,7 @@ const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
 const PM = () => window.PlanModel;
 
-const S = { tik:null, man:null, model:null, meas:null, api:null, d:0, mode:'model', season:0, hour:15, floors:0, map:false, wind:0, view:'home',
+const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:false, wind:0, view:'home',
   off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null };
 
 /* ── נתונים: נשמרים על התוכנית ── */
@@ -80,7 +82,10 @@ function facts(disc){
   const m = S.meas, a = m.area, c = m.count, l = m.len, man = S.man || {}, g = (man.layers||[]).find(x => x.id==='green');
   const pct = g && g.areaIn && man.siteArea ? Math.round(g.areaIn/man.siteArea*100) : null;
   switch(disc.id){
-    case 'arch': return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר`, `**${N(l.glass)}** מ' זיגוג בקומת הקרקע`, 'גובה הבניינים אינו בשרטוט: בוחרים מספר קומות להטלת צל'];
+    case 'arch': { const fit = conform(), out = fit ? fit.reduce((s, r) => s+r.out, 0) : 0, tot = fit ? fit.reduce((s, r) => s+r.area, 0) : 0;
+      return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר`,
+        fit && fit.length ? (out > tot*0.02 ? `==כ-${N(out)} מ"ר מקומת הקרקע מחוץ לקווי הבניין של התב"ע== (הערכה, ${Math.round(out/tot*100)}%)` : `קומת הקרקע בתוך קווי הבניין של התב"ע (${fit.length} מגרשים, הערכה)`) : 'אין נתוני תב"ע להשוואה',
+        `**${N(l.glass)}** מ' זיגוג בקומת הקרקע`, 'גובה הבניינים אינו בשרטוט: בוחרים מספר קומות להטלת צל']; }
     case 'traffic': return [`מיסעה: כ-**${N(a.asphalt)}** מ"ר`, `שביל אופניים: כ-**${N(a.bike)}** מ"ר`, `רמפה לחניון: כ-**${N(a.ramp)}** מ"ר`];
     case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר`, `קירות פיתוח: **${N(l.lowwall)}** מ'`, `מדרגות: **${N(l.stairs)}** מ' של קווי מדרגה`];
     case 'land': return [`**${c.treeNew}** עצים מוצעים, **${c.treeOld}** קיימים, **${c.treeSurvey}** סימוני סקר`, `גינון: כ-**${N(a.green)}** מ"ר${pct!=null?`, שהם כ-**${pct}%** מהשטח שבקו הכחול`:''}`, `**${c.bench}** ספסלים, פרגולות **${N(a.pergola)}** מ"ר, משחק **${N(a.play)}** מ"ר`];
@@ -114,7 +119,8 @@ async function open(tik){
     if(S.api){ S.api.dispose(); S.api = null; }
     S.tik = tik; S.man = null; S._local = null;
     body().innerHTML = '<p class="ly-empty">טוען את המודל…</p>';
-    try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model); }
+    try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
+      S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
   }
   shell(); await setMode(S.mode); drawPanel();
@@ -128,6 +134,7 @@ function shell(){
       <div class="ly-sub">תיק <b>${H(S.tik)}</b> · ${H(set.title)} · ${H(set.date)} · המודל נבנה מ-<b>${S.man.cadTotal}</b> שכבות השרטוט, במקומו האמיתי באשדוד</div></div>
     <div class="ly-nav"><button class="ly-b" data-step="-1">הקודם</button><button class="ly-b ly-next" data-step="1">הבא</button></div>
   </div>
+  <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
   <div class="ly-steps" id="lySteps" role="tablist" aria-label="תחומי הפגישה"></div>
   <div class="ly-grid">
     <div class="ly-stage" id="lyStage">
@@ -141,6 +148,10 @@ function shell(){
   bind();
 }
 function drawSteps(){
+  const design = S.state==='design';
+  document.getElementById('lyStates').innerHTML = STATES.filter(x => x[0]==='design' || S.rn).map(x => `<button role="tab" aria-selected="${x[0]===S.state}" class="${x[0]===S.state?'on':''}" data-state="${x[0]}"><b>${H(x[1])}</b><span>${H(x[2])}</span></button>`).join('');
+  document.getElementById('lySteps').style.display = design ? '' : 'none';
+  document.querySelector('.ly-nav').style.visibility = design ? '' : 'hidden';
   document.getElementById('lySteps').innerHTML = DISC.map((x, i) => { const c = discCount(x);
     return `<button role="tab" aria-selected="${i===S.d}" class="${i===S.d?'on':''}" data-disc="${i}"><i>${i+1}</i>${H(x.name)}<b>${c.done}/${c.total}</b></button>`; }).join('');
 }
@@ -148,7 +159,8 @@ function drawTools(){
   const el = document.getElementById('lyTools'); if(!el) return;
   const seg = (name, list, cur) => `<span class="ly-seg">${list.map((t, i) => `<button data-${name}="${i}" class="${i===cur?'on':''}">${H(t)}</button>`).join('')}</span>`;
   const hh = Math.floor(S.hour), mm = Math.round((S.hour%1)*60);
-  el.innerHTML = `<div class="ly-trow">${seg('mode', ['מודל', 'שרטוט'], S.mode==='model'?0:1)}
+  el.innerHTML = `<div class="ly-trow">${S.state==='design' ? seg('mode', ['מודל', 'שרטוט'], S.mode==='model'?0:1) : ''}
+      ${S.mode==='model' && S.state==='design' && S.rn ? `<button class="ly-tg${S.env?' on':''}" data-env="1" title="המעטפת המותרת לפי התב\"ע, מעל תוכנית הבינוי">מעטפת התב"ע</button>` : ''}
       ${S.mode==='model' ? seg('view', ['מעוף הציפור', 'מבט על', 'גובה עיניים'], ['home','top','eye'].indexOf(S.view)) + `<button class="ly-tg${S.map?' on':''}" data-map="1">מפת אשדוד</button>`
         : `<label>הפרדה <input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></label>`}</div>
     ${S.mode==='model' ? `<div class="ly-trow"><b>שמש</b>${seg('season', SEASONS.map(s => s[0]), S.season)}
@@ -166,7 +178,7 @@ async function setMode(mode){
   if(mode==='model'){
     try{ await PM().loadThree();
       S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
-      S.api.setFloors(S.floors); S.api.setMap(S.map); S.api.setWind(WINDS[S.wind][1]); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
+      if(S.rn) S.api.setRenewal(S.rn); S.api.setEnvelope(S.env); S.api.setFloors(S.floors); S.api.setMap(S.map); S.api.setWind(WINDS[S.wind][1]); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
     view.innerHTML = '<div class="ly-world" id="lyWorld">' + S.man.layers.map(l => `<div class="ly-sheet" data-id="${l.id}"><img src="${SETS[S.tik].dir}/${l.file}" alt="${H(l.name)}" draggable="false" decoding="async"><span class="ly-tag">${H(l.name)}</span></div>`).join('') + '</div>';
@@ -175,8 +187,9 @@ async function setMode(mode){
 }
 function applyDisc(){
   const disc = DISC[S.d]; drawSteps();
-  const over = document.getElementById('lyOver'); if(over) over.innerHTML = `<b>${H(disc.name)}</b><span>${disc.layers ? disc.layers.map(l => H(LAYER_NAME[l])).join(' · ') : 'כל השכבות'}</span>`;
-  if(S.mode==='model'){ if(S.api){ S.api.setActive(disc.layers); sunNow(); } }
+  const over = document.getElementById('lyOver'), st = STATES.find(x => x[0]===S.state);
+  if(over) over.innerHTML = S.state==='design' ? `<b>${H(disc.name)}</b><span>${disc.layers ? disc.layers.map(l => H(LAYER_NAME[l])).join(' · ') : 'כל השכבות'}</span>` : `<b>${H(st[1])}</b><span>${H(st[2])}</span>`;
+  if(S.mode==='model'){ if(S.api){ S.api.setState(S.state); S.api.setActive(S.state==='design' ? disc.layers : null); sunNow(); } }
   else drawSheets();
 }
 function drawSheets(){
@@ -194,11 +207,47 @@ function drawSheets(){
 }
 
 /* ── הפאנל של התחום ── */
+/* ── התאמה לתב"ע: כמה משטח קומת הקרקע המוצעת נמצא בתוך קווי הבניין. הערכה, בדגימה של מטר ── */
+const pip = (p, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+function conform(){
+  if(S.fit !== null && S.fit !== undefined) return S.fit;
+  if(!S.rn || !S.model.foot){ return S.fit = false; }
+  const loc = c => { const [E, N] = PM().wgs2itm(c[1], c[0]); return [E-S.model.e0, N-S.model.n0]; };
+  const env = S.rn.massing.filter(f => f.kind==='envelope').map(f => ({ lot:f.lot, top:f.top, r:f.c.map(loc) })), rows = [];
+  S.model.foot.forEach(f => { const r = []; for(let i = 0; i < f.length; i += 2) r.push([f[i]/10, f[i+1]/10]);
+    const cx = r.reduce((s, p) => s+p[0], 0)/r.length, cy = r.reduce((s, p) => s+p[1], 0)/r.length, e = env.find(x => pip([cx, cy], x.r)); if(!e) return;
+    let inn = 0, out = 0; const xs = r.map(p => p[0]), ys = r.map(p => p[1]);
+    for(let x = Math.min(...xs); x <= Math.max(...xs); x++) for(let y = Math.min(...ys); y <= Math.max(...ys); y++){ if(!pip([x, y], r)) continue; if(pip([x, y], e.r)) inn++; else out++; }
+    rows.push({ lot:e.lot, area:inn+out, out, top:e.top, floors:(S.rn.lots.find(l => l.lot===e.lot)||{}).floors }); });
+  return S.fit = rows;
+}
+function drawStatePanel(el){
+  const rn = S.rn, m = S.meas, K = PM().KIND, Z = PM().ZONES, ex = S.state==='exist';
+  const kinds = PM().STATE_KINDS[S.state].filter(k => m.count[k] || m.len[k] || k.startsWith('rn') || k==='exBuild');
+  const lg = k => `<button class="ly-lg${S.off.has(k)?' off':''}" data-kind="${k}"><i style="background:${K[k].color}"></i><span>${H(K[k].label)}<small>${H(K[k].desc)}</small></span><em>${H(k==='exBuild' ? String(rn.demolish.length) : kindMeasure(k))}</em></button>`;
+  el.innerHTML = ex ? `
+    <div class="ly-who">קיים · מפת המדידה ומפת הרקע העירונית</div><h2 class="ly-h">מה יש היום במתחם</h2>
+    <ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
+      <li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
+      <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li></ul>
+    <div class="ly-sec">מקרא <small>לחיצה מסתירה או מציגה</small></div><div class="ly-legend">${kinds.map(lg).join('')}</div>
+    <p class="ly-src">${H(rn.sources.context)}.</p>` : `
+    <div class="ly-who">התחדשות עירונית · ${H(rn.plan)}</div><h2 class="ly-h">מה מותר ב${H(rn.title)}</h2>
+    <ul class="ly-facts"><li><b>${N(rn.summary.units)}</b> דירות, עד <b>${rn.summary.floorsMax}</b> קומות ו-<b>${rn.summary.heightMax}</b> מ'</li><li>${H(rn.note)}</li></ul>
+    <div class="ly-sec">הזכויות לפי מגרש <small>טבלה 5</small></div>
+    <table class="ly-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>דירות</th><th>קומות</th><th>גובה</th><th>עיקרי</th><th>מסחר</th></tr></thead><tbody>
+      ${rn.lots.map(l => `<tr><td><b>${l.lot}</b></td><td><i style="background:${Z[l.cat][1]}"></i>${H(l.title)}</td><td>${l.units||''}</td><td>${l.floors}</td><td>${l.height ? l.height+" מ'" : ''}</td><td>${N(l.main)}</td><td>${l.commerce ? N(l.commerce) : ''}</td></tr>`).join('')}</tbody></table>
+    <div class="ly-sec">מקרא הייעודים</div>
+    <div class="ly-zones">${Object.values(Z).map(z => `<span><i style="background:${z[1]}"></i>${H(z[0])}</span>`).join('')}</div>
+    <div class="ly-sec">מה מוצג <small>לחיצה מסתירה או מציגה</small></div><div class="ly-legend">${kinds.map(lg).join('')}</div>
+    <p class="ly-src">${H(rn.sources.lots)}. ${H(rn.sources.rights)}. ${H(rn.source)}.</p>`;
+}
 function drawPanel(){
   const el = document.getElementById('lyPanel'); if(!el) return;
+  if(S.state!=='design' && S.rn) return drawStatePanel(el);
   const disc = DISC[S.d], r = review(), ed = canEdit(), SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const micBtn = key => ed && SR ? `<button class="ly-mic${S.rec===key?' rec':''}" data-mic="${key}">${S.rec===key?'עצירה':'הקלטה'}</button>` : '';
-  const kinds = PM().KINDS.filter(k => (!disc.layers || disc.layers.includes(k.topic)) && (S.meas.count[k.id] || S.meas.area[k.id] || S.meas.len[k.id] || k.id==='mass'));
+  const kinds = PM().KINDS.filter(k => k.topic!=='exist' && k.topic!=='renewal' && (!disc.layers || disc.layers.includes(k.topic)) && (S.meas.count[k.id] || S.meas.area[k.id] || S.meas.len[k.id] || k.id==='mass'));
   const qrow = (key, label, x, custom) => `<li class="ly-it${x&&x.d?' done':''}">
       <label class="ly-ck"><input type="checkbox" data-done="${key}" ${x&&x.d?'checked':''} ${ed?'':'disabled'}><span>בוצע</span></label>
       <span class="ly-lab">${H(label)}</span>${custom && ed ? `<button class="ly-x" data-del="${key}" aria-label="מחיקת ההנחיה">×</button>` : ''}
@@ -268,7 +317,9 @@ function bind(){
   const el = body(), st = document.getElementById('lyStage');
   el.onclick = e => {
     const b = e.target.closest('button, input[type=checkbox]'); if(!b) return; const d = b.dataset;
-    if(d.step) go(S.d + (+d.step));
+    if(d.state){ S.state = d.state; stopRec(); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } if(S.state==='exist' && !S.map){ S.map = true; if(S.api) S.api.setMap(true); } drawTools(); applyDisc(); if(S.api) S.api.view(S.view); drawPanel(); }
+    else if(d.env){ S.env = !S.env; if(S.api) S.api.setEnvelope(S.env); drawTools(); sunNow(); }
+    else if(d.step) go(S.d + (+d.step));
     else if(d.disc) go(+d.disc);
     else if(d.mode){ setMode(d.mode==='0' ? 'model' : 'draw'); }
     else if(d.view){ S.view = ['home','top','eye'][+d.view]; if(S.api) S.api.view(S.view); drawTools(); sunNow(); }
@@ -335,13 +386,23 @@ const CSS = `
 .ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:9px 18px !important;font:600 14px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
 .ly-b:hover{background:var(--ink) !important;color:#fff !important;transform:translateY(-1px)}
 .ly-next{background:var(--ink) !important;color:#fff !important}
+.ly-states{display:flex;gap:4px;margin-bottom:6px}
+.ly-states button{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0 !important;background:#f6f5f1 !important;padding:8px 14px !important;cursor:pointer;border-radius:0 !important;text-align:start;box-shadow:inset 0 -3px 0 #dcdad3}
+.ly-states button b{font:600 16px var(--sans);color:var(--ink-soft)} .ly-states button span{font:400 12px var(--sans);color:var(--ink-mute)}
+.ly-states button.on{background:#fff !important;box-shadow:inset 0 -3px 0 var(--ink)} .ly-states button.on b{color:var(--ink)}
+.ly-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.ly-tbl th{font-weight:600;color:var(--ink-mute);text-align:start;padding:3px 4px;font-size:11.5px}
+.ly-tbl td{padding:5px 4px;box-shadow:inset 0 -1px 0 #ecebe6;font-variant-numeric:tabular-nums;vertical-align:top}
+.ly-tbl i,.ly-zones i{display:inline-block;width:11px;height:11px;margin-inline-end:5px;vertical-align:-1px}
+.ly-zones{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.ly-src{font-size:11.5px;color:var(--muted);line-height:1.5;margin:14px 0}
 .ly-steps{display:flex;gap:4px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
 .ly-steps button{flex:1 0 auto;display:flex;align-items:center;gap:7px;border:0 !important;background:#f6f5f1 !important;color:var(--ink-soft) !important;padding:8px 11px !important;font:400 13.5px var(--sans) !important;cursor:pointer;border-radius:0 !important;white-space:nowrap}
 .ly-steps button i{font-style:normal;font-size:11px;color:var(--ink-mute);font-variant-numeric:tabular-nums}
 .ly-steps button b{font-size:11px;font-weight:400;color:var(--muted);margin-inline-start:auto}
 .ly-steps button.on{background:var(--teal) !important;color:#fff !important;font-weight:600 !important}
 .ly-steps button.on i,.ly-steps button.on b{color:rgba(255,255,255,.8)}
-.ly-grid{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:14px;height:calc(100vh - 268px);min-height:460px}
+.ly-grid{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:14px;height:calc(100vh - 326px);min-height:440px}
 .ly-stage{position:relative;overflow:hidden;background:#f4f3ef;touch-action:none;user-select:none;min-height:0}
 .ly-view{position:absolute;inset:0;perspective:2600px;display:flex;align-items:center;justify-content:center}
 .pm-canvas{width:100%;height:100%;display:block;cursor:grab}
