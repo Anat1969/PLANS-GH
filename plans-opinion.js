@@ -357,7 +357,7 @@ async function completions(p){
   const hasPdf = (p.documents || []).some(d => d && d.layers) || !!(window.LAYER_SETS || {})[String(p.tik)];
   add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
   const tc = checksTaba(p);
-  add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t}${x.note ? ' ' + x.note : ''} (סעיף ${x.r.section}).`));
+  add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t.replace(/[.\s]+$/, '')}. ${x.note ? x.note.replace(/[.\s]+$/, '') + ' ' : ''}(סעיף ${x.r.section}).`));
   const show = tc.filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי');   // הרשימה המלאה יוצאת כנספח בהעתקה ובמייל
   if(show.length){ const byT = {}; show.forEach(x => byT[x.r.topic] = (byT[x.r.topic] || 0) + 1);
     add('הוראות התב"ע: להציג עמידה', [`יש להציג בתוכנית הבינוי עמידה ב-${show.length} דרישות מהוראות התב"ע: ${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(', ')}. הרשימה המלאה בנספח.`]); }
@@ -455,7 +455,7 @@ async function fillAsync(p){
 }
 function rebuildOpinion(p){
   const doc = document.getElementById('opinionDoc'); if(!doc) return;
-  if(TABA_C[p.tik] === undefined){ loadTaba(p.tik).then(x => { if(x && pj && pj() === p) rebuildOpinion(p); }); }
+  if(TABA_C[p.tik] === undefined){ loadTaba(p.tik).then(x => { if(x && pj && pj() === p) refreshOpinion(p); }); }
   const old = {}; doc.querySelectorAll('details.op-fold').forEach(d => { const t = d.querySelector('summary span'); if(t) old[t.textContent.trim()] = d.querySelector('.op-sec-b').innerHTML; });
   const body = t => old[t] || '';
   const t5 = T5C[p.tik], pd = (body('נתוני התב״ע והמותר').match(/<div class="pp-field[\s\S]*$/) || [''])[0];
@@ -481,18 +481,27 @@ function rebuildOpinion(p){
     else { let note = cur.note || ''; if(st === 'no'){ const n = prompt('מה חסר או לא עומד? (יופיע בחוות הדעת וברשימת ההשלמות)', note); if(n === null) return; note = n.trim(); }
       p.tabaChecks[id] = { st, note:st === 'no' ? note : '', at:today() }; }
     try{ savePlans(); }catch(err){}
-    const open = [...doc.querySelectorAll('details.op-fold')].map(d => d.open); rebuildOpinion(p); [...doc.querySelectorAll('details.op-fold')].forEach((d, i) => { if(open[i] != null) d.open = open[i]; }); };
+    refreshOpinion(p); };
+}
+/** רענון מלא של חוות הדעת: תמיד מהרינדור המקורי (אחרת סעיף בנוי נבנה שוב בתוך עצמו), עם הסעיפים שהיו פתוחים */
+function refreshOpinion(p){
+  const open = [...document.querySelectorAll('#opinionDoc details.op-fold')].map(d => d.open);
+  window.renderOpinionTab(p);
+  const ds = [...document.querySelectorAll('#opinionDoc details.op-fold')]; if(open.length === ds.length) ds.forEach((d, i) => { d.open = open[i]; });
 }
 /* דף הבית: ליד כל תוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם */
 window.planOpenCompletions = async p => { const G = await completions(p); return G.flatMap(g => g[1]).filter(x => !isDone(p, x)).length; };
+/* טבלת התוכניות: ליד מספר התוכנית, בתוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם (מחוות הדעת) */
+function badgeRows(){
+  document.querySelectorAll('#table tr[onclick] td.col-plannum').forEach(async td => { const m = (td.parentNode.getAttribute('onclick') || '').match(/openProject\((\d+)\)/), p = m && plans.find(x => x.id === +m[1]);
+    if(!p || !/בטיפול|דחוף|בהמתנה/.test(p.status || '') || td.querySelector('.todo-badge')) return;
+    const n = await window.planOpenCompletions(p).catch(() => null); if(n == null || td.querySelector('.todo-badge')) return;
+    td.insertAdjacentHTML('beforeend', `<br><span class="todo-badge${n ? '' : ' ok'}" title="השלמות פתוחות ליזם, מחוות הדעת">${n ? (n === 1 ? 'השלמה אחת' : n + ' השלמות') : 'מוכנה'}</span>`); });
+}
 function hookHome(){
-  const _r = window.renderActiveTracking; if(typeof _r !== 'function') return;
-  window.renderActiveTracking = function(){ const r = _r.apply(this, arguments);
-    setTimeout(() => document.querySelectorAll('#activeTracking tr[onclick]').forEach(async tr => { const m = (tr.getAttribute('onclick') || '').match(/openProject\((\d+)\)/), p = m && plans.find(x => x.id === +m[1]); if(!p) return;
-      const n = await window.planOpenCompletions(p).catch(() => null), td = tr.children[1]; if(n == null || !td || td.querySelector('.todo-badge')) return;
-      td.insertAdjacentHTML('beforeend', ` <span class="todo-badge${n ? '' : ' ok'}" title="השלמות פתוחות ליזם, מחוות הדעת">${n ? n + ' השלמות' : 'מוכנה'}</span>`); }), 0);
-    return r; };
-  try{ window.renderActiveTracking(); }catch(e){}
+  const _rt = window.renderTable; if(typeof _rt !== 'function') return;
+  window.renderTable = function(){ const r = _rt.apply(this, arguments); setTimeout(badgeRows, 0); return r; };
+  setTimeout(badgeRows, 0);
 }
 function hookOpinion(){
   const _r = window.renderOpinionTab; if(typeof _r !== 'function') return;
