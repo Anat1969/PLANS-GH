@@ -1,0 +1,411 @@
+{
+ "tik": "1913",
+ "taba": "תמל/2023",
+ "source": "הוראות התוכנית תמל/2023 (מה נבנה סביבי)",
+ "pages": [
+  17
+ ],
+ "planArea": 36.562,
+ "planAreaPage": 3,
+ "planType": "תכנית מועדפת לדיור",
+ "readAt": "2026-11-23",
+ "columns": [
+  {
+   "key": "lotSize",
+   "label": "גודל מגרש",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainAbove",
+   "label": "עיקרי מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servAbove",
+   "label": "שירות מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainBelow",
+   "label": "עיקרי מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servBelow",
+   "label": "שירות מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "total",
+   "label": "סה\"כ שטחי בנייה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "coverage",
+   "label": "תכסית",
+   "unit": "%"
+  },
+  {
+   "key": "units",
+   "label": "יח\"ד",
+   "unit": ""
+  },
+  {
+   "key": "height",
+   "label": "גובה מבנה",
+   "unit": "מ'"
+  },
+  {
+   "key": "floorsAbove",
+   "label": "קומות מעל הכניסה",
+   "unit": ""
+  },
+  {
+   "key": "floorsBelow",
+   "label": "קומות מתחת לכניסה",
+   "unit": ""
+  },
+  {
+   "key": "front",
+   "label": "קו בניין קדמי",
+   "unit": "מ'"
+  },
+  {
+   "key": "back",
+   "label": "קו בניין אחורי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideL",
+   "label": "קו בניין צידי שמאלי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideR",
+   "label": "קו בניין צידי ימני",
+   "unit": "מ'"
+  }
+ ],
+ "notes": {
+  "1": "תותר תוספת 18 מ\"ר עיקרי למרפסות לכל דירה מתוכננת בפועל, בנוסף למצוין בטבלה",
+  "2": "תותר תוספת 6 מ\"ר ליח\"ד עבור מחסנים בקרקע ובתת הקרקע בלבד",
+  "4": "לפי תשריט",
+  "5": "תותר בניית גלריית שירות. קומת הגלריה לא תחשב במניין הקומות",
+  "6": "3 קומות מסד",
+  "7": "קומת מסד 1",
+  "9": "תותר בניית גלריית שירות. קומת הגלריה לא תחשב במניין הקומות",
+  "10": "21 ק' + קומה חלקית למתקנים על הגג",
+  "11": "קו בניין עד 0 מעל ומתחת לקרקע, בכפוף לאישור הוועדה המקומית ובהסכמת בעלים גובלים",
+  "3": "ק\"ק גבוהה + 4 קומות מסד ציבורי ותעסוקה + 31 ק' מגורים + קומה חלקית למתקנים על הגג",
+  "8": "ק\"ק גבוהה + 35 ק' מגורים + קומה חלקית למתקנים על הגג"
+ },
+ "rows": [
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "4"
+    ],
+    "back": [
+     "4"
+    ],
+    "sideL": [
+     "4"
+    ],
+    "sideR": [
+     "4"
+    ],
+    "floorsAbove": [
+     "3"
+    ],
+    "servBelow": [
+     "2"
+    ],
+    "servAbove": [
+     "2"
+    ],
+    "mainAbove": [
+     "1"
+    ]
+   },
+   "floorsBelow": 4,
+   "floorsAbove": 35,
+   "height": 131,
+   "units": 179,
+   "coverage": 70,
+   "total": 32047,
+   "servBelow": 8392,
+   "servAbove": 8055,
+   "mainAbove": 15600,
+   "lotSize": 2096,
+   "building": "1",
+   "lot": "1",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "servAbove": [
+     "5"
+    ]
+   },
+   "total": 750,
+   "servAbove": 300,
+   "mainAbove": 450,
+   "lot": "1",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "floorsAbove": [
+     "6"
+    ]
+   },
+   "floorsAbove": 3,
+   "total": 3600,
+   "servAbove": 700,
+   "mainAbove": 2900,
+   "lot": "1",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "floorsAbove": [
+     "7"
+    ]
+   },
+   "floorsAbove": 1,
+   "total": 1000,
+   "mainAbove": 1000,
+   "lot": "1",
+   "use": "מסחר ותעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "total": 50,
+   "mainAbove": 50,
+   "lot": "1",
+   "use": "מתקנים הנדסיים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "4"
+    ],
+    "back": [
+     "4"
+    ],
+    "sideL": [
+     "4"
+    ],
+    "sideR": [
+     "4"
+    ],
+    "floorsAbove": [
+     "8"
+    ],
+    "servBelow": [
+     "2"
+    ],
+    "servAbove": [
+     "2"
+    ],
+    "mainAbove": [
+     "1"
+    ]
+   },
+   "floorsBelow": 4,
+   "floorsAbove": 35,
+   "height": 129,
+   "units": 200,
+   "coverage": 70,
+   "total": 34478,
+   "servBelow": 8232,
+   "servAbove": 9000,
+   "mainAbove": 17246,
+   "lotSize": 2058,
+   "building": "2",
+   "lot": "2",
+   "use": "מגורים",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "servAbove": [
+     "9"
+    ]
+   },
+   "total": 600,
+   "servAbove": 240,
+   "mainAbove": 360,
+   "lot": "2",
+   "use": "מסחר",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "floorsAbove": [
+     "10"
+    ],
+    "servBelow": [
+     "2"
+    ],
+    "servAbove": [
+     "2"
+    ],
+    "mainAbove": [
+     "1"
+    ]
+   },
+   "floorsBelow": 4,
+   "floorsAbove": 21,
+   "height": 75,
+   "units": 153,
+   "total": 31987,
+   "servBelow": 15184,
+   "servAbove": 5355,
+   "mainAbove": 11448,
+   "lotSize": 3796,
+   "building": "3",
+   "lot": "3",
+   "use": "מגורים",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "total": 1050,
+   "servAbove": 105,
+   "mainAbove": 945,
+   "lot": "3",
+   "use": "מסחר",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "total": 460,
+   "servAbove": 200,
+   "mainAbove": 260,
+   "lot": "3",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "11"
+    ],
+    "back": [
+     "11"
+    ],
+    "sideL": [
+     "11"
+    ],
+    "sideR": [
+     "11"
+    ]
+   },
+   "front": 5,
+   "back": 3,
+   "sideL": 3,
+   "sideR": 3,
+   "floorsBelow": 1,
+   "floorsAbove": 4,
+   "coverage": 60,
+   "total": 6615,
+   "servBelow": 827,
+   "mainBelow": 827,
+   "servAbove": 827,
+   "mainAbove": 4134,
+   "lotSize": 2067,
+   "lot": "5",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "4"
+    ],
+    "back": [
+     "4"
+    ],
+    "sideL": [
+     "4"
+    ],
+    "sideR": [
+     "4"
+    ]
+   },
+   "floorsBelow": 1,
+   "floorsAbove": 6,
+   "total": 56864,
+   "servBelow": 7108,
+   "mainAbove": 49756,
+   "lotSize": 17770,
+   "lot": "8",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false
+  }
+ ],
+ "check": [
+  {
+   "lot": "1",
+   "ok": true
+  },
+  {
+   "lot": "2",
+   "ok": true
+  },
+  {
+   "lot": "3",
+   "ok": true
+  },
+  {
+   "lot": "5",
+   "ok": true
+  },
+  {
+   "lot": "8",
+   "ok": true
+  }
+ ],
+ "fixes": [],
+ "notesFixed": [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11"
+ ],
+ "fixSource": "נקרא מהעמוד: הוראות התוכנית תמל/2023, עמ' 18, 'הערות לטבלת זכויות והוראות בניה – מצב מוצע'"
+}
