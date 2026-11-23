@@ -1,0 +1,919 @@
+{
+ "tik": "1910",
+ "taba": "603-0391219",
+ "source": "הוראות התוכנית 603-0391219 (מה נבנה סביבי)",
+ "pages": [
+  21,
+  22,
+  23
+ ],
+ "readAt": "2026-11-23",
+ "columns": [
+  {
+   "key": "lotSize",
+   "label": "גודל מגרש",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainAbove",
+   "label": "עיקרי מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servAbove",
+   "label": "שירות מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainBelow",
+   "label": "עיקרי מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servBelow",
+   "label": "שירות מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "total",
+   "label": "סה\"כ שטחי בנייה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "coverage",
+   "label": "תכסית",
+   "unit": "%"
+  },
+  {
+   "key": "units",
+   "label": "יח\"ד",
+   "unit": ""
+  },
+  {
+   "key": "height",
+   "label": "גובה מבנה",
+   "unit": "מ'"
+  },
+  {
+   "key": "floorsAbove",
+   "label": "קומות מעל הכניסה",
+   "unit": ""
+  },
+  {
+   "key": "floorsBelow",
+   "label": "קומות מתחת לכניסה",
+   "unit": ""
+  },
+  {
+   "key": "front",
+   "label": "קו בניין קדמי",
+   "unit": "מ'"
+  },
+  {
+   "key": "back",
+   "label": "קו בניין אחורי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideL",
+   "label": "קו בניין צידי שמאלי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideR",
+   "label": "קו בניין צידי ימני",
+   "unit": "מ'"
+  }
+ ],
+ "notes": {
+  "1": "לחניון ושטח שירות תת קרקעי עבור כלל השימושים בתא השטח",
+  "2": "לפי תשריט",
+  "3": "קומת כניסה מהכיכר + קומת משרדים ציבורית + קומת משרדים + 18 ק' מגורים + ק' טכניות",
+  "4": "קומת קרקע מסחרית לרחוב הראשונים + 6 קומות מרתף חנייה",
+  "5": "קומת קרקע + 9 ק' מגורים + ק' טכנית",
+  "6": "קומת מסחרית + 6 ק' תעסוקה + ק' טכנית",
+  "7": "קומת קרקע מסחרית + 29 ק' מגורים + ק' טכנית",
+  "8": "תוספת יחידות דיור מעבר לקיים תותנה בפתרון חניה שייקבע על ידי הוועדה המקומית",
+  "9": "לצורך הסדרת מצב קיים",
+  "10": "לשירותים ציבוריים"
+ },
+ "rows": [
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "2"
+    ],
+    "back": [
+     "2"
+    ],
+    "sideL": [
+     "2"
+    ],
+    "sideR": [
+     "2"
+    ],
+    "servBelow": [
+     "1"
+    ]
+   },
+   "floorsBelow": 6,
+   "floorsAbove": 5,
+   "total": 10683,
+   "servBelow": 5736,
+   "servAbove": 605,
+   "mainAbove": 3075,
+   "lotSize": 957,
+   "building": "בנין1",
+   "lot": "1",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "2"
+    ],
+    "back": [
+     "2"
+    ],
+    "sideL": [
+     "2"
+    ],
+    "sideR": [
+     "2"
+    ],
+    "floorsBelow": [
+     "4"
+    ],
+    "floorsAbove": [
+     "3"
+    ]
+   },
+   "floorsBelow": 7,
+   "floorsAbove": 21,
+   "height": 70,
+   "units": 122,
+   "coverage": 100,
+   "total": 14854,
+   "servAbove": 5364,
+   "mainAbove": 9490,
+   "lotSize": 1284,
+   "building": "בנין2",
+   "lot": "2",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ומבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "total": 1908,
+   "mainBelow": 700,
+   "servAbove": 232,
+   "mainAbove": 976,
+   "lot": "2",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ומבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "total": 1000,
+   "mainAbove": 1000,
+   "lot": "2",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ומבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "total": 1050,
+   "servAbove": 50,
+   "mainAbove": 1000,
+   "lot": "2",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ומבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "total": 26522,
+   "servBelow": 7710,
+   "building": "סה\"כ לתא שטח",
+   "lot": "2",
+   "zone": "מגורים מסחר ומבנים ומוסדות ציבור",
+   "total_row": true
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "2"
+    ],
+    "back": [
+     "2"
+    ],
+    "sideL": [
+     "2"
+    ],
+    "sideR": [
+     "2"
+    ],
+    "floorsBelow": [
+     "4"
+    ],
+    "floorsAbove": [
+     "5"
+    ]
+   },
+   "floorsBelow": 7,
+   "floorsAbove": 10,
+   "height": 40,
+   "units": 36,
+   "coverage": 100,
+   "total": 3818,
+   "servAbove": 1248,
+   "mainAbove": 2570,
+   "lotSize": 439,
+   "building": "בנין3",
+   "lot": "3",
+   "use": "מגורים",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "total": 461,
+   "mainBelow": 166,
+   "mainAbove": 295,
+   "lot": "3",
+   "use": "מסחר",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "total": 6937,
+   "servBelow": 2658,
+   "building": "סה\"כ לתא שטח",
+   "lot": "3",
+   "zone": "מגורים ד'",
+   "total_row": true
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "2"
+    ],
+    "back": [
+     "2"
+    ],
+    "sideL": [
+     "2"
+    ],
+    "sideR": [
+     "2"
+    ],
+    "floorsAbove": [
+     "6"
+    ]
+   },
+   "floorsBelow": 6,
+   "floorsAbove": 7,
+   "coverage": 100,
+   "total": 2817,
+   "mainAbove": 2817,
+   "lotSize": 550,
+   "building": "בנין4",
+   "lot": "4",
+   "use": "תעסוקה",
+   "zone": "מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 21,
+   "total": 467,
+   "servAbove": 144,
+   "mainAbove": 323,
+   "lot": "4",
+   "use": "מסחר",
+   "zone": "מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "total": 6584,
+   "servBelow": 3300,
+   "building": "סה\"כ לתא שטח",
+   "lot": "4",
+   "zone": "מסחר ותעסוקה",
+   "total_row": true
+  },
+  {
+   "page": 22,
+   "notes": {
+    "front": [
+     "2"
+    ],
+    "back": [
+     "2"
+    ],
+    "sideL": [
+     "2"
+    ],
+    "sideR": [
+     "2"
+    ],
+    "floorsAbove": [
+     "7"
+    ]
+   },
+   "floorsBelow": 6,
+   "floorsAbove": 30,
+   "height": 118,
+   "units": 157,
+   "coverage": 100,
+   "total": 21158,
+   "servAbove": 7185,
+   "mainAbove": 13973,
+   "lotSize": 1086,
+   "building": "בניין5",
+   "lot": "5",
+   "use": "מגורים",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "total": 908,
+   "servAbove": 208,
+   "mainAbove": 700,
+   "lot": "5",
+   "use": "מסחר",
+   "zone": "מגורים ד'",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "total": 28582,
+   "servBelow": 6516,
+   "building": "סה\"כ לתא שטח",
+   "lot": "5",
+   "zone": "מגורים ד'",
+   "total_row": true
+  },
+  {
+   "page": 22,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "floorsBelow": 6,
+   "coverage": 45,
+   "total": 1677,
+   "servBelow": 1677,
+   "lotSize": 621,
+   "lot": "6",
+   "use": "שטח ציבורי פתוח",
+   "zone": "ככר עירונית",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "floorsBelow": 6,
+   "coverage": 100,
+   "total": 3942,
+   "servBelow": 3942,
+   "lotSize": 655,
+   "lot": "7",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false,
+   "use": "שטח ציבורי פתוח"
+  },
+  {
+   "page": 22,
+   "notes": {
+    "servBelow": [
+     "1"
+    ]
+   },
+   "floorsBelow": 6,
+   "coverage": 100,
+   "total": 7026,
+   "servBelow": 7026,
+   "lotSize": 1175,
+   "lot": "8",
+   "zone": "דרך מוצעת",
+   "total_row": false,
+   "use": "דרך מוצעת"
+  },
+  {
+   "page": 22,
+   "total": 1956,
+   "servBelow": 1956,
+   "lotSize": 327,
+   "lot": "14",
+   "zone": "חניון",
+   "total_row": false,
+   "use": "חניון"
+  },
+  {
+   "page": 22,
+   "total": 1518,
+   "servBelow": 1518,
+   "lotSize": 255,
+   "lot": "17",
+   "zone": "שביל",
+   "total_row": false,
+   "use": "שביל"
+  },
+  {
+   "page": 22,
+   "total": 864,
+   "servBelow": 864,
+   "lotSize": 144,
+   "lot": "18",
+   "zone": "שביל",
+   "total_row": false,
+   "use": "שביל"
+  },
+  {
+   "page": 22,
+   "total": 624,
+   "servBelow": 624,
+   "lotSize": 104,
+   "lot": "19",
+   "zone": "שביל",
+   "total_row": false,
+   "use": "שביל"
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 1456,
+   "mainAbove": 1456,
+   "lotSize": 728,
+   "lot": "129",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 735,
+   "mainAbove": 735,
+   "lotSize": 413,
+   "lot": "130",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 1054,
+   "mainAbove": 1054,
+   "lotSize": 527,
+   "lot": "131",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 834,
+   "mainAbove": 834,
+   "lotSize": 417,
+   "lot": "132",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 154,
+   "mainAbove": 154,
+   "lotSize": 77,
+   "lot": "133",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 5,
+   "coverage": 100,
+   "total": 5664,
+   "servAbove": 944,
+   "mainAbove": 4720,
+   "lotSize": 944,
+   "lot": "134",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 3753,
+   "mainAbove": 3753,
+   "lotSize": 1975,
+   "lot": "135",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "notes": {
+    "units": [
+     "8"
+    ]
+   },
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 9,
+   "units": 50,
+   "coverage": 100,
+   "total": 13055,
+   "mainAbove": 13055,
+   "lotSize": 1518,
+   "lot": "136",
+   "use": "מגורים מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 808,
+   "mainAbove": 808,
+   "lotSize": 484,
+   "lot": "137",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "notes": {
+    "mainAbove": [
+     "9"
+    ]
+   },
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 4,
+   "coverage": 100,
+   "total": 584,
+   "mainAbove": 584,
+   "lotSize": 146,
+   "lot": "138",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 414,
+   "mainAbove": 414,
+   "lotSize": 207,
+   "lot": "140",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 1,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 597,
+   "mainBelow": 199,
+   "mainAbove": 398,
+   "lotSize": 199,
+   "lot": "141",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 96,
+   "mainAbove": 96,
+   "lotSize": 48,
+   "lot": "142",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 880,
+   "mainAbove": 880,
+   "lotSize": 550,
+   "lot": "143",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 5,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 380,
+   "mainAbove": 380,
+   "lotSize": 190,
+   "lot": "144",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 22,
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 2,
+   "coverage": 100,
+   "total": 96,
+   "mainAbove": 96,
+   "lotSize": 48,
+   "lot": "145",
+   "use": "מסחר ותעסוקה",
+   "zone": "עירוני מעורב",
+   "total_row": false
+  },
+  {
+   "page": 23,
+   "notes": {
+    "mainAbove": [
+     "10"
+    ]
+   },
+   "front": 0,
+   "back": 0,
+   "sideL": 0,
+   "sideR": 0,
+   "floorsBelow": 0,
+   "floorsAbove": 1,
+   "coverage": 100,
+   "total": 100,
+   "mainAbove": 100,
+   "lotSize": 486,
+   "lot": "155",
+   "use": "שטח ציבורי פתוח",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  }
+ ],
+ "check": [
+  {
+   "lot": "1",
+   "ok": true
+  },
+  {
+   "lot": "2",
+   "ok": true
+  },
+  {
+   "lot": "3",
+   "ok": true
+  },
+  {
+   "lot": "4",
+   "ok": true
+  },
+  {
+   "lot": "5",
+   "ok": true
+  },
+  {
+   "lot": "6",
+   "ok": true
+  },
+  {
+   "lot": "7",
+   "ok": true
+  },
+  {
+   "lot": "8",
+   "ok": true
+  },
+  {
+   "lot": "14",
+   "ok": true
+  },
+  {
+   "lot": "17",
+   "ok": true
+  },
+  {
+   "lot": "18",
+   "ok": true
+  },
+  {
+   "lot": "19",
+   "ok": true
+  },
+  {
+   "lot": "129",
+   "ok": true
+  },
+  {
+   "lot": "130",
+   "ok": true
+  },
+  {
+   "lot": "131",
+   "ok": true
+  },
+  {
+   "lot": "132",
+   "ok": true
+  },
+  {
+   "lot": "133",
+   "ok": true
+  },
+  {
+   "lot": "134",
+   "ok": true
+  },
+  {
+   "lot": "135",
+   "ok": true
+  },
+  {
+   "lot": "136",
+   "ok": true
+  },
+  {
+   "lot": "137",
+   "ok": true
+  },
+  {
+   "lot": "138",
+   "ok": true
+  },
+  {
+   "lot": "140",
+   "ok": true
+  },
+  {
+   "lot": "141",
+   "ok": true
+  },
+  {
+   "lot": "142",
+   "ok": true
+  },
+  {
+   "lot": "143",
+   "ok": true
+  },
+  {
+   "lot": "144",
+   "ok": true
+  },
+  {
+   "lot": "145",
+   "ok": true
+  },
+  {
+   "lot": "155",
+   "ok": true
+  }
+ ],
+ "fixes": [],
+ "notesFixed": [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10"
+ ],
+ "fixSource": "נקרא מהעמוד: הוראות התוכנית 603-0391219, עמ' 25 עד 26, 'הערות לטבלת זכויות והוראות בניה – מצב מוצע'"
+}

@@ -1,0 +1,1117 @@
+{
+ "tik": "1912",
+ "taba": "תמל/2022",
+ "source": "הוראות התוכנית תמל/2022 (מה נבנה סביבי)",
+ "pages": [
+  19,
+  20,
+  21
+ ],
+ "readAt": "2026-11-23",
+ "columns": [
+  {
+   "key": "lotSize",
+   "label": "גודל מגרש",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "total",
+   "label": "סה\"כ שטחי בנייה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "units",
+   "label": "יח\"ד",
+   "unit": ""
+  },
+  {
+   "key": "height",
+   "label": "גובה מבנה",
+   "unit": "מ'"
+  },
+  {
+   "key": "floorsAbove",
+   "label": "קומות מעל הכניסה",
+   "unit": ""
+  },
+  {
+   "key": "floorsBelow",
+   "label": "קומות מתחת לכניסה",
+   "unit": ""
+  },
+  {
+   "key": "front",
+   "label": "קו בניין קדמי",
+   "unit": "מ'"
+  },
+  {
+   "key": "back",
+   "label": "קו בניין אחורי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideL",
+   "label": "קו בניין צידי שמאלי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideR",
+   "label": "קו בניין צידי ימני",
+   "unit": "מ'"
+  },
+  {
+   "key": "balcony",
+   "label": "מרפסות בנוסף לעיקרי",
+   "unit": "מ\"ר"
+  }
+ ],
+ "notes": {
+  "1": "קווי הבניין יהיו בהתאם למסומן בתשריט",
+  "2": "השטחים התת קרקעיים בתאי שטח 601 עד 603 הם שטחים המיועדים לרישום תלת ממדי לטובת מעברים בין מרתפי חניה, והם יירשמו במסגרת מגרשים תלת ממדיים A601 עד A603, כמפורט בנספח קביעת מגרש תלת ממדי. תכסית המעברים בין מרתפי החניה לא תעלה על 40% משטח המגרש"
+ },
+ "rows": [
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 2436,
+   "floorsBelow": 6,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 203,
+   "total": 25590,
+   "lotSize": 2241,
+   "lot": "101",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 343,
+   "lot": "101",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 680,
+   "lot": "101",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 3478,
+   "lot": "101",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 6204,
+   "floorsBelow": 6,
+   "floorsAbove": 32,
+   "height": 120.5,
+   "units": 517,
+   "total": 65304,
+   "lotSize": 6451,
+   "lot": "102",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 1855,
+   "lot": "102",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 12372,
+   "lot": "102",
+   "use": "מסחר ותעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 1029,
+   "lot": "102",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 3636,
+   "floorsBelow": 5,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 303,
+   "total": 36478,
+   "lotSize": 3727,
+   "lot": "103",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 540,
+   "lot": "103",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 3261,
+   "lot": "103",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 732,
+   "lot": "103",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 19,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 3000,
+   "floorsBelow": 5,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 250,
+   "total": 29675,
+   "lotSize": 2861,
+   "lot": "104",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 697,
+   "lot": "104",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 3011,
+   "lot": "104",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 557,
+   "lot": "104",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 3600,
+   "floorsBelow": 5,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 300,
+   "total": 35352,
+   "lotSize": 3894,
+   "lot": "105",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 783,
+   "lot": "105",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 1099,
+   "lot": "105",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 570,
+   "lot": "105",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 3612,
+   "floorsBelow": 5,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 301,
+   "total": 36212,
+   "lotSize": 4202,
+   "lot": "106",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 704,
+   "lot": "106",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 3155,
+   "lot": "106",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 886,
+   "lot": "106",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "balcony": 3432,
+   "floorsBelow": 5,
+   "floorsAbove": 31,
+   "height": 115.8,
+   "units": 286,
+   "total": 33925,
+   "lotSize": 3538,
+   "lot": "107",
+   "use": "מגורים",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 539,
+   "lot": "107",
+   "use": "מסחר",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 2731,
+   "lot": "107",
+   "use": "תעסוקה",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 566,
+   "lot": "107",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים מסחר ותעסוקה",
+   "total_row": false
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 22,
+   "height": 83.5,
+   "units": 215,
+   "total": 14800,
+   "lotSize": 1367,
+   "lot": "201",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 16,
+   "height": 67,
+   "total": 19000,
+   "lotSize": 2101,
+   "lot": "202",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 20,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 10,
+   "height": 36,
+   "units": 50,
+   "total": 3497,
+   "lotSize": 1249,
+   "lot": "203",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 10,
+   "height": 36,
+   "units": 35,
+   "total": 2624,
+   "lotSize": 937,
+   "lot": "204",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 5,
+   "total": 3328,
+   "lotSize": 1109,
+   "lot": "401",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 4,
+   "total": 2136,
+   "lotSize": 763,
+   "lot": "402",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 4,
+   "total": 1493,
+   "lotSize": 532,
+   "lot": "403",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 6,
+   "total": 32489,
+   "lotSize": 7384,
+   "lot": "404",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 4,
+   "total": 4082,
+   "lotSize": 1458,
+   "lot": "405",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 6,
+   "total": 290166,
+   "lotSize": 65947,
+   "lot": "407",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false,
+   "use": "מבנים ומוסדות ציבור"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ],
+    "total": [
+     "2"
+    ]
+   },
+   "floorsBelow": 5,
+   "total": 868,
+   "lotSize": 434,
+   "lot": "601",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false,
+   "use": "שטח ציבורי פתוח"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ],
+    "total": [
+     "2"
+    ]
+   },
+   "floorsBelow": 5,
+   "total": 866,
+   "lotSize": 433,
+   "lot": "602",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false,
+   "use": "שטח ציבורי פתוח"
+  },
+  {
+   "page": 21,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ],
+    "total": [
+     "2"
+    ]
+   },
+   "floorsBelow": 5,
+   "total": 878,
+   "lotSize": 439,
+   "lot": "603",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false,
+   "use": "שטח ציבורי פתוח"
+  }
+ ],
+ "check": [
+  {
+   "lot": "101",
+   "ok": true
+  },
+  {
+   "lot": "102",
+   "ok": true
+  },
+  {
+   "lot": "103",
+   "ok": true
+  },
+  {
+   "lot": "104",
+   "ok": true
+  },
+  {
+   "lot": "105",
+   "ok": true
+  },
+  {
+   "lot": "106",
+   "ok": true
+  },
+  {
+   "lot": "107",
+   "ok": true
+  },
+  {
+   "lot": "201",
+   "ok": true
+  },
+  {
+   "lot": "203",
+   "ok": true
+  },
+  {
+   "lot": "204",
+   "ok": true
+  }
+ ],
+ "fixes": [],
+ "notesFixed": [
+  "2"
+ ],
+ "fixSource": "נקרא מהעמוד: הוראות התוכנית תמל/2022, עמ' 22, הערות לטבלת זכויות"
+}
