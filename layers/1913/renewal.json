@@ -10,10 +10,10 @@
  "note": "הנפח הוא הערכה: שטח הקומה הוא השטח מעל הקרקע בטבלה 5 חלקי מספר הקומות, בתוך קווי הבניין. לא תכנון הבינוי.",
  "summary": { "units": 532, "floorsMax": 35, "heightMax": 131 },
  "lots": [
-  { "lot": 1, "title": "מגורים, מסחר ותעסוקה", "cat": "mixed", "units": 179, "floors": 35, "height": 131, "lotSize": 2096, "main": 15600, "coverage": 70, "plate": 600, "commerce": 450 },
-  { "lot": 2, "title": "מגורים ד'", "cat": "mixed", "units": 200, "floors": 35, "height": 129, "lotSize": 2058, "main": 17246, "coverage": 70, "plate": 750, "commerce": 360 },
-  { "lot": 3, "title": "מגורים ד'", "cat": "mixed", "units": 153, "floors": 21, "height": 75, "lotSize": 3796, "main": 11448, "coverage": null, "plate": 800, "commerce": 945 },
-  { "lot": 5, "title": "מבנים ומוסדות ציבור", "cat": "public", "units": 0, "floors": 4, "height": null, "lotSize": 2067, "main": 4134, "coverage": 60, "plate": 1239, "commerce": null }
+  { "lot": 1, "below": 4, "title": "מגורים, מסחר ותעסוקה", "cat": "mixed", "units": 179, "floors": 35, "height": 131, "lotSize": 2096, "main": 15600, "coverage": 70, "plate": 600, "commerce": 450 },
+  { "lot": 2, "below": 4, "title": "מגורים ד'", "cat": "mixed", "units": 200, "floors": 35, "height": 129, "lotSize": 2058, "main": 17246, "coverage": 70, "plate": 750, "commerce": 360 },
+  { "lot": 3, "below": 4, "title": "מגורים ד'", "cat": "mixed", "units": 153, "floors": 21, "height": 75, "lotSize": 3796, "main": 11448, "coverage": null, "plate": 800, "commerce": 945 },
+  { "lot": 5, "below": 1, "title": "מבנים ומוסדות ציבור", "cat": "public", "units": 0, "floors": 4, "height": null, "lotSize": 2067, "main": 4134, "coverage": 60, "plate": 1239, "commerce": null }
  ],
  "parcels": [
   { "lot": 1, "cat": "mixed", "c": [[34.647432,31.801966],[34.647617,31.802236],[34.647862,31.802127],[34.647769,31.801796],[34.647762,31.801772],[34.647719,31.801615],[34.647533,31.801653],[34.647298,31.80177]] },

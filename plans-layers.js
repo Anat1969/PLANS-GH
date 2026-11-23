@@ -45,16 +45,17 @@ const DISC = [
 const LAYER_NAME = { site:'גבולות', build:'מבנים', road:'כבישים', park:'חניה', bike:'אופניים', walk:'ריצוף והולכי רגל', level:'קירות וגדרות', green:'גינון', trees:'עצים', shade:'הצללה ושהייה', water:'מים וניקוז', power:'חשמל ותאורה', waste:'אשפה', fire:'כיבוי אש', anno:'טקסט', exist:'קיים', renewal:'התחדשות עירונית' };
 /* שלושת המצבים של כל תוכנית: מה יש, מה מותר, מה מוצע */
 const STATES = [ ['exist', 'קיים', 'מה יש היום'], ['renewal', 'התחדשות עירונית', 'מה מותר לפי התב"ע'], ['design', 'תוכנית בינוי ועיצוב', 'מה מוצע בפועל'] ];
-const SEASONS = [ ['קיץ', 6, 21], ['אביב וסתיו', 3, 21], ['חורף', 12, 21] ];
-/* כיווני רוח: הערכה כללית לחוף הדרומי, לא נתון מדוד */
-const WINDS = [ ['בלי', null], ['קיץ: בריזת ים', 300], ['חורף: מזרחית', 90] ];
+const SEASONS = [ ['קיץ', 6, 21], ['סתיו', 9, 23], ['חורף', 12, 21], ['אביב', 3, 21] ];
+/* כיוון הרוח לכל עונה: הערכה כללית לחוף הדרומי, לא נתון מדוד */
+const WIND_BY_SEASON = [ [300, 'צפון־מערב, בריזת ים'], [320, 'צפון־מערב'], [90, 'מזרח'], [270, 'מערב'] ];
+const BACKS = [ ['none', 'בלי'], ['map', 'מפה'], ['sat', 'לוויין'] ];
 
 const H = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
 const PM = () => window.PlanModel;
 
-const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:false, wind:0, view:'home',
+const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:'map', wind:false, fac:true, under:false, play:null, view:'home',
   off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null };
 
 /* ── נתונים: נשמרים על התוכנית ── */
@@ -85,7 +86,7 @@ function facts(disc){
     case 'arch': { const fit = conform(), out = fit ? fit.reduce((s, r) => s+r.out, 0) : 0, tot = fit ? fit.reduce((s, r) => s+r.area, 0) : 0;
       return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר`,
         fit && fit.length ? (out > tot*0.02 ? `==כ-${N(out)} מ"ר מקומת הקרקע מחוץ לקווי הבניין של התב"ע== (הערכה, ${Math.round(out/tot*100)}%)` : `קומת הקרקע בתוך קווי הבניין של התב"ע (${fit.length} מגרשים, הערכה)`) : 'אין נתוני תב"ע להשוואה',
-        `**${N(l.glass)}** מ' זיגוג בקומת הקרקע`, 'גובה הבניינים אינו בשרטוט: בוחרים מספר קומות להטלת צל']; }
+        `**${N(l.glass)}** מ' זיגוג בקומת הקרקע`, S.rn ? 'גובה הבניינים אינו בשרטוט: החזיתות עולות לפי הקומות של התב"ע, להמחשה' : 'גובה הבניינים אינו בשרטוט: בוחרים מספר קומות להטלת צל']; }
     case 'traffic': return [`מיסעה: כ-**${N(a.asphalt)}** מ"ר`, `שביל אופניים: כ-**${N(a.bike)}** מ"ר`, `רמפה לחניון: כ-**${N(a.ramp)}** מ"ר`];
     case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר`, `קירות פיתוח: **${N(l.lowwall)}** מ'`, `מדרגות: **${N(l.stairs)}** מ' של קווי מדרגה`];
     case 'land': return [`**${c.treeNew}** עצים מוצעים, **${c.treeOld}** קיימים, **${c.treeSurvey}** סימוני סקר`, `גינון: כ-**${N(a.green)}** מ"ר${pct!=null?`, שהם כ-**${pct}%** מהשטח שבקו הכחול`:''}`, `**${c.bench}** ספסלים, פרגולות **${N(a.pergola)}** מ"ר, משחק **${N(a.play)}** מ"ר`];
@@ -97,7 +98,7 @@ function facts(disc){
   }
 }
 const rich = s => H(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark class="ly-warn">$1</mark>');
-function kindMeasure(k){ const m = S.meas; if(m.count[k]!=null && m.count[k] > 0) return N(m.count[k]); if(k==='mass') return S.floors ? S.floors+' קומות' : 'כבוי';
+function kindMeasure(k){ const m = S.meas; if(m.count[k]!=null && m.count[k] > 0) return N(m.count[k]); if(k==='mass') return S.floors ? S.floors+' קומות' : 'כבוי'; if(k==='facade') return S.fac ? 'מוצג' : 'כבוי'; if(k==='under') return S.under ? 'מוצג' : 'כבוי';
   if(m.area[k]) return N(m.area[k])+' מ"ר'; if(m.len[k]) return N(m.len[k])+' מ\''; return ''; }
 
 /* ── שלד ── */
@@ -130,26 +131,26 @@ function shell(){
   if(S.api){ S.api.dispose(); S.api = null; }
   body().innerHTML = `
   <div class="ly-head">
-    <div><div class="page-title">בוחנים תחום אחד, רואים את הכול</div>
-      <div class="ly-sub">תיק <b>${H(S.tik)}</b> · ${H(set.title)} · ${H(set.date)} · המודל נבנה מ-<b>${S.man.cadTotal}</b> שכבות השרטוט, במקומו האמיתי באשדוד</div></div>
+    <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
+    <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
     <div class="ly-nav"><button class="ly-b" data-step="-1">הקודם</button><button class="ly-b ly-next" data-step="1">הבא</button></div>
   </div>
-  <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
   <div class="ly-steps" id="lySteps" role="tablist" aria-label="תחומי הפגישה"></div>
   <div class="ly-grid">
     <div class="ly-stage" id="lyStage">
       <div class="ly-view" id="lyView"></div>
       <div class="ly-over" id="lyOver"></div>
       <div class="ly-north" id="lyNorth" title="צפון"><i></i><b>צ</b></div>
-      <div class="ly-tools" id="lyTools"></div>
+      <div class="ly-credit" id="lyCredit"></div>
     </div>
+    <div class="ly-tools" id="lyTools"></div>
     <aside class="ly-panel" id="lyPanel" aria-label="התחום הנוכחי"></aside>
   </div>`;
   bind();
 }
 function drawSteps(){
   const design = S.state==='design';
-  document.getElementById('lyStates').innerHTML = STATES.filter(x => x[0]==='design' || S.rn).map(x => `<button role="tab" aria-selected="${x[0]===S.state}" class="${x[0]===S.state?'on':''}" data-state="${x[0]}"><b>${H(x[1])}</b><span>${H(x[2])}</span></button>`).join('');
+  document.getElementById('lyStates').innerHTML = STATES.filter(x => x[0]==='design' || S.rn).map(x => `<button role="tab" aria-selected="${x[0]===S.state}" class="${x[0]===S.state?'on':''}" data-state="${x[0]}" title="${H(x[2])}">${H(x[1])}</button>`).join('');
   document.getElementById('lySteps').style.display = design ? '' : 'none';
   document.querySelector('.ly-nav').style.visibility = design ? '' : 'hidden';
   document.getElementById('lySteps').innerHTML = DISC.map((x, i) => { const c = discCount(x);
@@ -158,19 +159,33 @@ function drawSteps(){
 function drawTools(){
   const el = document.getElementById('lyTools'); if(!el) return;
   const seg = (name, list, cur) => `<span class="ly-seg">${list.map((t, i) => `<button data-${name}="${i}" class="${i===cur?'on':''}">${H(t)}</button>`).join('')}</span>`;
-  const hh = Math.floor(S.hour), mm = Math.round((S.hour%1)*60);
-  el.innerHTML = `<div class="ly-trow">${S.state==='design' ? seg('mode', ['מודל', 'שרטוט'], S.mode==='model'?0:1) : ''}
-      ${S.mode==='model' && S.state==='design' && S.rn ? `<button class="ly-tg${S.env?' on':''}" data-env="1" title="המעטפת המותרת לפי התב\"ע, מעל תוכנית הבינוי">מעטפת התב"ע</button>` : ''}
-      ${S.mode==='model' ? seg('view', ['מעוף הציפור', 'מבט על', 'גובה עיניים'], ['home','top','eye'].indexOf(S.view)) + `<button class="ly-tg${S.map?' on':''}" data-map="1">מפת אשדוד</button>`
-        : `<label>הפרדה <input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></label>`}</div>
-    ${S.mode==='model' ? `<div class="ly-trow"><b>שמש</b>${seg('season', SEASONS.map(s => s[0]), S.season)}
-      <label><input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output></label><span id="lySun" class="ly-mut"></span></div>
-    <div class="ly-trow"><b>קומות</b><label><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></label><span class="ly-mut">הנחה, לא מהשרטוט</span>
-      <b>רוח</b>${seg('wind', WINDS.map(w => w[0]), S.wind)}<span class="ly-mut">הערכה כללית</span></div>` : ''}`;
+  const tg = (name, on, label, title) => `<button class="ly-tg${on?' on':''}" data-${name}="1" title="${H(title||'')}">${H(label)}</button>`;
+  const hh = Math.floor(S.hour), mm = Math.round((S.hour%1)*60), design = S.state==='design', model = S.mode==='model';
+  el.innerHTML = (design ? `<span class="ly-grp">${seg('mode', ['מודל', 'שרטוט'], model?0:1)}</span>` : '')
+    + (model ? `<span class="ly-grp"><b>מבט</b>${seg('view', ['ציפור', 'על', 'עיניים'], ['home','top','eye'].indexOf(S.view))}</span>
+      <span class="ly-grp"><b>רקע</b>${seg('back', BACKS.map(b => b[1]), BACKS.findIndex(b => b[0]===S.map))}</span>
+      <span class="ly-grp"><b>שמש</b>${seg('season', SEASONS.map(x => x[0]), S.season)}
+        <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
+        ${tg('play', !!S.play, S.play ? 'עצירה' : 'הנעה', 'תנועת השמש מהזריחה עד השקיעה')}</span>
+      <span class="ly-grp">${tg('wind', S.wind, 'רוח', 'כיוון הרוח לפי העונה. הערכה כללית, לא מדידה')}
+        ${design && S.rn ? tg('fac', S.fac, 'חזיתות', 'מגדלים לפי הקומות של התב"ע. החלונות והמרפסות הם המחשה') + tg('env', S.env, 'מעטפת התב"ע', 'המעטפת המותרת מעל תוכנית הבינוי') : ''}
+        ${S.rn && S.state!=='exist' ? tg('under', S.under, 'תת־קרקע', 'קומות המרתף והחניון לפי הוראות התוכנית') : ''}</span>
+      ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
+      <span class="ly-mut" id="lySun"></span>`
+    : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
+  const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.map==='map' ? '© OpenStreetMap, © CARTO' : S.map==='sat' ? 'תצלום: Esri, Maxar, Earthstar Geographics' : '';
 }
-function sunNow(){ if(!S.api) return; const s = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), s[1], s[2], S.hour), el = document.getElementById('lySun');
-  if(el) el.textContent = r.day ? `גובה ${Math.round(r.alt)}°, אזימוט ${Math.round(r.az)}°` : 'השמש מתחת לאופק: התאורה נדלקת'; }
-
+function sunNow(){ if(!S.api) return; const x = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), x[1], x[2], S.hour), el = document.getElementById('lySun');
+  const w = S.wind ? ` · רוח מ${WIND_BY_SEASON[S.season][1]} (הערכה)` : '';
+  if(el) el.textContent = (r.day ? `גובה השמש ${Math.round(r.alt)}°, אזימוט ${Math.round(r.az)}°` : 'השמש מתחת לאופק: התאורה נדלקת') + w; }
+function setHour(h){ S.hour = h; const o = document.getElementById('lyHourOut'), i = document.getElementById('lyHour');
+  if(o) o.textContent = `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h%1)*60)).padStart(2,'0')}`; if(i) i.value = h; sunNow(); }
+/** הנעה: השמש עוברת מ-05:00 עד 20:00 בכ-15 שניות */
+function playSun(on){ if(S.play){ clearInterval(S.play); S.play = null; }
+  if(on){ if(S.hour >= 19.9) setHour(5); let last = performance.now(); S.play = setInterval(() => { const now = performance.now(), dt = Math.min(.5, (now-last)/1000); last = now;   // שעה בשנייה, לפי הזמן שעבר בפועל
+      if(!S.api || S.hour >= 20){ playSun(false); drawTools(); sunNow(); return; } setHour(Math.min(20, S.hour + dt)); }, 60); } }
+function applyApi(){ if(!S.api) return; S.api.setMap(S.map); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
+  S.api.setFacade(S.fac && S.state==='design' && !!S.rn); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
 async function setMode(mode){
   S.mode = mode; const view = document.getElementById('lyView'); if(!view) return;
   if(S.api){ S.api.dispose(); S.api = null; }
@@ -178,7 +193,7 @@ async function setMode(mode){
   if(mode==='model'){
     try{ await PM().loadThree();
       S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
-      if(S.rn) S.api.setRenewal(S.rn); S.api.setEnvelope(S.env); S.api.setFloors(S.floors); S.api.setMap(S.map); S.api.setWind(WINDS[S.wind][1]); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
+      if(S.rn) S.api.setRenewal(S.rn); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
     view.innerHTML = '<div class="ly-world" id="lyWorld">' + S.man.layers.map(l => `<div class="ly-sheet" data-id="${l.id}"><img src="${SETS[S.tik].dir}/${l.file}" alt="${H(l.name)}" draggable="false" decoding="async"><span class="ly-tag">${H(l.name)}</span></div>`).join('') + '</div>';
@@ -189,7 +204,7 @@ function applyDisc(){
   const disc = DISC[S.d]; drawSteps();
   const over = document.getElementById('lyOver'), st = STATES.find(x => x[0]===S.state);
   if(over) over.innerHTML = S.state==='design' ? `<b>${H(disc.name)}</b><span>${disc.layers ? disc.layers.map(l => H(LAYER_NAME[l])).join(' · ') : 'כל השכבות'}</span>` : `<b>${H(st[1])}</b><span>${H(st[2])}</span>`;
-  if(S.mode==='model'){ if(S.api){ S.api.setState(S.state); S.api.setActive(S.state==='design' ? disc.layers : null); sunNow(); } }
+  if(S.mode==='model'){ if(S.api){ S.api.setState(S.state); S.api.setActive(S.state==='design' ? disc.layers : null); applyApi(); sunNow(); } }
   else drawSheets();
 }
 function drawSheets(){
@@ -221,6 +236,24 @@ function conform(){
     rows.push({ lot:e.lot, area:inn+out, out, top:e.top, floors:(S.rn.lots.find(l => l.lot===e.lot)||{}).floors }); });
   return S.fit = rows;
 }
+/** מעביר את זכויות התב"ע (טבלה 5) לעמודת "מותר" בטבלת הבדיקה של התוכנית. ממלא רק תא ריק, ורושם מקור */
+function fillRights(){
+  const p = plan(), rn = S.rn; if(!p || !rn) return say('התוכנית לא נמצאה בטבלה'); if(!canEdit()) return say('רק אדריכלית העיר מעדכנת');
+  try{ if(typeof ensureTable5==='function') ensureTable5(p); }catch(e){} p.table5 = p.table5 || {}; p.reviewGrid = p.reviewGrid || {};
+  const L = rn.lots, per = (f, u) => L.filter(l => l[f] != null && l[f] !== 0).map(l => `מגרש ${l.lot}: ${N(l[f])}${u||''}`).join(' · '), src = `${rn.plan}, הוראות התוכנית, טבלה 5, עמ' 17`;
+  const rows = [ ['designation', 'ייעודים וזיקות|ייעוד', [...new Set(L.map(l => l.title))].join('; '), ''],
+    ['mainArea', 'זכויות ובינוי|שטח עיקרי (מ"ר)', String(L.reduce((s, l) => s + (l.main||0), 0)), per('main')],
+    ['coverage', 'זכויות ובינוי|תכסית (%)', String(Math.max(...L.map(l => l.coverage||0))), per('coverage', '%')],
+    ['floors', 'זכויות ובינוי|מספר קומות', String(Math.max(...L.map(l => l.floors||0))), per('floors')],
+    ['height', "זכויות ובינוי|גובה (מ')", String(Math.max(...L.map(l => l.height||0))), per('height', " מ'")],
+    ['units', 'יחידות דיור|מספר יחידות דיור', String(rn.summary.units), per('units')] ];
+  let done = 0, kept = 0;
+  rows.forEach(([k, id, val, detail]) => { const t = p.table5[k] = p.table5[k] || {};
+    if(String(t.allowed||'').trim()){ kept++; return; }
+    t.allowed = val; t.source = t.source || src; const r = p.reviewGrid[id] = p.reviewGrid[id] || { allowed:'', proposed:'', required:'', match:'', note:'', source:'' };
+    r.source = r.source || src; if(detail && !r.note) r.note = 'לפי מגרש: ' + detail; done++; });
+  persist(); say(done ? `${done} שדות "מותר" מולאו מטבלה 5${kept ? `, ${kept} נשארו כפי שהיו` : ''}` : 'כל השדות כבר מלאים. לא שיניתי דבר'); drawPanel();
+}
 function drawStatePanel(el){
   const rn = S.rn, m = S.meas, K = PM().KIND, Z = PM().ZONES, ex = S.state==='exist';
   const kinds = PM().STATE_KINDS[S.state].filter(k => m.count[k] || m.len[k] || k.startsWith('rn') || k==='exBuild');
@@ -237,6 +270,7 @@ function drawStatePanel(el){
     <div class="ly-sec">הזכויות לפי מגרש <small>טבלה 5</small></div>
     <table class="ly-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>דירות</th><th>קומות</th><th>גובה</th><th>עיקרי</th><th>מסחר</th></tr></thead><tbody>
       ${rn.lots.map(l => `<tr><td><b>${l.lot}</b></td><td><i style="background:${Z[l.cat][1]}"></i>${H(l.title)}</td><td>${l.units||''}</td><td>${l.floors}</td><td>${l.height ? l.height+" מ'" : ''}</td><td>${N(l.main)}</td><td>${l.commerce ? N(l.commerce) : ''}</td></tr>`).join('')}</tbody></table>
+    ${canEdit() && plan() ? `<div class="ly-cfoot"><button class="ly-b" data-rights="1" title="ממלא רק תא ריק, ורושם את המקור">העברת הזכויות לטבלת הבדיקה</button></div>` : ''}
     <div class="ly-sec">מקרא הייעודים</div>
     <div class="ly-zones">${Object.values(Z).map(z => `<span><i style="background:${z[1]}"></i>${H(z[0])}</span>`).join('')}</div>
     <div class="ly-sec">מה מוצג <small>לחיצה מסתירה או מציגה</small></div><div class="ly-legend">${kinds.map(lg).join('')}</div>
@@ -247,7 +281,7 @@ function drawPanel(){
   if(S.state!=='design' && S.rn) return drawStatePanel(el);
   const disc = DISC[S.d], r = review(), ed = canEdit(), SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const micBtn = key => ed && SR ? `<button class="ly-mic${S.rec===key?' rec':''}" data-mic="${key}">${S.rec===key?'עצירה':'הקלטה'}</button>` : '';
-  const kinds = PM().KINDS.filter(k => k.topic!=='exist' && k.topic!=='renewal' && (!disc.layers || disc.layers.includes(k.topic)) && (S.meas.count[k.id] || S.meas.area[k.id] || S.meas.len[k.id] || k.id==='mass'));
+  const kinds = PM().KINDS.filter(k => k.topic!=='exist' && k.topic!=='renewal' && (!disc.layers || disc.layers.includes(k.topic)) && (S.meas.count[k.id] || S.meas.area[k.id] || S.meas.len[k.id] || (k.id==='mass' && !S.rn) || (S.rn && (k.id==='facade' || k.id==='under'))));
   const qrow = (key, label, x, custom) => `<li class="ly-it${x&&x.d?' done':''}">
       <label class="ly-ck"><input type="checkbox" data-done="${key}" ${x&&x.d?'checked':''} ${ed?'':'disabled'}><span>בוצע</span></label>
       <span class="ly-lab">${H(label)}</span>${custom && ed ? `<button class="ly-x" data-del="${key}" aria-label="מחיקת ההנחיה">×</button>` : ''}
@@ -274,7 +308,7 @@ function drawPanel(){
 function grow(t){ t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight+2)+'px'; }
 
 /* ── פעולות ── */
-function go(d){ S.d = (d + DISC.length) % DISC.length; stopRec(); applyDisc(); drawPanel(); document.getElementById('lyPanel').scrollTop = 0; }
+function go(d){ if(S.state!=='design') return; S.d = (d + DISC.length) % DISC.length; stopRec(); applyDisc(); drawPanel(); document.getElementById('lyPanel').scrollTop = 0; }
 function saveField(el){
   const r = review(), v = el.value.trim();
   if(el.dataset.note){ const k = el.dataset.note, x = r.items[k] = r.items[k] || {}; x.n = v; x.at = v ? today() : ''; if(!x.n && !x.d) delete r.items[k]; }
@@ -317,15 +351,19 @@ function bind(){
   const el = body(), st = document.getElementById('lyStage');
   el.onclick = e => {
     const b = e.target.closest('button, input[type=checkbox]'); if(!b) return; const d = b.dataset;
-    if(d.state){ S.state = d.state; stopRec(); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } if(S.state==='exist' && !S.map){ S.map = true; if(S.api) S.api.setMap(true); } drawTools(); applyDisc(); if(S.api) S.api.view(S.view); drawPanel(); }
-    else if(d.env){ S.env = !S.env; if(S.api) S.api.setEnvelope(S.env); drawTools(); sunNow(); }
+    if(d.state){ S.state = d.state; stopRec(); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } drawTools(); applyDisc(); drawPanel(); }   // המבט נשאר זהה בין המצבים
+    else if(d.env){ S.env = !S.env; applyApi(); drawTools(); sunNow(); }
+    else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
+    else if(d.under){ S.under = !S.under; applyApi(); drawTools(); sunNow(); }
+    else if(d.back){ S.map = BACKS[+d.back][0]; applyApi(); drawTools(); sunNow(); }
+    else if(d.play){ playSun(!S.play); drawTools(); sunNow(); }
+    else if(d.rights) fillRights();
     else if(d.step) go(S.d + (+d.step));
     else if(d.disc) go(+d.disc);
     else if(d.mode){ setMode(d.mode==='0' ? 'model' : 'draw'); }
     else if(d.view){ S.view = ['home','top','eye'][+d.view]; if(S.api) S.api.view(S.view); drawTools(); sunNow(); }
-    else if(d.map){ S.map = !S.map; if(S.api) S.api.setMap(S.map); drawTools(); sunNow(); }
-    else if(d.season){ S.season = +d.season; drawTools(); sunNow(); }
-    else if(d.wind){ S.wind = +d.wind; if(S.api) S.api.setWind(WINDS[S.wind][1]); drawTools(); sunNow(); }
+    else if(d.season){ S.season = +d.season; applyApi(); drawTools(); sunNow(); }
+    else if(d.wind){ S.wind = !S.wind; applyApi(); drawTools(); sunNow(); }
     else if(d.kind){ if(S.off.has(d.kind)) S.off.delete(d.kind); else S.off.add(d.kind); if(S.api) S.api.setKind(d.kind, !S.off.has(d.kind)); b.classList.toggle('off', S.off.has(d.kind)); }
     else if(d.mic) mic(d.mic);
     else if(d.act==='copy') copyText();
@@ -338,13 +376,13 @@ function bind(){
   el.onchange = e => { if(e.target.matches('textarea')) saveField(e.target); };
   el.oninput = e => { const t = e.target;
     if(t.matches('textarea')) grow(t);
-    else if(t.id==='lyHour'){ S.hour = +t.value; document.getElementById('lyHourOut').textContent = `${String(Math.floor(S.hour)).padStart(2,'0')}:${String(Math.round((S.hour%1)*60)).padStart(2,'0')}`; sunNow(); }
+    else if(t.id==='lyHour'){ playSun(false); setHour(+t.value); }
     else if(t.id==='lyFloors'){ S.floors = +t.value; document.getElementById('lyFloorsOut').textContent = S.floors || 'בלי'; if(S.api){ S.api.setFloors(S.floors); S.api.setActive(DISC[S.d].layers); } }
     else if(t.id==='lyGap'){ S.gap = +t.value; drawSheets(); } };
   el.onkeydown = e => { if(e.key==='Enter' && e.target.id==='lyNew'){ e.preventDefault(); el.querySelector('[data-act="add"]').click(); } };
   // בשרטוט: גרירה מזיזה (או מסובבת כשיש הפרדה), גלגלת מקרבת. במודל: הבקר של המודל
   let drag = null;
-  st.onpointerdown = e => { if(S.mode!=='draw' || e.target.closest('.ly-tools')) return; drag = { x:e.clientX, y:e.clientY }; st.setPointerCapture(e.pointerId); };
+  st.onpointerdown = e => { if(S.mode!=='draw') return; drag = { x:e.clientX, y:e.clientY }; st.setPointerCapture(e.pointerId); };
   st.onpointermove = e => { if(!drag) return; const dx = e.clientX-drag.x, dy = e.clientY-drag.y; drag.x = e.clientX; drag.y = e.clientY;
     if(S.gap > 0 && !e.shiftKey){ S.rz += dx*.35; S.rx = Math.min(82, Math.max(0, S.rx-dy*.3)); } else { S.px += dx; S.py += dy; } drawSheets(); };
   st.onpointerup = st.onpointercancel = () => { drag = null; };
@@ -364,7 +402,7 @@ function boot(){
   ensurePage();
   const _go = window.go;
   window.go = function(id, btn, isBack){
-    if(id!=='layers'){ stopRec(); if(S.api){ S.api.dispose(); S.api = null; } }
+    if(id!=='layers'){ stopRec(); playSun(false); if(S.api){ S.api.dispose(); S.api = null; } }
     _go(id, btn, isBack);
     if(id==='layers'){ open(S.tik); const want = '#layers=' + (S.tik || Object.keys(SETS)[0]); if(location.hash!==want) history.replaceState(null, '', want); }
   };
@@ -378,32 +416,31 @@ function boot(){
 
 const CSS = `
 .ly-page{max-width:none !important;padding-bottom:0 !important}
-.ly-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
-.ly-head .page-title{margin:0 !important}
-.ly-sub{color:var(--muted);font-size:13px;margin-top:4px}
-.ly-sub b{color:var(--ink)}
-.ly-nav{display:flex;gap:6px}
-.ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:9px 18px !important;font:600 14px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
+.ly-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 6px}
+.ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
+.ly-title b{color:var(--ink);font-weight:600}
+.ly-nav{display:flex;gap:4px;margin-inline-start:auto}
+.ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:6px 14px !important;font:600 13px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
 .ly-b:hover{background:var(--ink) !important;color:#fff !important;transform:translateY(-1px)}
 .ly-next{background:var(--ink) !important;color:#fff !important}
-.ly-states{display:flex;gap:4px;margin-bottom:6px}
-.ly-states button{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:0 !important;background:#f6f5f1 !important;padding:8px 14px !important;cursor:pointer;border-radius:0 !important;text-align:start;box-shadow:inset 0 -3px 0 #dcdad3}
-.ly-states button b{font:600 16px var(--sans);color:var(--ink-soft)} .ly-states button span{font:400 12px var(--sans);color:var(--ink-mute)}
-.ly-states button.on{background:#fff !important;box-shadow:inset 0 -3px 0 var(--ink)} .ly-states button.on b{color:var(--ink)}
+.ly-states{display:flex;gap:2px}
+.ly-states button{border:0 !important;background:#f1f0ec !important;padding:6px 14px !important;cursor:pointer;border-radius:0 !important;font:400 13.5px var(--sans) !important;color:var(--ink-soft) !important}
+.ly-states button.on{background:var(--ink) !important;color:#fff !important;font-weight:600 !important}
 .ly-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .ly-tbl th{font-weight:600;color:var(--ink-mute);text-align:start;padding:3px 4px;font-size:11.5px}
 .ly-tbl td{padding:5px 4px;box-shadow:inset 0 -1px 0 #ecebe6;font-variant-numeric:tabular-nums;vertical-align:top}
 .ly-tbl i,.ly-zones i{display:inline-block;width:11px;height:11px;margin-inline-end:5px;vertical-align:-1px}
 .ly-zones{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
 .ly-src{font-size:11.5px;color:var(--muted);line-height:1.5;margin:14px 0}
-.ly-steps{display:flex;gap:4px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
-.ly-steps button{flex:1 0 auto;display:flex;align-items:center;gap:7px;border:0 !important;background:#f6f5f1 !important;color:var(--ink-soft) !important;padding:8px 11px !important;font:400 13.5px var(--sans) !important;cursor:pointer;border-radius:0 !important;white-space:nowrap}
+.ly-steps{display:flex;gap:2px;overflow-x:auto;margin-bottom:6px}
+.ly-steps button{flex:1 0 auto;display:flex;align-items:center;gap:7px;border:0 !important;background:#f6f5f1 !important;color:var(--ink-soft) !important;padding:5px 9px !important;font:400 12.5px var(--sans) !important;cursor:pointer;border-radius:0 !important;white-space:nowrap}
 .ly-steps button i{font-style:normal;font-size:11px;color:var(--ink-mute);font-variant-numeric:tabular-nums}
 .ly-steps button b{font-size:11px;font-weight:400;color:var(--muted);margin-inline-start:auto}
 .ly-steps button.on{background:var(--teal) !important;color:#fff !important;font-weight:600 !important}
 .ly-steps button.on i,.ly-steps button.on b{color:rgba(255,255,255,.8)}
-.ly-grid{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:14px;height:calc(100vh - 326px);min-height:440px}
-.ly-stage{position:relative;overflow:hidden;background:#f4f3ef;touch-action:none;user-select:none;min-height:0}
+.ly-grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;grid-template-rows:minmax(0,1fr) auto;gap:6px 12px;height:calc(100vh - 176px);min-height:440px}
+.ly-stage{position:relative;overflow:hidden;background:#f4f3ef;touch-action:none;user-select:none;min-height:0;grid-column:1;grid-row:1}
+.ly-panel{grid-column:2;grid-row:1 / 3}
 .ly-view{position:absolute;inset:0;perspective:2600px;display:flex;align-items:center;justify-content:center}
 .pm-canvas{width:100%;height:100%;display:block;cursor:grab}
 .ly-world{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
@@ -413,26 +450,25 @@ const CSS = `
 .ly-sheet.off{display:none}
 .ly-tag{position:absolute;inset-inline-start:0;bottom:100%;background:var(--teal);color:#fff;font:600 22px var(--sans);padding:4px 12px;white-space:nowrap;display:none}
 .ly-sheet.glass .ly-tag{display:block}
-.ly-over{position:absolute;inset-inline-start:12px;top:10px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
-.ly-over b{font-size:20px;color:var(--ink)} .ly-over span{font-size:12.5px;color:var(--ink-soft)}
-.ly-over b,.ly-over span{background:rgba(255,255,255,.9);padding:1px 8px;width:fit-content}
-.ly-north{position:absolute;inset-inline-end:12px;top:10px;width:44px;height:44px;background:rgba(255,255,255,.92);box-shadow:0 1px 3px rgba(0,0,0,.2);border-radius:50%;pointer-events:none}
+.ly-over{position:absolute;inset-inline-start:8px;top:8px;display:flex;gap:6px;align-items:baseline;pointer-events:none;background:rgba(255,255,255,.88);padding:2px 8px}
+.ly-over b{font-size:14px;color:var(--ink)} .ly-over span{font-size:11.5px;color:var(--ink-soft)}
+.ly-credit{position:absolute;inset-inline-start:8px;bottom:4px;font-size:10px;color:var(--ink-soft);background:rgba(255,255,255,.7);padding:0 4px;pointer-events:none}
+.ly-north{position:absolute;inset-inline-end:8px;top:8px;width:36px;height:36px;background:rgba(255,255,255,.92);box-shadow:0 1px 3px rgba(0,0,0,.2);border-radius:50%;pointer-events:none}
 .ly-north i{position:absolute;inset:0;display:block}
-.ly-north i::before{content:"";position:absolute;left:50%;top:5px;margin-left:-6px;border:6px solid transparent;border-bottom:17px solid #c8202a;border-top:0}
-.ly-north b{position:absolute;left:0;right:0;bottom:3px;text-align:center;font-size:11px;color:var(--ink)}
-.ly-tools{position:absolute;inset-inline:10px;bottom:10px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;pointer-events:none}
-.ly-trow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(255,255,255,.94);box-shadow:0 1px 3px rgba(0,0,0,.18);padding:5px 8px;font-size:12.5px;color:var(--ink-soft);pointer-events:auto}
-.ly-trow b{color:var(--ink);font-size:12.5px}
-.ly-trow label{display:flex;align-items:center;gap:6px}
-.ly-trow input[type=range]{width:120px;accent-color:var(--ink)}
-.ly-trow output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;min-width:38px}
+.ly-north i::before{content:"";position:absolute;left:50%;top:3px;margin-left:-6px;border:6px solid transparent;border-bottom:13px solid #c8202a;border-top:0}
+.ly-north b{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:10px;color:var(--ink)}
+.ly-tools{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12px;color:var(--ink-soft)}
+.ly-grp{display:inline-flex;align-items:center;gap:4px}
+.ly-grp b{color:var(--ink);font-size:11.5px;font-weight:600}
+.ly-tools input[type=range]{width:96px;accent-color:var(--ink);height:14px}
+.ly-tools output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;min-width:36px}
 .ly-mut{color:var(--ink-mute);font-size:11.5px}
 .ly-seg{display:inline-flex;gap:2px}
-.ly-seg button,.ly-tg{border:0 !important;background:#eeede8 !important;color:var(--ink-soft) !important;padding:5px 10px !important;font:400 12.5px var(--sans) !important;cursor:pointer;border-radius:0 !important}
+.ly-seg button,.ly-tg{border:0 !important;background:#eeede8 !important;color:var(--ink-soft) !important;padding:3px 8px !important;font:400 12px var(--sans) !important;cursor:pointer;border-radius:0 !important}
 .ly-seg button.on,.ly-tg.on{background:var(--ink) !important;color:#fff !important;font-weight:600 !important}
 .ly-panel{overflow:auto;min-height:0;padding-inline-end:4px}
 .ly-who{font-size:12px;color:var(--teal);font-weight:600}
-.ly-h{font:600 24px var(--sans);margin:2px 0 8px;color:var(--ink)}
+.ly-h{font:600 20px var(--sans);margin:2px 0 6px;color:var(--ink)}
 .ly-facts{list-style:none;margin:0 0 4px;padding:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
 .ly-facts li{padding:3px 0;box-shadow:inset 0 -1px 0 #ecebe6}
 .ly-facts b{color:var(--ink)}
@@ -465,7 +501,7 @@ const CSS = `
 .ly-cfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 10px}
 .ly-cfoot small{font-size:11.5px;color:var(--muted)}
 .ly-empty{color:var(--muted);padding:40px 16px}
-@media (max-width:1000px){.ly-grid{grid-template-columns:1fr;height:auto}.ly-stage{height:64vh}.ly-trow input[type=range]{width:90px}}
+@media (max-width:1000px){.ly-grid{grid-template-columns:1fr;grid-template-rows:auto;height:auto}.ly-stage{height:62vh}.ly-panel{grid-column:1;grid-row:auto}}
 @media (prefers-reduced-motion:reduce){.ly-mic.rec{animation:none}}
 `;
 boot();
