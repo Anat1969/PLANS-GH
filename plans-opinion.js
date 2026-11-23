@@ -358,7 +358,9 @@ async function completions(p){
   add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
   const tc = checksTaba(p);
   add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t}${x.note ? ' ' + x.note : ''} (סעיף ${x.r.section}).`));
-  add('הוראות התב"ע: להציג עמידה', tc.filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי').map(x => `${x.t} (סעיף ${x.r.section}).`));
+  const show = tc.filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי');   // הרשימה המלאה יוצאת כנספח בהעתקה ובמייל
+  if(show.length){ const byT = {}; show.forEach(x => byT[x.r.topic] = (byT[x.r.topic] || 0) + 1);
+    add('הוראות התב"ע: להציג עמידה', [`יש להציג בתוכנית הבינוי עמידה ב-${show.length} דרישות מהוראות התב"ע: ${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(', ')}. הרשימה המלאה בנספח.`]); }
   add('הנחיות מרחביות', checksSpatial(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub || 'אינה עומדת בהנחיה'}.`));
   add('דרישות התב"ע והעירייה', checksMuni(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub}.`));
   add('דרישות ההגשה לתוכנית הפיתוח', checksSubmission(p).filter(x => x.st === 'no').map(x => `${x.sub}, ${x.t}: ${x.note}`));
@@ -381,6 +383,10 @@ function completionsText(p, G){
   if(!G.length) L.push('אין השלמות פתוחות.');
   G.forEach(([t, items], k) => { L.push(`${heb[k]}. ${t}`); items.forEach(x => L.push(`${++i}. ${x}`)); L.push(''); });
   L.push('נא להגיש את ההשלמות, או נימוק לכל סעיף שלא יושלם, לפני המועד.', '', 'ענת שטיבלמן', 'אדריכלית העיר, עיריית אשדוד');
+  const show = checksTaba(p).filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי'), tb = TABA_C[p.tik];
+  if(show.length && G.some(g => /להציג עמידה/.test(g[0]))){ L.push('', '', `נספח: דרישות מהוראות התב"ע להצגה בתוכנית הבינוי (${tb.source})`);
+    const byT = {}; show.forEach(x => (byT[x.r.topic] = byT[x.r.topic] || []).push(x));
+    Object.entries(byT).forEach(([t, xs]) => { L.push('', t); xs.forEach((x, i) => L.push(`${i + 1}. ${x.t} (סעיף ${x.r.section}, עמ' ${x.r.page})`)); }); }
   return L.join('\n');
 }
 async function fillTodo(p){
