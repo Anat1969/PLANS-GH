@@ -15,11 +15,14 @@ srv.listen(0, async () => {
     renderOpinionTab(p); await new Promise(f => setTimeout(f, 2500)); renderOpinionTab(p);
     const g = [...document.querySelectorAll('#opinionDoc .op-grp-h')].map(x => x.textContent), s = t => [...document.querySelectorAll('#opinionDoc details.op-fold')].find(d => d.querySelector('summary').textContent.includes(t));
     const n = t => { const d = s(t); return d ? d.querySelectorAll('.ck-list li').length : -1; }, open = t => { const d = s(t); return d ? d.querySelectorAll('.ck-open').length : -1; };
-    return { g, spatial:n('הנחיות מרחביות'), spatialOpen:open('הנחיות מרחביות'), sub:n('דרישות ההגשה'), lots:(s('טבלה 5') || document).querySelectorAll('.t5lotc').length, people:s('בעלי העניין').querySelectorAll('tbody tr').length,
+    const tb = await fetch('data/taba/1912.json').then(r => r.json());
+    return { g, taba:n('דרישות מהוראות התב'), expTaba:tb.requirements.length, todo:document.querySelectorAll('#opTodo').length, spatial:n('הנחיות מרחביות'), spatialOpen:open('הנחיות מרחביות'), sub:n('דרישות ההגשה'), lots:(s('טבלה 5') || document).querySelectorAll('.t5lotc').length, people:s('בעלי העניין').querySelectorAll('tbody tr').length,
       expSpatial:SPATIAL_GUIDELINES.length, expSub:(window.LAYER_TOPICS || []).reduce((a, t) => a + t.items.length, 0) }; });
   ok(r.g.map(x => x[0]).join('') === 'אבגדהו', 'סדר הקבוצות: ' + r.g.join(' | '));
   ok(r.spatial === r.expSpatial && r.spatialOpen === r.expSpatial, `כל ${r.expSpatial} ההנחיות המרחביות מופיעות, גם "לא נבדק"`);
   ok(r.sub === r.expSub && r.sub > 0, `כל ${r.expSub} דרישות ההגשה מופיעות`);
+  ok(r.taba === r.expTaba && r.taba > 0, `כל ${r.expTaba} דרישות התב"ע של 1912 מופיעות`);
+  ok(r.todo === 1, 'רשימת ההשלמות מופיעה פעם אחת');
   ok(r.lots === 20, `טבלה 5 של 1912: ${r.lots} מגרשים`);
   ok(r.people >= 2, `בעלי העניין: ${r.people}`);
   ok(!errs.length, 'בלי שגיאות בדף' + (errs.length ? ': ' + errs[0] : ''));

@@ -60,6 +60,13 @@ async function loadT5(tik){
   try{ const r = await fetch(`data/table5/${tik}.json?v=1124a`); T5C[tik] = r.ok ? await r.json() : null; }catch(e){ T5C[tik] = null; }
   return T5C[tik];
 }
+/* ── דרישות מהוראות התב"ע (data/taba/<תיק>.json): מטרה, בעלי עניין ודרישות לתוכנית הבינוי ולהיתר, כל אחת עם ציטוט, סעיף ועמוד ── */
+const TABA_C = {};
+async function loadTaba(tik){
+  if(TABA_C[tik] !== undefined) return TABA_C[tik];
+  try{ const r = await fetch(`data/taba/${tik}.json?v=1124h`); TABA_C[tik] = r.ok ? await r.json() : null; }catch(e){ TABA_C[tik] = null; }
+  return TABA_C[tik];
+}
 const T5_LOTKEYS = ['lotSize', 'units', 'height', 'floorsAbove', 'floorsBelow', 'coverage', 'balcony', 'front', 'back', 'sideL', 'sideR'];
 const t5num = v => typeof v === 'number' ? v.toLocaleString('he-IL') : String(v == null ? '' : v);
 /** המותר בתא, כטקסט: ערך ויחידה, והפניה להערה עם הנוסח שלה */
@@ -297,6 +304,7 @@ function people(p){
   add('מנהל פרויקט', m.contactName, m.contactPhone, m.contactEmail);
   try{ (contacts || []).filter(c => (c.plans || []).map(String).includes(String(p.tik))).forEach(c => add(c.type || 'איש קשר', c.name, c.phone, c.email, c.org)); }catch(e){}
   (Array.isArray(p.consultants) ? p.consultants : []).forEach(c => add(c.role || 'יועץ', c.name));
+  const tb = TABA_C[p.tik]; if(tb) (tb.parties || []).forEach(x => add(x.role + ' (לפי התב"ע)', x.name, x.phone, x.email));
   return out;
 }
 function secParties(p){
@@ -313,6 +321,7 @@ function secProperty(p, t5, planningData){
       ['סוג התוכנית', t5 && t5.planType]])
     + (lots.length ? `<div class="op-sub">המגרשים בתוכנית, מטבלה 5 (${lots.length})</div><div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>גודל</th><th>שימושים</th></tr></thead><tbody>${lots.map(([lot, rs]) => { const r0 = rs.find(([r]) => !r.total_row) || rs[0], size = rs.map(([r]) => r.lotSize).find(v => v != null);
         return `<tr><td>${H(lot)}</td><td>${H(r0[0].zone || '')}</td><td>${size != null ? t5num(size) + ' מ"ר' : '—'}</td><td>${H([...new Set(rs.filter(([r]) => !r.total_row).map(([r]) => r.use))].join(', '))}</td></tr>`; }).join('')}</tbody></table></div>` : '')
+    + (TABA_C[p.tik] && TABA_C[p.tik].purpose ? `<div class="op-sub">מטרת התב"ע</div><p class="op-purpose">${H(TABA_C[p.tik].purpose.text)} <small>${H(TABA_C[p.tik].source)}, סעיף ${H(TABA_C[p.tik].purpose.section)}, עמ' ${H(TABA_C[p.tik].purpose.page)}</small></p>` : '')
     + (planningData || '');
 }
 function secLocation(p){
@@ -331,6 +340,7 @@ async function infraFindings(p){
   return INFRA_CACHE[p.tik];
 }
 async function completions(p){
+  await Promise.all([loadT5(p.tik), loadTaba(p.tik)]);
   const t5 = T5C[p.tik], T = p.t5lots && p.t5lots.rows ? p.t5lots : null, G = [], add = (title, items) => { items = items.filter(Boolean); if(items.length) G.push([title, items]); };
   const n = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isNaN(x) ? null : x; };
   if(t5){ const lab = k => ((t5.columns || []).find(c => c.key === k) || {}).label || k, it = [];
@@ -346,6 +356,11 @@ async function completions(p){
     add('טבלה 5', it); }
   const hasPdf = (p.documents || []).some(d => d && d.layers) || !!(window.LAYER_SETS || {})[String(p.tik)];
   add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
+  const tc = checksTaba(p);
+  add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t.replace(/[.\s]+$/, '')}. ${x.note ? x.note.replace(/[.\s]+$/, '') + ' ' : ''}(סעיף ${x.r.section}).`));
+  const show = tc.filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי');   // הרשימה המלאה יוצאת כנספח בהעתקה ובמייל
+  if(show.length){ const byT = {}; show.forEach(x => byT[x.r.topic] = (byT[x.r.topic] || 0) + 1);
+    add('הוראות התב"ע: להציג עמידה', [`יש להציג בתוכנית הבינוי עמידה ב-${show.length} דרישות מהוראות התב"ע: ${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(', ')}. הרשימה המלאה בנספח.`]); }
   add('הנחיות מרחביות', checksSpatial(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub || 'אינה עומדת בהנחיה'}.`));
   add('דרישות התב"ע והעירייה', checksMuni(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub}.`));
   add('דרישות ההגשה לתוכנית הפיתוח', checksSubmission(p).filter(x => x.st === 'no').map(x => `${x.sub}, ${x.t}: ${x.note}`));
@@ -368,6 +383,10 @@ function completionsText(p, G){
   if(!G.length) L.push('אין השלמות פתוחות.');
   G.forEach(([t, items], k) => { L.push(`${heb[k]}. ${t}`); items.forEach(x => L.push(`${++i}. ${x}`)); L.push(''); });
   L.push('נא להגיש את ההשלמות, או נימוק לכל סעיף שלא יושלם, לפני המועד.', '', 'ענת שטיבלמן', 'אדריכלית העיר, עיריית אשדוד');
+  const show = checksTaba(p).filter(x => x.st === 'open' && x.r.stage === 'תוכנית בינוי'), tb = TABA_C[p.tik];
+  if(show.length && G.some(g => /להציג עמידה/.test(g[0]))){ L.push('', '', `נספח: דרישות מהוראות התב"ע להצגה בתוכנית הבינוי (${tb.source})`);
+    const byT = {}; show.forEach(x => (byT[x.r.topic] = byT[x.r.topic] || []).push(x));
+    Object.entries(byT).forEach(([t, xs]) => { L.push('', t); xs.forEach((x, i) => L.push(`${i + 1}. ${x.t} (סעיף ${x.r.section}, עמ' ${x.r.page})`)); }); }
   return L.join('\n');
 }
 async function fillTodo(p){
@@ -392,8 +411,16 @@ async function fillTodo(p){
 const ST = { no:['לא עומד', 0], yes:['עומד', 1], na:['לא רלוונטי', 2], open:['לא נבדק', 3] };
 function checkList(items, link){
   const n = items.length, done = items.filter(x => x.st !== 'open').length, bad = items.filter(x => x.st === 'no').length;
-  const rows = items.slice().sort((a, b) => ST[a.st][1] - ST[b.st][1]).map(x => `<li class="ck-${x.st}"><span class="ck-st">${ST[x.st][0]}</span><span class="ck-t">${H(x.t)}${x.sub ? ` <small>${H(x.sub)}</small>` : ''}${x.note ? `<em>${H(x.note)}</em>` : ''}</span></li>`).join('');
+  const ed = typeof isArchitect !== 'function' || isArchitect();
+  const mk = x => x.id && ed ? `<span class="ck-mk no-print">${[['yes', 'עומד'], ['no', 'לא עומד'], ['na', 'לא רלוונטי']].map(([k, l]) => `<button class="${x.st === k ? 'on' : ''}" data-tk="${H(x.id)}|${k}">${l}</button>`).join('')}</span>` : '';
+  const rows = items.slice().sort((a, b) => ST[a.st][1] - ST[b.st][1]).map(x => `<li class="ck-${x.st}"><span class="ck-st">${ST[x.st][0]}</span><span class="ck-t">${H(x.t)}${x.sub ? ` <small>${H(x.sub)}</small>` : ''}${x.note ? `<em>${H(x.note)}</em>` : ''}${mk(x)}</span></li>`).join('');
   return `<div class="ck-sum">נבדקו <b>${done}</b> מתוך ${n}${bad ? ` · <b class="t5bad">${bad === 1 ? 'אחת לא עומדת' : bad + ' לא עומדות'}</b>` : ''}${link ? ` <button class="btn btn-sm no-print" onclick="${link}">לבדיקה</button>` : ''}</div><ul class="ck-list">${rows}</ul>`;
+}
+/** דרישות התב"ע: הסימון נעשה כאן, בחוות הדעת (p.tabaChecks[id] = { st, note, at }) */
+function checksTaba(p){
+  const tb = TABA_C[p.tik]; if(!tb) return [];
+  return (tb.requirements || []).map(r => { const c = (p.tabaChecks || {})[r.id] || {};
+    return { id:r.id, t:r.text, sub:`${r.topic} · ${r.stage} · סעיף ${r.section}, עמ' ${r.page}`, st:c.st || 'open', note:c.note || '', r }; });
 }
 function checksSpatial(p){
   const G = typeof SPATIAL_GUIDELINES !== 'undefined' ? SPATIAL_GUIDELINES : [];
@@ -410,7 +437,9 @@ function checksSubmission(p){
 }
 function secChecks(p){
   const hasModel = !!(window.LAYER_SETS || {})[String(p.tik)], go = t => `ppTabByName('review');setTimeout(()=>{try{reviewGo('${t}')}catch(e){}},50)`;
+  const tb = TABA_C[p.tik];
   return [
+    ...(tb ? [['דרישות מהוראות התב"ע', checkList(checksTaba(p), '') + `<p class="muted">${H(tb.source)}. כל דרישה עם סעיף ועמוד, והציטוט נבדק מול המסמך. הסימון נעשה כאן.</p>`]] : []),
     ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
     ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
     ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
@@ -426,6 +455,7 @@ async function fillAsync(p){
 }
 function rebuildOpinion(p){
   const doc = document.getElementById('opinionDoc'); if(!doc) return;
+  if(TABA_C[p.tik] === undefined){ loadTaba(p.tik).then(x => { if(x && pj && pj() === p) refreshOpinion(p); }); }
   const old = {}; doc.querySelectorAll('details.op-fold').forEach(d => { const t = d.querySelector('summary span'); if(t) old[t.textContent.trim()] = d.querySelector('.op-sec-b').innerHTML; });
   const body = t => old[t] || '';
   const t5 = T5C[p.tik], pd = (body('נתוני התב״ע והמותר').match(/<div class="pp-field[\s\S]*$/) || [''])[0];
@@ -446,6 +476,32 @@ function rebuildOpinion(p){
   ].join('');
   try{ if(typeof autoGrowAll === 'function') setTimeout(autoGrowAll, 30); }catch(e){}
   fillAsync(p); fillTodo(p);
+  doc.onclick = e => { const b = e.target.closest('[data-tk]'); if(!b) return; const [id, st] = b.dataset.tk.split('|'); p.tabaChecks = p.tabaChecks || {};
+    const cur = p.tabaChecks[id] || {}; if(cur.st === st){ delete p.tabaChecks[id]; }
+    else { let note = cur.note || ''; if(st === 'no'){ const n = prompt('מה חסר או לא עומד? (יופיע בחוות הדעת וברשימת ההשלמות)', note); if(n === null) return; note = n.trim(); }
+      p.tabaChecks[id] = { st, note:st === 'no' ? note : '', at:today() }; }
+    try{ savePlans(); }catch(err){}
+    refreshOpinion(p); };
+}
+/** רענון מלא של חוות הדעת: תמיד מהרינדור המקורי (אחרת סעיף בנוי נבנה שוב בתוך עצמו), עם הסעיפים שהיו פתוחים */
+function refreshOpinion(p){
+  const open = [...document.querySelectorAll('#opinionDoc details.op-fold')].map(d => d.open);
+  window.renderOpinionTab(p);
+  const ds = [...document.querySelectorAll('#opinionDoc details.op-fold')]; if(open.length === ds.length) ds.forEach((d, i) => { d.open = open[i]; });
+}
+/* דף הבית: ליד כל תוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם */
+window.planOpenCompletions = async p => { const G = await completions(p); return G.flatMap(g => g[1]).filter(x => !isDone(p, x)).length; };
+/* טבלת התוכניות: ליד מספר התוכנית, בתוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם (מחוות הדעת) */
+function badgeRows(){
+  document.querySelectorAll('#table tr[onclick] td.col-plannum').forEach(async td => { const m = (td.parentNode.getAttribute('onclick') || '').match(/openProject\((\d+)\)/), p = m && plans.find(x => x.id === +m[1]);
+    if(!p || !/בטיפול|דחוף|בהמתנה/.test(p.status || '') || td.querySelector('.todo-badge')) return;
+    const n = await window.planOpenCompletions(p).catch(() => null); if(n == null || td.querySelector('.todo-badge')) return;
+    td.insertAdjacentHTML('beforeend', `<br><span class="todo-badge${n ? '' : ' ok'}" title="השלמות פתוחות ליזם, מחוות הדעת">${n ? (n === 1 ? 'השלמה אחת' : n + ' השלמות') : 'מוכנה'}</span>`); });
+}
+function hookHome(){
+  const _rt = window.renderTable; if(typeof _rt !== 'function') return;
+  window.renderTable = function(){ const r = _rt.apply(this, arguments); setTimeout(badgeRows, 0); return r; };
+  setTimeout(badgeRows, 0);
 }
 function hookOpinion(){
   const _r = window.renderOpinionTab; if(typeof _r !== 'function') return;
@@ -500,6 +556,9 @@ details.op-fold > .op-sec-b{padding:2px 4px 14px 4px}
 .t5lotc{margin:4px 0;box-shadow:inset 0 -1px 0 var(--line,#e4e2dc)}.t5lotc summary{cursor:pointer;padding:5px 0;font-weight:600;font-size:13.5px}.t5lotc summary small{font-weight:400;color:var(--ink-mute);margin-inline-start:6px}
 .t5bad{color:#c8202a !important;font-weight:600}.t5ct th{width:150px;font-size:12.5px;text-align:start;vertical-align:top}.t5ct td{display:flex;flex-wrap:wrap;gap:4px 12px}
 .t5c{font-size:12.5px;white-space:nowrap}.t5c i{font-style:normal;color:var(--ink-mute)}.t5c.over{color:#c8202a;font-weight:600}.t5c sup{color:var(--ink-mute);cursor:help}
+.ck-mk{display:inline-flex;gap:2px;margin-inline-start:8px}.ck-mk button{border:1px solid var(--btn-line,#d3d1ca);background:var(--btn-bg,#e9e8e3);font:400 11px var(--sans);padding:0 6px;cursor:pointer}.ck-mk button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.op-purpose{font-size:13px;margin:2px 0 8px;line-height:1.55}.op-purpose small{color:var(--ink-mute)}
+.todo-badge{font-size:11px;font-weight:600;color:#8a5a00;background:#fff3d6;padding:1px 6px;white-space:nowrap}.todo-badge.ok{color:#2f6b45;background:#e6f2ea}
 .op-todo{margin:2px 0 8px;padding-inline-start:22px;font-size:13px;line-height:1.55}.op-todo li{margin:2px 0}
 .op-todo li.done span{text-decoration:line-through;color:var(--ink-mute)}.op-todo li small{color:#2f6b45;font-weight:600}.todo-ck{display:inline-flex;gap:3px;align-items:center;font-size:11.5px;color:var(--ink-mute);margin-inline-end:8px;cursor:pointer}
 .op-title small{font-weight:400;font-size:13px;color:var(--ink-mute)}
@@ -513,7 +572,7 @@ details.op-fold > .op-sec-b{padding:2px 4px 14px 4px}
 function boot(){
   if(typeof plans === 'undefined' || typeof window.renderOpinionTab !== 'function' || typeof window.renderTable !== 'function') return setTimeout(boot, 60);
   const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
-  hookOpinion(); hookTable();
+  hookOpinion(); hookTable(); hookHome();
 }
 const api = { formHTML, applyForm, autofill, nextDate };
 if(typeof module !== 'undefined' && module.exports) module.exports = api; else { window.PlanOpinion = api; boot(); }
