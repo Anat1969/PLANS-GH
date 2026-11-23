@@ -84,7 +84,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   let urlSeq = 0;
   const snapRecords = JSON.parse(snap).plans;
   const cloudRows = snapRecords.map(rec => {
-    const data = JSON.parse(JSON.stringify(rec).replace(/"data:[^"]{40,}"/g, () => '"https://slcpldoaaagkoozpbjsk.supabase.co/storage/v1/object/public/ashdod-docs/img/fake_' + (++urlSeq) + '.jpg"'));
+    const data = JSON.parse(JSON.stringify(rec).replace(/"data:[^"]{40,}"/g, () => '"https://cbhexpybdggwzyakgagd.supabase.co/storage/v1/object/public/ashdod-docs/img/fake_' + (++urlSeq) + '.jpg"'));
     return { plan_key: rec.__key, data, updated_at: '2026-07-18T00:00:00.000Z' };
   });
   console.log('ענן סינתטי: ' + cloudRows.length + ' שורות, ' + urlSeq + ' תמונות שהומרו ל-URL');

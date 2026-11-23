@@ -51,7 +51,7 @@ function applyContacts(){
 function recFor(p){ return DATA && DATA.plans[key(p.planNum)] ? DATA.plans[key(p.planNum)] : null; }
 
 async function run(){
-  if(!DATA){ try{ const raw = await (await fetch('data/merhav-import.json?v=1123i')).json(); DATA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ console.warn('merhav import', e); return; } }
+  if(!DATA){ try{ const raw = await (await fetch('data/merhav-import.json?v=1123k')).json(); DATA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ console.warn('merhav import', e); return; } }
   if(typeof isArchitect === 'function' && typeof session !== 'undefined' && session && !isArchitect()) return;   // רק אדריכלית העיר משנה נתונים
   let n = 0, plansHit = 0;
   livePlans().forEach(p => { const r = recFor(p); if(!r) return; const k = applyPlan(p, r); if(k){ n += k; plansHit++; } });

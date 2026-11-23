@@ -136,6 +136,68 @@
     }
    ]
   },
+  "תב/1813": {
+   "mm": "בינוי:יזם - תב/1813",
+   "mmId": 89,
+   "fields": {},
+   "docs": [
+    {
+     "name": "תשריט",
+     "type": "תשריט",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/89/1774000774152-image.png"
+    },
+    {
+     "name": "הדמיה",
+     "type": "הדמיה",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/89/1774000720242-image.png"
+    },
+    {
+     "name": "צילום אוויר",
+     "type": "צילום אוויר",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/89/1774000793735-image.png"
+    },
+    {
+     "name": "פרוטוקול ועדה - המלצה מקוצרת - 620א.docx",
+     "type": "",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/89/1774000826777-_____________-_620_.docx",
+     "date": "2026-03-20"
+    }
+   ]
+  },
+  "תב/1728": {
+   "mm": "בינוי:יזם - תב/1728",
+   "mmId": 90,
+   "fields": {},
+   "docs": [
+    {
+     "name": "תשריט",
+     "type": "תשריט",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/90/1774001151829-image.png"
+    },
+    {
+     "name": "הדמיה",
+     "type": "הדמיה",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/90/1774001077836-image.png"
+    },
+    {
+     "name": "צילום אוויר",
+     "type": "צילום אוויר",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/90/1774001117054-image.png"
+    },
+    {
+     "name": "image.png",
+     "type": "",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/90/1774001093657-image.png",
+     "date": "2026-03-20"
+    },
+    {
+     "name": "פרוטוקול ועדה - המלצה - מנוסחת מחדש - פלדות.docx",
+     "type": "",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/90/1774001182867-______-_____________-______.docx",
+     "date": "2026-03-20"
+    }
+   ]
+  },
   "תב/1816": {
    "mm": "בינוי:יזם - תב/1816",
    "mmId": 53,
@@ -199,6 +261,69 @@
      "date": "2026-03-20"
     }
    ]
+  },
+  "תב/1832": {
+   "mm": "בינוי:יזם - תב/1832",
+   "mmId": 86,
+   "fields": {
+    "developer": "סקטור נדלן בע\"מ",
+    "submitter": "פייגין יואל",
+    "meta.archName": "פייגין יואל",
+    "meta.archPhone": "03-6738478",
+    "meta.archEmail": "may@feiginarch.co.il",
+    "meta.archAddress": "מעלה הצופים 19 רמת גן",
+    "meta.devPhone": "054-6860523",
+    "meta.devEmail": "ayelet@jbz.co.il",
+    "meta.devAddress": "אורט 18 אשדוד",
+    "meta.contactName": "מורן שי",
+    "meta.contactPhone": "052-6696797",
+    "meta.contactEmail": "moran@telem-eng.com",
+    "meta.block": "2002",
+    "meta.lot": "7,9,10-12,14,164,166",
+    "parcel": "גוש 2002 חלקה 7,9,10-12,14,164,166",
+    "meta.zoningDetailed": "44/101/02/3, 62/101/02/3"
+   },
+   "docs": [
+    {
+     "name": "תשריט",
+     "type": "תשריט",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/86/1774005141260-image.png"
+    },
+    {
+     "name": "הדמיה",
+     "type": "הדמיה",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/86/1774005095572-image.png"
+    },
+    {
+     "name": "צילום אוויר",
+     "type": "צילום אוויר",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/86/1774005119426-image.png"
+    },
+    {
+     "name": "פרוטוקול ועדה - חוות דעת לוועדה - 23.01.2025 (4).docx",
+     "type": "",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/86/1773030949374-________________-_23.01.2025__4_.docx",
+     "date": "2026-03-09"
+    },
+    {
+     "name": "פרוטוקול ועדה - חוות דעת לוועדה - 23.01.2025 (6).docx",
+     "type": "",
+     "url": "https://brvjdkvhhmiefwssjryc.supabase.co/storage/v1/object/public/project-files/binui/86/1774005175057-________________-_23.01.2025__6_.docx",
+     "date": "2026-03-20"
+    }
+   ],
+   "dept": {
+    "חשמל": "",
+    "חינוך": "",
+    "נכסים": "סה\"כ 244 יח\"ד. מלון כפר נופש 120 יח\"ד בחלק הצפוני המערבי. מלון סוויטות נופש 124 יח\"ד בחלק הדרום מערבי והמזרחי. שטח עיקרי מעל הקרקע 35% = 21,200 מ\"ר. שטח שירות 5%+. 3 חניונים תת קרקעיים.",
+    "רישוי": "יש להציג את האישורים הבאים בתאום עם גורמי העירייה להגדרות מפורטות של התשתיות השונות: אישור רשות המים \"יובלים\", אישור איכות הסביבה, אישור משרד הבריאות.",
+    "תכנון": "התוכנית תואמת לדרישות התב\"ע ולשיקולי תכנון. הקמת אזור מלונאות ונופש, אזור אכסון ונופש מיוחד. שימושים: מגורי נופש. 2 קומות. קווי בניין: קידמי על פי תסריט, צדי ואחורי 5. גובה 6 מ׳. פריסה מסודרת עם חלוקה ברורה לאזורי מגורים, שטחים פתוחים ומבנים משותפים.",
+    "תנועה": "התכנון מאפשר גישה נוחה עם היררכיה ברורה של דרכי גישה לרכבים. יחד עם זאת, ישנה עדיפות להולכי רגל, עם תכנון שבילים בטוחים ורציפים.",
+    "נטיעות": "בחירת צמחיה מקומית וטבעית, חיבור הפרויקט לטבע ולחוף הים הצמוד לו.",
+    "תברואה": "נדרש אישור רשות המים \"יובלים\". נדרש אישור משרד הבריאות. קיימת בפועל תחנה לשאיבת ביוב בסמיכות לגבול הפרויקט במרחק פחות מ-50 מ׳ מהפרויקט.",
+    "איכות סביבה": "נדרש אישור איכות הסביבה. היזם מציע פתרון למניעת מטרדי ריחות ומערכות להשתקת המערכות באמצעים אקוסטיים. בתכנון נעשה שימוש טוב בהצללה ובתאורה, תוך ניצול כיווני השמש והרוחות.",
+    "ניהול ניקוז": "ישנה התייחסות טובה לחלחול מים לשטחים פתוחים, עם תכנון לניקוז מים טבעי."
+   }
   },
   "תב/1745": {
    "mm": "בינוי:יזם - תב/1745",
@@ -1075,9 +1200,6 @@
   "בינוי:עירייה - המקיפים",
   "בינוי:עירייה - מער דרום",
   "בינוי:יזם - מרכז א",
-  "בינוי:יזם - תב/1813",
-  "בינוי:יזם - תב/1728",
-  "בינוי:יזם - תב/1832",
   "בינוי:עירייה - רובע מיוחד",
   "תכנון:בניינים - 1743"
  ]
