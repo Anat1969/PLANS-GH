@@ -193,8 +193,10 @@ function render(){
 /* ── המבט העירוני בדף ── */
 const CITY = { open:false, data:null };
 const plansAll = () => (typeof livePlans === 'function' ? livePlans() : []).filter(p => !/^(1111|2222)$/.test(String(p.tik)));
-const tag = p => `<button class="if-tik" data-open="${p.id}" title="${H([p.district, p.location].filter(Boolean).join(', '))}">${H(p.planNum || p.tik)}</button>`;
+const tag = p => { const ap = ((window.LAYER_SETS || {})[String(p.tik)] || {}).auto === 'approx';
+  return `<button class="if-tik${ap ? ' approx' : ''}" data-open="${p.id}" title="${H([p.district, p.location, ap && 'מיקום משוער'].filter(Boolean).join(', '))}">${H(p.planNum || p.tik)}</button>`; };
 async function cityScan(){
+  try{ await window.LAYER_SETS_READY; }catch(e){}
   const sets = window.LAYER_SETS || {}, PM = window.PlanModel, all = plansAll();
   const hasPlanDoc = p => { try{ return typeof window.planMaterials === 'function' && window.planMaterials(p).some(x => x.cat === 'plan'); }catch(e){ return false; } };
   const done = all.filter(p => sets[String(p.tik)]), rest = all.filter(p => !sets[String(p.tik)]);
@@ -271,6 +273,7 @@ const CSS = `
 .if-cov{display:grid;gap:6px;margin:4px 0 10px;font-size:13.5px}.if-cov b{font-size:16px;margin-inline-end:4px}
 .if-cov span{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
 .if-tik{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;font:400 12px var(--sans) !important;padding:2px 6px !important;border-radius:0 !important;cursor:pointer}
+.if-tik.approx{box-shadow:inset 0 0 0 1px #8a8478;outline:1px dashed #8a8478;outline-offset:-3px}
 .if-tik:hover{background:var(--ink) !important;color:#fff !important}
 .if-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 8px}
 .if-ct{border-collapse:collapse;font-size:13px;width:100%;max-width:640px}.if-ct th{font:600 11.5px var(--sans);color:var(--ink-mute);text-align:start;padding:3px 6px}

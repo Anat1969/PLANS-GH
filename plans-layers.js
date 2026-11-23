@@ -10,6 +10,10 @@
 'use strict';
 const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true } };
 window.LAYER_SETS = SETS;          // מקור אחד לרשימת התוכניות שיש להן מודל (גם ל-plans-infra.js)
+/* מודלים שהופקו אוטומטית (tools/auto-model.py, ה-Action): layers/index.json. 1913 נשאר בקוד ככיול ידני.
+   auto:'approx' = מיקום משוער: אין renewal.json, ולכן אין מעטפת, מצב התחדשות ובדיקת קווי בניין. הכמויות מדויקות. */
+const SETS_READY = fetch('layers/index.json?t=' + Date.now()).then(r => r.ok ? r.json() : {}).then(x => { Object.entries(x || {}).forEach(([k, v]) => { if(!SETS[k] && v && v.dir) SETS[k] = v; }); }).catch(() => {});
+window.LAYER_SETS_READY = SETS_READY;
 
 /* הדרישות של הנחיות ההגשה, ולכל דרישה: השכבות שמראות אותה */
 const TOPICS = [
@@ -129,6 +133,7 @@ async function open(tik){
   tik = String(tik || S.tik || Object.keys(SETS)[0]);
   try{ if(typeof isDeveloper==='function' && isDeveloper() && !(session.tiks||[]).includes(tik)){   // יזם רואה רק את התוכנית שלו
     body().innerHTML = '<div class="page-title">שכבות</div><p class="ly-empty">השכבות זמינות רק לתוכנית שלך.</p>'; return; } }catch(e){}
+  if(!SETS[tik]) await SETS_READY;                       // קישור ישיר למודל שהופק אוטומטית: מחכים לרשימה
   if(!SETS[tik]){ body().innerHTML = `<div class="page-title">שכבות</div><p class="ly-empty">לתוכנית ${H(tik)} עוד לא הופקו שכבות.</p>`; return; }
   if(S.tik !== tik || !S.man){
     if(S.api){ S.api.dispose(); S.api = null; }
@@ -147,6 +152,7 @@ function shell(){
   body().innerHTML = `
   <div class="ly-head">
     <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
+    ${set.auto === 'approx' ? `<p class="ly-approx">מיקום משוער: הכמויות מדויקות, המיקום לא נבדק מול התב"ע</p>` : ''}
     ${plan() ? `<nav class="ly-links" aria-label="שלבי התוכנית">${stageChips()}<button data-card="opinion" title="כרטיס התוכנית בפורמט של חוות הדעת לוועדה">חוות דעת</button></nav>` : ''}
     <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
   </div>
@@ -470,6 +476,7 @@ const CSS = `
 .ly-page{max-width:none !important;padding-bottom:0 !important}
 .ly-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 6px}
 .ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
+.ly-approx{margin:0;font-size:12.5px;color:#8a5a00;background:#fff3d6;padding:2px 8px;white-space:nowrap}
 .ly-title b{color:var(--ink);font-weight:600}
 .ly-nav{display:flex;gap:3px;flex:none}
 .ly-steprow{display:flex;gap:6px;align-items:stretch;margin-bottom:6px}

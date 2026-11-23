@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """מפריד תוכנית פיתוח (PDF מ-AutoCAD עם שכבות) לנושאים, לשימוש במסך "שכבות" (plans-layers.js).
 
-שימוש:  python3 tools/split-layers.py <plan.pdf> <layers/שם-תיקייה> [--tik 1913] [--title "..."]
+שימוש:  python3 tools/split-layers.py <plan.pdf> <layers/שם-תיקייה> [--tik 1913] [--title "..."] [--scale 250]
 דורש:   pip install pymupdf pillow numpy scipy
 
 מה יוצא: תמונה שקופה (webp) לכל נושא, ו-manifest.json עם שמות שכבות השרטוט שנכנסו לכל נושא
@@ -49,14 +49,14 @@ def classify(name):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('pdf'); ap.add_argument('out')
-    ap.add_argument('--tik', default=''); ap.add_argument('--title', default=''); ap.add_argument('--width', type=int, default=1600)
+    ap.add_argument('--tik', default=''); ap.add_argument('--title', default=''); ap.add_argument('--width', type=int, default=1600); ap.add_argument('--scale', type=float, default=SCALE)
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     doc = fitz.open(a.pdf); ui = doc.layer_ui_configs()
     if not ui: sys.exit('בקובץ אין שכבות שרטוט. צריך PDF שיוצא מ-AutoCAD עם שכבות.')
     page = doc[0]; R = page.rect
     clip = fitz.Rect(R.width*CROP[0], R.height*CROP[1], R.width*CROP[2], R.height*CROP[3])
     zoom = a.width / clip.width; mat = fitz.Matrix(zoom, zoom)
-    m_per_px = (1/72*0.0254*SCALE) / zoom          # מטר לפיקסל
+    m_per_px = (1/72*0.0254*a.scale) / zoom          # מטר לפיקסל
     by = {}; un = []
     for u in ui:
         g = classify(u['text'])
@@ -100,7 +100,7 @@ def main():
     for u in ui: doc.set_layer_ui_config(u['number'], action=0)
     pm = doc[0].get_pixmap(matrix=mat, clip=clip, alpha=False)
     Image.frombytes('RGB', (pm.w, pm.h), pm.samples).save(os.path.join(a.out, 'full.webp'), quality=80, method=6)
-    man = dict(tik=a.tik, title=a.title, source=os.path.basename(a.pdf), scale=SCALE, w=W, h=H, mPerPx=round(m_per_px, 5),
+    man = dict(tik=a.tik, title=a.title, source=os.path.basename(a.pdf), scale=a.scale, w=W, h=H, mPerPx=round(m_per_px, 5),
                cadTotal=len(ui), unassigned=sorted({short(u['text']) for u in un}), layers=out)
     if inside is not None: man['siteArea'] = round(float(inside.sum())*m_per_px**2)
     json.dump(man, open(os.path.join(a.out, 'manifest.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
