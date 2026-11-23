@@ -9,7 +9,8 @@
 'use strict';
 const H = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const say = m => { try{ toast(m); }catch(e){} };
-const GROUPS = { 'op-grp-id':'זיהוי', 'op-grp-info':'המבוקש והמותר', 'op-grp-check':'בדיקת ההתאמה', 'op-grp-concl':'תנאים', 'op-grp-rec':'המלצה' };
+const GROUPS = { 'op-grp-id':'זיהוי', 'op-grp-info':'המבוקש והמותר', 'op-grp-check':'בדיקת ההתאמה', 'op-grp-concl':'תנאים', 'op-grp-rec':'המלצה',
+  'g-a':'א. הבקשה ובעלי העניין', 'g-b':'ב. הנכס', 'g-c':'ג. מיקום', 'g-d':'ד. התאמה לתב"ע: טבלה 5', 'g-e':'ה. התאמה לבדיקה האדריכלית', 'g-f':'ו. מסקנות' };
 const today = () => { const d = new Date(), z = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
 
 /* ── 1. סעיפים מקופלים ── */
@@ -18,14 +19,14 @@ function section(title, cls, body){
   const b = String(body), miss = (b.match(/<\/b>\s*—\s*(מ״ר)?\s*<\/div>|<td>—<\/td>/g) || []).length;
   const empty = !b.replace(/<[^>]+>/g, '').trim() || /<tbody>\s*<\/tbody>/.test(b);
   const head = cls !== lastGrp && GROUPS[cls] ? `<div class="op-grp-h">${GROUPS[cls]}</div>` : ''; lastGrp = cls; secN++;
-  const open = cls === 'op-grp-rec' || (cls === 'op-grp-id');
-  return head + `<details class="op-sec op-fold ${cls||''}" ${open?'open':''}><summary><i>${secN}</i><span>${title}</span>${miss ? `<b class="op-miss">${miss} חסרים</b>` : empty ? '<b class="op-na">ריק</b>' : ''}</summary><div class="op-sec-b">${body}</div></details>`;
+  const open = ['op-grp-rec', 'op-grp-id', 'g-a', 'g-f'].includes(cls);
+  return head + `<details class="op-sec op-fold ${cls||''}" ${open?'open':''}><summary><i>${secN}</i><span>${title}</span>${miss ? `<b class="op-miss">${miss === 1 ? 'חסר אחד' : miss + ' חסרים'}</b>` : empty ? '<b class="op-na">ריק</b>' : ''}</summary><div class="op-sec-b">${body}</div></details>`;
 }
 
 /* ── 2. מילוי ממקורות אחרים: רק שדה ריק ── */
 const rnCache = {};
 async function renewalOf(p){
-  const set = window.layerSets && window.layerSets[String(p.tik)]; if(!set || !set.renewal) return null;
+  const set = window.LAYER_SETS && window.LAYER_SETS[String(p.tik)]; if(!set || !set.renewal) return null;
   if(!(p.tik in rnCache)) rnCache[p.tik] = await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null);
   return rnCache[p.tik];
 }
@@ -280,6 +281,105 @@ function t5Card(p, t5){
   return `<div class="op-sub">טבלה 5 לפי מגרש: מותר / <b>מבוקש</b>${T ? '' : ' (המבוקש יגיע בטופס האדריכל)'}${over ? ` · <b class="t5bad">${over === 1 ? 'חריגה אחת' : over + ' חריגות'}</b>` : ''}</div>
     <div class="op-from">מקור המותר: ${H((t5 && t5.source) || (T && T.source) || '')}${t5 && t5.pages ? `, עמ' ${H(t5.pages.join(', '))}` : ''}</div>${html}`;
 }
+/* ── 5. חוות הדעת לפי סדר הבדיקה (ענת, 24.11.2026): מי, מה, איפה, טבלה 5, דרישות התכנון, מסקנות ──
+   renderOpinionTab המקורי רץ, ואז המסמך נבנה מחדש. סעיף קיים עם שדה עריכה עובר כמו שהוא (המטפלים כתובים בתוכו). */
+const dash = v => v == null || String(v).trim() === '' ? '—' : String(v);
+const fmtD = d => /^\d{4}-\d{2}-\d{2}/.test(String(d || '')) ? String(d).slice(0, 10).split('-').reverse().join('.') : dash(d);
+const kv = pairs => `<div class="op-id-grid">${pairs.map(([k, v]) => `<div><b>${H(k)}:</b> ${H(dash(v))}</div>`).join('')}</div>`;
+const nm = s => String(s || '').replace(/^(אד'|אדר'|אדריכל)\s*/, '').replace(/[\s"'׳״.,-]+/g, '');
+function people(p){
+  const m = p.meta || {}, out = [], add = (role, name, phone, email, org) => { if(!String(name || '').trim()) return;
+    const k = nm(name), cur = out.find(x => nm(x.name) === k); if(cur){ cur.phone = cur.phone || phone; cur.email = cur.email || email; return; }
+    out.push({ role, name, phone:phone || '', email:email || '', org:org || '' }); };
+  const ct = (p.archForm || {}).contacts || {};
+  add('יזם', p.developer, m.devPhone, m.devEmail); if(ct.dev) add('יזם, איש קשר', ct.dev.name, ct.dev.phone, ct.dev.email);
+  add('אדריכל', m.archName || p.submitter, m.archPhone, m.archEmail); if(ct.arch) add('אדריכל אחראי', ct.arch.name, ct.arch.phone, ct.arch.email);
+  add('מנהל פרויקט', m.contactName, m.contactPhone, m.contactEmail);
+  try{ (contacts || []).filter(c => (c.plans || []).map(String).includes(String(p.tik))).forEach(c => add(c.type || 'איש קשר', c.name, c.phone, c.email, c.org)); }catch(e){}
+  (Array.isArray(p.consultants) ? p.consultants : []).forEach(c => add(c.role || 'יועץ', c.name));
+  return out;
+}
+function secParties(p){
+  const ps = people(p);
+  return `<h2 class="op-title">חוות דעת: תוכנית בינוי ${H(p.planNum || '')} <small>תיק ${H(p.tik)}</small></h2>
+    ${kv([['שם הפרויקט', p.projectName || [p.district, p.location].filter(Boolean).join(', ')], ['סטטוס', p.status], ['פורום אדריכל', fmtD(p.forumArchitect)], ['פורום יועצים', fmtD(p.forumConsultants)], ['הכנה לוועדה', fmtD((p.datesPlan || {}).committeePrep)], ['ועדה', fmtD(p.committeeDate)]])}
+    <div class="op-sub">בעלי העניין</div>
+    ${ps.length ? `<div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>תפקיד</th><th>שם</th><th>טלפון</th><th>דוא"ל</th></tr></thead><tbody>${ps.map(x => `<tr><td>${H(x.role)}</td><td>${H(x.name)}${x.org && x.org !== x.name ? ` <small>${H(x.org)}</small>` : ''}</td><td>${H(dash(x.phone))}</td><td>${H(dash(x.email))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">לא הוזנו בעלי עניין.</p>'}`;
+}
+function secProperty(p, t5, planningData){
+  const m = p.meta || {}, lots = t5 ? t5lots(t5) : [];
+  return kv([['גוש', m.block], ['חלקות', m.lot], ['גוש וחלקה', p.parcel], ['תב"ע חלה', m.zoningPlan || p.change], ['תב"ע מפורטת', m.zoningDetailed], ['ייעוד', m.designation || (lots.length ? [...new Set(t5.rows.map(r => r.zone).filter(Boolean))].join('; ') + ' (מטבלה 5)' : '')], ['שטח', m.area ? m.area + ' מ"ר' : '']])
+    + (lots.length ? `<div class="op-sub">המגרשים בתוכנית, מטבלה 5 (${lots.length})</div><div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>גודל</th><th>שימושים</th></tr></thead><tbody>${lots.map(([lot, rs]) => { const r0 = rs.find(([r]) => !r.total_row) || rs[0], size = rs.map(([r]) => r.lotSize).find(v => v != null);
+        return `<tr><td>${H(lot)}</td><td>${H(r0[0].zone || '')}</td><td>${size != null ? t5num(size) + ' מ"ר' : '—'}</td><td>${H([...new Set(rs.filter(([r]) => !r.total_row).map(([r]) => r.use))].join(', '))}</td></tr>`; }).join('')}</tbody></table></div>` : '')
+    + (planningData || '');
+}
+function secLocation(p){
+  const g = typeof window.planGeo === 'function' ? window.planGeo(p) : null, pr = g && window.PLAN_PREC && window.PLAN_PREC[g.prec];
+  return kv([['רובע', p.district], ['מגרש ומיקום', p.location], ['כתובת', (p.meta || {}).address], ['מתחם', (p.meta || {}).compound]])
+    + `<div class="op-id-grid"><div><b>יושבת על:</b> <span id="opStreet">${g ? '…' : '—'}</span></div><div><b>דיוק המיקום:</b> ${H(pr ? pr.label : 'אין מיקום')}${g && g.src ? ` <small>${H(g.src)}</small>` : ''}</div>
+      ${g ? `<div><b>נ"צ:</b> ${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</div>` : ''}</div>
+    <button class="btn btn-sm no-print" onclick="go('map')">במפה</button>`;
+}
+/* ה: כל הדרישות, גם אלה שלא נבדקו. לא עומד ראשון */
+const ST = { no:['לא עומד', 0], yes:['עומד', 1], na:['לא רלוונטי', 2], open:['לא נבדק', 3] };
+function checkList(items, link){
+  const n = items.length, done = items.filter(x => x.st !== 'open').length, bad = items.filter(x => x.st === 'no').length;
+  const rows = items.slice().sort((a, b) => ST[a.st][1] - ST[b.st][1]).map(x => `<li class="ck-${x.st}"><span class="ck-st">${ST[x.st][0]}</span><span class="ck-t">${H(x.t)}${x.sub ? ` <small>${H(x.sub)}</small>` : ''}${x.note ? `<em>${H(x.note)}</em>` : ''}</span></li>`).join('');
+  return `<div class="ck-sum">נבדקו <b>${done}</b> מתוך ${n}${bad ? ` · <b class="t5bad">${bad === 1 ? 'אחת לא עומדת' : bad + ' לא עומדות'}</b>` : ''}${link ? ` <button class="btn btn-sm no-print" onclick="${link}">לבדיקה</button>` : ''}</div><ul class="ck-list">${rows}</ul>`;
+}
+function checksSpatial(p){
+  const G = typeof SPATIAL_GUIDELINES !== 'undefined' ? SPATIAL_GUIDELINES : [];
+  return G.map((g, i) => { const c = (p.spatialChecks || {})[i] || {}; const [t, sub] = String(typeof g === 'string' ? g : g.title || g.label).split(' — ');
+    return { t, sub, st:c.ans === 'yes' ? 'yes' : c.ans === 'no' ? 'no' : c.ans === 'na' ? 'na' : 'open', note:c.note || '' }; });
+}
+function checksMuni(p){
+  let R = []; try{ R = typeof activeRequirements === 'function' ? activeRequirements(p) : []; }catch(e){}
+  return R.map(r => { const c = (p.muniChecks || {})[r.id] || {}; return { t:r.topic, sub:r.body + ': ' + r.text, st:c.met === true ? 'yes' : c.met === false ? 'no' : 'open', note:c.note || '' }; });
+}
+function checksSubmission(p){
+  const T = window.LAYER_TOPICS || [], it = ((p.layerReview || {}).items) || {};
+  return T.flatMap(t => t.items.map((x, i) => { const c = it[t.id + '.' + i] || {}; return { t:x[0], sub:t.name, st:c.d ? 'yes' : String(c.n || '').trim() ? 'no' : 'open', note:c.n || '' }; }));
+}
+function secChecks(p){
+  const hasModel = !!(window.LAYER_SETS || {})[String(p.tik)], go = t => `ppTabByName('review');setTimeout(()=>{try{reviewGo('${t}')}catch(e){}},50)`;
+  return [
+    ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
+    ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
+    ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
+    ['ניתוח רב תשתיות', `<div id="opInfra">${hasModel ? '…' : '<p class="muted">אין עדיין מודל לתוכנית. הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>'}</div>`]
+  ];
+}
+async function fillAsync(p){
+  try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
+  try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || !window.PlanInfra || !window.PlanModel) return;
+    const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = set.renewal ? await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
+    const fs = window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn });
+    el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)
+      + (set.auto === 'approx' ? '<p class="muted">המודל במיקום משוער. הכמויות מדויקות.</p>' : ''); }catch(e){ console.warn('opinion infra', e); }
+}
+function rebuildOpinion(p){
+  const doc = document.getElementById('opinionDoc'); if(!doc) return;
+  const old = {}; doc.querySelectorAll('details.op-fold').forEach(d => { const t = d.querySelector('summary span'); if(t) old[t.textContent.trim()] = d.querySelector('.op-sec-b').innerHTML; });
+  const body = t => old[t] || '';
+  const t5 = T5C[p.tik], pd = (body('נתוני התב״ע והמותר').match(/<div class="pp-field[\s\S]*$/) || [''])[0];
+  const t5body = (t5 || (p.t5lots && p.t5lots.rows) ? t5Card(p, t5) : body('טבלה 5 וזכויות הבנייה')) + lotsBlock(p);
+  secN = 0; lastGrp = null;
+  doc.innerHTML = [
+    section('הבקשה ובעלי העניין', 'g-a', secParties(p)),
+    section('תקציר המבוקש', 'g-a', body('תקציר המבוקש')),
+    section('פרטי הנכס והתב"ע', 'g-b', secProperty(p, t5, pd)),
+    section('מיקום', 'g-c', secLocation(p)),
+    section('טבלה 5 לכל מגרש: מותר מול מבוקש', 'g-d', t5body),
+    ...secChecks(p).map(([t, b]) => section(t, 'g-e', b)),
+    section('הסברי היזם לפערים', 'g-e', body('הסברי היזם לפערים')),
+    section('חוות דעת הגורמים והיועצים', 'g-e', body('חוות דעת הגורמים והיועצים')),
+    section('החלטות הפורומים', 'g-e', body('החלטות הפורומים')),
+    section('תנאים והשלמות נדרשות', 'g-f', body('תנאים והשלמות נדרשות')),
+    section('המלצה מקצועית מסכמת', 'g-f', body('המלצה מקצועית מסכמת'))
+  ].join('');
+  try{ if(typeof autoGrowAll === 'function') setTimeout(autoGrowAll, 30); }catch(e){}
+  fillAsync(p);
+}
 function hookOpinion(){
   const _r = window.renderOpinionTab; if(typeof _r !== 'function') return;
   window.opinionSection = section;
@@ -290,9 +390,8 @@ function hookOpinion(){
       if(tb && arch && !dev){ const m = tb.querySelector('.muted'); if(m) m.textContent = 'כל סעיף נפתח בלחיצה. שדה ריק מתמלא מהתב"ע ומאנשי הקשר.';
         tb.insertAdjacentHTML('beforeend', `<button class="btn btn-sm" id="opFormOut" title="קובץ עם כל השדות, למילוי של האדריכל">טופס לאדריכל</button><label class="btn btn-sm" title="קובץ הנתונים שהאדריכל החזיר">קליטת טופס<input type="file" id="opFormIn" accept=".json,application/json" hidden></label>`);
         tb.querySelector('#opFormOut').onclick = exportForm; tb.querySelector('#opFormIn').onchange = e => { importForm(e.target.files[0]); e.target.value = ''; }; }
-      const t5 = T5C[p.tik]; if(t5 === undefined) loadT5(p.tik).then(x => { if(x && pj && pj() === p) window.renderOpinionTab(p); });
-      const sec = [...el.querySelectorAll('details.op-fold')].find(d => /טבלה 5/.test(d.querySelector('summary').textContent)), lb = lotsBlock(p) + t5Card(p, t5);
-      if(sec && lb) sec.querySelector('.op-sec-b').insertAdjacentHTML('beforeend', lb);
+      if(T5C[p.tik] === undefined) loadT5(p.tik).then(x => { if(x && pj && pj() === p) window.renderOpinionTab(p); });
+      rebuildOpinion(p);
     }catch(e){ console.warn('opinion', e); }
     // מילוי ממקורות אחרים, פעם אחת לכל פתיחה
     if(!p._filling && (typeof isArchitect !== 'function' || isArchitect())){ p._filling = true;
@@ -334,6 +433,11 @@ details.op-fold > .op-sec-b{padding:2px 4px 14px 4px}
 .t5lotc{margin:4px 0;box-shadow:inset 0 -1px 0 var(--line,#e4e2dc)}.t5lotc summary{cursor:pointer;padding:5px 0;font-weight:600;font-size:13.5px}.t5lotc summary small{font-weight:400;color:var(--ink-mute);margin-inline-start:6px}
 .t5bad{color:#c8202a !important;font-weight:600}.t5ct th{width:150px;font-size:12.5px;text-align:start;vertical-align:top}.t5ct td{display:flex;flex-wrap:wrap;gap:4px 12px}
 .t5c{font-size:12.5px;white-space:nowrap}.t5c i{font-style:normal;color:var(--ink-mute)}.t5c.over{color:#c8202a;font-weight:600}.t5c sup{color:var(--ink-mute);cursor:help}
+.op-title small{font-weight:400;font-size:13px;color:var(--ink-mute)}
+.ck-sum{font-size:13px;margin:2px 0 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ck-sum .btn{margin-inline-start:auto}
+.ck-list{list-style:none;margin:0;padding:0}.ck-list li{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:4px 0;box-shadow:inset 0 -1px 0 var(--line,#eeede8);font-size:13px;line-height:1.45}
+.ck-st{font-size:11.5px;font-weight:600;padding:1px 6px;align-self:start;text-align:center}.ck-t small{color:var(--ink-mute)}.ck-t em{display:block;font-style:normal;color:var(--ink-soft);font-size:12.5px}
+.ck-no .ck-st{background:#fde8e6;color:#c8202a}.ck-yes .ck-st{background:#e6f2ea;color:#2f6b45}.ck-na .ck-st{background:#f1f0ec;color:var(--ink-mute)}.ck-open .ck-st{background:#f6f5f1;color:#8a8478}.ck-open .ck-t{color:var(--ink-soft)}
 .op-toolbar{gap:6px;flex-wrap:wrap}
 @media print{ .op-grp-h{margin-top:10px} details.op-fold > summary::after{display:none} }
 `;

@@ -91,6 +91,7 @@ function planGeo(p){
   return null;
 }
 window.planGeo = planGeo;
+window.PLAN_PREC = PREC;                     // דיוק המיקום: גם לחוות הדעת
 
 /* ── ציור המפה (מחליף את drawMapMarkers המקורי; אותו מסנן סטטוס) ── */
 let _rnLayer = null, _doneLayer = null;

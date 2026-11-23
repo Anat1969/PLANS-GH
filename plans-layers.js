@@ -34,6 +34,7 @@ const TOPICS = [
      ['חיסכון באנרגיה',['build','power']], ['חומרים עמידים',['walk','build']], ['תחזוקה ארוכת טווח',['green','waste','power']] ] }
 ];
 const TOPIC_BY = Object.fromEntries(TOPICS.map(t => [t.id, t]));
+window.LAYER_TOPICS = TOPICS;                // דרישות ההגשה לתוכנית הפיתוח: גם לחוות הדעת (plans-opinion.js)
 
 /* התחומים של הפגישה: מי מציג, אילו שכבות, ומה שואלים */
 const DISC = [
