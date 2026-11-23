@@ -9,6 +9,7 @@
 (function(){
 'use strict';
 const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true } };
+window.LAYER_SETS = SETS;          // מקור אחד לרשימת התוכניות שיש להן מודל (גם ל-plans-infra.js)
 
 /* הדרישות של הנחיות ההגשה, ולכל דרישה: השכבות שמראות אותה */
 const TOPICS = [
