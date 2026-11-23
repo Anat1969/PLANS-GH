@@ -219,7 +219,7 @@ function stagePanelHTML(p){
         <label><input type="checkbox" ${x.scanned?'checked':''} ${canEdit()?'':'disabled'} onchange="procFlag(${p.id},'scanned',this.checked)"> התוכנית החתומה נסרקה ${x.scanned?`<span class="pr-when">${F(x.scanned)}</span>`:''}</label>
         <label><input type="checkbox" ${x.printed?'checked':''} ${canEdit()?'':'disabled'} onchange="procFlag(${p.id},'printed',this.checked)"> עותק מודפס נשמר לפי הנוהל ${x.printed?`<span class="pr-when">${F(x.printed)}</span>`:''}</label>
       </div>
-      ${ev.complete?'<div class="pr-ok">התוכנית מופיעה במאגר התוצרים המאושרים.</div>':`<div class="pr-miss">כדי להעביר למאגר התוצרים חסרים: <b>${H(ev.missing.join(', '))}</b>. סימון המשימות לבדו לא מאשר תוכנית.</div>`}
+      ${ev.complete?'<div class="pr-ok">התוכנית מופיעה ברשימת התוכניות המאושרות.</div>':`<div class="pr-miss">כדי להעביר למאגר התוצרים חסרים: <b>${H(ev.missing.join(', '))}</b>. סימון המשימות לבדו לא מאשר תוכנית.</div>`}
     </div>`;
   }
   return `<section class="pr-wrap" id="procPanel">
@@ -518,17 +518,17 @@ function renderOutputs(){
     && (!outF.q || [o.p.planNum,o.p.tik,o.p.location,o.text].join(' ').includes(outF.q)));
   const opts = (k, arr) => [...new Set(arr)].filter(Boolean).sort().map(v=>`<option ${outF[k]===v?'selected':''}>${H(v)}</option>`).join('');
   const done = livePlans().filter(p=>!planIsActive(p)).length, noProd = livePlans().filter(p=>!planIsActive(p) && !all.some(o=>o.p===p)).length;
-  el.innerHTML = `<div class="page-title">מאגר תוצרים מאושרים</div>
-    <div class="page-subtitle">רק תוצר עם ראיה: החלטת ועדה שהתקבלה, תוכנית שאושרה ונחתמה, מסמך שסומן חתום או סופי. טיוטות לא מוצגות.</div>
-    <div class="tl-insight"><mark><b>${list.length}</b> תוצרים מתועדים</mark></div>
+  el.innerHTML = `<div class="page-title">תוכניות בינוי מאושרות</div>
+    <div class="page-subtitle">רק תוכנית עם ראיה: החלטת ועדה, אישור וחתימה, או מסמך חתום.</div>
+    <div class="tl-insight"><mark><b>${list.length}</b> רשומות מתועדות</mark></div>
     <div class="tl-explain">${noProd?`<span class="tl-bad">ל-<b>${noProd}</b> מתוך <b>${done}</b> תוכניות שהושלמו אין תוצר מתועד במערכת.</span> כדי להוסיף: החלטת ועדה בכרטיס התוכנית, או מסמך מסוג "חתום".`:'לכל תוכנית שהושלמה יש תוצר מתועד.'}</div>
     <div class="out-f">
-      <input class="out-q" placeholder="חיפוש בתוצרים: מספר תוכנית, מגרש, נוסח" value="${H(outF.q)}" oninput="setOutF('q',this.value)">
+      <input class="out-q" placeholder="חיפוש: מספר תוכנית, מגרש, נוסח" value="${H(outF.q)}" oninput="setOutF('q',this.value)">
       <select onchange="setOutF('district',this.value)"><option value="">כל הרובעים</option>${opts('district', all.map(o=>o.district))}</select>
       <select onchange="setOutF('year',this.value)"><option value="">כל השנים</option>${opts('year', all.map(o=>o.year))}</select>
-      <select onchange="setOutF('type',this.value)"><option value="">כל סוגי התוצרים</option>${opts('type', all.map(o=>o.type))}</select>
+      <select onchange="setOutF('type',this.value)"><option value="">כל הסוגים</option>${opts('type', all.map(o=>o.type))}</select>
     </div>
-    <div class="tbl-wrap"><table class="track-table"><thead><tr><th>תוכנית</th><th>רובע</th><th>סוג תוצר</th><th>תאריך</th><th>תוכן</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table class="track-table"><thead><tr><th>תוכנית</th><th>רובע</th><th>סוג</th><th>תאריך</th><th>תוכן</th></tr></thead><tbody>
     ${list.sort((a,b)=>String(b.date||'').localeCompare(a.date||'')).map(o=>`<tr onclick="openProject(${o.p.id})" style="cursor:pointer"><td><b>${H(o.p.planNum)}</b><div class="muted">${H(o.p.location||'')}</div></td><td>${H(o.district)}</td><td>${H(o.type)}</td><td>${F(o.date)}</td><td>${H(o.text)}${o.url?` <a href="${H(o.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">פתיחה</a>`:''}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">אין תוצרים בסינון הזה.</td></tr>'}
     </tbody></table></div>`;
 }
@@ -776,7 +776,7 @@ function homeZonesHTML(){
     </div>
     ${z('proc','תהליך: שולחן העבודה','התוכניות הפעילות, המועדים והמשימות.',[['table','תוכניות פעילות',act.length],['timeline','שלבים ומועדים',due?due+' באיחור':null],['calendar','לוח שנה',null],['map','מפה',null],['contacts','רשימת קשר',ct],['notes','הערות וסיכומים',null]])}
     ${z('info','מידע: ספריית הידע','הנחיות, חקיקה, מפות ומחשבונים, עם מקור לכל פריט.',[['library','ספריית ידע',libN],['guidelines','הנחיות להגשה',null],['spatial','הנחיות מרחביות',null],['muni','אוגדן העירייה',null],['calchub','מחשבונים',null]])}
-    ${z('out','תוצרים: המאגר המאושר','רק תוצר עם ראיה: החלטה, אישור וחתימה.',[['outputs','מאגר תוצרים',outs],['shares','חוות דעת ודיווחים',null]])}
+    ${z('out','תוכניות בינוי מאושרות','רק תוכנית עם ראיה: החלטה, אישור וחתימה.',[['outputs','תוכניות מאושרות',outs],['shares','חוות דעת ודיווחים',null]])}
   </section>`;
 }
 function patchHomeZones(){

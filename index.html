@@ -2216,8 +2216,8 @@ mark{background:var(--mark);color:inherit;padding:0 3px}
     <button data-nav="muni" onclick="go('muni',this)" title="ידע ודרישות">אוגדן דרישות העירייה</button>
     <button data-nav="spatial" onclick="go('spatial',this)" title="ידע ודרישות">הנחיות מרחביות (מהדורה 18)</button>
     <button data-nav="calchub" onclick="go('calchub',this)" title="ידע ודרישות">מחשבונים</button>
-    <span class="nav-grp" aria-hidden="true">תוצרים</span>
-    <button data-nav="outputs" onclick="go('outputs',this)" title="תוצרים">מאגר תוצרים</button>
+    <span class="nav-grp" aria-hidden="true">מאושרות</span>
+    <button data-nav="outputs" onclick="go('outputs',this)" title="תוכניות בינוי מאושרות">תוכניות מאושרות</button>
     <button data-nav="shares" onclick="go('shares',this)" title="קשר ושיתוף">חוות דעת, דיווחים ושיתופים</button>
     <button data-nav="tba" hidden data-sys="1" onclick="go('tba',this)" class="arch-only no-print" title="מצב בדיקה זמני — חילוץ נתונים ממסמך תב״ע וטבלת תצוגה מקדימה, ללא שמירה">בדיקת חילוץ תב״ע</button>
     <button data-nav="settings" hidden data-sys="1" onclick="go('settings',this)" title="מערכת">הגדרות</button>
@@ -2961,7 +2961,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
   'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
-  'proc','reviewGrid','meet','_est','openDateIssue','layerReview'];
+  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -12992,12 +12992,13 @@ function aiSyncContext() {
 </script>
 <script src="plans-geo.js"></script>
 <script src="plans-plus.js"></script>
-<script src="plans-process.js?v=1123d"></script>
+<script src="plans-process.js?v=1123f"></script>
 <script src="mail-index.js"></script>
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js"></script>
-<script src="plans-model.js?v=1123d"></script>
-<script src="plans-layers.js?v=1123e"></script>
+<script src="plans-model.js?v=1123f"></script>
+<script src="plans-layers.js?v=1123f"></script>
+<script src="plans-opinion.js?v=1123f"></script>
 </body>
 </html>
