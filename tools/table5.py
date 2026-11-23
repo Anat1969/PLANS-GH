@@ -128,6 +128,17 @@ def table_notes(pdf, pages):
         out[parts[k]] = t[:300].strip(' .')
     return out
 
+def plan_info(pdf):
+    """סעיף 1.2 "שטח התכנית" (דונם) וסוג התכנית, מתחילת ההוראות"""
+    d = pymupdf.open(pdf); out = {}
+    for i in range(min(10, len(d))):
+        t = d[i].get_text()
+        m = re.search(r'1\.2\s*שטח התכנית\s*([\d.,]+)\s*דונם', t)
+        if m and 'planArea' not in out: out.update(planArea=float(m.group(1).replace(',', '')), planAreaPage=i+1)
+        m = re.search(r'סוג התכנית\s*\n\s*([^\n]+)', t)
+        if m and 'planType' not in out: out['planType'] = m.group(1).strip()
+    return out
+
 def model_lots(taba):
     key = 'sb_publishable_1KSwG6rqTzBSHmI2RxX6Fw_EEcuKzk3'
     q = 'https://cbhexpybdggwzyakgagd.supabase.co/rest/v1/plan_models?select=model->lots&plan_number=eq.' + urllib.parse.quote(taba)
@@ -170,7 +181,7 @@ def main():
     used = [k for k in NUMERIC if any(k in r or k in r.get('notes', {}) for r in rows)]
     notes = table_notes(a.pdf, pages); notes.update(fx.get('notes', {}))
     chk = check(rows, model_lots(a.taba))
-    out = dict(tik=str(a.tik), taba=a.taba, source=a.src or os.path.basename(a.pdf), pages=pages, readAt=datetime.date.today().isoformat(),
+    out = dict(tik=str(a.tik), taba=a.taba, source=a.src or os.path.basename(a.pdf), pages=pages, **plan_info(a.pdf), readAt=datetime.date.today().isoformat(),
                columns=[dict(key=k, label=LABEL[k][0], unit=LABEL[k][1]) for k in used], notes=notes, rows=rows, check=chk, fixes=fixes, notesFixed=sorted(fx.get('notes', {}), key=int), fixSource=fx.get('source'))
     os.makedirs(os.path.join(ROOT, 'data', 'table5'), exist_ok=True)
     f = os.path.join(ROOT, 'data', 'table5', f'{a.tik}.json'); json.dump(out, open(f, 'w', encoding='utf8'), ensure_ascii=False, indent=1)

@@ -219,6 +219,8 @@ function streetOf(p){
   const r = nearestAxis(_axes, g.lat, g.lng); if(!r) return null;
   return `${r.axis.name} (${rankLabel(r.axis.rank)})`;
 }
+/** הרחוב שהתוכנית יושבת עליו: גם לחוות הדעת (plans-opinion.js). null כשאין מיקום מדויק */
+root.planStreet = async p => { try{ if(!_axes) await loadStreets(); }catch(e){} return streetOf(p); };
 function patchCard(){
   const od = root.openDetail;
   if(typeof od === 'function') root.openDetail = function(id){
