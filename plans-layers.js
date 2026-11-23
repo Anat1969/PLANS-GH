@@ -49,6 +49,8 @@ const SEASONS = [ ['קיץ', 6, 21], ['סתיו', 9, 23], ['חורף', 12, 21], 
 /* כיוון הרוח לכל עונה: הערכה כללית לחוף הדרומי, לא נתון מדוד */
 const WIND_BY_SEASON = [ [300, 'צפון־מערב, בריזת ים'], [320, 'צפון־מערב'], [90, 'מזרח'], [270, 'מערב'] ];
 
+/* הקשר לשאר מסכי התוכנית: שלוש הקבוצות של כרטיס התוכנית */
+const CARD_LINKS = [ ['requested', 'מידע ומסמכים', 'זיהוי, נתונים, חומרים, מסמכים ותקשורת'], ['rules', 'הנחיות ודרישות', 'עקרונות, אוגדן ומחשבונים'], ['check', 'בדיקת התאמה', 'מותר מול מבוקש, פורומים, תהליך וחוות דעת'] ];
 const H = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
@@ -131,6 +133,7 @@ function shell(){
   body().innerHTML = `
   <div class="ly-head">
     <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
+    ${plan() ? `<nav class="ly-links" aria-label="מסכי התוכנית">${CARD_LINKS.map(l => `<button data-card="${l[0]}" title="${H(l[2])}">${H(l[1])}</button>`).join('')}</nav>` : ''}
     <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
     <div class="ly-nav"><button class="ly-b" data-step="-1">הקודם</button><button class="ly-b ly-next" data-step="1">הבא</button></div>
   </div>
@@ -353,6 +356,7 @@ function bind(){
   const el = body(), st = document.getElementById('lyStage');
   el.onclick = e => {
     const b = e.target.closest('button, input[type=checkbox]'); if(!b) return; const d = b.dataset;
+    if(d.card){ window.openPlanCard(d.card); return; }
     if(d.state){ S.state = d.state; stopRec(); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } drawTools(); applyDisc(); drawPanel(); }   // המבט נשאר זהה בין המצבים
     else if(d.env){ S.env = !S.env; applyApi(); drawTools(); sunNow(); }
     else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
@@ -392,6 +396,19 @@ function bind(){
 }
 
 /* ── חיבור לאפליקציה ── */
+/* כניסה לתוכנית שיש לה מודל פותחת קודם את המודל. הכרטיס נפתח מהקישורים שבראש המסך, או בחזרה אחורה */
+let _openCard = null, _cardNow = false;
+window.openPlanCard = function(gid){ const p = plan(); if(!p || !_openCard) return; _cardNow = true;
+  try{ _openCard(p.id); if(gid && typeof ppGo==='function') ppGo(gid); } finally { _cardNow = false; } };
+function hookOpenProject(){
+  _openCard = window.openProject; if(typeof _openCard !== 'function') return;
+  window.openProject = function(id, isBack){
+    let p = null; try{ p = plans.find(x => x.id === id); }catch(e){}
+    let mine = true; try{ mine = !(typeof isDeveloper==='function' && isDeveloper()) || devOwns(p); }catch(e){}
+    if(p && SETS[String(p.tik)] && !_cardNow && !isBack && mine){ try{ currentProjectId = id; }catch(e){} return window.openLayers(p.tik); }
+    return _openCard.apply(this, arguments);
+  };
+}
 window.openLayers = function(tik){ if(tik && String(tik)!==S.tik){ S.tik = String(tik); S.man = null; } window.go('layers', null); };
 window.layersLinkHTML = function(p){
   const s = p && SETS[String(p.tik)]; if(!s) return '';
@@ -401,7 +418,7 @@ window.layerSets = SETS;
 function hashTik(){ const h = (location.hash||'').slice(1); return h==='layers' ? '' : h.startsWith('layers=') ? h.slice(7) : null; }
 function boot(){
   if(typeof plans==='undefined' || typeof window.go!=='function' || !document.querySelector('.page') || !window.PlanModel) return setTimeout(boot, 60);
-  ensurePage();
+  ensurePage(); hookOpenProject();
   const _go = window.go;
   window.go = function(id, btn, isBack){
     if(id!=='layers'){ stopRec(); playSun(false); if(S.api){ S.api.dispose(); S.api = null; } }
@@ -422,6 +439,9 @@ const CSS = `
 .ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
 .ly-title b{color:var(--ink);font-weight:600}
 .ly-nav{display:flex;gap:4px;margin-inline-start:auto}
+.ly-links{display:flex;gap:2px}
+.ly-links button{border:0 !important;background:none !important;color:var(--teal) !important;font:400 13px var(--sans) !important;padding:4px 8px !important;cursor:pointer;border-radius:0 !important;box-shadow:inset 0 -1px 0 currentColor}
+.ly-links button:hover{background:var(--teal-pale) !important}
 .ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:6px 14px !important;font:600 13px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
 .ly-b:hover{background:var(--ink) !important;color:#fff !important;transform:translateY(-1px)}
 .ly-next{background:var(--ink) !important;color:#fff !important}
