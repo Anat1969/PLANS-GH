@@ -4900,8 +4900,8 @@ function initMap() {
   if (typeof L === 'undefined') { setTimeout(initMap, 200); return; }
   gisMap = L.map('gis-map', {boxZoom:true}).setView([31.802, 34.650], 13);
   setupBoxZoom(gisMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution: '© CartoDB © OpenStreetMap', maxZoom: 19
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri, © OpenStreetMap', maxZoom: 19, className: 'map-gray'
   }).addTo(gisMap);
 
   // ייעודי קרקע — טלאים לפי רובע (המחשה מקומית)
@@ -4925,9 +4925,7 @@ function initMap() {
     }
   });
 
-  gisLayers.roads = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19, opacity: 0.8
-  });
+  gisLayers.roads = L.layerGroup();   // שמות הרחובות כבר במפת הבסיס
   gisLayers.roads.addTo(gisMap);
 
   // שטחים ירוקים ופארקים — שכבת OSM (leisure=park/forest/grass) דרך WMS ציבורי + מרקרים מהתוכניות
@@ -12994,12 +12992,12 @@ function aiSyncContext() {
 </script>
 <script src="plans-geo.js"></script>
 <script src="plans-plus.js"></script>
-<script src="plans-process.js"></script>
+<script src="plans-process.js?v=1123d"></script>
 <script src="mail-index.js"></script>
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js"></script>
-<script src="plans-model.js"></script>
-<script src="plans-layers.js"></script>
+<script src="plans-model.js?v=1123d"></script>
+<script src="plans-layers.js?v=1123d"></script>
 </body>
 </html>
