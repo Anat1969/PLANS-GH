@@ -2961,7 +2961,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
   'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
-  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm'];
+  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm','mmDept','_mmDone'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -7086,7 +7086,7 @@ function updateProgress(p){
 
 function renderDocsTab(p) {
   const docs = p.documents.map((d,i)=>`<div class="doc-item">
-    <div><strong>${d.name}</strong> <span style="color:rgba(0,0,0,0.45)">· ${d.type} · ${d.date||''}</span></div>
+    <div><strong${d.src?' class="ai-seeded" title="מ'+esc(d.src)+'"':''}>${esc(d.name)}</strong> <span style="color:rgba(0,0,0,0.45)">· ${esc(d.type||'')} · ${d.date||''}${d.src?' · '+esc(d.src):''}</span></div>
     <div style="display:flex;gap:6px">${d.url?linkBtnHTML(d.url,'צפה'):''}<button class="btn btn-ghost btn-sm" onclick="removeDoc(${i})">מחק</button></div>
   </div>`).join('') || '<p style="color:rgba(0,0,0,0.4);font-size:13px">אין מסמכים עדיין.</p>';
   document.getElementById('panel-docs').innerHTML = `
@@ -13002,5 +13002,6 @@ function aiSyncContext() {
 <script src="plans-layers.js?v=1123g"></script>
 <script src="plans-opinion.js?v=1123g"></script>
 <script src="plans-view.js?v=1123g"></script>
+<script src="plans-import.js?v=1123i"></script>
 </body>
 </html>
