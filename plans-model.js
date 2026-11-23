@@ -174,8 +174,8 @@ function create(el, model, opts){
   const T = window.THREE, TX = textures(T), groups = {}, center = itm2wgs(model.e0, model.n0);
   const renderer = new T.WebGLRenderer({ antialias:true, preserveDrawingBuffer:!!(opts && opts.capture) });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
-  renderer.outputEncoding = T.sRGBEncoding; el.appendChild(renderer.domElement); renderer.domElement.className = 'pm-canvas';
-  const scene = new T.Scene(); scene.background = new T.Color('#eef2f5'); scene.fog = new T.Fog('#eef2f5', 500, 1400);
+  renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; el.appendChild(renderer.domElement); renderer.domElement.className = 'pm-canvas';
+  const scene = new T.Scene(); scene.background = new T.Color('#eef2f5');
   const cam = new T.PerspectiveCamera(38, 1, 0.5, 3000);
   const ctl = new T.OrbitControls(cam, renderer.domElement); ctl.maxPolarAngle = Math.PI/2 - 0.02; ctl.minDistance = 4; ctl.maxDistance = 900; ctl.enableDamping = true; ctl.dampingFactor = 0.12;
   const hemi = new T.HemisphereLight('#ffffff', '#a9a498', 0.5); scene.add(hemi);
@@ -237,10 +237,17 @@ function create(el, model, opts){
     }
   }
   function setMap(on){ mapOn = !!on; if(mapOn && !mapBuilt) loadMap(); updGround(); }
-  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; draw(); }
+  const shadowCatch = new T.Mesh(new T.PlaneGeometry(1400, 1400), new T.ShadowMaterial({ opacity:.34, depthWrite:false })); shadowCatch.rotation.x = -Math.PI/2; shadowCatch.position.y = .135; shadowCatch.receiveShadow = true; shadowCatch.renderOrder = 3; scene.add(shadowCatch);
+  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; shadowCatch.visible = !underOn; draw(); }
 
   // משטחים
-  const S = model.surf, surf = (kind, y, mat, tint) => { if(S[kind]) add(kind, new T.Mesh(flatGeo(T, S[kind], y, tint||0), mat)); };
+  const outlineM = new T.LineBasicMaterial({ color:'#2a2a28', transparent:true, opacity:.5 });
+  function rimGeo(polys, y){ const seen = new Map(), key = (a, b) => a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1]) ? a+'|'+b : b+'|'+a;
+    for(const [, flat] of polys){ const n = flat.length/2; for(let i = 0; i < n; i++){ const a = [flat[2*i], flat[2*i+1]], j = (i+1)%n, b = [flat[2*j], flat[2*j+1]], k = key(a, b), e = seen.get(k); if(e) e.c++; else seen.set(k, { a, b, c:1 }); } }
+    const pos = []; seen.forEach(e => { if(e.c === 1) pos.push(e.a[0]/10, y, -e.a[1]/10, e.b[0]/10, y, -e.b[1]/10); });
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); return g; }
+  const S = model.surf, surf = (kind, y, mat, tint) => { if(!S[kind]) return; add(kind, new T.Mesh(flatGeo(T, S[kind], y, tint||0), mat), { noReceive:true });
+    const ln = new T.LineSegments(rimGeo(S[kind], y + .012), outlineM); ln.userData.rim = true; groups[kind].add(ln); };
   surf('asphalt', .00, M.std({ color:KIND.asphalt.color, map:TX.asphalt, vertexColors:true, roughness:.97 }));
   surf('brt', .012, M.std({ color:KIND.brt.color, map:TX.asphalt, vertexColors:true }));
   surf('ramp', .02, M.std({ color:KIND.ramp.color, map:TX.asphalt, vertexColors:true }));
@@ -250,7 +257,8 @@ function create(el, model, opts){
   surf('deck', .07, M.std({ color:KIND.deck.color, map:TX.wood, vertexColors:true }));
   surf('green', .085, M.std({ color:'#9fd07f', map:TX.grass, vertexColors:true, roughness:1 }), .5);
   surf('firemark', .10, M.std({ color:KIND.firemark.color, transparent:true, opacity:.75 }));
-  if(S.wall) add('wall', new T.Mesh(extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4), M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
+  if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
+    groups.wall.add(new T.LineSegments(new T.EdgesGeometry(wg, 35), outlineM)); }
   if(S.pergola){ const rs = S.pergola.map(p => ring2(p[1]));
     add('pergola', new T.Mesh(extrudeGeo(T, rs, 2.8, .16), M.std({ color:KIND.pergola.color, map:TX.wood, transparent:true, opacity:.9, side:T.DoubleSide })), { cast:true, solid:true });
     const posts = []; rs.forEach(r => r.forEach(p => { if(posts.every(q => Math.hypot(q[0]-p[0], q[1]-p[1]) > 3)) posts.push(p); }));
@@ -283,7 +291,7 @@ function create(el, model, opts){
   function trees(kind, list, leaf){
     const trunkH = t => 2.0 + Math.min(3.2, t[2]*0.45);
     inst(kind, new T.CylinderGeometry(.12, .2, 1, 7), M.std({ color:'#6b4a2e' }), list, (d, t) => { const h = trunkH(t); d.position.set(t[0], h/2, -t[1]); d.scale.set(1+t[2]*.12, h, 1+t[2]*.12); });
-    const leafM = M.std({ color:leaf, roughness:1, flatShading:true }), ico = new T.IcosahedronGeometry(1, 1);
+    const leafM = M.std({ color:leaf, roughness:1, flatShading:true, transparent:true, opacity:.84 }), ico = new T.IcosahedronGeometry(1, 1);
     inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2]); d.position.set(t[0], trunkH(t)+r*.55, -t[1]); d.scale.set(r, r*.78, r); d.rotation.y = rnd(i)*6; });
     inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2])*.62, a = rnd(i+9)*6.28; d.position.set(t[0]+Math.cos(a)*r*.7, trunkH(t)+r*1.5, -t[1]+Math.sin(a)*r*.7); d.scale.set(r, r*.8, r); });
   }
@@ -325,8 +333,8 @@ function create(el, model, opts){
     const s = sunPos(ilDate(y, m, d, hour), center[0], center[1]), R = 330, dir = a => new T.Vector3(Math.sin(a.az)*Math.cos(a.alt), Math.sin(a.alt), -Math.cos(a.az)*Math.cos(a.alt));
     const v = dir(s); sun.position.copy(v).multiplyScalar(R); sun.target.position.set(0, 0, 0); sunBall.position.copy(v).multiplyScalar(R+30);
     const up = Math.max(0, Math.sin(s.alt)), day = s.alt > 0;
-    sun.intensity = day ? .2 + .62*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .44 + .1*up : .13; sunBall.visible = day;
-    const sky = new T.Color(day ? '#eef2f5' : '#20283a').lerp(new T.Color('#f6d9b0'), day ? Math.max(0, .5-up*2.2) : 0); scene.background = sky; scene.fog.color = sky;
+    sun.intensity = day ? .5 + 1.5*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .62 + .12*up : .16; sunBall.visible = day;
+    const sky = new T.Color(day ? '#eef2f5' : '#20283a').lerp(new T.Color('#f6d9b0'), day ? Math.max(0, .5-up*2.2) : 0); scene.background = sky;
     lampHead.emissiveIntensity = day ? 0 : 2.4;
     const pts = []; for(let h = 4; h <= 21; h += .25){ const p = sunPos(ilDate(y, m, d, h), center[0], center[1]); if(p.alt > 0) pts.push(dir(p).multiplyScalar(R+30)); }
     pathLine.geometry.setFromPoints(pts); sunState = { alt:s.alt*180/Math.PI, az:(s.az*180/Math.PI+360)%360, day }; draw(); return sunState;
@@ -401,6 +409,8 @@ function create(el, model, opts){
           slabs.push([px+ox*.8, y+.09, py+oy*.8, ang]); rails.push([px+ox*1.55, y+.7, py+oy*1.55, ang]); } }
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
       add('facade', new T.Mesh(g, lot.cat === 'public' ? mats.pub : mats.res), { cast:true, solid:true });
+      { const ep = []; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ep.push(a[0], y0, -a[1], a[0], y1, -a[1], a[0], y1+1.1, -a[1], b[0], y1+1.1, -b[1], a[0], y0, -a[1], b[0], y0, -b[1]); });
+        const eg = new T.BufferGeometry(); eg.setAttribute('position', new T.Float32BufferAttribute(ep, 3)); groups.facade.add(new T.LineSegments(eg, outlineM)); }
       add('facade', new T.Mesh(flatGeo(T, [['#ffffff', r.flatMap(p => [p[0]*10, p[1]*10])]], y1, 0), roofM), { cast:true, solid:true });
       add('facade', new T.Mesh(ribbonGeo(T, [r.concat([r[0]]).flatMap(p => [p[0]*10, p[1]*10])], y1, 1.1), roofM), { cast:true, solid:true });
       const core = new T.Mesh(new T.BoxGeometry(Math.sqrt(A)*k*.3, 3, Math.sqrt(A)*k*.22), roofM); core.position.set(cx, y1+1.5, -cy); add('facade', core, { cast:true, solid:true });

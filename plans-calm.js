@@ -8,7 +8,7 @@
 (function(){
 'use strict';
 const NAV_MAIN = ['landing','table','timeline','calendar','map','contacts','library','outputs'];
-const NAV_LABEL = { table:'תוכניות', contacts:'אנשי קשר', library:'ספרייה', outputs:'תוצרים', landing:'ראשי' };
+const NAV_LABEL = { table:'תוכניות', contacts:'אנשי קשר', library:'ספרייה', outputs:'מאושרות', landing:'ראשי' };
 
 function calmNav(){
   document.querySelectorAll('#mainNav button[data-nav]').forEach(b => {

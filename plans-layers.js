@@ -49,15 +49,19 @@ const SEASONS = [ ['קיץ', 6, 21], ['סתיו', 9, 23], ['חורף', 12, 21], 
 /* כיוון הרוח לכל עונה: הערכה כללית לחוף הדרומי, לא נתון מדוד */
 const WIND_BY_SEASON = [ [300, 'צפון־מערב, בריזת ים'], [320, 'צפון־מערב'], [90, 'מזרח'], [270, 'מערב'] ];
 
-/* הקשר לשאר מסכי התוכנית: שלוש הקבוצות של כרטיס התוכנית */
-const CARD_LINKS = [ ['requested', 'מידע ומסמכים', 'זיהוי, נתונים, חומרים, מסמכים ותקשורת'], ['rules', 'הנחיות ודרישות', 'עקרונות, אוגדן ומחשבונים'], ['check', 'בדיקת התאמה', 'מותר מול מבוקש, פורומים, תהליך וחוות דעת'] ];
+/* שלבי התוכנית, עם המועד שנקבע לכל אחד: אותו שדה שמזין את לוח השנה */
+const STAGES = [ ['פורום אדריכל', p => p.forumArchitect], ['פורום יועצים', p => p.forumConsultants], ['הכנה לוועדה', p => (p.datesPlan||{}).committeePrep], ['חתימה ותיעוד', p => p.signDate] ];
+function stageChips(){ const p = plan(); if(!p) return ''; const t = new Date().toISOString().slice(0, 10);
+  const f = d => /^\d{4}-\d{2}-\d{2}/.test(String(d||'')) ? `${d.slice(8,10)}.${d.slice(5,7)}.${d.slice(2,4)}` : '';
+  return STAGES.map((x, i) => { let d = ''; try{ d = x[1](p) || ''; }catch(e){} const past = d && String(d).slice(0, 10) < t;
+    return `<button class="ly-stage-chip${past?' past':''}${d?'':' none'}" data-card="forums" title="מעבר לשלב בכרטיס התוכנית"><i>${i+1}</i>${H(x[0])}<b>${f(d) || 'לא נקבע'}</b></button>`; }).join(''); }
 const H = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
 const PM = () => window.PlanModel;
 
 const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:true, streets:false, fc:null, wind:false, fac:true, under:false, play:null, view:'home',
-  off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null };
+  off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null, open:new Set() };
 
 /* ── נתונים: נשמרים על התוכנית ── */
 function plan(){ try{ return plans.find(p => String(p.tik)===String(S.tik) && !p._deleted); }catch(e){ return null; } }
@@ -122,7 +126,8 @@ async function open(tik){
     S.tik = tik; S.man = null; S._local = null;
     body().innerHTML = '<p class="ly-empty">טוען את המודל…</p>';
     try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
-      S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null; }
+      S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
+      S.state = S.rn ? 'exist' : 'design'; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
   }
   shell(); await setMode(S.mode); drawPanel();
@@ -133,11 +138,11 @@ function shell(){
   body().innerHTML = `
   <div class="ly-head">
     <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
-    ${plan() ? `<nav class="ly-links" aria-label="מסכי התוכנית">${CARD_LINKS.map(l => `<button data-card="${l[0]}" title="${H(l[2])}">${H(l[1])}</button>`).join('')}</nav>` : ''}
+    ${plan() ? `<nav class="ly-links" aria-label="שלבי התוכנית">${stageChips()}<button data-card="opinion" title="כרטיס התוכנית בפורמט של חוות הדעת לוועדה">חוות דעת</button></nav>` : ''}
     <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
-    <div class="ly-nav"><button class="ly-b" data-step="-1">הקודם</button><button class="ly-b ly-next" data-step="1">הבא</button></div>
   </div>
-  <div class="ly-steps" id="lySteps" role="tablist" aria-label="תחומי הפגישה"></div>
+  <div class="ly-steprow"><div class="ly-steps" id="lySteps" role="tablist" aria-label="תחומי הפגישה"></div>
+    <div class="ly-nav"><button class="ly-b" data-step="-1">הקודם</button><button class="ly-b ly-next" data-step="1">הבא</button></div></div>
   <div class="ly-grid">
     <div class="ly-stage" id="lyStage">
       <div class="ly-view" id="lyView"></div>
@@ -153,8 +158,7 @@ function shell(){
 function drawSteps(){
   const design = S.state==='design';
   document.getElementById('lyStates').innerHTML = STATES.filter(x => x[0]==='design' || S.rn).map(x => `<button role="tab" aria-selected="${x[0]===S.state}" class="${x[0]===S.state?'on':''}" data-state="${x[0]}" title="${H(x[2])}">${H(x[1])}</button>`).join('');
-  document.getElementById('lySteps').style.display = design ? '' : 'none';
-  document.querySelector('.ly-nav').style.visibility = design ? '' : 'hidden';
+  document.querySelector('.ly-steprow').style.display = design ? '' : 'none';
   document.getElementById('lySteps').innerHTML = DISC.map((x, i) => { const c = discCount(x);
     return `<button role="tab" aria-selected="${i===S.d}" class="${i===S.d?'on':''}" data-disc="${i}"><i>${i+1}</i>${H(x.name)}<b>${c.done}/${c.total}</b></button>`; }).join('');
 }
@@ -259,27 +263,27 @@ function fillRights(){
     r.source = r.source || src; if(detail && !r.note) r.note = 'לפי מגרש: ' + detail; done++; });
   persist(); say(done ? `${done} שדות "מותר" מולאו מטבלה 5${kept ? `, ${kept} נשארו כפי שהיו` : ''}` : 'כל השדות כבר מלאים. לא שיניתי דבר'); drawPanel();
 }
+/** סעיף מקופל: כותרת ומספר, והתוכן נפתח בלחיצה. המצב נשמר בזמן העבודה */
+const fold = (id, title, count, body) => `<details class="ly-fold" data-fold="${id}" ${S.open.has(id)?'open':''}><summary><span>${H(title)}</span>${count!=null && count!=='' ? `<b>${H(String(count))}</b>` : ''}</summary>${body}</details>`;
 function drawStatePanel(el){
   const rn = S.rn, m = S.meas, K = PM().KIND, Z = PM().ZONES, ex = S.state==='exist';
   const kinds = PM().STATE_KINDS[S.state].filter(k => m.count[k] || m.len[k] || k.startsWith('rn') || k==='exBuild');
   const lg = k => `<button class="ly-lg${S.off.has(k)?' off':''}" data-kind="${k}"><i style="background:${K[k].color}"></i><span>${H(K[k].label)}<small>${H(K[k].desc)}</small></span><em>${H(k==='exBuild' ? String(rn.demolish.length) : kindMeasure(k))}</em></button>`;
   el.innerHTML = ex ? `
     <div class="ly-who">קיים · מפת המדידה ומפת הרקע העירונית</div><h2 class="ly-h">מה יש היום במתחם</h2>
-    <ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
+    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה, <b>${m.count.treeOld}</b> עצים קיימים</p>
+    ${fold('exfacts', 'מה יש בשטח', 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
       <li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
-      <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li></ul>
-    <div class="ly-sec">מקרא <small>לחיצה מסתירה או מציגה</small></div><div class="ly-legend">${kinds.map(lg).join('')}</div>
-    <p class="ly-src">${H(rn.sources.context)}.</p>` : `
+      <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li></ul>`)}
+    ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(lg).join('')}</div><p class="ly-src">${H(rn.sources.context)}.</p>`)}` : `
     <div class="ly-who">התחדשות עירונית · ${H(rn.plan)}</div><h2 class="ly-h">מה מותר ב${H(rn.title)}</h2>
-    <ul class="ly-facts"><li><b>${N(rn.summary.units)}</b> דירות, עד <b>${rn.summary.floorsMax}</b> קומות ו-<b>${rn.summary.heightMax}</b> מ'</li><li>${H(rn.note)}</li></ul>
-    <div class="ly-sec">הזכויות לפי מגרש <small>טבלה 5</small></div>
-    <table class="ly-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>דירות</th><th>קומות</th><th>גובה</th><th>עיקרי</th><th>מסחר</th></tr></thead><tbody>
+    <p class="ly-lead"><b>${N(rn.summary.units)}</b> דירות, עד <b>${rn.summary.floorsMax}</b> קומות ו-<b>${rn.summary.heightMax}</b> מ'</p>
+    ${fold('rights', 'הזכויות לפי מגרש: טבלה 5', rn.lots.length, `<table class="ly-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>דירות</th><th>קומות</th><th>גובה</th><th>עיקרי</th><th>מסחר</th></tr></thead><tbody>
       ${rn.lots.map(l => `<tr><td><b>${l.lot}</b></td><td><i style="background:${Z[l.cat][1]}"></i>${H(l.title)}</td><td>${l.units||''}</td><td>${l.floors}</td><td>${l.height ? l.height+" מ'" : ''}</td><td>${N(l.main)}</td><td>${l.commerce ? N(l.commerce) : ''}</td></tr>`).join('')}</tbody></table>
-    ${canEdit() && plan() ? `<div class="ly-cfoot"><button class="ly-b" data-rights="1" title="ממלא רק תא ריק, ורושם את המקור">העברת הזכויות לטבלת הבדיקה</button></div>` : ''}
-    <div class="ly-sec">מקרא הייעודים</div>
-    <div class="ly-zones">${Object.values(Z).map(z => `<span><i style="background:${z[1]}"></i>${H(z[0])}</span>`).join('')}</div>
-    <div class="ly-sec">מה מוצג <small>לחיצה מסתירה או מציגה</small></div><div class="ly-legend">${kinds.map(lg).join('')}</div>
-    <p class="ly-src">${H(rn.sources.lots)}. ${H(rn.sources.rights)}. ${H(rn.source)}.</p>`;
+      ${canEdit() && plan() ? `<div class="ly-cfoot"><button class="ly-b" data-rights="1" title="ממלא רק תא ריק, ורושם את המקור">העברת הזכויות לחוות הדעת</button></div>` : ''}`)}
+    ${fold('zones', 'מקרא הייעודים', Object.keys(Z).length, `<div class="ly-zones">${Object.values(Z).map(z => `<span><i style="background:${z[1]}"></i>${H(z[0])}</span>`).join('')}</div>`)}
+    ${fold('legend', 'מה מוצג', kinds.length, `<div class="ly-legend">${kinds.map(lg).join('')}</div>`)}
+    ${fold('src', 'מקור והסתייגות', '', `<p class="ly-src">${H(rn.note)}</p><p class="ly-src">${H(rn.sources.lots)}. ${H(rn.sources.rights)}. ${H(rn.source)}.</p>`)}`;
 }
 function drawPanel(){
   const el = document.getElementById('lyPanel'); if(!el) return;
@@ -298,14 +302,12 @@ function drawPanel(){
   el.innerHTML = `
     <div class="ly-who">${S.d+1} מתוך ${DISC.length} · ${H(disc.who)}</div>
     <h2 class="ly-h">${H(disc.name)}</h2>
-    <ul class="ly-facts">${facts(disc).map(f => `<li>${rich(f)}</li>`).join('')}</ul>
-    <div class="ly-sec">הקונספט של היועץ</div>
-    <div class="ly-note"><textarea data-concept="${disc.id}" data-voice="k:${disc.id}" rows="2" placeholder="מה היועץ מסביר על התכנון…" ${ed?'':'readonly'}>${H(r.concept[disc.id]||'')}</textarea>${micBtn('k:'+disc.id)}</div>
-    <div class="ly-sec">מקרא <small>לחיצה מסתירה או מציגה</small></div>
-    <div class="ly-legend">${kinds.map(k => `<button class="ly-lg${S.off.has(k.id)?' off':''}" data-kind="${k.id}" title="${H(k.desc)}"><i style="background:${k.color}"></i><span>${H(k.label)}<small>${H(k.desc)}</small></span><em>${H(kindMeasure(k.id))}</em></button>`).join('')}</div>
-    <div class="ly-sec">מה בודקים <small>${discCount(disc).done} מתוך ${discCount(disc).total}</small></div>
-    <ol class="ly-items">${qs}${cust}</ol>
-    ${ed ? `<div class="ly-add"><input id="lyNew" data-voice="new" type="text" placeholder="הנחיה נוספת בתחום…" aria-label="הנחיה נוספת">${micBtn('new')}<button class="ly-b" data-act="add">הוספה</button></div>` : ''}
+    ${(f => `<p class="ly-lead">${rich(f[0])}</p>` + fold('facts', 'מה נמדד בשרטוט', f.length, `<ul class="ly-facts">${f.map(x => `<li>${rich(x)}</li>`).join('')}</ul>`))(facts(disc))}
+    ${fold('concept', 'הקונספט של היועץ', r.concept[disc.id] ? 'נרשם' : '', `<div class="ly-note"><textarea data-concept="${disc.id}" data-voice="k:${disc.id}" rows="2" placeholder="מה היועץ מסביר על התכנון…" ${ed?'':'readonly'}>${H(r.concept[disc.id]||'')}</textarea>${micBtn('k:'+disc.id)}</div>`)}
+    ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(k => `<button class="ly-lg${S.off.has(k.id)?' off':''}" data-kind="${k.id}" title="${H(k.desc)}"><i style="background:${k.color}"></i><span>${H(k.label)}<small>${H(k.desc)}</small></span><em>${H(kindMeasure(k.id))}</em></button>`).join('')}</div>`)}
+    ${fold('checks', 'מה בודקים', discCount(disc).done + '/' + discCount(disc).total, `<ol class="ly-items">${qs}${cust}</ol>
+    ${ed ? `<div class="ly-add"><input id="lyNew" data-voice="new" type="text" placeholder="הנחיה נוספת בתחום…" aria-label="הנחיה נוספת">${micBtn('new')}<button class="ly-b" data-act="add">הוספה</button></div>` : ''}`)}
+
     <div class="ly-cfoot"><button class="ly-b" data-act="copy">העתקת הסיכום</button>
       ${plan() ? '' : '<small>התוכנית לא נמצאה בטבלה. הסיכום נשמר בדפדפן הזה בלבד.</small>'}</div>`;
   el.querySelectorAll('textarea').forEach(grow);
@@ -380,6 +382,7 @@ function bind(){
       persist(); b.closest('.ly-it').classList.toggle('done', b.checked); drawSteps(); }
   };
   el.onchange = e => { if(e.target.matches('textarea')) saveField(e.target); };
+  el.addEventListener('toggle', e => { const d = e.target; if(!d.dataset || !d.dataset.fold) return; if(d.open) S.open.add(d.dataset.fold); else S.open.delete(d.dataset.fold); if(d.open) d.querySelectorAll('textarea').forEach(grow); }, true);
   el.oninput = e => { const t = e.target;
     if(t.matches('textarea')) grow(t);
     else if(t.id==='lyHour'){ playSun(false); setHour(+t.value); }
@@ -399,7 +402,7 @@ function bind(){
 /* כניסה לתוכנית שיש לה מודל פותחת קודם את המודל. הכרטיס נפתח מהקישורים שבראש המסך, או בחזרה אחורה */
 let _openCard = null, _cardNow = false;
 window.openPlanCard = function(gid){ const p = plan(); if(!p || !_openCard) return; _cardNow = true;
-  try{ _openCard(p.id); if(gid && typeof ppGo==='function') ppGo(gid); } finally { _cardNow = false; } };
+  try{ _openCard(p.id); if(gid==='opinion' || gid==='forums'){ if(typeof ppTab==='function') ppTab(gid); setTimeout(() => { const el = document.getElementById('panel-'+gid); if(el) el.scrollIntoView({ block:'start' }); }, 80); } else if(gid && typeof ppGo==='function') ppGo(gid); } finally { _cardNow = false; } };
 function hookOpenProject(){
   _openCard = window.openProject; if(typeof _openCard !== 'function') return;
   window.openProject = function(id, isBack){
@@ -438,11 +441,30 @@ const CSS = `
 .ly-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 6px}
 .ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
 .ly-title b{color:var(--ink);font-weight:600}
-.ly-nav{display:flex;gap:4px;margin-inline-start:auto}
-.ly-links{display:flex;gap:2px}
+.ly-nav{display:flex;gap:3px;flex:none}
+.ly-steprow{display:flex;gap:6px;align-items:stretch;margin-bottom:6px}
+.ly-steprow .ly-steps{flex:1;min-width:0;margin-bottom:0}
+.ly-states{margin-inline-start:auto}
+.ly-links{display:flex;gap:3px;flex-wrap:wrap}
+.ly-stage-chip{display:inline-flex;align-items:center;gap:5px;border:0 !important;background:#f6f5f1 !important;color:var(--ink) !important;font:400 12px var(--sans) !important;padding:4px 8px !important;cursor:pointer;border-radius:0 !important;box-shadow:inset 0 -2px 0 var(--teal)}
+.ly-stage-chip i{font-style:normal;font-size:10.5px;color:var(--ink-mute)}
+.ly-stage-chip b{font-weight:600;font-variant-numeric:tabular-nums}
+.ly-stage-chip.past{box-shadow:inset 0 -2px 0 #c9c6bd;color:var(--ink-soft) !important}
+.ly-stage-chip.none b{font-weight:400;color:var(--ink-mute)}
+.ly-fold{box-shadow:inset 0 -1px 0 #e4e2dc}
+.ly-fold > summary{display:flex;justify-content:space-between;align-items:center;gap:8px;list-style:none;cursor:pointer;padding:9px 4px;font:600 13.5px var(--sans);color:var(--ink)}
+.ly-fold > summary::-webkit-details-marker{display:none}
+.ly-fold > summary::before{content:"+";font-weight:400;color:var(--ink-mute);width:12px}
+.ly-fold[open] > summary::before{content:"−"}
+.ly-fold > summary span{flex:1}
+.ly-fold > summary b{font-weight:400;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.ly-fold > summary:hover{background:#f6f5f1}
+.ly-fold[open]{padding-bottom:10px}
+.ly-lead{font-size:14px;color:var(--ink-soft);line-height:1.5;margin:0 0 8px}
+.ly-lead b{color:var(--ink)}
 .ly-links button{border:0 !important;background:none !important;color:var(--teal) !important;font:400 13px var(--sans) !important;padding:4px 8px !important;cursor:pointer;border-radius:0 !important;box-shadow:inset 0 -1px 0 currentColor}
 .ly-links button:hover{background:var(--teal-pale) !important}
-.ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:6px 14px !important;font:600 13px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
+.ly-b{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;padding:4px 12px !important;font:600 12.5px var(--sans) !important;border-radius:0 !important;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.14);transition:transform .12s,background .12s}
 .ly-b:hover{background:var(--ink) !important;color:#fff !important;transform:translateY(-1px)}
 .ly-next{background:var(--ink) !important;color:#fff !important}
 .ly-states{display:flex;gap:2px}
@@ -479,14 +501,15 @@ const CSS = `
 .ly-north i{position:absolute;inset:0;display:block}
 .ly-north i::before{content:"";position:absolute;left:50%;top:3px;margin-left:-6px;border:6px solid transparent;border-bottom:13px solid #c8202a;border-top:0}
 .ly-north b{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:10px;color:var(--ink)}
-.ly-tools{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12px;color:var(--ink-soft)}
+.ly-tools{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;font-size:11px;color:var(--ink-mute);opacity:.92}
+.ly-tools::before{content:"תצוגה";font-size:10.5px;color:var(--ink-mute);letter-spacing:.02em}
 .ly-grp{display:inline-flex;align-items:center;gap:4px}
-.ly-grp b{color:var(--ink);font-size:11.5px;font-weight:600}
+.ly-grp b{color:var(--ink-soft);font-size:10.5px;font-weight:600}
 .ly-tools input[type=range]{width:96px;accent-color:var(--ink);height:14px}
 .ly-tools output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;min-width:36px}
 .ly-mut{color:var(--ink-mute);font-size:11.5px}
 .ly-seg{display:inline-flex;gap:2px}
-.ly-seg button,.ly-tg{border:0 !important;background:#eeede8 !important;color:var(--ink-soft) !important;padding:3px 8px !important;font:400 12px var(--sans) !important;cursor:pointer;border-radius:0 !important}
+.ly-seg button,.ly-tg{border:0 !important;background:#eeede8 !important;color:var(--ink-soft) !important;padding:2px 7px !important;font:400 11px var(--sans) !important;cursor:pointer;border-radius:0 !important}
 .ly-seg button.on,.ly-tg.on{background:var(--ink) !important;color:#fff !important;font-weight:600 !important}
 .ly-panel{overflow:auto;min-height:0;padding-inline-end:4px}
 .ly-who{font-size:12px;color:var(--teal);font-weight:600}
