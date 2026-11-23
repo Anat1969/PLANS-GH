@@ -358,7 +358,11 @@ function nextForum(p){
   const t = today(), F = [['פורום אדריכל העיר', p.forumArchitect], ['פורום יועצים', p.forumConsultants], ['הכנה לוועדה', (p.datesPlan || {}).committeePrep], ['ועדה', p.committeeDate]];
   return F.map(([n, d]) => [n, String(d || '').slice(0, 10)]).filter(([, d]) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= t).sort((a, b) => a[1] < b[1] ? -1 : 1)[0];
 }
+/** מעקב: סעיף שהיזם השלים מסומן "הושלם", עם תאריך (p.todoDone). לא יוצא שוב בהעתקה ובמייל */
+const todoKey = x => String(x).replace(/[\s.,:;"'()\-]+/g, '').slice(0, 140);
+const isDone = (p, x) => !!(p.todoDone || {})[todoKey(x)];
 function completionsText(p, G){
+  G = G.map(([t, items]) => [t, items.filter(x => !isDone(p, x))]).filter(g => g[1].length);
   const f = nextForum(p), heb = 'אבגדהוזחט'; let i = 0;
   const L = [`השלמות נדרשות: תוכנית בינוי ${p.planNum || ''}, תיק ${p.tik}`, `${fmtD(today())}${f ? `. לקראת ${f[0]}, ${fmtD(f[1])}` : ''}.`, ''];
   if(!G.length) L.push('אין השלמות פתוחות.');
@@ -368,9 +372,15 @@ function completionsText(p, G){
 }
 async function fillTodo(p){
   const el = document.getElementById('opTodo'); if(!el) return;
-  const G = await completions(p), total = G.reduce((a, g) => a + g[1].length, 0);
-  el.innerHTML = `<div class="ck-sum"><b>${total === 1 ? 'השלמה אחת' : total + ' השלמות'}</b> ליזם, מוכן לשליחה${total ? `<span class="no-print" style="margin-inline-start:auto;display:flex;gap:4px"><button class="btn btn-sm" data-todo="copy">העתקה</button><button class="btn btn-sm" data-todo="mail">טיוטת מייל</button></span>` : ''}</div>
-    ${G.map(([t, items]) => `<div class="op-sub">${H(t)}</div><ol class="op-todo">${items.map(x => `<li>${H(x)}</li>`).join('')}</ol>`).join('')}`;
+  const G = await completions(p), all = G.flatMap(g => g[1]), done = all.filter(x => isDone(p, x)).length, open = all.length - done;
+  const ed = typeof isArchitect !== 'function' || isArchitect(), D = p.todoDone || {};
+  el.innerHTML = `<div class="ck-sum"><b>${open === 1 ? 'השלמה פתוחה אחת' : open + ' השלמות פתוחות'}</b> ליזם${done ? ` · ${done === 1 ? 'אחת הושלמה' : done + ' הושלמו'}` : ''}${open ? `<span class="no-print" style="margin-inline-start:auto;display:flex;gap:4px"><button class="btn btn-sm" data-todo="copy">העתקה</button><button class="btn btn-sm" data-todo="mail">טיוטת מייל</button></span>` : ''}</div>
+    ${G.map(([t, items]) => `<div class="op-sub">${H(t)}</div><ol class="op-todo">${items.slice().sort((a, b) => isDone(p, a) - isDone(p, b)).map(x => { const k = todoKey(x), d = D[k];
+      return `<li class="${d ? 'done' : ''}">${ed ? `<label class="no-print todo-ck" title="היזם השלים את הסעיף"><input type="checkbox" data-done="${H(k)}"${d ? ' checked' : ''}> הושלם</label>` : ''}<span>${H(x)}</span>${d ? ` <small>הושלם ${H(fmtD(d))}</small>` : ''}</li>`; }).join('')}</ol>`).join('')}`;
+  el.onchange = e => { const c = e.target.closest('[data-done]'); if(!c) return; p.todoDone = p.todoDone || {};
+    if(c.checked) p.todoDone[c.dataset.done] = today(); else delete p.todoDone[c.dataset.done];
+    try{ logAction(p, 'todo', (c.checked ? 'הושלם: ' : 'נפתח מחדש: ') + c.closest('li').querySelector('span').textContent.slice(0, 80)); }catch(err){}
+    try{ savePlans(); }catch(err){} fillTodo(p); };
   el.onclick = e => { const b = e.target.closest('[data-todo]'); if(!b) return; const txt = completionsText(p, G);
     if(b.dataset.todo === 'copy'){ try{ navigator.clipboard.writeText(txt).then(() => say('רשימת ההשלמות הועתקה'), () => prompt('העתקה', txt)); }catch(err){ prompt('העתקה', txt); } return; }
     const to = people(p).filter(x => /יזם|אדריכל|מנהל/.test(x.role) && /@/.test(x.email)).map(x => x.email), uniq = [...new Set(to)];
@@ -491,6 +501,7 @@ details.op-fold > .op-sec-b{padding:2px 4px 14px 4px}
 .t5bad{color:#c8202a !important;font-weight:600}.t5ct th{width:150px;font-size:12.5px;text-align:start;vertical-align:top}.t5ct td{display:flex;flex-wrap:wrap;gap:4px 12px}
 .t5c{font-size:12.5px;white-space:nowrap}.t5c i{font-style:normal;color:var(--ink-mute)}.t5c.over{color:#c8202a;font-weight:600}.t5c sup{color:var(--ink-mute);cursor:help}
 .op-todo{margin:2px 0 8px;padding-inline-start:22px;font-size:13px;line-height:1.55}.op-todo li{margin:2px 0}
+.op-todo li.done span{text-decoration:line-through;color:var(--ink-mute)}.op-todo li small{color:#2f6b45;font-weight:600}.todo-ck{display:inline-flex;gap:3px;align-items:center;font-size:11.5px;color:var(--ink-mute);margin-inline-end:8px;cursor:pointer}
 .op-title small{font-weight:400;font-size:13px;color:var(--ink-mute)}
 .ck-sum{font-size:13px;margin:2px 0 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ck-sum .btn{margin-inline-start:auto}
 .ck-list{list-style:none;margin:0;padding:0}.ck-list li{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:4px 0;box-shadow:inset 0 -1px 0 var(--line,#eeede8);font-size:13px;line-height:1.45}

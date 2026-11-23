@@ -462,3 +462,8 @@ details.calm-fold > :not(summary){margin:10px 14px}
 .ax-how > summary{font-size:12px !important;padding:6px 10px !important}
 /* מפת הבסיס באפור: הצבע נשאר לתוכניות */
 .map-gray{filter:grayscale(1)}
+/* כפתורים באפור בהיר (ענת, 24.11.2026): כל כפתור שאינו הראשי מזוהה ככפתור, גם "שקוף" */
+:root{--btn-bg:#e9e8e3;--btn-bg-h:#dcdbd5;--btn-line:#d3d1ca}
+.btn:not(.btn-primary),.btn.btn-ghost,.btn-ghost{background:var(--btn-bg) !important;color:var(--ink) !important;border:1px solid var(--btn-line) !important;box-shadow:none !important}
+.btn:not(.btn-primary):hover,.btn.btn-ghost:hover,.btn-ghost:hover{background:var(--btn-bg-h) !important;color:var(--ink) !important;border-color:var(--btn-line) !important}
+.ly-b,.if-tik,.mv-ic{background:var(--btn-bg) !important}
