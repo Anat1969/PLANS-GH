@@ -8,3 +8,4 @@ dist/
 *.log
 temp/
 logs/
+__pycache__/
