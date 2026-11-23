@@ -315,12 +315,29 @@ function drawPanel(){
     ${(f => `<p class="ly-lead">${rich(f[0])}</p>` + fold('facts', 'מה נמדד בשרטוט', f.length, `<ul class="ly-facts">${f.map(x => `<li>${rich(x)}</li>`).join('')}</ul>`))(facts(disc))}
     ${fold('concept', 'הקונספט של היועץ', r.concept[disc.id] ? 'נרשם' : '', `<div class="ly-note"><textarea data-concept="${disc.id}" data-voice="k:${disc.id}" rows="2" placeholder="מה היועץ מסביר על התכנון…" ${ed?'':'readonly'}>${H(r.concept[disc.id]||'')}</textarea>${micBtn('k:'+disc.id)}</div>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(k => `<button class="ly-lg${S.off.has(k.id)?' off':''}" data-kind="${k.id}" title="${H(k.desc)}"><i style="background:${k.color}"></i><span>${H(k.label)}<small>${H(k.desc)}</small></span><em>${H(kindMeasure(k.id))}</em></button>`).join('')}</div>`)}
+    ${infraFold(disc, r, ed)}
     ${fold('checks', 'מה בודקים', discCount(disc).done + '/' + discCount(disc).total, `<ol class="ly-items">${qs}${cust}</ol>
     ${ed ? `<div class="ly-add"><input id="lyNew" data-voice="new" type="text" placeholder="הנחיה נוספת בתחום…" aria-label="הנחיה נוספת">${micBtn('new')}<button class="ly-b" data-act="add">הוספה</button></div>` : ''}`)}
 
     <div class="ly-cfoot"><button class="ly-b" data-act="copy">העתקת הסיכום</button>
       ${plan() ? '' : '<small>התוכנית לא נמצאה בטבלה. הסיכום נשמר בדפדפן הזה בלבד.</small>'}</div>`;
   el.querySelectorAll('textarea').forEach(grow);
+}
+/** ניתוח ורתימות (plans-infra.js): ממצאים מול מה שנמדד, הנחיה לייעול, וסימון לכל רתימה */
+function infraFold(disc, r, ed){
+  const PI = window.PlanInfra; if(!PI || !S.meas) return '';
+  const fs = PI.analyze({ meas:S.meas, model:S.model, rn:S.rn }).filter(f => disc.id==='all' || f.disc===disc.id);
+  const syns = PI.synergiesFor(disc.id === 'all' ? 'all' : disc.id); r.synergy = r.synergy || {};
+  const have = new Set(r.custom.map(c => c.n)), gaps = fs.filter(f => f.ok===false).length;
+  const ST = [['yes','קיים'], ['no','חסר'], ['na','לא רלוונטי']];
+  const card = (f, i) => `<li class="ly-fi ${f.ok===false?'gap':f.ok?'ok':'opp'}"><div class="ly-fi-t">${H(f.title)}</div><div class="ly-fi-f">${rich(f.fact)} <small>${H(f.basis)}</small></div>
+    ${f.hits.length ? `<div class="ly-fi-q">${PI.Q.map(q => `<span class="${f.hits.includes(q)?'on':''}">${q}</span>`).join('')}</div>` : ''}
+    ${f.guide ? `<blockquote>${H(f.guide)}</blockquote>${ed ? (have.has(f.guide) ? '<small class="ly-fi-in">נוספה להנחיות</small>' : `<button class="ly-b ly-fi-add" data-addg="${i}">הוספה להנחיות</button>`) : ''}` : ''}</li>`;
+  S._fs = fs;
+  return fold('infra', 'ניתוח ורתימות', gaps ? gaps + ' לשיפור' : fs.length, `
+    <ol class="ly-fis">${fs.map(card).join('') || '<li class="ly-src">אין ממצא לתחום הזה במה שנמדד.</li>'}</ol>
+    ${syns.length ? `<div class="ly-sec">רתימות לבדיקה <small><a href="#infra">כל הרתימות</a></small></div>
+    <ul class="ly-syn">${syns.map(s => `<li><b>${H(s.name)}</b><span>${H(s.gain)}</span><span class="ly-seg">${ST.map(([k, l]) => `<button class="${r.synergy[s.id]===k?'on':''}" data-synst="${s.id}|${k}" ${ed?'':'disabled'}>${l}</button>`).join('')}</span></li>`).join('')}</ul>` : ''}`);
 }
 function grow(t){ t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight+2)+'px'; }
 
@@ -386,6 +403,8 @@ function bind(){
     else if(d.mic) mic(d.mic);
     else if(d.act==='copy') copyText();
     else if(d.act==='add'){ const inp = document.getElementById('lyNew'), v = inp.value.trim(); if(!v) return inp.focus(); review().custom.push({ t:DISC[S.d].id, n:v, d:false, at:today() }); persist(); drawPanel(); drawSteps(); }
+    else if(d.addg){ const f = (S._fs||[])[+d.addg]; if(!f) return; review().custom.push({ t:DISC[S.d].id==='all' ? f.disc : DISC[S.d].id, n:f.guide, d:false, at:today(), src:'ניתוח רב תשתיות' }); persist(); drawPanel(); drawSteps(); }
+    else if(d.synst){ const [id, k] = d.synst.split('|'), r = review(); r.synergy = r.synergy || {}; r.synergy[id] = r.synergy[id]===k ? '' : k; persist(); drawPanel(); }
     else if(d.del){ review().custom.splice(+d.del.split('.')[1], 1); persist(); drawPanel(); drawSteps(); }
     else if(d.done){ const r = review(), k = d.done;
       if(k.startsWith('c.')) r.custom[+k.split('.')[1]].d = b.checked; else { const x = r.items[k] = r.items[k] || {}; x.d = b.checked; if(!x.d && !x.n) delete r.items[k]; }
@@ -462,6 +481,16 @@ const CSS = `
 .ly-stage-chip.past{box-shadow:inset 0 -2px 0 #c9c6bd;color:var(--ink-soft) !important}
 .ly-stage-chip.none b{font-weight:400;color:var(--ink-mute)}
 .ly-fold{box-shadow:inset 0 -1px 0 #e4e2dc}
+.ly-fis{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ly-fi{padding:8px 10px;background:#f6f5f1;box-shadow:inset -3px 0 0 #9a9890}
+.ly-fi.gap{box-shadow:inset -3px 0 0 #c8202a}.ly-fi.ok{box-shadow:inset -3px 0 0 #2f7d3a}.ly-fi.opp{box-shadow:inset -3px 0 0 #e0a800}
+.ly-fi-t{font:600 13.5px var(--sans);color:var(--ink)}
+.ly-fi-f{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.5}.ly-fi-f b{color:var(--ink)}.ly-fi-f small{color:var(--ink-mute);font-size:11px}
+.ly-fi-q{display:flex;gap:3px;margin-top:5px}.ly-fi-q span{font-size:10.5px;padding:1px 6px;background:#fff;color:var(--ink-mute)}.ly-fi-q span.on{background:#fde3e0;color:#9b1c1c;font-weight:600}
+.ly-fi blockquote{margin:6px 0 4px;padding:5px 8px;background:#fff;font-size:12.5px;line-height:1.55;color:var(--ink);box-shadow:inset -2px 0 0 var(--teal)}
+.ly-fi-add{padding:3px 10px !important;font-size:11.5px !important}.ly-fi-in{font-size:11px;color:#2f7d3a}
+.ly-syn{list-style:none;margin:0;padding:0}.ly-syn li{display:grid;grid-template-columns:1fr auto;gap:1px 8px;padding:5px 2px;box-shadow:inset 0 -1px 0 #ecebe6;font-size:12.5px}
+.ly-syn b{font-weight:600}.ly-syn span:nth-child(2){grid-column:1;color:var(--muted);font-size:11.5px}.ly-syn .ly-seg{grid-row:1 / 3;grid-column:2;align-self:center}
 .ly-fold > summary{display:flex;justify-content:space-between;align-items:center;gap:8px;list-style:none;cursor:pointer;padding:9px 4px;font:600 13.5px var(--sans);color:var(--ink)}
 .ly-fold > summary::-webkit-details-marker{display:none}
 .ly-fold > summary::before{content:"+";font-weight:400;color:var(--ink-mute);width:12px}
