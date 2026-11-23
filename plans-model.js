@@ -53,6 +53,8 @@ const KINDS = [
  ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
  { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
  { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
+ { id:'facade', topic:'build', label:'חזיתות להמחשה', color:'#e9e3d6', desc:'מגדל מעל קומת הקרקע: הקומות והגובה לפי התב"ע. החלונות, המרפסות והחיפוי הם המחשה, לא מהשרטוט.' },
+ { id:'under', topic:'park', label:'קומות מרתף וחניון', color:'#8d98a6', desc:'מספר הקומות מהוראות התוכנית. המתאר הוא גבול המגרש, וזו הנחה.' },
  { id:'rnEnvelope', topic:'renewal', label:'המעטפת המותרת', color:'#ffffff', desc:'השטח שבין קווי הבניין, עד הגובה המרבי.' }
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
@@ -180,7 +182,12 @@ function create(el, model, opts){
   const sun = new T.DirectionalLight('#fff4e0', 1.0); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
   Object.assign(sun.shadow.camera, { left:-190, right:190, top:190, bottom:-190, near:10, far:900 }); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.4; scene.add(sun, sun.target);
 
-  const M = { std:(o) => new T.MeshStandardMaterial(Object.assign({ roughness:.92, metalness:0, side:T.DoubleSide }, o)) };
+  { // שמיים פשוטים כמפת סביבה: נותנים לזכוכית במה להשתקף
+    const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
+    gr.addColorStop(0, '#4f8fd0'); gr.addColorStop(.46, '#cfe4f5'); gr.addColorStop(.5, '#f3f6f8'); gr.addColorStop(.54, '#b8b0a0'); gr.addColorStop(1, '#8a8478'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
+    const t = new T.CanvasTexture(c); t.mapping = T.EquirectangularReflectionMapping; t.encoding = T.sRGBEncoding;
+    const pm = new T.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose(); }
+  const M = { std:(o) => new T.MeshStandardMaterial(Object.assign({ roughness:.92, metalness:0, side:T.DoubleSide, envMapIntensity:.22 }, o)) };
   const ghost = M.std({ color:'#dedcd6', transparent:true, opacity:.5 });
   const add = (kind, obj, o) => { const g = groups[kind] || (groups[kind] = Object.assign(new T.Group(), { name:kind })); if(!g.parent) scene.add(g);
     obj.traverse(x => { if(x.isMesh){ x.castShadow = !!(o && o.cast); x.receiveShadow = !(o && o.noReceive); x.userData.mat = x.material; x.userData.solid = !!(o && o.solid); } if(x.isLineSegments) x.userData.mat = x.material; });
@@ -188,10 +195,13 @@ function create(el, model, opts){
 
   // קרקע ומפה
   const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), M.std({ color:'#cfcabd' })); ground.rotation.x = -Math.PI/2; ground.position.y = -0.06; ground.receiveShadow = true; scene.add(ground);
-  const mapG = new T.Group(); mapG.visible = false; scene.add(mapG); let mapLoaded = false;
-  function loadMap(){
-    if(mapLoaded) return; mapLoaded = true;
-    const z = 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 130, loader = new T.TextureLoader(); loader.crossOrigin = 'anonymous';
+  // רקע: מפה גרפית (CARTO) או תצלום לוויין (Esri World Imagery). שניהם אריחים חופשיים, בלי מפתח
+  const MAPS = { map:(z, X, Y) => `https://${'abc'[(X+Y)%3]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${X}/${Y}@2x.png`,
+                 sat:(z, X, Y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${Y}/${X}` };
+  const mapGs = {}; let mapMode = 'none', mapFail = 0;
+  function loadMap(kind){
+    if(mapGs[kind]) return; const G2 = mapGs[kind] = new T.Group(); scene.add(G2);
+    const z = 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 260, loader = new T.TextureLoader(); loader.crossOrigin = 'anonymous';
     const sw = itm2wgs(model.e0+x0-pad, model.n0+y0-pad), ne = itm2wgs(model.e0+x1+pad, model.n0+y1+pad);
     const tx = lon => Math.floor((lon+180)/360*n), ty = lat => Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
     const lonOf = x => x/n*360-180, latOf = y => Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI;
@@ -199,11 +209,14 @@ function create(el, model, opts){
     for(let X = tx(sw[1]); X <= tx(ne[1]); X++) for(let Y = ty(ne[0]); Y <= ty(sw[0]); Y++){
       const a = loc(latOf(Y), lonOf(X)), b = loc(latOf(Y), lonOf(X+1)), c = loc(latOf(Y+1), lonOf(X+1)), d = loc(latOf(Y+1), lonOf(X));
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([a[0],0,-a[1], d[0],0,-d[1], c[0],0,-c[1], a[0],0,-a[1], c[0],0,-c[1], b[0],0,-b[1]], 3));
-      g.setAttribute('uv', new T.Float32BufferAttribute([0,1, 0,0, 1,0, 0,1, 1,0, 1,1], 2)); g.computeVertexNormals();
-      const mat = new T.MeshBasicMaterial({ color:'#ffffff', transparent:true, opacity:0 }); const mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mapG.add(mesh);
-      loader.load(`https://${'abc'[(X+Y)%3]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${X}/${Y}@2x.png`, t => { t.encoding = T.sRGBEncoding; mat.map = t; mat.opacity = 1; mat.needsUpdate = true; draw(); }, undefined, () => {});
+      g.setAttribute('uv', new T.Float32BufferAttribute([0,1, 0,0, 1,0, 0,1, 1,0, 1,1], 2));
+      const mat = new T.MeshBasicMaterial({ color:'#ffffff', side:T.DoubleSide, transparent:true, opacity:0, depthWrite:false }); const mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mesh.renderOrder = -1; G2.add(mesh);
+      loader.load(MAPS[kind](z, X, Y), t => { t.encoding = T.sRGBEncoding; t.anisotropy = 4; mat.map = t; mat.opacity = 1; mat.needsUpdate = true; draw(); }, undefined, () => { mapFail++; if(opts && opts.onMapError) opts.onMapError(kind, mapFail); });
     }
   }
+  function setMap(mode){ mapMode = mode === true ? 'map' : (mode || 'none'); if(MAPS[mapMode]) loadMap(mapMode);
+    for(const k in mapGs) mapGs[k].visible = k === mapMode && !underOn; ground.visible = !underOn; draw(); }
+
 
   // משטחים
   const S = model.surf, surf = (kind, y, mat, tint) => { if(S[kind]) add(kind, new T.Mesh(flatGeo(T, S[kind], y, tint||0), mat)); };
@@ -300,19 +313,23 @@ function create(el, model, opts){
 
   // רוח: פסים נעים בכיוון שנבחר (הכיוון הוא הנחה, לא מדידה)
   const windG = new T.Group(); windG.visible = false; scene.add(windG); let windDir = null, windT = 0;
-  { const mat = new T.MeshBasicMaterial({ color:'#3b8fd6', transparent:true, opacity:.55 }); for(let i = 0; i < 70; i++){ const m = new T.Mesh(new T.BoxGeometry(7+rnd(i)*6, .12, .12), mat); m.userData = { o:rnd(i+3)*400, y:3+rnd(i+5)*16, s:rnd(i+7)*360-180 }; windG.add(m); } }
+  { const mat = new T.MeshBasicMaterial({ color:'#1f7fd6', transparent:true, opacity:.8, fog:false }), shaft = new T.BoxGeometry(1, .35, .35), head = new T.ConeGeometry(1.1, 3.2, 10); head.rotateZ(-Math.PI/2);
+    for(let i = 0; i < 110; i++){ const g = new T.Group(), L = 9 + rnd(i)*9, a = new T.Mesh(shaft, mat), h = new T.Mesh(head, mat); a.scale.x = L; h.position.x = L/2 + 1.4; g.add(a, h);
+      g.userData = { o:rnd(i+3)*520, y:2.5 + rnd(i+5)*rnd(i+11)*70, s:rnd(i+7)*460-230 }; windG.add(g); } }
   function setWind(deg){ windDir = deg; windG.visible = deg != null; if(deg != null) loop(); else draw(); }
-  function stepWind(dt){ if(windDir == null) return; windT += dt*14; const a = (windDir+180)*Math.PI/180, dx = Math.sin(a), dz = -Math.cos(a);   // הרוח נושבת מהכיוון שנבחר
-    windG.children.forEach(m => { const t = ((windT + m.userData.o) % 400) - 200; m.position.set(dx*t - dz*m.userData.s, m.userData.y, dz*t + dx*m.userData.s); m.rotation.y = Math.atan2(-dz, dx); }); }
+  function stepWind(dt){ if(windDir == null) return; windT += dt*26; const a = (windDir+180)*Math.PI/180, dx = Math.sin(a), dz = -Math.cos(a);   // הרוח נושבת מהכיוון שנבחר
+    windG.children.forEach(m => { const t = ((windT + m.userData.o) % 520) - 260; m.position.set(dx*t - dz*m.userData.s, m.userData.y, dz*t + dx*m.userData.s); m.rotation.y = Math.atan2(-dz, dx); }); }
 
   // תצוגה: שכבות פעילות, רפאים לשאר
   let active = null, state = 'design', envOn = false; const kindOff = new Set();
   const solidOn = (g, v) => { g.visible = v; g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = v && x.userData.solid; } }); };
   function applyActive(){
     for(const k in groups){ const g = groups[k];
-      if(state !== 'design'){ solidOn(g, STATE_KINDS[state].includes(k) && !kindOff.has(k)); continue; }
+      if(state !== 'design'){ solidOn(g, (STATE_KINDS[state].includes(k) && !kindOff.has(k)) || (k==='under' && underOn && state==='renewal')); continue; }
       if(k==='exBuild' || k==='rnParcel' || k==='rnMass'){ g.visible = false; continue; }
       if(k==='rnEnvelope'){ solidOn(g, envOn); continue; }
+      if(k==='under'){ solidOn(g, underOn); continue; }
+      if(k==='facade'){ solidOn(g, facOn && !kindOff.has(k)); continue; }
       const on = !kindOff.has(k) && (!active || active.has(KIND[k].topic));
       const off = kindOff.has(k), ctx = ['asphalt','paving','green','wall','brt','bike'].includes(k);
       g.visible = on || (!off && ctx);
@@ -326,7 +343,69 @@ function create(el, model, opts){
   function setEnvelope(on){ envOn = !!on; applyActive(); }
 
   /* התחדשות עירונית (נפחים לפי הזכויות) ומצב קיים. הנתונים ב-WGS84, ומומרים לרשת ישראל */
+  /* חזיתות להמחשה (תוכנית בינוי ועיצוב): מעל קומת הקרקע שבשרטוט עולה מגדל לפי הקומות והגובה של התב"ע.
+     שטח הקומה לפי טבלה 5. החלונות, המרפסות והחיפוי הם המחשה, ולא מהשרטוט. */
+  let rnData = null, facOn = false, underOn = false, facBuilt = false, underBuilt = false;
+  const locLL = c => { const [E, N] = wgs2itm(c[1], c[0]); return [E-model.e0, N-model.n0]; };
+  const pip = (p, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+  function facadeTex(wall, frame, glass, big){
+    const mk = draw2 => { const c = document.createElement('canvas'); c.width = 256; c.height = 256; draw2(c.getContext('2d')); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 8; return t; };
+    const win = big ? [18, 30, 220, 178] : [34, 44, 188, 150];      // חלון בתוך מפתח אחד של קומה אחת
+    const map = mk(g => { g.fillStyle = wall; g.fillRect(0, 0, 256, 256); for(let i = 0; i < 900; i++){ g.fillStyle = `rgba(0,0,0,${Math.random()*.035})`; g.fillRect(Math.random()*256, Math.random()*256, 3, 2); }
+      g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(0, 248, 256, 8); g.fillStyle = frame; g.fillRect(win[0]-5, win[1]-5, win[2]+10, win[3]+10);
+      const gr = g.createLinearGradient(0, win[1], 0, win[1]+win[3]); gr.addColorStop(0, glass[0]); gr.addColorStop(1, glass[1]); g.fillStyle = gr; g.fillRect(...win);
+      g.fillStyle = frame; g.fillRect(win[0]+win[2]/2-2, win[1], 4, win[3]); if(big) g.fillRect(win[0], win[1]+win[3]*.62, win[2], 4); });
+    map.encoding = T.sRGBEncoding;
+    const orm = mk(g => { g.fillStyle = 'rgb(0,225,0)'; g.fillRect(0, 0, 256, 256); g.fillStyle = 'rgb(0,18,255)'; g.fillRect(...win); });   // G: חספוס, B: מתכתיות. החלון חלק ומשתקף
+    return new T.MeshStandardMaterial({ map, roughnessMap:orm, metalnessMap:orm, roughness:1, metalness:1, envMapIntensity:1.15, side:T.DoubleSide });
+  }
+  function buildFacades(){
+    facBuilt = true; if(!rnData || !model.foot) return;
+    const lots = Object.fromEntries(rnData.lots.map(l => [l.lot, l])), parcels = rnData.parcels.map(p => ({ lot:p.lot, r:p.c.map(locLL) }));
+    const mats = { res:facadeTex('#e9e3d6', '#55595e', ['#5f7f9c', '#9fc0d8'], false), pub:facadeTex('#c9b9a2', '#4a4640', ['#547186', '#a5c2d2'], true) };
+    const slabM = M.std({ color:'#f1eee7', roughness:.6 }), railM = new T.MeshStandardMaterial({ color:'#bfe1ee', transparent:true, opacity:.38, roughness:.05, metalness:.6, envMapIntensity:1.3, side:T.DoubleSide });
+    const roofM = M.std({ color:'#c9c5bb' }), slabs = [], rails = [], bay = 3.6;
+    model.foot.forEach(f => {
+      let r = ring2(f); const cx = r.reduce((s2, p) => s2+p[0], 0)/r.length, cy = r.reduce((s2, p) => s2+p[1], 0)/r.length, pc = parcels.find(p => pip([cx, cy], p.r)), lot = pc && lots[pc.lot];
+      if(!lot || !lot.floors) return;
+      let A = 0; for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; } if(A < 0) r = r.slice().reverse(); A = Math.abs(A)/2;
+      const k = lot.plate ? Math.min(1, Math.sqrt(lot.plate/A)) : 1; r = r.map(p => [cx+(p[0]-cx)*k, cy+(p[1]-cy)*k]);
+      const fh = (lot.height || lot.floors*3.3)/lot.floors, y0 = 4, n = lot.floors - 1, y1 = y0 + n*fh, pos = [], uv = [];
+      let u = 0;
+      for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length], len = Math.hypot(b[0]-a[0], b[1]-a[1]), nb = Math.max(1, Math.round(len/bay)), u1 = u + nb;
+        pos.push(a[0], y0, -a[1], b[0], y0, -b[1], b[0], y1, -b[1], a[0], y0, -a[1], b[0], y1, -b[1], a[0], y1, -a[1]); uv.push(u, 0, u1, 0, u1, n, u, 0, u1, n, u, n); u = u1;
+        if(len < 9 || lot.cat === 'public') continue;                // מרפסות: בכל מפתח שני, בחזיתות הארוכות
+        const dx = (b[0]-a[0])/len, dy = (b[1]-a[1])/len, ox = dy, oy = -dx, ang = Math.atan2(dy, dx);
+        for(let j = 0; j < nb; j += 2) for(let fl = 0; fl < n; fl++){ const t = (j+.5)/nb, px = a[0]+(b[0]-a[0])*t, py = a[1]+(b[1]-a[1])*t, y = y0 + fl*fh;
+          slabs.push([px+ox*.8, y+.09, py+oy*.8, ang]); rails.push([px+ox*1.55, y+.7, py+oy*1.55, ang]); } }
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
+      add('facade', new T.Mesh(g, lot.cat === 'public' ? mats.pub : mats.res), { cast:true, solid:true });
+      add('facade', new T.Mesh(flatGeo(T, [['#ffffff', r.flatMap(p => [p[0]*10, p[1]*10])]], y1, 0), roofM), { cast:true, solid:true });
+      add('facade', new T.Mesh(ribbonGeo(T, [r.concat([r[0]]).flatMap(p => [p[0]*10, p[1]*10])], y1, 1.1), roofM), { cast:true, solid:true });
+      const core = new T.Mesh(new T.BoxGeometry(Math.sqrt(A)*k*.3, 3, Math.sqrt(A)*k*.22), roofM); core.position.set(cx, y1+1.5, -cy); add('facade', core, { cast:true, solid:true });
+    });
+    const place = (list, geo, mat) => inst('facade', geo, mat, list, (d, t) => { d.position.set(t[0], t[1], -t[2]); d.rotation.y = t[3]; }, { cast:false });
+    place(slabs, new T.BoxGeometry(3.1, .18, 1.6), slabM); place(rails, new T.BoxGeometry(3.1, 1.05, .05), railM);
+  }
+  function setFacade(on){ facOn = !!on; if(facOn && !facBuilt) buildFacades(); applyActive(); }
+  /* קומות המרתף והחניון: מספר הקומות מהוראות התוכנית. המתאר הוא גבול המגרש, וזו הנחה */
+  function buildUnder(){
+    underBuilt = true; if(!rnData) return; const fl = r => r.flatMap(p => [Math.round(p[0]*10), Math.round(p[1]*10)]);
+    const slabM = M.std({ color:'#8d98a6' }), wallM = new T.MeshBasicMaterial({ color:'#5d6b7c', transparent:true, opacity:.22, side:T.DoubleSide, depthWrite:false }), lineM = new T.LineBasicMaterial({ color:'#2f3a48' });
+    rnData.lots.filter(l => l.below).forEach(l => { const pc = rnData.parcels.find(p => p.lot === l.lot); if(!pc) return; const r = pc.c.map(locLL), closed = fl(r.concat([r[0]]));
+      for(let i = 1; i <= l.below; i++){ add('under', new T.Mesh(flatGeo(T, [['#ffffff', fl(r)]], -3.1*i, 0), slabM)); add('under', new T.LineSegments(lineGeo(T, [closed], -3.1*i + .03), lineM)); }
+      add('under', new T.Mesh(ribbonGeo(T, [closed], -3.1*l.below, 3.1*l.below), wallM), { noReceive:true });
+      const c = document.createElement('canvas'); c.width = 512; c.height = 96; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 512, 96); x.fillStyle = '#1a1a18'; x.font = '600 40px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+      x.fillText(`מגרש ${l.lot} · ${l.below} קומות מרתף`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(30, 5.6, 1);
+      sp.position.set(r.reduce((s2, p) => s2+p[0], 0)/r.length, 6, -r.reduce((s2, p) => s2+p[1], 0)/r.length); add('under', sp); });
+  }
+  const FLAT = ['asphalt','brt','ramp','paving','bike','play','deck','green','firemark','rnParcel'];
+  function setUnder(on){ underOn = !!on; if(underOn && !underBuilt) buildUnder();
+    FLAT.forEach(k => groups[k] && groups[k].traverse(x => { const m = x.userData.mat; if(!x.isMesh || !m) return; if(m.userData.op == null){ m.userData.op = m.opacity; m.userData.tr = m.transparent; }
+      m.transparent = underOn || m.userData.tr; m.opacity = underOn ? .16 : m.userData.op; m.depthWrite = !underOn; m.needsUpdate = true; }));
+    setMap(mapMode); applyActive(); }
   function setRenewal(rn){
+    rnData = rn;
     const loc = c => { const [E, N] = wgs2itm(c[1], c[0]); return [E-model.e0, N-model.n0]; }, fl = r => r.flatMap(p => [Math.round(p[0]*10), Math.round(p[1]*10)]);
     const lots = Object.fromEntries((rn.lots||[]).map(l => [l.lot, l]));
     add('rnParcel', new T.Mesh(flatGeo(T, rn.parcels.map(p => [(ZONES[p.cat]||ZONES.road)[1], fl(p.c.map(loc))]), .02, 1), M.std({ vertexColors:true, transparent:true, opacity:.92 })));
@@ -355,7 +434,7 @@ function create(el, model, opts){
   const [bx0, by0, bx1, by1] = model.bbox;
   function view(name){
     const R = Math.max(bx1-bx0, by1-by0);
-    if(name==='top'){ cam.position.set(0, R*(state==='renewal' ? 1.9 : 1.25), 0.01); ctl.target.set(0, 0, 0); }
+    if(name==='top'){ cam.position.set(0, R*1.7, 0.01); ctl.target.set(0, 0, 0); }
     else if(name==='eye'){ // גובה עיניים: עומדים על הריצוף הקרוב למרכז, ומביטים צפונה לאורך המגרש
       const obs = [].concat(O.treeNew||[], O.treeOld||[], O.lamp||[], (O.bench||[]).map(b => [b[0], b[1]]));
       (S.wall||[]).forEach(p => obs.push([p[1][0]/10, p[1][1]/10])); (L.lowwall||[]).forEach(f => { for(let i = 0; i < f.length; i += 6) obs.push([f[i]/10, f[i+1]/10]); });
@@ -364,8 +443,7 @@ function create(el, model, opts){
         let d = 14; for(const o of obs){ const dd = Math.hypot(o[0]-cx, o[1]-cy); if(dd < d) d = dd; } if(d > bs){ bs = d; best = [cx, cy]; } });
       const dl = Math.hypot(best[0], best[1]) || 1;
       cam.position.set(best[0], 1.65, -best[1]); ctl.target.set(best[0] - best[0]/dl*25, 2.2, -best[1] + best[1]/dl*25); }
-    else if(state==='renewal'){ cam.position.set(-R*.95, R*.9, R*1.15); ctl.target.set(20, 45, 0); }   // נפחים גבוהים: מתרחקים
-    else { cam.position.set(-R*.42, R*.5, R*.62); ctl.target.set(8, 0, 0); }
+    else { cam.position.set(-R*.8, R*.72, R*1.0); ctl.target.set(15, 30, 0); }   // אותו מבט בכל המצבים, רחוק מספיק לנפחים הגבוהים
     ctl.update(); draw();
   }
 
@@ -379,8 +457,8 @@ function create(el, model, opts){
   ctl.addEventListener('change', draw);
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
-  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, view, resize, center, groups,
-    setMap(on){ if(on) loadMap(); mapG.visible = on; draw(); },
+  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setUnder, view, resize, center, groups,
+    setMap,
     dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 
