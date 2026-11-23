@@ -308,7 +308,9 @@ function secParties(p){
 }
 function secProperty(p, t5, planningData){
   const m = p.meta || {}, lots = t5 ? t5lots(t5) : [];
-  return kv([['גוש', m.block], ['חלקות', m.lot], ['גוש וחלקה', p.parcel], ['תב"ע חלה', m.zoningPlan || p.change], ['תב"ע מפורטת', m.zoningDetailed], ['ייעוד', m.designation || (lots.length ? [...new Set(t5.rows.map(r => r.zone).filter(Boolean))].join('; ') + ' (מטבלה 5)' : '')], ['שטח', m.area ? m.area + ' מ"ר' : '']])
+  return kv([['גוש', m.block], ['חלקות', m.lot], ['גוש וחלקה', p.parcel], ['תב"ע חלה', m.zoningPlan || p.change], ['תב"ע מפורטת', m.zoningDetailed], ['ייעוד', m.designation || (lots.length ? [...new Set(t5.rows.map(r => r.zone).filter(Boolean))].join('; ') + ' (מטבלה 5)' : '')],
+      ['שטח התוכנית', m.area ? t5num(+String(m.area).replace(/,/g, '') || m.area) + ' מ"ר' : t5 && t5.planArea ? `${t5num(Math.round(t5.planArea * 1000))} מ"ר (${t5.planArea} דונם, הוראות התוכנית סעיף 1.2)` : ''],
+      ['סוג התוכנית', t5 && t5.planType]])
     + (lots.length ? `<div class="op-sub">המגרשים בתוכנית, מטבלה 5 (${lots.length})</div><div class="tbl-wrap"><table class="op-tbl"><thead><tr><th>מגרש</th><th>ייעוד</th><th>גודל</th><th>שימושים</th></tr></thead><tbody>${lots.map(([lot, rs]) => { const r0 = rs.find(([r]) => !r.total_row) || rs[0], size = rs.map(([r]) => r.lotSize).find(v => v != null);
         return `<tr><td>${H(lot)}</td><td>${H(r0[0].zone || '')}</td><td>${size != null ? t5num(size) + ' מ"ר' : '—'}</td><td>${H([...new Set(rs.filter(([r]) => !r.total_row).map(([r]) => r.use))].join(', '))}</td></tr>`; }).join('')}</tbody></table></div>` : '')
     + (planningData || '');
@@ -320,6 +322,62 @@ function secLocation(p){
       ${g ? `<div><b>נ"צ:</b> ${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</div>` : ''}</div>
     <button class="btn btn-sm no-print" onclick="go('map')">במפה</button>`;
 }
+/* ── השלמות ליזם (ענת, 24.11.2026): כל מה שלא עומד, עם ההנחיה, בנוסח מוכן להעתקה ולמייל ── */
+const INFRA_CACHE = {};
+async function infraFindings(p){
+  const set = (window.LAYER_SETS || {})[String(p.tik)]; if(!set || !window.PlanInfra || !window.PlanModel) return [];
+  if(!INFRA_CACHE[p.tik]){ const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = set.renewal ? await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
+    INFRA_CACHE[p.tik] = window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }); }
+  return INFRA_CACHE[p.tik];
+}
+async function completions(p){
+  const t5 = T5C[p.tik], T = p.t5lots && p.t5lots.rows ? p.t5lots : null, G = [], add = (title, items) => { items = items.filter(Boolean); if(items.length) G.push([title, items]); };
+  const n = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isNaN(x) ? null : x; };
+  if(t5){ const lab = k => ((t5.columns || []).find(c => c.key === k) || {}).label || k, it = [];
+    if(!T) it.push('יש למלא בטופס הנתונים את המבוקש בטבלה 5, לכל מגרש ולכל שימוש.');
+    else { const miss = {};
+      t5.rows.forEach(r => { const s = T.rows[t5id(r)]; if(!s) return;
+        (t5.columns || []).forEach(c => { const a = r[c.key], v = s.proposed[c.key];
+          if(a != null && n(v) != null && n(v) > a + 1e-9) it.push(`מגרש ${r.lot}, ${t5rowLabel(r)}: ${lab(c.key)} מבוקש ${v}, והמותר ${t5num(a)}. יש להתאים לטבלה 5, או לנמק ולבקש הקלה.`);
+          if((a != null || (r.notes || {})[c.key]) && (v == null || v === '')){ const sig = T5_LOTKEYS.includes(c.key) ? c.key + ':' + t5allowed(t5, r, c.key, true) : t5id(r) + c.key;
+            (miss[r.lot] = miss[r.lot] || new Set()).add(sig); } }); });            // שדה של המגרש נספר פעם אחת, כמו בטופס
+      const ls = Object.keys(miss).sort((a, b) => a - b), tot = ls.reduce((a, l) => a + miss[l].size, 0);
+      if(ls.length) it.push(`חסרים ${tot} ערכים מבוקשים בטבלה 5, ב-${ls.length === 1 ? 'מגרש ' + ls[0] : ls.length + ' מגרשים: ' + ls.join(', ')}. יש להשלים בטופס הנתונים.`); }
+    add('טבלה 5', it); }
+  const hasPdf = (p.documents || []).some(d => d && d.layers) || !!(window.LAYER_SETS || {})[String(p.tik)];
+  add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
+  add('הנחיות מרחביות', checksSpatial(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub || 'אינה עומדת בהנחיה'}.`));
+  add('דרישות התב"ע והעירייה', checksMuni(p).filter(x => x.st === 'no').map(x => `${x.t}: ${x.note || x.sub}.`));
+  add('דרישות ההגשה לתוכנית הפיתוח', checksSubmission(p).filter(x => x.st === 'no').map(x => `${x.sub}, ${x.t}: ${x.note}`));
+  add('הנחיות מבחינת התוכנית', ((p.layerReview || {}).custom || []).filter(c => !c.d && String(c.n || '').trim()).map(c => `${c.t ? c.t + ': ' : ''}${c.n}`));
+  try{ add('תיאום תשתיות', (await infraFindings(p)).filter(f => f.ok === false && f.guide).map(f => f.guide)); }catch(e){}
+  const seen = new Set(); G.forEach(g => { g[1] = g[1].filter(x => { const k = x.replace(/[\s.,:;"'()\-]+/g, ''); if(seen.has(k)) return false; seen.add(k); return true; }); });
+  return G.filter(g => g[1].length);
+}
+function nextForum(p){
+  const t = today(), F = [['פורום אדריכל העיר', p.forumArchitect], ['פורום יועצים', p.forumConsultants], ['הכנה לוועדה', (p.datesPlan || {}).committeePrep], ['ועדה', p.committeeDate]];
+  return F.map(([n, d]) => [n, String(d || '').slice(0, 10)]).filter(([, d]) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= t).sort((a, b) => a[1] < b[1] ? -1 : 1)[0];
+}
+function completionsText(p, G){
+  const f = nextForum(p), heb = 'אבגדהוזחט'; let i = 0;
+  const L = [`השלמות נדרשות: תוכנית בינוי ${p.planNum || ''}, תיק ${p.tik}`, `${fmtD(today())}${f ? `. לקראת ${f[0]}, ${fmtD(f[1])}` : ''}.`, ''];
+  if(!G.length) L.push('אין השלמות פתוחות.');
+  G.forEach(([t, items], k) => { L.push(`${heb[k]}. ${t}`); items.forEach(x => L.push(`${++i}. ${x}`)); L.push(''); });
+  L.push('נא להגיש את ההשלמות, או נימוק לכל סעיף שלא יושלם, לפני המועד.', '', 'ענת שטיבלמן', 'אדריכלית העיר, עיריית אשדוד');
+  return L.join('\n');
+}
+async function fillTodo(p){
+  const el = document.getElementById('opTodo'); if(!el) return;
+  const G = await completions(p), total = G.reduce((a, g) => a + g[1].length, 0);
+  el.innerHTML = `<div class="ck-sum"><b>${total === 1 ? 'השלמה אחת' : total + ' השלמות'}</b> ליזם, מוכן לשליחה${total ? `<span class="no-print" style="margin-inline-start:auto;display:flex;gap:4px"><button class="btn btn-sm" data-todo="copy">העתקה</button><button class="btn btn-sm" data-todo="mail">טיוטת מייל</button></span>` : ''}</div>
+    ${G.map(([t, items]) => `<div class="op-sub">${H(t)}</div><ol class="op-todo">${items.map(x => `<li>${H(x)}</li>`).join('')}</ol>`).join('')}`;
+  el.onclick = e => { const b = e.target.closest('[data-todo]'); if(!b) return; const txt = completionsText(p, G);
+    if(b.dataset.todo === 'copy'){ try{ navigator.clipboard.writeText(txt).then(() => say('רשימת ההשלמות הועתקה'), () => prompt('העתקה', txt)); }catch(err){ prompt('העתקה', txt); } return; }
+    const to = people(p).filter(x => /יזם|אדריכל|מנהל/.test(x.role) && /@/.test(x.email)).map(x => x.email), uniq = [...new Set(to)];
+    window.location.href = `mailto:${uniq.join(',')}?subject=${encodeURIComponent(`השלמות נדרשות: תוכנית בינוי ${p.planNum || ''}`)}&body=${encodeURIComponent(txt)}`;
+    try{ logAction(p, 'mail', 'נפתחה טיוטה: השלמות ליזם'); savePlans(); }catch(err){} };
+}
+
 /* ה: כל הדרישות, גם אלה שלא נבדקו. לא עומד ראשון */
 const ST = { no:['לא עומד', 0], yes:['עומד', 1], na:['לא רלוונטי', 2], open:['לא נבדק', 3] };
 function checkList(items, link){
@@ -352,8 +410,7 @@ function secChecks(p){
 async function fillAsync(p){
   try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
   try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || !window.PlanInfra || !window.PlanModel) return;
-    const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = set.renewal ? await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
-    const fs = window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn });
+    const fs = await infraFindings(p);
     el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)
       + (set.auto === 'approx' ? '<p class="muted">המודל במיקום משוער. הכמויות מדויקות.</p>' : ''); }catch(e){ console.warn('opinion infra', e); }
 }
@@ -374,11 +431,11 @@ function rebuildOpinion(p){
     section('הסברי היזם לפערים', 'g-e', body('הסברי היזם לפערים')),
     section('חוות דעת הגורמים והיועצים', 'g-e', body('חוות דעת הגורמים והיועצים')),
     section('החלטות הפורומים', 'g-e', body('החלטות הפורומים')),
-    section('תנאים והשלמות נדרשות', 'g-f', body('תנאים והשלמות נדרשות')),
+    section('תנאים והשלמות נדרשות', 'g-f', '<div id="opTodo">…</div>' + body('תנאים והשלמות נדרשות')),
     section('המלצה מקצועית מסכמת', 'g-f', body('המלצה מקצועית מסכמת'))
   ].join('');
   try{ if(typeof autoGrowAll === 'function') setTimeout(autoGrowAll, 30); }catch(e){}
-  fillAsync(p);
+  fillAsync(p); fillTodo(p);
 }
 function hookOpinion(){
   const _r = window.renderOpinionTab; if(typeof _r !== 'function') return;
@@ -433,6 +490,7 @@ details.op-fold > .op-sec-b{padding:2px 4px 14px 4px}
 .t5lotc{margin:4px 0;box-shadow:inset 0 -1px 0 var(--line,#e4e2dc)}.t5lotc summary{cursor:pointer;padding:5px 0;font-weight:600;font-size:13.5px}.t5lotc summary small{font-weight:400;color:var(--ink-mute);margin-inline-start:6px}
 .t5bad{color:#c8202a !important;font-weight:600}.t5ct th{width:150px;font-size:12.5px;text-align:start;vertical-align:top}.t5ct td{display:flex;flex-wrap:wrap;gap:4px 12px}
 .t5c{font-size:12.5px;white-space:nowrap}.t5c i{font-style:normal;color:var(--ink-mute)}.t5c.over{color:#c8202a;font-weight:600}.t5c sup{color:var(--ink-mute);cursor:help}
+.op-todo{margin:2px 0 8px;padding-inline-start:22px;font-size:13px;line-height:1.55}.op-todo li{margin:2px 0}
 .op-title small{font-weight:400;font-size:13px;color:var(--ink-mute)}
 .ck-sum{font-size:13px;margin:2px 0 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ck-sum .btn{margin-inline-start:auto}
 .ck-list{list-style:none;margin:0;padding:0}.ck-list li{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:4px 0;box-shadow:inset 0 -1px 0 var(--line,#eeede8);font-size:13px;line-height:1.45}
