@@ -2919,6 +2919,10 @@ const RAW_DATA = [
 [1911,"ב","תב/1911","","אד' גיל מיניסטר","מגרש מתחם הרב מימון","תוכנית בינוי","2026-06-10","ענת שטיבלמן","בטיפול",2026,"יוני"],
 [1912,"ב","תב/1912","תמל 2022","אד' גיל מיניסטר","מגרש מתחם המעפילים","תוכנית בינוי","2026-06-11","ענת שטיבלמן","בטיפול",2026,"יוני"],
 [1913,"אחד העם","תב/1913","תמל 2023","אד' גיל מיניסטר","מגרש ציר הרצל אחד העם","תוכנית בינוי","2026-06-12","ענת שטיבלמן","בטיפול",2026,"יוני"],
+// נוספו 23.11.2026 מהרשימה ב"מרחב מדבר" (ענת). שדה בלי מקור נשאר ריק, ומסומן באדום בכרטיס
+[1813,"","תב/1813","","","","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1728,"","תב/1728","","","","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
+[1832,"טו'","תב/1832","44/101/02/3","אד' יואל פייגין","מגרש 6","תוכנית בינוי","","ענת שטיבלמן","טרם עודכן",null,""],
 ];
 
 let plans = RAW_DATA.map((r,i) => {
@@ -3001,8 +3005,8 @@ function savePlans() {
 }
 
 /* ══════════ שמירה אונליין — Supabase ══════════ */
-const SB_URL = 'https://slcpldoaaagkoozpbjsk.supabase.co';
-const SB_KEY = 'sb_publishable_WFWOidX2n_-6CVZb3ZoR3g_gDRtYI6O';
+const SB_URL = 'https://cbhexpybdggwzyakgagd.supabase.co';
+const SB_KEY = 'sb_publishable_1KSwG6rqTzBSHmI2RxX6Fw_EEcuKzk3';
 const SB_TABLE = 'ashdod_plans';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
 let _cloudTimer = null, _cloudBusy = false, _cloudDirty = false;
@@ -13003,6 +13007,6 @@ function aiSyncContext() {
 <script src="plans-opinion.js?v=1123g"></script>
 <script src="plans-view.js?v=1123g"></script>
 <script src="plans-infra.js?v=1123j"></script>
-<script src="plans-import.js?v=1123i"></script>
+<script src="plans-import.js?v=1123k"></script>
 </body>
 </html>

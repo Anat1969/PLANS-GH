@@ -11,7 +11,7 @@
 
 ## שלב א' — להריץ עכשיו (5 דקות, לא שובר כלום)
 
-1. היכנסו ל-[Supabase Dashboard](https://supabase.com/dashboard) → הפרויקט `slcpldoaaagkoozpbjsk`.
+1. היכנסו ל-[Supabase Dashboard](https://supabase.com/dashboard) → הפרויקט `cbhexpybdggwzyakgagd`.
 2. **SQL Editor** → New query → הדביקו את כל התוכן של `migrations/00_phase_a_baseline.sql` → **Run**.
 3. מה קיבלתם:
    - אילוצי הייחודיות שהסנכרון של האפליקציה מניח (מונע כשלי upsert עתידיים).
