@@ -136,6 +136,24 @@ function analyze(ctx){
 function forDisc(d){ return d === 'all' ? INFRA.map(x => x.id) : INFRA.filter(x => x.disc === d).map(x => x.id); }
 function synergiesFor(d){ const ids = new Set(forDisc(d)); return SYNERGY.filter(s => ids.has(s.a) || ids.has(s.b)); }
 
+/* ── מבט עירוני: כל התוכניות שנותחו יחד (ענת, 23.11.2026) ──
+   results: [{ tik, findings, marks }]. רק תוכנית עם מודל נכנסת לכאן: בלי מדידה אין ציון.
+   לכל רתימה, בכל תוכנית: סימון ידני (yes, no, na) גובר. אחרת ממצא עם הרתימה: ok:false = חסר, ok:true = קיים. אחרת: לא נבדק.
+   הנחיה עירונית: חסרה ברוב התוכניות שנבדקו, ובלפחות 2. תוכנית אחת היא לא דפוס. */
+const CITY_MIN = 2;
+function cityRollup(results){
+  const syn = SYNERGY.map(s => { const c = { id:s.id, name:s.name, how:s.how, gain:s.gain, no:[], yes:[], na:[], open:[] };
+    results.forEach(r => { const m = (r.marks || {})[s.id], fs = (r.findings || []).filter(f => f.syn === s.id);
+      const st = m === 'yes' || m === 'no' || m === 'na' ? m : fs.some(f => f.ok === false) ? 'no' : fs.some(f => f.ok === true) ? 'yes' : 'open';
+      c[st].push(String(r.tik)); });
+    const checked = c.no.length + c.yes.length;
+    c.city = c.no.length >= CITY_MIN && c.no.length > checked / 2;
+    return c; }).sort((x, y) => y.no.length - x.no.length || y.yes.length - x.yes.length);
+  const q = Object.fromEntries(Q.map(k => [k, 0]));
+  results.forEach(r => (r.findings || []).forEach(f => { if(f.ok === false) (f.hits || []).forEach(h => { if(h in q) q[h]++; }); }));
+  return { n:results.length, syn, q };
+}
+
 /* ── הדף #infra ── */
 const H = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const COL = id => { const c = { arch:'#8a8478', traffic:'#48484c', walk:'#c9b96a', land:'#5c9a4a', water:'#1e73d8', power:'#e0a800', waste:'#2f7d5a', fire:'#c8202a' }; return c[(INF[id]||{}).disc] || '#1a1a18'; };
@@ -146,7 +164,8 @@ function render(){
   const sel = SYNERGY.find(s => s.id === pick) || SYNERGY[0];
   el.innerHTML = `
   <h1 class="if-title">תשתית אחת נרתמת לטובת אחרת</h1>
-  <p class="if-lead">לכל תשתית: מה היא צריכה, מה מיוחד בה ומה היא נותנת. בכל ריבוע צבעוני יש רתימה: שתי תשתיות שביחד נותנות ערך שלישי.</p>
+  <p class="if-lead">בכל ריבוע צבעוני: שתי תשתיות שביחד נותנות ערך שלישי.</p>
+  <details class="if-city" id="ifCity"${CITY.open ? ' open' : ''}><summary>בכל התוכניות <b>${CITY.data ? CITY.data.roll.n + ' נותחו' : ''}</b></summary><div id="ifCityBody">${CITY.data ? cityHTML(CITY.data) : '<p class="if-src">טוען…</p>'}</div></details>
   <div class="if-grid">
     <div class="if-mx-wrap"><table class="if-mx" aria-label="מטריצת רתימות"><thead><tr><th></th>${INFRA.map(x => `<th><span style="--c:${COL(x.id)}">${H(x.name)}</span></th>`).join('')}</tr></thead><tbody>
       ${INFRA.map((r, i) => `<tr><th style="--c:${COL(r.id)}">${H(r.name)}</th>${INFRA.map((c, j) => { if(i === j) return '<td class="if-self"></td>'; const s = syn(r.id, c.id);
@@ -164,8 +183,53 @@ function render(){
   <div class="if-cards">${INFRA.map(x => `<details class="if-card" style="--c:${COL(x.id)}"><summary><i></i>${H(x.name)}<b>${SYNERGY.filter(s => s.a === x.id || s.b === x.id).length} רתימות</b></summary>
     <dl><dt>מה היא צריכה</dt><dd>${H(x.need)}</dd><dt>מה מיוחד בה</dt><dd>${H(x.special)}</dd><dt>מה היא נותנת</dt><dd>${H(x.gives)}</dd>
     <dt>כללי אצבע</dt><dd><ol>${x.rules.map(r => `<li>${H(r[0])} <small>${H(r[1])}</small></li>`).join('')}</ol></dd></dl></details>`).join('')}</div>`;
-  el.onclick = e => { const b = e.target.closest('[data-syn]'); if(b){ pick = b.dataset.syn; render(); } };
+  el.onclick = e => { const b = e.target.closest('[data-syn]'); if(b){ pick = b.dataset.syn; render(); return; }
+    const o = e.target.closest('[data-open]'); if(o){ try{ openProject(+o.dataset.open); }catch(err){} return; }
+    if(e.target.closest('[data-citycopy]')) copyCity(); };
+  const d = document.getElementById('ifCity');
+  d.ontoggle = () => { CITY.open = d.open; if(d.open && !CITY.data) cityScan().then(x => { CITY.data = x; render(); }).catch(err => { console.warn('infra city', err); }); };
+  if(CITY.open && !CITY.data) d.ontoggle();
 }
+/* ── המבט העירוני בדף ── */
+const CITY = { open:false, data:null };
+const plansAll = () => (typeof livePlans === 'function' ? livePlans() : []).filter(p => !/^(1111|2222)$/.test(String(p.tik)));
+const tag = p => `<button class="if-tik" data-open="${p.id}" title="${H([p.district, p.location].filter(Boolean).join(', '))}">${H(p.planNum || p.tik)}</button>`;
+async function cityScan(){
+  const sets = window.LAYER_SETS || {}, PM = window.PlanModel, all = plansAll();
+  const hasPlanDoc = p => { try{ return typeof window.planMaterials === 'function' && window.planMaterials(p).some(x => x.cat === 'plan'); }catch(e){ return false; } };
+  const done = all.filter(p => sets[String(p.tik)]), rest = all.filter(p => !sets[String(p.tik)]);
+  const ready = rest.filter(hasPlanDoc), none = rest.filter(p => !ready.includes(p));
+  const results = [];
+  for(const p of done){ const dir = sets[String(p.tik)].dir;
+    try{ const m = await fetch(dir + '/model.json').then(r => r.json()); const rn = sets[String(p.tik)].renewal ? await fetch(dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
+      results.push({ tik:p.tik, findings:analyze({ meas:PM.measure(m), model:m, rn }), marks:(p.layerReview || {}).synergy || {} }); }catch(e){ console.warn('infra city ' + p.tik, e); } }
+  return { done, ready, none, roll:cityRollup(results) };
+}
+function cityHTML(x){
+  const r = x.roll, early = r.n < CITY_MIN, ln = a => a.length ? a.join(', ') : '';
+  const city = r.syn.filter(s => s.city);
+  return `<div class="if-cov">
+      <div><b>${x.done.length}</b> נותחו<span>${x.done.map(tag).join('')}</span></div>
+      <div><b>${x.ready.length}</b> יש תוכנית פיתוח כתמונה או במייל. לניתוח צריך את ה-PDF המקורי מהאדריכל<span>${x.ready.map(tag).join('')}</span></div>
+      <div><b>${x.none.length}</b> אין תוכנית פיתוח במערכת<span>${x.none.map(tag).join('')}</span></div></div>
+    ${early ? `<p class="if-note">נותחה ${r.n === 1 ? 'תוכנית אחת' : 'אף תוכנית'}. הנחיה עירונית נקבעת רק מ-${CITY_MIN} תוכניות ומעלה, כי תוכנית אחת היא לא דפוס.</p>` : ''}
+    <table class="if-ct"><thead><tr><th>רתימה</th><th>חסר</th><th>קיים</th><th>לא נבדק</th></tr></thead><tbody>
+      ${r.syn.map(s => `<tr class="${s.city ? 'on' : ''}"><td>${H(s.name)}${s.city ? '<small>הנחיה עירונית</small>' : s.no.length ? '<small>מוקדם לקבוע</small>' : ''}</td><td title="${H(ln(s.no))}">${s.no.length || ''}</td><td title="${H(ln(s.yes))}">${s.yes.length || ''}</td><td>${s.open.length + s.na.length || ''}</td></tr>`).join('')}</tbody></table>
+    <div class="if-q">${Q.map(k => `<span><b>${r.q[k]}</b> ${k}</span>`).join('')}<em>ממצאים שפוגעים בכל מדד</em></div>
+    <button class="if-copy" data-citycopy>העתקת ההנחיה העירונית${city.length ? ` (${city.length})` : ''}</button>`;
+}
+function cityText(x){
+  const r = x.roll, city = r.syn.filter(s => s.city), L = [];
+  L.push('הנחיה עירונית: תכנון רב תשתיות בתוכניות הבינוי', `נותחו ${r.n} תוכניות.`, '');
+  if(city.length) city.forEach((s, i) => L.push(`${i + 1}. ${s.name}: ${s.how}`, `   מה מרוויחים: ${s.gain}`, `   חסרה ב-${s.no.length} מתוך ${s.no.length + s.yes.length} תוכניות שנבדקו.`));
+  else L.push(`עדיין אין הנחיה עירונית: רתימה נקבעת כהנחיה כשהיא חסרה ברוב התוכניות שנבדקו, ובלפחות ${CITY_MIN}.`);
+  const nm = a => a.map(p => p.planNum || p.tik).join(', ') || 'אין';
+  L.push('', 'לבקש מהאדריכל את ה-PDF המקורי של תוכנית הפיתוח (יש תמונה או מייל): ' + nm(x.ready), 'אין תוכנית פיתוח במערכת: ' + nm(x.none));
+  return L.join('\n');
+}
+function copyCity(){ if(!CITY.data) return; const t = cityText(CITY.data);
+  const done = () => { try{ toast('ההנחיה העירונית הועתקה'); }catch(e){} };
+  try{ navigator.clipboard.writeText(t).then(done, () => { prompt('העתקה', t); }); }catch(e){ prompt('העתקה', t); } }
 const CSS = `
 #infra{max-width:none !important}
 .if-title{font:600 26px var(--sans);margin:0 0 4px}
@@ -198,6 +262,20 @@ const CSS = `
 .if-card summary b{margin-inline-start:auto;font:400 12px var(--sans);color:var(--ink-mute)}
 .if-card dl{margin:0 0 10px}.if-card dt{font:700 11.5px var(--sans);color:var(--ink-mute);margin-top:6px}.if-card dd{margin:1px 0 0;font-size:13.5px;line-height:1.5}
 .if-card ol{margin:2px 0 0;padding-inline-start:18px}.if-card small{color:var(--muted);font-size:11px}
+.if-city{border-top:1px solid var(--line,#ddd);border-bottom:1px solid var(--line,#ddd);margin:0 0 16px;max-width:980px}
+.if-city>summary{cursor:pointer;list-style:none;padding:9px 2px;font:600 15px var(--sans);display:flex;gap:8px}
+.if-city>summary::-webkit-details-marker{display:none}.if-city>summary b{font-weight:400;color:var(--ink-mute)}
+.if-cov{display:grid;gap:6px;margin:4px 0 10px;font-size:13.5px}.if-cov b{font-size:16px;margin-inline-end:4px}
+.if-cov span{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.if-tik{border:0 !important;background:#f1f0ec !important;color:var(--ink) !important;font:400 12px var(--sans) !important;padding:2px 6px !important;border-radius:0 !important;cursor:pointer}
+.if-tik:hover{background:var(--ink) !important;color:#fff !important}
+.if-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 8px}
+.if-ct{border-collapse:collapse;font-size:13px;width:100%;max-width:640px}.if-ct th{font:600 11.5px var(--sans);color:var(--ink-mute);text-align:start;padding:3px 6px}
+.if-ct td{padding:4px 6px;border-top:1px solid #eeede8}.if-ct td:nth-child(n+2),.if-ct th:nth-child(n+2){text-align:center;font-variant-numeric:tabular-nums;width:52px}
+.if-ct td:nth-child(2){color:#c8202a;font-weight:600}.if-ct td small{display:block;font-size:11.5px;color:var(--ink-mute)}
+.if-ct tr.on td{background:#fff3a8}.if-ct tr.on small{color:var(--ink);font-weight:600}
+.if-q{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;margin:10px 0;font-size:13px}.if-q b{font-size:16px}.if-q em{font-style:normal;font-size:12px;color:var(--ink-mute)}
+.if-copy{margin:0 0 12px}
 @media (max-width:900px){.if-grid{grid-template-columns:1fr}}
 `;
 function ensurePage(){
@@ -212,6 +290,6 @@ function boot(){
   const route = () => { if(location.hash === '#infra') window.go('infra', null); };
   window.addEventListener('hashchange', route); setTimeout(route, 400);
 }
-const api = { INFRA, SYNERGY, Q, analyze, forDisc, synergiesFor, INF };
+const api = { INFRA, SYNERGY, Q, analyze, forDisc, synergiesFor, INF, cityRollup, CITY_MIN };
 if(typeof module !== 'undefined' && module.exports) module.exports = api; else { window.PlanInfra = api; boot(); }
 })();

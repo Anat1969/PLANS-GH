@@ -14,5 +14,17 @@ ok(fs.every(f => f.ok !== false || f.guide), 'לכל פער יש הנחיה לי
 ok(fs.every(f => !f.syn || PI.SYNERGY.some(s => s.id === f.syn)), 'כל ממצא מפנה לרתימה קיימת');
 ok(fs.every(f => f.hits.every(h => PI.Q.includes(h))), 'המדדים הם מתוך ארבעה: ' + PI.Q.join(', '));
 ok(fs.some(f => f.disc === 'fire' && f.ok === false && /עמוד תאורה/.test(f.fact)), 'תיק 1913: נמצא עמוד התאורה בתוך רחבת כיבוי');
+// המבט העירוני
+const R = PI.cityRollup, syn = id => r => r.syn.find(s => s.id === id);
+const one = R([{ tik:1913, findings:fs, marks:{} }]);
+ok(one.n === 1 && !one.syn.some(s => s.city) && syn('drain-trees')(one).no.length === 1, 'תוכנית אחת: הרתימה חסרה, אבל "מוקדם לקבוע" ולא הנחיה עירונית');
+const bad = [{ syn:'drain-trees', ok:false, hits:['חסכוני'] }];
+const two = R([{ tik:1, findings:bad }, { tik:2, findings:bad }, { tik:3, findings:[], marks:{ 'drain-trees':'yes' } }]);
+ok(syn('drain-trees')(two).city && syn('drain-trees')(two).no.length === 2 && two.syn[0].id === 'drain-trees', 'חסרה ב-2 מתוך 3: הנחיה עירונית, בראש הרשימה');
+ok(two.q['חסכוני'] === 2, 'ספירת המדדים לפי הממצאים שנפגעו');
+const man = R([{ tik:1, findings:bad, marks:{ 'drain-trees':'yes' } }, { tik:2, findings:bad, marks:{ 'drain-trees':'na' } }]);
+ok(syn('drain-trees')(man).no.length === 0 && !syn('drain-trees')(man).city, 'סימון ידני גובר על הניתוח');
+const empty = R([{ tik:1, findings:[] }]);
+ok(empty.syn.every(s => s.yes.length === 0 && s.open.length === 1), 'תוכנית בלי ממצא לרתימה: "לא נבדק", לא "קיים"');
 if(fail){ console.error(fail + ' בדיקות נכשלו'); process.exit(1); }
 console.log('כל בדיקות התשתיות עברו');
