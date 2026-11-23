@@ -38,6 +38,24 @@ for(const dir of sets){
     ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
     ok(rn.lots.every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
   }
+  const ff = path.join(root, dir, 'floors.json');
+  if(fs.existsSync(ff) && fs.existsSync(rf)){ // קומות מתוכניות האדריכל (tools/extract-floors.py): כל בניין בתוך המגרש שלו, ולא מעל הגובה של התב"ע
+    const fd = JSON.parse(fs.readFileSync(ff, 'utf8')), rn = JSON.parse(fs.readFileSync(rf, 'utf8')), loc = c => { const [E, N] = P.wgs2itm(c[1], c[0]); return [E-m.e0, N-m.n0]; };
+    const inR = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+    const miss = fd.buildings.flatMap(b => b.floors.map(f => f.plan).concat(b.roof ? [b.roof.plan] : [], b.mech ? [b.mech.plan] : [])).filter(id => !fd.plans[id]);
+    ok(!miss.length, dir + ': כל קומה מפנה לתוכנית קיימת (' + fd.buildings.length + ' בניינים, ' + Object.keys(fd.plans).length + ' תוכניות)');
+    const out = [], high = [];
+    fd.buildings.forEach(b => { const lot = rn.parcels.find(p => p.lot === b.fit.lot), r = lot && lot.c.map(loc), L = rn.lots.find(l => l.lot === b.fit.lot);
+      const e = fd.plans[b.floors[0].plan].env; let n = 0, inside = 0;          // עד 1.5 מ' מעבר לקו המגרש: בליטה או זיז, לא שגיאת עיגון
+      const dB = (x, y) => Math.min(...r.map((a, i) => { const c = r[(i+1)%r.length], vx = c[0]-a[0], vy = c[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((x-a[0])*vx+(y-a[1])*vy)/l)); return Math.hypot(x-a[0]-t*vx, y-a[1]-t*vy); }));
+      for(let i = 0; i < e.length; i += 2){ n++; if(r && (inR(e[i]/10, e[i+1]/10, r) || dB(e[i]/10, e[i+1]/10) < 1.5)) inside++; }
+      if(inside/n < .9) out.push(b.id + ' ' + Math.round(inside/n*100) + '%');
+      if(L && L.height && b.top > L.height) high.push(b.id + ' ' + b.top + '>' + L.height); });
+    ok(!out.length, dir + ': כל בניין יושב בתוך המגרש שלו בתב"ע' + (out.length ? ' (חורג: ' + out.join(', ') + ')' : ''));
+    ok(!high.length, dir + ': אף בניין לא גבוה מהגובה המרבי בתב"ע' + (high.length ? ' (' + high.join(', ') + ')' : ''));
+    ok(fd.buildings.filter(b => b.fit.median != null).every(b => b.fit.median < 0.6), dir + ': עיגון הקומות לקווי המגרש (סטייה חציונית ' + fd.buildings.filter(b => b.fit.median != null).map(b => b.id + ' ' + b.fit.median).join(', ') + " מ')");
+    ok(fs.statSync(ff).size < 1.5e6, dir + ': floors.json ' + (fs.statSync(ff).size/1e3).toFixed(0) + 'KB');
+  }
   const big = fs.statSync(path.join(root, dir, 'model.json')).size + man.layers.reduce((s, l) => s + fs.statSync(path.join(root, dir, l.file)).size, 0);
   ok(big < 7e6, dir + ': משקל ' + (big/1e6).toFixed(1) + 'MB');
 }

@@ -116,7 +116,10 @@ function facts(disc){
   }
 }
 const rich = s => H(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark class="ly-warn">$1</mark>');
-function kindMeasure(k){ const m = S.meas; if(m.count[k]!=null && m.count[k] > 0) return N(m.count[k]); if(k==='mass') return S.floors ? S.floors+' קומות' : 'כבוי'; if(k==='facade') return S.fac ? 'מוצג' : 'כבוי'; if(k==='under') return S.under ? 'מוצג' : 'כבוי';
+/** חתך קומה: הקומה הגבוהה מכל הבניינים, ושם קצר למצב */
+function flTop(){ return S.fl ? Math.max(...S.fl.buildings.map(b => b.floors.length)) : 0; }
+function cutLabel(){ return S.cut ? `קומה ${S.cut}` : 'כל הבניין'; }
+function kindMeasure(k){ const m = S.meas; if(m.count[k]!=null && m.count[k] > 0) return N(m.count[k]); if(k==='mass') return S.floors ? S.floors+' קומות' : 'כבוי'; if(k==='facade') return !S.fac ? 'כבוי' : S.fl ? S.fl.buildings.length+' בניינים, '+S.fl.buildings.reduce((a, b) => a + b.floors.length, 0)+' קומות' : 'מוצג'; if(k==='under') return S.under ? 'מוצג' : 'כבוי';
   if(m.area[k]) return N(m.area[k])+' מ"ר'; if(m.len[k]) return N(m.len[k])+' מ\''; return ''; }
 
 /* ── שלד ── */
@@ -141,6 +144,7 @@ async function open(tik){
     body().innerHTML = '<p class="ly-empty">טוען את המודל…</p>';
     try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
       S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
+      S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.state = S.rn ? 'exist' : 'design'; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
   }
@@ -190,8 +194,9 @@ function drawTools(){
         <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
         ${tg('play', !!S.play, S.play ? 'stop' : 'play', S.play ? 'עצירה' : 'הנעת השמש', 'מהזריחה עד השקיעה')}</span>
       <span class="ly-grp">${tg('wind', S.wind, 'wind', 'רוח', 'כיוון לפי העונה. הערכה כללית')}
-        ${design && S.rn ? tg('fac', S.fac, 'facade', 'חזיתות', 'מגדלים לפי הקומות של התב"ע. להמחשה') + tg('env', S.env, 'env', 'מעטפת התב"ע', 'המותר מעל המוצע') : ''}
+        ${design && S.rn ? tg('fac', S.fac, 'facade', 'חזיתות וקומות', S.fl ? 'כל קומה מתוכניות האדריכל. גובה הקומות: הנחה' : 'מגדלים לפי הקומות של התב"ע. להמחשה') + tg('env', S.env, 'env', 'מעטפת התב"ע', 'המותר מעל המוצע') : ''}
         ${S.rn && S.state!=='exist' ? tg('under', S.under, 'under', 'תת־קרקע', 'קומות המרתף והחניון') : ''}</span>
+      ${design && S.fac && S.fl ? `<span class="ly-grp" title="חתך: הקומות שמעל מוסתרות, והקירות של הקומה מוצגים כמו בתוכנית"><b>חתך</b><input type="range" id="lyCut" min="0" max="${flTop()}" value="${S.cut||0}" aria-label="חתך קומה"><output id="lyCutOut">${cutLabel()}</output></span>` : ''}
       ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
       <span class="ly-mut" id="lySun"></span>`
     : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
@@ -210,7 +215,7 @@ function playSun(on){ if(S.play){ clearInterval(S.play); S.play = null; }
 function loadStreets(){ if(S.fc || S._fcLoading) return; S._fcLoading = true;
   fetch('geo/ashdod-streets.geojson').then(r => r.json()).then(fc => { S.fc = fc; applyApi(); }).catch(() => { S._fcLoading = false; }); }
 function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setMap(S.map && !S.streets); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
-  S.api.setFacade(S.fac && S.state==='design' && !!S.rn); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
+  S.api.setFacade(S.fac && S.state==='design' && !!S.rn); if(S.fl) S.api.setCut(S.fac ? S.cut : 0); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
 async function setMode(mode){
   S.mode = mode; const view = document.getElementById('lyView'); if(!view) return;
   if(S.api){ S.api.dispose(); S.api = null; }
@@ -219,7 +224,7 @@ async function setMode(mode){
     try{ await PM().loadThree();
       S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onMapError: () => { S.streets = true; applyApi(); drawTools(); sunNow(); },   // המפה לא נטענה: עוברים לרחובות העירייה שבאפליקציה
         onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
-      if(S.rn) S.api.setRenewal(S.rn); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
+      if(S.rn) S.api.setRenewal(S.rn); if(S.fl) S.api.setBuildings(S.fl); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
     view.innerHTML = '<div class="ly-world" id="lyWorld">' + S.man.layers.map(l => `<div class="ly-sheet" data-id="${l.id}"><img src="${SETS[S.tik].dir}/${l.file}" alt="${H(l.name)}" draggable="false" decoding="async"><span class="ly-tag">${H(l.name)}</span></div>`).join('') + '</div>';
@@ -422,6 +427,7 @@ function bind(){
   el.oninput = e => { const t = e.target;
     if(t.matches('textarea')) grow(t);
     else if(t.id==='lyHour'){ playSun(false); setHour(+t.value); }
+    else if(t.id==='lyCut'){ S.cut = +t.value; document.getElementById('lyCutOut').textContent = cutLabel(); if(S.api) S.api.setCut(S.cut); }
     else if(t.id==='lyFloors'){ S.floors = +t.value; document.getElementById('lyFloorsOut').textContent = S.floors || 'בלי'; if(S.api){ S.api.setFloors(S.floors); S.api.setActive(DISC[S.d].layers); } }
     else if(t.id==='lyGap'){ S.gap = +t.value; drawSheets(); } };
   el.onkeydown = e => { if(e.key==='Enter' && e.target.id==='lyNew'){ e.preventDefault(); el.querySelector('[data-act="add"]').click(); } };
