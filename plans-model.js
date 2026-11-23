@@ -215,7 +215,29 @@ function create(el, model, opts){
         const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), fog:false })); sp.scale.set(44, 6.9, 1); sp.position.set(best[name].mid[0], 9, -best[name].mid[1]); streetG.add(sp); } }
     updGround();
   }
-  function updGround(){ streetG.visible = streetsOn && !underOn; ground.visible = !underOn; draw(); }
+  /* מפת רקע אפורה: Esri World Topo Map, בלי מפתח. כל אריח מומר לגווני אפור, כדי שהצבע יישאר לתוכנית עצמה */
+  const mapG = new T.Group(); mapG.visible = false; scene.add(mapG); let mapBuilt = false, mapOn = false, mapFail = 0;
+  function loadMap(){
+    mapBuilt = true; const z = 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 300;
+    const sw = itm2wgs(model.e0+x0-pad, model.n0+y0-pad), ne = itm2wgs(model.e0+x1+pad, model.n0+y1+pad);
+    const tx = lon => Math.floor((lon+180)/360*n), ty = lat => Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
+    const lonOf = x => x/n*360-180, latOf = y => Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI;
+    const loc = (lat, lon) => { const [E, N] = wgs2itm(lat, lon); return [E-model.e0, N-model.n0]; };
+    for(let X = tx(sw[1]); X <= tx(ne[1]); X++) for(let Y = ty(ne[0]); Y <= ty(sw[0]); Y++){
+      const a = loc(latOf(Y), lonOf(X)), b = loc(latOf(Y), lonOf(X+1)), c = loc(latOf(Y+1), lonOf(X+1)), d = loc(latOf(Y+1), lonOf(X));
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([a[0],0,-a[1], d[0],0,-d[1], c[0],0,-c[1], a[0],0,-a[1], c[0],0,-c[1], b[0],0,-b[1]], 3));
+      g.setAttribute('uv', new T.Float32BufferAttribute([0,1, 0,0, 1,0, 0,1, 1,0, 1,1], 2));
+      const mat = new T.MeshBasicMaterial({ color:'#ffffff', side:T.DoubleSide, transparent:true, opacity:0, depthWrite:false }), mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mesh.renderOrder = -1; mapG.add(mesh);
+      const im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = () => { const cv = document.createElement('canvas'); cv.width = im.naturalWidth || 256; cv.height = im.naturalHeight || 256; const x = cv.getContext('2d');
+        if('filter' in x) x.filter = 'grayscale(1)'; x.drawImage(im, 0, 0);
+        const t = new T.CanvasTexture(cv); t.encoding = T.sRGBEncoding; t.anisotropy = 8; mat.map = t; mat.opacity = 1; mat.needsUpdate = true; draw(); };
+      im.onerror = () => { mapFail++; if(mapFail === 3 && opts && opts.onMapError) opts.onMapError(); };
+      im.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${Y}/${X}`;
+    }
+  }
+  function setMap(on){ mapOn = !!on; if(mapOn && !mapBuilt) loadMap(); updGround(); }
+  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; draw(); }
 
   // משטחים
   const S = model.surf, surf = (kind, y, mat, tint) => { if(S[kind]) add(kind, new T.Mesh(flatGeo(T, S[kind], y, tint||0), mat)); };
@@ -457,7 +479,7 @@ function create(el, model, opts){
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
   return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setUnder, view, resize, center, groups,
-    setStreets,
+    setStreets, setMap,
     dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 

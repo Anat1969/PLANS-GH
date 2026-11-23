@@ -687,9 +687,9 @@ function patchMapPlus(){
     _init();
     try{
       // בסיס עם רחובות
-      gisMap.eachLayer(l => { if(l._url && /light_nolabels|light_only_labels/.test(l._url)) gisMap.removeLayer(l); });
-      const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom:20, attribution:'© OpenStreetMap © CARTO' });
-      const labels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', { maxZoom:20, pane:'shadowPane' });
+      gisMap.eachLayer(l => { if(l._url && /World_Topo_Map|light_nolabels|light_only_labels/.test(l._url)) gisMap.removeLayer(l); });
+      const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom:20, maxNativeZoom:19, attribution:'Esri, © OpenStreetMap', className:'map-gray' });
+      const labels = L.layerGroup();   // שמות הרחובות כבר במפת הבסיס
       const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' });
       base.addTo(gisMap).bringToBack(); labels.addTo(gisMap); gisLayers.roads = labels;
       const roadsName = document.querySelector('.layer-toggle[data-layer=roads]'); if(roadsName){ roadsName.classList.add('on'); const nm = roadsName.parentNode.querySelector('.layer-name'); if(nm) nm.textContent = 'שמות רחובות'; }

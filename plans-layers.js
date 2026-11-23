@@ -54,7 +54,7 @@ const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
 const PM = () => window.PlanModel;
 
-const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, streets:true, fc:null, wind:false, fac:true, under:false, play:null, view:'home',
+const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:true, streets:false, fc:null, wind:false, fac:true, under:false, play:null, view:'home',
   off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null };
 
 /* ── נתונים: נשמרים על התוכנית ── */
@@ -165,13 +165,13 @@ function drawTools(){
       <span class="ly-grp"><b>שמש</b>${seg('season', SEASONS.map(x => x[0]), S.season)}
         <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
         ${tg('play', !!S.play, S.play ? 'עצירה' : 'הנעה', 'תנועת השמש מהזריחה עד השקיעה')}</span>
-      <span class="ly-grp">${tg('streets', S.streets, 'רחובות', 'רחובות אשדוד ושמותיהם, משכבת הרחובות של העירייה')}${tg('wind', S.wind, 'רוח', 'כיוון הרוח לפי העונה. הערכה כללית, לא מדידה')}
+      <span class="ly-grp">${tg('map', S.map, 'מפה', 'מפת רחובות אפורה של אשדוד, עם מבנים ושמות')}${tg('wind', S.wind, 'רוח', 'כיוון הרוח לפי העונה. הערכה כללית, לא מדידה')}
         ${design && S.rn ? tg('fac', S.fac, 'חזיתות', 'מגדלים לפי הקומות של התב"ע. החלונות והמרפסות הם המחשה') + tg('env', S.env, 'מעטפת התב"ע', 'המעטפת המותרת מעל תוכנית הבינוי') : ''}
         ${S.rn && S.state!=='exist' ? tg('under', S.under, 'תת־קרקע', 'קומות המרתף והחניון לפי הוראות התוכנית') : ''}</span>
       ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
       <span class="ly-mut" id="lySun"></span>`
     : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
-  const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = model && S.streets ? 'רחובות: עיריית אשדוד' : '';
+  const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.streets ? 'רחובות: עיריית אשדוד' : S.map ? 'מפה: Esri, © OpenStreetMap' : '';
 }
 function sunNow(){ if(!S.api) return; const x = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), x[1], x[2], S.hour), el = document.getElementById('lySun');
   const w = S.wind ? ` · רוח מ${WIND_BY_SEASON[S.season][1]} (הערכה)` : '';
@@ -185,7 +185,7 @@ function playSun(on){ if(S.play){ clearInterval(S.play); S.play = null; }
 /** שכבת הרחובות העירונית נטענת פעם אחת, רק כשצריך */
 function loadStreets(){ if(S.fc || S._fcLoading) return; S._fcLoading = true;
   fetch('geo/ashdod-streets.geojson').then(r => r.json()).then(fc => { S.fc = fc; applyApi(); }).catch(() => { S._fcLoading = false; }); }
-function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
+function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setMap(S.map && !S.streets); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
   S.api.setFacade(S.fac && S.state==='design' && !!S.rn); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
 async function setMode(mode){
   S.mode = mode; const view = document.getElementById('lyView'); if(!view) return;
@@ -193,7 +193,8 @@ async function setMode(mode){
   view.innerHTML = ''; document.getElementById('lyNorth').style.display = mode==='model' ? '' : 'none';
   if(mode==='model'){
     try{ await PM().loadThree();
-      S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
+      S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onMapError: () => { S.streets = true; applyApi(); drawTools(); sunNow(); },   // המפה לא נטענה: עוברים לרחובות העירייה שבאפליקציה
+        onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
       if(S.rn) S.api.setRenewal(S.rn); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
@@ -356,7 +357,7 @@ function bind(){
     else if(d.env){ S.env = !S.env; applyApi(); drawTools(); sunNow(); }
     else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
     else if(d.under){ S.under = !S.under; applyApi(); drawTools(); sunNow(); }
-    else if(d.streets){ S.streets = !S.streets; applyApi(); drawTools(); sunNow(); }
+    else if(d.map){ S.map = !S.map; S.streets = false; applyApi(); drawTools(); sunNow(); }
     else if(d.play){ playSun(!S.play); drawTools(); sunNow(); }
     else if(d.rights) fillRights();
     else if(d.step) go(S.d + (+d.step));
