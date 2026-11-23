@@ -195,28 +195,27 @@ function create(el, model, opts){
 
   // קרקע ומפה
   const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), M.std({ color:'#cfcabd' })); ground.rotation.x = -Math.PI/2; ground.position.y = -0.06; ground.receiveShadow = true; scene.add(ground);
-  // רקע: מפה גרפית (CARTO) או תצלום לוויין (Esri World Imagery). שניהם אריחים חופשיים, בלי מפתח
-  const MAPS = { map:(z, X, Y) => `https://${'abc'[(X+Y)%3]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${X}/${Y}@2x.png`,
-                 sat:(z, X, Y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${Y}/${X}` };
-  const mapGs = {}; let mapMode = 'none', mapFail = 0;
-  function loadMap(kind){
-    if(mapGs[kind]) return; const G2 = mapGs[kind] = new T.Group(); scene.add(G2);
-    const z = 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 260, loader = new T.TextureLoader(); loader.crossOrigin = 'anonymous';
-    const sw = itm2wgs(model.e0+x0-pad, model.n0+y0-pad), ne = itm2wgs(model.e0+x1+pad, model.n0+y1+pad);
-    const tx = lon => Math.floor((lon+180)/360*n), ty = lat => Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
-    const lonOf = x => x/n*360-180, latOf = y => Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI;
-    const loc = (lat, lon) => { const [E, N] = wgs2itm(lat, lon); return [E-model.e0, N-model.n0]; };
-    for(let X = tx(sw[1]); X <= tx(ne[1]); X++) for(let Y = ty(ne[0]); Y <= ty(sw[0]); Y++){
-      const a = loc(latOf(Y), lonOf(X)), b = loc(latOf(Y), lonOf(X+1)), c = loc(latOf(Y+1), lonOf(X+1)), d = loc(latOf(Y+1), lonOf(X));
-      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([a[0],0,-a[1], d[0],0,-d[1], c[0],0,-c[1], a[0],0,-a[1], c[0],0,-c[1], b[0],0,-b[1]], 3));
-      g.setAttribute('uv', new T.Float32BufferAttribute([0,1, 0,0, 1,0, 0,1, 1,0, 1,1], 2));
-      const mat = new T.MeshBasicMaterial({ color:'#ffffff', side:T.DoubleSide, transparent:true, opacity:0, depthWrite:false }); const mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mesh.renderOrder = -1; G2.add(mesh);
-      loader.load(MAPS[kind](z, X, Y), t => { t.encoding = T.sRGBEncoding; t.anisotropy = 4; mat.map = t; mat.opacity = 1; mat.needsUpdate = true; draw(); }, undefined, () => { mapFail++; if(opts && opts.onMapError) opts.onMapError(kind, mapFail); });
-    }
+  // הקשר עירוני: רחובות אשדוד עם שמות, משכבת הרחובות של העירייה. בלי שירות חיצוני ובלי מפתח
+  const streetG = new T.Group(); streetG.visible = false; scene.add(streetG); let streetsBuilt = false, streetsOn = false;
+  function setStreets(fc, on){
+    streetsOn = !!on;
+    if(fc && !streetsBuilt){ streetsBuilt = true;
+      const loc = c => { const [E, N] = wgs2itm(c[1], c[0]); return [E-model.e0, N-model.n0]; }, R = 520, pos = [], best = {};
+      for(const f of fc.features){ const g = f.geometry, pr = f.properties || {}, w = (pr.hierarchy === 1 ? 15 : pr.hierarchy === 2 ? 10 : 6.5) / 2;
+        for(const l of (g.type === 'LineString' ? [g.coordinates] : g.coordinates)){ const pts = l.map(loc);
+          for(let i = 0; i < pts.length-1; i++){ const a = pts[i], b = pts[i+1]; if(Math.hypot(a[0], a[1]) > R && Math.hypot(b[0], b[1]) > R) continue;
+            const len = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = -(b[1]-a[1])/len*w, ny = (b[0]-a[0])/len*w;
+            pos.push(a[0]+nx, 0, -(a[1]+ny), a[0]-nx, 0, -(a[1]-ny), b[0]-nx, 0, -(b[1]-ny), a[0]+nx, 0, -(a[1]+ny), b[0]-nx, 0, -(b[1]-ny), b[0]+nx, 0, -(b[1]+ny));
+            const mid = [(a[0]+b[0])/2, (a[1]+b[1])/2], d = Math.hypot(mid[0], mid[1]);       // שם אחד לכל רחוב: על המקטע הארוך שקרוב למגרש
+            if(pr.name && d < 330){ const score = len - d*.15; if(!best[pr.name] || score > best[pr.name].score) best[pr.name] = { score, mid }; } } } }
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); const nr = new Float32Array(pos.length); for(let i = 1; i < nr.length; i += 3) nr[i] = 1; g.setAttribute('normal', new T.BufferAttribute(nr, 3));
+      const m = new T.Mesh(g, M.std({ color:'#857f74' })); m.position.y = -0.035; m.receiveShadow = true; streetG.add(m);
+      for(const name in best){ const c = document.createElement('canvas'); c.width = 512; c.height = 80; const x = c.getContext('2d'); x.font = '600 40px sans-serif'; const tw = Math.min(500, x.measureText(name).width + 28);
+        x.fillStyle = 'rgba(255,255,255,.9)'; x.fillRect((512-tw)/2, 8, tw, 64); x.fillStyle = '#1a1a18'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl'; x.fillText(name, 256, 42);
+        const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), fog:false })); sp.scale.set(44, 6.9, 1); sp.position.set(best[name].mid[0], 9, -best[name].mid[1]); streetG.add(sp); } }
+    updGround();
   }
-  function setMap(mode){ mapMode = mode === true ? 'map' : (mode || 'none'); if(MAPS[mapMode]) loadMap(mapMode);
-    for(const k in mapGs) mapGs[k].visible = k === mapMode && !underOn; ground.visible = !underOn; draw(); }
-
+  function updGround(){ streetG.visible = streetsOn && !underOn; ground.visible = !underOn; draw(); }
 
   // משטחים
   const S = model.surf, surf = (kind, y, mat, tint) => { if(S[kind]) add(kind, new T.Mesh(flatGeo(T, S[kind], y, tint||0), mat)); };
@@ -403,7 +402,7 @@ function create(el, model, opts){
   function setUnder(on){ underOn = !!on; if(underOn && !underBuilt) buildUnder();
     FLAT.forEach(k => groups[k] && groups[k].traverse(x => { const m = x.userData.mat; if(!x.isMesh || !m) return; if(m.userData.op == null){ m.userData.op = m.opacity; m.userData.tr = m.transparent; }
       m.transparent = underOn || m.userData.tr; m.opacity = underOn ? .16 : m.userData.op; m.depthWrite = !underOn; m.needsUpdate = true; }));
-    setMap(mapMode); applyActive(); }
+    updGround(); applyActive(); }
   function setRenewal(rn){
     rnData = rn;
     const loc = c => { const [E, N] = wgs2itm(c[1], c[0]); return [E-model.e0, N-model.n0]; }, fl = r => r.flatMap(p => [Math.round(p[0]*10), Math.round(p[1]*10)]);
@@ -458,7 +457,7 @@ function create(el, model, opts){
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
   return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setUnder, view, resize, center, groups,
-    setMap,
+    setStreets,
     dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 
