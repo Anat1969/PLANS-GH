@@ -198,18 +198,20 @@ async function cityScan(){
   const sets = window.LAYER_SETS || {}, PM = window.PlanModel, all = plansAll();
   const hasPlanDoc = p => { try{ return typeof window.planMaterials === 'function' && window.planMaterials(p).some(x => x.cat === 'plan'); }catch(e){ return false; } };
   const done = all.filter(p => sets[String(p.tik)]), rest = all.filter(p => !sets[String(p.tik)]);
-  const ready = rest.filter(hasPlanDoc), none = rest.filter(p => !ready.includes(p));
+  const vec = rest.filter(p => (p.documents || []).some(d => d && d.layers)), rest2 = rest.filter(p => !vec.includes(p));
+  const ready = rest2.filter(hasPlanDoc), none = rest2.filter(p => !ready.includes(p));
   const results = [];
   for(const p of done){ const dir = sets[String(p.tik)].dir;
     try{ const m = await fetch(dir + '/model.json').then(r => r.json()); const rn = sets[String(p.tik)].renewal ? await fetch(dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
       results.push({ tik:p.tik, findings:analyze({ meas:PM.measure(m), model:m, rn }), marks:(p.layerReview || {}).synergy || {} }); }catch(e){ console.warn('infra city ' + p.tik, e); } }
-  return { done, ready, none, roll:cityRollup(results) };
+  return { done, vec, ready, none, roll:cityRollup(results) };
 }
 function cityHTML(x){
   const r = x.roll, early = r.n < CITY_MIN, ln = a => a.length ? a.join(', ') : '';
   const city = r.syn.filter(s => s.city);
   return `<div class="if-cov">
       <div><b>${x.done.length}</b> נותחו<span>${x.done.map(tag).join('')}</span></div>
+      ${x.vec.length ? `<div><b>${x.vec.length}</b> התקבל PDF עם שכבות: מוכן להפקת מודל<span>${x.vec.map(tag).join('')}</span></div>` : ''}
       <div><b>${x.ready.length}</b> יש תוכנית פיתוח כתמונה או במייל. לניתוח צריך את ה-PDF המקורי מהאדריכל<span>${x.ready.map(tag).join('')}</span></div>
       <div><b>${x.none.length}</b> אין תוכנית פיתוח במערכת<span>${x.none.map(tag).join('')}</span></div></div>
     ${early ? `<p class="if-note">נותחה ${r.n === 1 ? 'תוכנית אחת' : 'אף תוכנית'}. הנחיה עירונית נקבעת רק מ-${CITY_MIN} תוכניות ומעלה, כי תוכנית אחת היא לא דפוס.</p>` : ''}
@@ -224,6 +226,7 @@ function cityText(x){
   if(city.length) city.forEach((s, i) => L.push(`${i + 1}. ${s.name}: ${s.how}`, `   מה מרוויחים: ${s.gain}`, `   חסרה ב-${s.no.length} מתוך ${s.no.length + s.yes.length} תוכניות שנבדקו.`));
   else L.push(`עדיין אין הנחיה עירונית: רתימה נקבעת כהנחיה כשהיא חסרה ברוב התוכניות שנבדקו, ובלפחות ${CITY_MIN}.`);
   const nm = a => a.map(p => p.planNum || p.tik).join(', ') || 'אין';
+  if(x.vec.length) L.push('', 'התקבל PDF עם שכבות, מוכן להפקת מודל: ' + nm(x.vec));
   L.push('', 'לבקש מהאדריכל את ה-PDF המקורי של תוכנית הפיתוח (יש תמונה או מייל): ' + nm(x.ready), 'אין תוכנית פיתוח במערכת: ' + nm(x.none));
   return L.join('\n');
 }

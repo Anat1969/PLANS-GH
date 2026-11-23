@@ -82,7 +82,7 @@ button{font:600 15px Arial,sans-serif;border:0;background:#1a1a18;color:#fff;pad
 </style></head><body>
 <h1>טופס נתונים לחוות דעת</h1>
 <p class="sub">תוכנית בינוי ועיצוב <b>${H(p.planNum||'')}</b> · תיק <b>${H(p.tik)}</b> · עיריית אשדוד, אדריכלית העיר · נשלח ${H(today().split('-').reverse().join('.'))}</p>
-<div class="how"><b>איך ממלאים:</b> משלימים את השדות המסומנים בצהוב, לוחצים "שמירת קובץ הנתונים", ושולחים את הקובץ שירד בחזרה לאדריכלית העיר. עמודת "מותר" מציגה את הוראות התוכנית, ואינה לעריכה.</div>
+<div class="how"><b>איך ממלאים:</b> משלימים את השדות המסומנים בצהוב, מצרפים את תוכנית הפיתוח כ-PDF, לוחצים "שמירת קובץ הנתונים", ושולחים את הקובץ שירד בחזרה לאדריכלית העיר. עמודת "מותר" מציגה את הוראות התוכנית, ואינה לעריכה.</div>
 
 <h2>1. זיהוי הפרויקט</h2>
 <div class="grid">${idRows.map(([k, l]) => `<div><label>${l}</label>${inp('id.'+k, p[k])}</div>`).join('')}</div>
@@ -102,18 +102,36 @@ ${lots ? `<h2>4. המבוקש לפי מגרש</h2>
 <div><label>שם האדריכל האחראי</label>${inp('ct.arch.name', (ct.arch||{}).name)}</div><div><label>טלפון</label>${inp('ct.arch.phone', (ct.arch||{}).phone)}</div><div><label>דוא"ל</label>${inp('ct.arch.email', (ct.arch||{}).email)}</div>
 </div>
 
-<h2>${lots ? 6 : 5}. הערות האדריכל</h2>
+<h2>${lots ? 6 : 5}. תוכנית הפיתוח (PDF)</h2>
+<p class="sub">הקובץ המקורי מ-AutoCAD, עם שכבות. עד 25MB.</p>
+<input type="file" id="pdf" accept="application/pdf,.pdf" style="box-shadow:none;padding:4px 0"><div id="pdfMsg" class="sub"></div>
+
+<h2>${lots ? 7 : 6}. הערות האדריכל</h2>
 <textarea data-k="remarks" rows="3" placeholder="כל מה שחשוב שאדריכלית העיר תדע"></textarea>
 
 <div class="bar"><button id="save">שמירת קובץ הנתונים</button><button class="sec" onclick="print()">הדפסה</button><label style="margin:0;display:flex;gap:6px;align-items:center">ממלא הטופס <input id="by" style="width:200px" placeholder="שם מלא"></label><span id="msg"></span></div>
 <script>
 var META = ${JSON.stringify(meta).replace(/</g, '\\u003c')};
 document.addEventListener('input', function(e){ var k = e.target.dataset && e.target.dataset.k; if(k && k.indexOf('.note') < 0 && k !== 'remarks') e.target.classList.toggle('miss', !e.target.value.trim()); });
+var PDF = null;
+document.getElementById('pdf').onchange = function(e){
+  var f = e.target.files[0], m = document.getElementById('pdfMsg'); PDF = null; m.textContent = ''; if(!f) return;
+  if(f.size > 25 * 1024 * 1024){ m.textContent = 'הקובץ גדול מדי (מעל 25MB). אפשר לשלוח את הגיליון של תוכנית הפיתוח בלבד.'; e.target.value = ''; return; }
+  var rd = new FileReader(); rd.onload = function(){
+    var b = new Uint8Array(rd.result), head = String.fromCharCode.apply(null, b.subarray(0, 5));
+    if(head !== '%PDF-'){ m.textContent = 'זה לא קובץ PDF.'; e.target.value = ''; return; }
+    var txt = '', i, CH = 0x8000; for(i = 0; i < b.length; i += CH) txt += String.fromCharCode.apply(null, b.subarray(i, i + CH));
+    var layers = txt.indexOf('/OCProperties') >= 0;
+    PDF = { name:f.name, size:f.size, layers:layers, data:btoa(txt) };
+    m.textContent = layers ? 'התקבל PDF עם שכבות. מצוין.' : 'אין בקובץ שכבות. עדיף לייצא מ-AutoCAD עם שכבות (PDF וקטורי). הקובץ יישמר בכל זאת.';
+  }; rd.readAsArrayBuffer(f);
+};
 document.getElementById('save').onclick = function(){
   var out = { app:META.app, v:META.v, tik:META.tik, planNum:META.planNum, sentAt:META.sentAt, filledAt:new Date().toISOString().slice(0,10), by:document.getElementById('by').value.trim(), lots:META.lots, f:{} };
+  if(PDF) out.pdf = PDF;
   var left = 0; document.querySelectorAll('[data-k]').forEach(function(el){ var v = el.value.trim(); if(v) out.f[el.dataset.k] = v; else if(el.dataset.k.indexOf('.note') < 0 && el.dataset.k !== 'remarks') left++; });
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type:'application/json' })); a.download = 'form-' + META.tik + '.json'; a.click();
-  document.getElementById('msg').textContent = 'הקובץ form-' + META.tik + '.json נשמר.' + (left ? ' נשארו ' + left + ' שדות ריקים.' : ' כל השדות מלאים.') + ' שלחו אותו לאדריכלית העיר.';
+  document.getElementById('msg').textContent = 'הקובץ form-' + META.tik + '.json נשמר.' + (left ? ' נשארו ' + left + ' שדות ריקים.' : ' כל השדות מלאים.') + (PDF ? ' תוכנית הפיתוח בתוכו.' : ' לא צורפה תוכנית פיתוח.') + ' שלחו אותו לאדריכלית העיר.';
 };
 </script></body></html>`;
 }
@@ -138,13 +156,28 @@ function applyForm(p, d){
   p.archForm = { receivedAt:today(), filledAt:d.filledAt||'', by:d.by||'', remarks:d.f.remarks||'', contacts:ct };
   return { set, kept };
 }
+/** תוכנית הפיתוח שהאדריכל צירף (base64 בקובץ הנתונים): עולה ל-ashdod-docs ונרשמת במסמכי התוכנית.
+    מחזיר: null (לא צורף), 'dup' (כבר נקלט), 'fail', או { layers } */
+async function formPdf(p, d){
+  const x = d && d.pdf; if(!x || !x.data) return null;
+  p.documents = Array.isArray(p.documents) ? p.documents : [];
+  if(p.documents.some(z => z && z.name === x.name && z.size === x.size && z.src === 'טופס האדריכל')) return 'dup';
+  const bin = atob(x.data), u = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  if(String.fromCharCode(...u.subarray(0, 5)) !== '%PDF-') return 'fail';
+  const file = new File([u], x.name || `plan-${p.tik}.pdf`, { type:'application/pdf' });
+  const up = await uploadDoc(file, 'plans/' + p.tik);
+  p.documents.push({ name:file.name, type:'תוכנית בינוי ופיתוח', url:docPublicUrl(up.path), date:today(), src:'טופס האדריכל', size:x.size, layers:!!x.layers, local:!!up.local });
+  return { layers:!!x.layers, local:!!up.local };
+}
 function importForm(file){
   const p = typeof pj === 'function' && pj(); if(!p || !file) return;
-  const rd = new FileReader(); rd.onload = () => { let d = null; try{ d = JSON.parse(rd.result); }catch(e){ return say('הקובץ לא נקרא. צריך את קובץ הנתונים (json) שהטופס שומר'); }
+  const rd = new FileReader(); rd.onload = async () => { let d = null; try{ d = JSON.parse(rd.result); }catch(e){ return say('הקובץ לא נקרא. צריך את קובץ הנתונים (json) שהטופס שומר'); }
     const r = applyForm(p, d); if(r.err) return say(r.err);
-    try{ if(typeof logAction === 'function') logAction(p, 'doc', `נקלט טופס האדריכל${d.by ? ' ('+d.by+')' : ''}: ${r.set} שדות`); else savePlans(); }catch(e){}
+    let pd = null; try{ pd = await formPdf(p, d); }catch(e){ console.warn('form pdf', e); pd = 'fail'; }
+    const pdTxt = !pd ? '' : pd === 'dup' ? '. תוכנית הפיתוח כבר נקלטה קודם' : pd === 'fail' ? '. תוכנית הפיתוח לא נשמרה, כי הענן לא זמין והקובץ גדול. בקשי אותה שוב' : `, ותוכנית פיתוח (${pd.layers ? 'PDF עם שכבות' : 'PDF בלי שכבות'})`;
+    try{ if(typeof logAction === 'function') logAction(p, 'doc', `נקלט טופס האדריכל${d.by ? ' ('+d.by+')' : ''}: ${r.set} שדות${pd && pd.layers !== undefined ? ', ותוכנית פיתוח' : ''}`); else savePlans(); }catch(e){}
     try{ savePlans(); renderOpinionTab(p); if(typeof renderReviewTab === 'function') renderReviewTab(p); }catch(e){}
-    say(`נקלטו ${r.set} שדות מהטופס${r.kept ? `. ${r.kept} שדות שכבר מולאו נשארו כפי שהיו` : ''}`); };
+    say(`נקלטו ${r.set} שדות מהטופס${pdTxt}${r.kept ? `. ${r.kept} שדות שכבר מולאו נשארו כפי שהיו` : ''}`); };
   rd.readAsText(file);
 }
 /** מה שהאדריכל ביקש לכל מגרש, ומה שנקלט מהטופס: נוסף לסעיף הזכויות */
