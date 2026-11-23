@@ -174,19 +174,24 @@ function create(el, model, opts){
   const T = window.THREE, TX = textures(T), groups = {}, center = itm2wgs(model.e0, model.n0);
   const renderer = new T.WebGLRenderer({ antialias:true, preserveDrawingBuffer:!!(opts && opts.capture) });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
-  renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; el.appendChild(renderer.domElement); renderer.domElement.className = 'pm-canvas';
+  renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = .94; el.appendChild(renderer.domElement); renderer.domElement.className = 'pm-canvas';
   const scene = new T.Scene(); scene.background = new T.Color('#eef2f5');
   const cam = new T.PerspectiveCamera(38, 1, 0.5, 3000);
   const ctl = new T.OrbitControls(cam, renderer.domElement); ctl.maxPolarAngle = Math.PI/2 - 0.02; ctl.minDistance = 4; ctl.maxDistance = 900; ctl.enableDamping = true; ctl.dampingFactor = 0.12;
   const hemi = new T.HemisphereLight('#ffffff', '#a9a498', 0.5); scene.add(hemi);
+  const fill = new T.DirectionalLight('#cfe0ff', .38); fill.position.set(-200, 120, 200); scene.add(fill);   // אור מילוי קריר מהצד שמול השמש: חזית בצל לא נראית שטוחה
   const sun = new T.DirectionalLight('#fff4e0', 1.0); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
   Object.assign(sun.shadow.camera, { left:-190, right:190, top:190, bottom:-190, near:10, far:900 }); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.4; scene.add(sun, sun.target);
 
+  let envTex = null;
   { // שמיים פשוטים כמפת סביבה: נותנים לזכוכית במה להשתקף
     const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
     gr.addColorStop(0, '#4f8fd0'); gr.addColorStop(.46, '#cfe4f5'); gr.addColorStop(.5, '#f3f6f8'); gr.addColorStop(.54, '#b8b0a0'); gr.addColorStop(1, '#8a8478'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
+    for(let i = 0; i < 26; i++){ const x = Math.random()*512, y = 40 + Math.random()*70, r = 14 + Math.random()*34, cg = g.createRadialGradient(x, y, 0, x, y, r);   // עננים רכים: השתקפות חיה בזכוכית
+      cg.addColorStop(0, 'rgba(255,255,255,.55)'); cg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = cg; g.fillRect(x-r, y-r, 2*r, 2*r); }
+    { const sg = g.createRadialGradient(360, 70, 0, 360, 70, 60); sg.addColorStop(0, 'rgba(255,248,225,.95)'); sg.addColorStop(1, 'rgba(255,248,225,0)'); g.fillStyle = sg; g.fillRect(300, 10, 120, 120); }
     const t = new T.CanvasTexture(c); t.mapping = T.EquirectangularReflectionMapping; t.encoding = T.sRGBEncoding;
-    const pm = new T.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose(); }
+    const pm = new T.PMREMGenerator(renderer); envTex = scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose(); }
   const M = { std:(o) => new T.MeshStandardMaterial(Object.assign({ roughness:.92, metalness:0, side:T.DoubleSide, envMapIntensity:.22 }, o)) };
   const ghost = M.std({ color:'#dedcd6', transparent:true, opacity:.5 });
   const add = (kind, obj, o) => { const g = groups[kind] || (groups[kind] = Object.assign(new T.Group(), { name:kind })); if(!g.parent) scene.add(g);
@@ -333,9 +338,10 @@ function create(el, model, opts){
     const s = sunPos(ilDate(y, m, d, hour), center[0], center[1]), R = 330, dir = a => new T.Vector3(Math.sin(a.az)*Math.cos(a.alt), Math.sin(a.alt), -Math.cos(a.az)*Math.cos(a.alt));
     const v = dir(s); sun.position.copy(v).multiplyScalar(R); sun.target.position.set(0, 0, 0); sunBall.position.copy(v).multiplyScalar(R+30);
     const up = Math.max(0, Math.sin(s.alt)), day = s.alt > 0;
-    sun.intensity = day ? .5 + 1.5*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .62 + .12*up : .16; sunBall.visible = day;
+    sun.intensity = day ? .55 + 1.35*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .5 + .1*up : .12; sunBall.visible = day;
     const sky = new T.Color(day ? '#eef2f5' : '#20283a').lerp(new T.Color('#f6d9b0'), day ? Math.max(0, .5-up*2.2) : 0); scene.background = sky;
-    lampHead.emissiveIntensity = day ? 0 : 2.4;
+    lampHead.emissiveIntensity = day ? 0 : 2.4; setNight(!day); scene.environment = day ? envTex : null;   // בלילה אין השתקפות שמיים: החזיתות כהות והחלונות המוארים בולטים
+    fill.position.set(-v.x*R, Math.max(60, v.y*R*.4), -v.z*R); fill.intensity = day ? .2 : .05;
     const pts = []; for(let h = 4; h <= 21; h += .25){ const p = sunPos(ilDate(y, m, d, h), center[0], center[1]); if(p.alt > 0) pts.push(dir(p).multiplyScalar(R+30)); }
     pathLine.geometry.setFromPoints(pts); sunState = { alt:s.alt*180/Math.PI, az:(s.az*180/Math.PI+360)%360, day }; draw(); return sunState;
   }
@@ -423,13 +429,23 @@ function create(el, model, opts){
      גובה הקומות והחלונות: הנחה (אין חתכים). חתך קומה: הקומות שמעליה מוסתרות, והקירות שלה מוצגים כמו בתוכנית, בשחור. */
   let fd = null, cut = 0, real = null, cutObj = [];
   function setBuildings(d){ fd = d && d.buildings && d.buildings.length ? d : null; }
-  const USE_WALL = { res:'#eee9df', work:'#d9dde0', public:'#e4dbe8' };
+  const USE_WALL = { res:'#e2d8c6', work:'#d6dadd', public:'#e0d6e6' };   // אבן גיר חמה; הפסים הלבנים של התקרות נותנים את קצב הקומות
+  const SPANDREL = { work:'#7d8790', public:'#8f7f9c' };          // קיר המסך: פס אטום בצבע השימוש (תעסוקה אפור, ציבור סגול, כמו במצגת)
+  let nightOn = false; const nightObjs = [], sc = h => new T.Color(h).convertSRGBToLinear();   // צבע כפי שנראה במסך (החומרים כאן ליניאריים)
+  /* חיפוי: לוחות אבן בהירה של 1.2 על 1.05 מ', עם מישק דק. מצויר בקוד */
+  function cladTex(){
+    const t = tex(T, 256, (g, s) => { g.fillStyle = '#ffffff'; g.fillRect(0, 0, s, s);
+      for(let i = 0; i < 2600; i++){ const v = Math.random(); g.fillStyle = `rgba(${v < .5 ? '120,110,95' : '255,255,250'},${.04 + Math.random()*.06})`; g.fillRect(Math.random()*s, Math.random()*s, 1 + Math.random()*3, 1 + Math.random()*2); }
+      g.fillStyle = 'rgba(60,55,48,.30)'; g.fillRect(0, 0, s, 3); g.fillRect(0, 0, 3, s); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(0, 3, s, 1); }, 1);
+    t.repeat.set(1/1.2, 1/1.05); t.encoding = T.sRGBEncoding; return t; }
+  function gravelTex(){ const t = tex(T, 256, (g, s) => noise(g, s, '#ffffff', 60, 9000), 1.6); t.encoding = T.sRGBEncoding; return t; }
   function buildReal(){
-    const P = fd.plans, prep = {}, col = new T.Color();
+    const P = fd.plans, prep = {}, col = new T.Color(), hash = (x, y, z) => { const v = Math.sin(x*12.9898 + y*78.233 + z*37.719)*43758.5453; return v - Math.floor(v); };
     const inR = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+    const dEdge = (x, y, r) => { let d = 1e9; r.forEach((a, i) => { const b = r[(i+1)%r.length], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((x-a[0])*vx+(y-a[1])*vy)/l)); d = Math.min(d, Math.hypot(x-a[0]-t*vx, y-a[1]-t*vy)); }); return d; };
     function plan(id){ if(prep[id]) return prep[id]; const p = P[id], r = ring2(p.env); let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; });
-      const out = A > 0 ? 1 : -1, balc = (p.balc||[]).map(ring2);
-      const edges = r.map((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1e-6; return { a, b, L, ux:(b[0]-a[0])/L, uy:(b[1]-a[1])/L, op:[] }; });
+      const out = A > 0 ? 1 : -1, balc = (p.balc||[]).map(ring2); let u = 0;
+      const edges = r.map((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1e-6, e = { a, b, L, u, ux:(b[0]-a[0])/L, uy:(b[1]-a[1])/L, op:[] }; u += L; return e; });
       (p.open||[]).forEach(o => { const x0 = o[0]/10, y0 = o[1]/10, x1 = o[2]/10, y1 = o[3]/10, mx = (x0+x1)/2, my = (y0+y1)/2; let e = null, bd = .3;
         edges.forEach(E => { const t = (mx-E.a[0])*E.ux + (my-E.a[1])*E.uy, d = Math.abs(-(mx-E.a[0])*E.uy + (my-E.a[1])*E.ux); if(t > -.1 && t < E.L+.1 && d < bd){ bd = d; e = E; } });
         if(!e) return; let t0 = (x0-e.a[0])*e.ux + (y0-e.a[1])*e.uy, t1 = (x1-e.a[0])*e.ux + (y1-e.a[1])*e.uy; if(t0 > t1) [t0, t1] = [t1, t0];
@@ -437,55 +453,129 @@ function create(el, model, opts){
         const door = balc.some(b => inR(mx + e.uy*out*.7, my - e.ux*out*.7, b));       // מאחורי הפתח מרפסת: יציאה, מהרצפה
         e.op.push([t0, t1, door]); });
       edges.forEach(e => e.op.sort((p, q) => p[0]-q[0]));
-      return prep[id] = { r, edges, out, balc, rail:(p.rail||[]).map(s => s.map(v => v/10)), walls:(p.walls||[]).map(w => [ring2(w)]), core:(p.core||[]).map(ring2) };
+      return prep[id] = { r, edges, out, balc, rail:(p.rail||[]).map(s => s.map(v => v/10)), walls:(p.walls||[]).map(w => [ring2(w)]), core:(p.core||[]).map(ring2), pv:(p.pv||[]).map(ring2) };
     }
-    const mk = () => ({ pos:[], col:[] });
-    const quad = (A, ax, ay, bx, by, y0, y1, c) => { A.pos.push(ax, y0, -ay, bx, y0, -by, bx, y1, -by, ax, y0, -ay, bx, y1, -by, ax, y1, -ay); if(c) for(let i = 0; i < 6; i++) A.col.push(c.r, c.g, c.b); };
+    const mk = () => ({ pos:[], col:[], uv:[] });
+    // קיר אנכי: uv במטרים לאורך הקיר ובגובה, כדי שלוחות החיפוי יתחברו מסביב לפינות
+    const quad = (A, ax, ay, bx, by, y0, y1, c, u0 = 0, u1 = 0) => { A.pos.push(ax, y0, -ay, bx, y0, -by, bx, y1, -by, ax, y0, -ay, bx, y1, -by, ax, y1, -ay);
+      if(c) for(let i = 0; i < 6; i++) A.col.push(c.r, c.g, c.b); A.uv.push(u0, y0, u1, y0, u1, y1, u0, y0, u1, y1, u0, y1); };
     const cap = (A, r, y, c) => { let tris; try{ tris = T.ShapeUtils.triangulateShape(r.map(p => new T.Vector2(p[0], p[1])), []); }catch(e){ return; }
-      for(const t of tris) for(const i of [t[0], t[2], t[1]]){ A.pos.push(r[i][0], y, -r[i][1]); if(c) A.col.push(c.r, c.g, c.b); } };
-    const prism = (A, r, y0, y1, c) => { cap(A, r, y1, c); cap(A, r, y0, c); r.forEach((a, i) => { const b = r[(i+1)%r.length]; quad(A, a[0], a[1], b[0], b[1], y0, y1, c); }); };
-    const glassM = new T.MeshStandardMaterial({ color:'#4a6276', roughness:.05, metalness:.7, envMapIntensity:1.2, side:T.DoubleSide });
-    const railM = new T.MeshStandardMaterial({ color:'#c9e3ee', transparent:true, opacity:.34, roughness:.05, metalness:.5, envMapIntensity:1.3, side:T.DoubleSide, depthWrite:false });
-    const wallM = M.std({ vertexColors:true, roughness:.82 }), slabM = M.std({ color:'#f7f5f0', roughness:.7 }), coreM = M.std({ color:'#d8d3c8', roughness:.85 });
-    const handM = new T.LineBasicMaterial({ color:'#3c3f44' });
-    const geo = A => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.col.length) g.setAttribute('color', new T.Float32BufferAttribute(A.col, 3)); g.computeVertexNormals(); return g; };
+      for(const t of tris) for(const i of [t[0], t[2], t[1]]){ A.pos.push(r[i][0], y, -r[i][1]); if(c) A.col.push(c.r, c.g, c.b); A.uv.push(r[i][0], r[i][1]); } };
+    const ring = (A, r, y0, y1, c) => { let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]); quad(A, a[0], a[1], b[0], b[1], y0, y1, c, u, u+L); u += L; }); };
+    const prism = (A, r, y0, y1, c) => { cap(A, r, y1, c); cap(A, r, y0, c); ring(A, r, y0, y1, c); };
+    const clad = cladTex(), gravel = gravelTex();
+    const glassM = new T.MeshStandardMaterial({ color:'#2c4252', roughness:.04, metalness:.88, envMapIntensity:1.7, side:T.DoubleSide });
+    const cwM = new T.MeshStandardMaterial({ color:'#3c5466', roughness:.05, metalness:.8, envMapIntensity:1.6, side:T.DoubleSide });
+    const frameM = M.std({ color:'#34373c', roughness:.45, metalness:.5, envMapIntensity:.6 });
+    const railM = new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.32, roughness:.04, metalness:.5, envMapIntensity:1.4, side:T.DoubleSide, depthWrite:false });
+    const wallM = M.std({ vertexColors:true, map:clad, roughness:.78, envMapIntensity:.35 }), slabM = M.std({ color:'#fbfaf6', roughness:.6, envMapIntensity:.4 });
+    const roofM = M.std({ color:sc('#a29d92'), map:gravel, roughness:1 }), handM = new T.LineBasicMaterial({ color:'#2e3135' });
+    const litM = new T.MeshBasicMaterial({ vertexColors:true, side:T.DoubleSide });
+    const geo = A => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.col.length) g.setAttribute('color', new T.Float32BufferAttribute(A.col, 3));
+      if(A.uv && A.uv.length === A.pos.length/3*2) g.setAttribute('uv', new T.Float32BufferAttribute(A.uv, 2)); g.computeVertexNormals(); return g; };
+    const LIT = ['#f0ae55', '#f6c27a', '#e39a42', '#fbd596'].map(h => new T.Color(h));
     real = fd.buildings.map(b => {
-      const W = mk(), G = mk(), S = mk(), R = mk(), Hd = mk(), roof = mk(), ends = { W:[0], G:[0], S:[0], R:[0], Hd:[0] };
+      const W = mk(), G = mk(), CW = mk(), F = mk(), S = mk(), R = mk(), Hd = mk(), L = mk(), roof = mk(), ends = { W:[0], G:[0], CW:[0], F:[0], S:[0], R:[0], Hd:[0], L:[0] };
+      // מסגרת לפתח: ארבעה פסים דקים במישור הזכוכית, ומחיצה באמצע לפתח רחב
+      const frame = (ax, ay, bx, by, nx, ny, y0, y1, w) => { const ex = (bx-ax)/w, ey = (by-ay)/w, fw = .07, ox = ax+nx*.98, oy = ay+ny*.98, px = bx+nx*.98, py = by+ny*.98;
+        quad(F, ox, oy, ox+ex*fw, oy+ey*fw, y0, y1); quad(F, px-ex*fw, py-ey*fw, px, py, y0, y1);
+        quad(F, ox, oy, px, py, y0, y0+fw); quad(F, ox, oy, px, py, y1-fw, y1);
+        const n = Math.max(1, Math.round(w/1.4)); for(let i = 1; i < n; i++){ const t = w*i/n; quad(F, ox+ex*(t-.03), oy+ey*(t-.03), ox+ex*(t+.03), oy+ey*(t+.03), y0, y1); } };
+      const lit = (ax, ay, bx, by, nx, ny, y0, y1, seed) => { if(hash(ax, ay, y0 + seed) > .55) return; const c = LIT[Math.floor(hash(ay, y0, ax)*LIT.length)];
+        quad(L, ax+nx*.9, ay+ny*.9, bx+nx*.9, by+ny*.9, y0, y1, c); };
       b.floors.forEach((f, k) => {
-        const p = plan(f.plan), y = f.y, top = y + f.h - .3, t = k === 0 ? y - 4 : .3; col.set(USE_WALL[f.use] || USE_WALL.res);
-        // תקרה / רצפה: המתאר והמרפסות. דופן התקרה היא פס הקומה בחזית
-        cap(S, p.r, y); cap(S, p.r, y - t); p.r.forEach((a, i) => { const c = p.r[(i+1)%p.r.length]; quad(S, a[0], a[1], c[0], c[1], y - t, y); });
+        const p = plan(f.plan), y = f.y, top = y + f.h - .3, t = k === 0 ? y - 4 : .3, curtain = f.use !== 'res'; col.set(USE_WALL[f.use] || USE_WALL.res).convertSRGBToLinear();   // צבעי קודקוד הם ליניאריים
+        // תקרה / רצפה: המתאר והמרפסות. דופן התקרה היא פס הקומה הלבן בחזית
+        cap(S, p.r, y); cap(S, p.r, y - t); ring(S, p.r, y - t, y);
         if(!f.bare) p.balc.forEach(bc => prism(S, bc, y - .3, y));
-        // קירות החוץ, עם פתחים: אדן, זכוכית שקועה, משקוף ודפנות הפתח
-        p.edges.forEach(e => { let s = 0; const nx = -e.uy*p.out*.14, ny = e.ux*p.out*.14;
-          const P2 = t2 => [e.a[0] + e.ux*t2, e.a[1] + e.uy*t2];
-          const solid = (u0, u1) => { if(u1-u0 < .01) return; const [ax, ay] = P2(u0), [bx, by] = P2(u1); quad(W, ax, ay, bx, by, y, top, col); };
+        p.edges.forEach(e => { const nx = -e.uy*p.out*.14, ny = e.ux*p.out*.14, P2 = t2 => [e.a[0] + e.ux*t2, e.a[1] + e.uy*t2];
+          if(curtain){ // קיר מסך: זכוכית לכל האורך, מחיצות כל 1.5 מ', ופס אטום בצבע השימוש מתחת לתקרה
+            const [ax, ay] = P2(0), [bx, by] = P2(e.L), sp = new T.Color(SPANDREL[f.use] || SPANDREL.work).convertSRGBToLinear();
+            quad(CW, ax, ay, bx, by, y, top - .55); quad(W, ax, ay, bx, by, top - .55, top, sp, e.u, e.u + e.L);
+            if(e.L > .5) frame(ax, ay, bx, by, -nx*.4, -ny*.4, y, top - .55, e.L);
+            lit(ax, ay, bx, by, -nx*.5, -ny*.5, y + .02, top - .58, 7); return; }
+          let s = 0;
+          const solid = (u0, u1) => { if(u1-u0 < .01) return; const [ax, ay] = P2(u0), [bx, by] = P2(u1); quad(W, ax, ay, bx, by, y, top, col, e.u + u0, e.u + u1); };
           e.op.forEach(([u0, u1, door]) => { if(u0 < s) u0 = s; if(u1 <= u0) return; solid(s, u0);
+            // פתח: אדן, זכוכית שקועה 14 ס"מ, משקוף, דפנות ומסגרת. יציאה למרפסת מהרצפה
             const sill = door && !f.bare ? y + .04 : y + .9, head = top - .3, [ax, ay] = P2(u0), [bx, by] = P2(u1);
-            quad(W, ax, ay, bx, by, y, sill, col); quad(W, ax, ay, bx, by, head, top, col);
+            quad(W, ax, ay, bx, by, y, sill, col, e.u + u0, e.u + u1); quad(W, ax, ay, bx, by, head, top, col, e.u + u0, e.u + u1);
             quad(G, ax+nx, ay+ny, bx+nx, by+ny, sill, head);
             quad(W, ax, ay, ax+nx, ay+ny, sill, head, col); quad(W, bx, by, bx+nx, by+ny, sill, head, col);
             const sl = [[ax, ay], [bx, by], [bx+nx, by+ny], [ax+nx, ay+ny]]; cap(W, sl, sill, col); cap(W, sl, head, col);
+            frame(ax, ay, bx, by, nx, ny, sill, head, u1 - u0); lit(ax, ay, bx, by, nx, ny, sill, head, 1);
             s = u1; });
           solid(s, e.L); });
-        if(!f.bare) p.rail.forEach(s2 => { quad(R, s2[0], s2[1], s2[2], s2[3], y, y + 1.1); Hd.pos.push(s2[0], y + 1.1, -s2[1], s2[2], y + 1.1, -s2[3]); });
-        for(const kk in ends) ends[kk].push(({ W, G, S, R, Hd })[kk].pos.length/3);
+        if(!f.bare) p.rail.forEach(s2 => { quad(R, s2[0], s2[1], s2[2], s2[3], y, y + 1.1); Hd.pos.push(s2[0], y + 1.1, -s2[1], s2[2], y + 1.1, -s2[3], s2[0], y + .02, -s2[1], s2[2], y + .02, -s2[3]); });
+        for(const kk in ends) ends[kk].push(({ W, G, CW, F, S, R, Hd, L })[kk].pos.length/3);
       });
-      // גג: תקרה, מעקה, ומבני היציאה והמעליות מתוכנית הגג
-      const last = plan(b.floors[b.floors.length-1].plan), ty = b.top; col.set('#e8e3d8');
-      cap(roof, last.r, ty, col); cap(roof, last.r, ty - .3, col); last.r.forEach((a, i) => { const c = last.r[(i+1)%last.r.length]; quad(roof, a[0], a[1], c[0], c[1], ty - .3, ty + 1.1, col); });
-      if(b.roof) plan(b.roof.plan).core.forEach(c => prism(roof, c, ty, ty + b.roof.h, col));
-      if(b.mech) plan(b.mech.plan).core.forEach(c => prism(roof, c, b.mech.y, b.mech.y + b.mech.h, col));
-      const ms = { W:new T.Mesh(geo(W), wallM), G:new T.Mesh(geo(G), glassM), S:new T.Mesh(geo(S), slabM), R:new T.Mesh(geo(R), railM), Hd:new T.LineSegments(geo(Hd), handM), roof:new T.Mesh(geo(roof), M.std({ vertexColors:true, roughness:.85 })) };
-      for(const kk of ['W', 'G', 'S', 'roof']) add('facade', ms[kk], { cast:true, solid:true }); add('facade', ms.R, { solid:true, noReceive:true }); add('facade', ms.Hd);
+      /* החזית החמישית: גג בחצץ, מעקה בחיפוי עם קופינג, מבני היציאה מתוכנית הגג עם גג משלהם, ומערכות על הגג (להמחשה) */
+      const last = plan(b.floors[b.floors.length-1].plan), ty = b.top, roofTop = mk(), equip = [], pv = [];
+      col.set(USE_WALL.res).convertSRGBToLinear(); cap(roofTop, last.r, ty + .02); cap(S, last.r, ty - .3);
+      ring(roof, last.r, ty - .3, ty + 1.1, col);
+      { const inner = last.r.map(q => q); const cx = inner.reduce((a, q) => a+q[0], 0)/inner.length, cy = inner.reduce((a, q) => a+q[1], 0)/inner.length;
+        ring(roof, inner.map(q => [q[0] + (cx-q[0])*.0, q[1] + (cy-q[1])*.0]), ty + 1.1, ty + 1.18, new T.Color('#d9d4c9').convertSRGBToLinear()); }
+      const cores = (b.roof ? plan(b.roof.plan).core : []).concat(b.mech ? plan(b.mech.plan).core : []);
+      if(b.roof) plan(b.roof.plan).core.forEach(c => { prism(roof, c, ty, ty + b.roof.h, col); cap(roofTop, c, ty + b.roof.h + .02); });
+      if(b.mech) plan(b.mech.plan).core.forEach(c => { prism(roof, c, b.mech.y, b.mech.y + b.mech.h, col); cap(roofTop, c, b.mech.y + b.mech.h + .02); });
+      // תאים סולאריים מתוכנית הגג (השכבה A-FLOR), במקום ובכיוון שבשרטוט, בשיפוע של 15°. בלי שרטוט: רשת להמחשה
+      const realPv = (b.roof ? plan(b.roof.plan).pv : []).map(r => { const cx = r.reduce((a, q) => a+q[0], 0)/r.length, cy = r.reduce((a, q) => a+q[1], 0)/r.length;
+        let L = 0, ang = 0, W2 = 1e9; r.forEach((a, i) => { const q = r[(i+1)%r.length], l = Math.hypot(q[0]-a[0], q[1]-a[1]); if(l > L){ L = l; ang = Math.atan2(q[1]-a[1], q[0]-a[0]); } if(l > .2) W2 = Math.min(W2, l); });
+        return [cx, ty, cy, L, W2, ang]; });
+      { // מערכות על הגג: מעבים קרוב לליבה, ותאים סולאריים בשאר הגג. רשת של 1.6 מ', הרחק מהמעקה ומהליבה
+        const xs = last.r.map(q => q[0]), ys = last.r.map(q => q[1]);
+        for(let x = Math.min(...xs) + 1; x < Math.max(...xs); x += 1.6) for(let yy = Math.min(...ys) + 1; yy < Math.max(...ys); yy += 2.2){
+          if(!inR(x, yy, last.r) || dEdge(x, yy, last.r) < 1.6) continue;
+          const dc = cores.length ? Math.min(...cores.map(c => inR(x, yy, c) ? 0 : dEdge(x, yy, c))) : 9; if(dc < 1.2) continue;
+          if(dc < 2.6){ if(equip.length < 14) equip.push([x, ty, yy]); } else if(dc > 4.2 && !realPv.length) pv.push([x, ty, yy]); } }
+      const ms = { W:new T.Mesh(geo(W), wallM), G:new T.Mesh(geo(G), glassM), CW:new T.Mesh(geo(CW), cwM), F:new T.Mesh(geo(F), frameM), S:new T.Mesh(geo(S), slabM), R:new T.Mesh(geo(R), railM),
+        Hd:new T.LineSegments(geo(Hd), handM), L:new T.Mesh(geo(L), litM), roof:new T.Group() };
+      ms.roof.add(new T.Mesh(geo(roof), wallM), new T.Mesh(geo(roofTop), roofM));
+      for(const kk of ['W', 'G', 'CW', 'F', 'S', 'roof']) add('facade', ms[kk], { cast:true, solid:true }); add('facade', ms.R, { solid:true, noReceive:true }); add('facade', ms.Hd); add('facade', ms.L);
+      ms.L.visible = nightOn; nightObjs.push(ms.L);
+      const ac = inst('facade', new T.BoxGeometry(1.1, .95, 1.1), M.std({ color:'#d6d6d2', roughness:.6, metalness:.2 }), equip, (d, q) => d.position.set(q[0], q[1] + .5, -q[2]));
+      const pvm = inst('facade', new T.BoxGeometry(1.0, .05, 1.7), new T.MeshStandardMaterial({ color:sc('#1f2d4a'), roughness:.3, metalness:.3, envMapIntensity:.5 }), pv, (d, q) => { d.position.set(q[0], q[1] + .55, -q[2]); d.rotation.set(-.26, 0, 0); });
+      const pvr = inst('facade', new T.BoxGeometry(1, .05, 1), new T.MeshStandardMaterial({ color:sc('#1f2d4a'), roughness:.3, metalness:.3, envMapIntensity:.5 }), realPv, (d, q) => { d.position.set(q[0], q[1] + .45, -q[2]); d.rotation.set(0, q[5], 0); d.rotateX(-.26); d.scale.set(q[3], 1, q[4]*.96); });
+      ms.equip = [ac, pvm, pvr].filter(Boolean);
       // שם הבניין מעל הגג
       const c = document.createElement('canvas'); c.width = 512; c.height = 96; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 512, 96); x.fillStyle = '#1a1a18'; x.font = '600 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
       x.fillText(`בניין ${b.id} · ${b.floors.length} קומות`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(30, 5.6, 1);
-      sp.position.set(last.r.reduce((s2, q) => s2+q[0], 0)/last.r.length, ty + 9, -last.r.reduce((s2, q) => s2+q[1], 0)/last.r.length); add('facade', sp);
+      sp.position.set(last.r.reduce((s2, q) => s2+q[0], 0)/last.r.length, ty + 12, -last.r.reduce((s2, q) => s2+q[1], 0)/last.r.length); add('facade', sp);
       return { b, ms, ends, sp, plan };
     });
-    applyCut();
+    buildPodium(); applyCut();
   }
+  /* גג המסד: קומת הקרקע מקבלת תקרה (4.0 עד 4.5 מ'), שמכסה גם את הקולונדה, עם פס חזית לבן ומעקה זכוכית.
+     על הגג: ריצוף וערוגות מוגבהות עם עצים קטנים, להמחשה ("גג דיירים משותף" במצגת). מבנה בלי מגדל: גג חצץ. */
+  function buildPodium(){
+    const pods = fd.podium || []; if(!pods.length) return;
+    const S = { pos:[], col:[], uv:[] }, Pv = { pos:[], col:[], uv:[] }, Gr = { pos:[], col:[], uv:[] }, Pl = { pos:[], col:[], uv:[] }, Rv = { pos:[], col:[], uv:[] }, Rl = { pos:[], col:[], uv:[] }, Hd = [], shrubs = [];
+    const quad = (A, ax, ay, bx, by, y0, y1, u0 = 0, u1 = 0) => { A.pos.push(ax, y0, -ay, bx, y0, -by, bx, y1, -by, ax, y0, -ay, bx, y1, -by, ax, y1, -ay); A.uv.push(u0, y0, u1, y0, u1, y1, u0, y0, u1, y1, u0, y1); };
+    const cap = (A, r, y) => { let tris; try{ tris = T.ShapeUtils.triangulateShape(r.map(p => new T.Vector2(p[0], p[1])), []); }catch(e){ return; } for(const t of tris) for(const i of [t[0], t[2], t[1]]){ A.pos.push(r[i][0], y, -r[i][1]); A.uv.push(r[i][0], r[i][1]); } };
+    const ring = (A, r, y0, y1) => { let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]); quad(A, a[0], a[1], b[0], b[1], y0, y1, u, u+L); u += L; }); };
+    const rnd = i => { const x = Math.sin(i*127.1)*43758.5453; return x - Math.floor(x); };
+    pods.forEach((pd, j) => {
+      pd.roof.forEach(f => { const r = ring2(f); cap(S, r, 4.0); cap(pd.kind === 'garden' ? Pv : Rv, r, 4.52); });
+      const e = ring2(pd.edge); ring(S, e, 3.55, 4.52);                                  // פס החזית של המסד: קורה לבנה מעל העמודים
+      if(pd.kind === 'garden'){ ring(Rl, e, 4.52, 5.62); e.forEach((a, i) => { const b = e[(i+1)%e.length]; Hd.push(a[0], 5.62, -a[1], b[0], 5.62, -b[1]); });
+        (pd.green||[]).forEach((g, gi) => { const r = ring2(g); cap(Gr, r, 4.98); ring(Pl, r, 4.52, 4.98);
+          const xs = r.map(q => q[0]), ys = r.map(q => q[1]);
+          for(let i = 0; i < 40; i++){ const x = Math.min(...xs) + rnd(j*97+gi*13+i)*(Math.max(...xs)-Math.min(...xs)), y = Math.min(...ys) + rnd(j*31+gi*7+i+.5)*(Math.max(...ys)-Math.min(...ys));
+            let c = false; for(let a = 0, b = r.length-1; a < r.length; b = a++){ const p = r[a], q = r[b]; if((p[1] > y) !== (q[1] > y) && x < (q[0]-p[0])*(y-p[1])/(q[1]-p[1])+p[0]) c = !c; }
+            if(c && shrubs.every(s => Math.hypot(s[0]-x, s[1]-y) > 2.6)) shrubs.push([x, y, .7 + rnd(i+gi)*.9]); } }); }
+    });
+    const g = A => { const q = new T.BufferGeometry(); q.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.uv.length) q.setAttribute('uv', new T.Float32BufferAttribute(A.uv, 2)); q.computeVertexNormals(); return q; };
+    add('facade', new T.Mesh(g(S), M.std({ color:'#fbfaf6', roughness:.6 })), { cast:true, solid:true });
+    add('facade', new T.Mesh(g(Pv), M.std({ color:sc('#d9cfb8'), map:TX.paving, roughness:.85 })), { cast:false, solid:true });
+    add('facade', new T.Mesh(g(Rv), M.std({ color:sc('#a29d92'), map:gravelTex(), roughness:1 })), { cast:false, solid:true });
+    add('facade', new T.Mesh(g(Gr), M.std({ color:sc('#7aa35a'), map:TX.grass, roughness:1 })), { cast:false, solid:true });
+    add('facade', new T.Mesh(g(Pl), M.std({ color:sc('#bdb3a0'), roughness:.8 })), { cast:true, solid:true });
+    add('facade', new T.Mesh(g(Rl), new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.32, roughness:.04, metalness:.5, side:T.DoubleSide, depthWrite:false })), { noReceive:true });
+    { const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute(Hd, 3)); add('facade', new T.LineSegments(lg, new T.LineBasicMaterial({ color:'#2e3135' }))); }
+    inst('facade', new T.IcosahedronGeometry(1, 1), M.std({ color:sc('#4f7f3a'), roughness:.95 }), shrubs, (d, q) => { d.position.set(q[0], 4.98 + q[2]*.8, -q[1]); d.scale.set(q[2], q[2]*.85, q[2]); });
+  }
+  /** לילה: חלונות מוארים (כמחצית, בגוונים חמים), כמו בתמונה של העיר בערב */
+  function setNight(on){ nightOn = on; nightObjs.forEach(o => o.visible = on); }
   /** חתך קומה: 0 = כל הבניין */
   function applyCut(){
     if(!real) return; cutObj.forEach(o => { o.parent && o.parent.remove(o); o.geometry && o.geometry.dispose(); }); cutObj = [];
@@ -494,8 +584,8 @@ function create(el, model, opts){
       const n = b.floors.length, k = cut ? Math.min(cut, n) : n;
       const range = (m, e) => m.geometry.setDrawRange(0, e);
       range(ms.S, ends.S[k]); range(ms.R, ends.R[k]); range(ms.Hd, ends.Hd[k]);
-      range(ms.W, ends.W[cut ? k-1 : k]); range(ms.G, ends.G[cut ? k-1 : k]);
-      ms.roof.visible = !cut || cut >= n + 1; sp.visible = !cut;
+      for(const kk of ['W', 'G', 'CW', 'F', 'L']) range(ms[kk], ends[kk][cut ? k-1 : k]);
+      ms.roof.visible = !cut || cut >= n + 1; ms.equip.forEach(o => o.visible = ms.roof.visible); sp.visible = !cut;
       if(!cut || cut > n) return;
       const f = b.floors[k-1], p = plan(f.plan), top = [], side = [];
       p.walls.forEach(w => { const all = [].concat(...w); let tris = [];      // קיר עם חלל בתוכו: המתאר והחורים
