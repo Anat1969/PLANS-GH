@@ -63,8 +63,8 @@ def dxf_geom(path):
     import ezdxf
     from ezdxf import path as P
     from ezdxf.disassemble import recursive_decompose
-    doc = ezdxf.readfile(path); out = {'wall': [], 'hatch': [], 'glaz': [], 'rail': [], 'prop': []}
-    LAY = {'A-WALL': 'wall', 'A-GLAZ': 'glaz', 'A-DOOR': 'glaz', 'A-FLOR-HRAL': 'rail', 'C-PROP-LINE': 'prop'}
+    doc = ezdxf.readfile(path); out = {'wall': [], 'hatch': [], 'glaz': [], 'rail': [], 'prop': [], 'flor': []}
+    LAY = {'A-WALL': 'wall', 'A-GLAZ': 'glaz', 'A-DOOR': 'glaz', 'A-FLOR-HRAL': 'rail', 'C-PROP-LINE': 'prop', 'A-FLOR': 'flor'}
     for e in recursive_decompose(doc.modelspace()):
         L = e.dxf.layer
         if e.dxftype() == 'HATCH' and L in ('A-WALL-PATT', 'A-WALL'):
@@ -316,7 +316,7 @@ def main():
         align_plans(plans)
         for pl in plans:
             raw.setdefault(p[0], []).append({'name': os.path.basename(f)[:-4] + ' · ' + pl['name'], 'kind': 'floor', 'floors': pl['floors'], 'src': 'pdf', 'scale': scale,
-                                             'wall': [], 'hatch': [], 'glaz': [], 'rail': [], 'prop': [], 'wpoly': pl['wall'], 'bpoly': pl['balc']})
+                                             'wall': [], 'hatch': [], 'glaz': [], 'rail': [], 'prop': [], 'flor': [], 'wpoly': pl['wall'], 'bpoly': pl['balc']})
         print(f'PDF {p[0]} 1:{scale} תוכניות {[pl["floors"][0] for pl in plans]}')
 
     # עיגון: קודם הבניינים עם קווי מגרש. בניינים באותו מגרש (C ו-D) משורטטים באותה מערכת צירים, ולכן מעוגנים יחד.
@@ -357,10 +357,17 @@ def main():
             plans[pid] = {'name': name, 'src': r['src'], 'area': round(env.area), 'env': ring_dm(env),
                           'open': [[dm(v) for v in o] for o in op], 'rail': [[dm(v) for v in o] for o in rl],
                           'balc': [ring_dm(p) for p in G['balc']], 'walls': [ring_dm(q) for p in G['walls'] for q in no_holes(p)]}
-            if r['kind'] in ('roof', 'mech'):          # על הגג: מבני היציאה והמעליות, מהקירות שאינם צמודים למעקה
-                inner = [w for w in g['walls'] if w.distance(g['env'].exterior) > 0.8]
-                core = unary_union(inner).buffer(1.0, join_style=2).buffer(-1.0, join_style=2) if inner else Polygon()
-                plans[pid]['core'] = [ring_dm(tf_geom(c, x)) for c in getattr(core, 'geoms', [core]) if isinstance(c, Polygon) and c.area > 3]
+            if r['kind'] in ('roof', 'mech'):          # על הגג: החדרים הסגורים (יציאה, מעליות, חדרים טכניים) והתאים הסולאריים, מהשרטוט
+                W = unary_union(g['walls']) if g['walls'] else Polygon()
+                rooms = [Polygon(h) for q in getattr(W, 'geoms', [W]) if isinstance(q, Polygon) for h in q.interiors]
+                rooms = [q for q in rooms if 2 < q.area < 150]
+                if r['kind'] == 'mech': rooms.append(g['env'])
+                core = unary_union([q.buffer(0.25, join_style=2) for q in rooms]) if rooms else Polygon()
+                plans[pid]['core'] = [ring_dm(tf_geom(c, x)) for c0 in getattr(core, 'geoms', [core]) if isinstance(c0, Polygon) and c0.area > 3 for c in no_holes(c0.simplify(0.05))]
+                pv = [p0 for p0 in polygonize(unary_union(r['flor'])) if 0.4 < p0.area < 20 and p0.minimum_rotated_rectangle.area < p0.area*1.15] if r['flor'] and r['kind'] == 'roof' else []
+                pv = [p0 for p0 in pv if max(p0.bounds[2]-p0.bounds[0], p0.bounds[3]-p0.bounds[1]) > 2.2*min(p0.bounds[2]-p0.bounds[0], p0.bounds[3]-p0.bounds[1]) and g['env'].buffer(8).contains(p0)]
+                plans[pid]['pv'] = [ring_dm(tf_geom(p0, x)) for p0 in pv]
+                print(f'  גג {b} {r["kind"]}: חדרים {len(plans[pid]["core"])}, תאים סולאריים {len(pv)}')
             if r['kind'] == 'roof': roof = pid
             elif r['kind'] == 'mech': mech = pid
             else:
@@ -381,10 +388,29 @@ def main():
         buildings.append(bl)
         print(f'בניין {b}: {len(floors)} קומות, גובה {y:.1f} מ\', קומות בלי תוכנית: {[f["n"] for f in floors if f.get("filled")]}')
 
+    # גג המסד (החזית החמישית של קומת הקרקע): קומת הקרקע מתוכנית הפיתוח, פחות המגדלים שעולים ממנה.
+    # הגג מכסה גם את הקולונדה, כי העמודים בתוך המתאר. הגינון על הגג: רצועה פנימית, להמחשה (במצגת: "גג דיירים משותף").
+    towers = unary_union([Polygon([(e[i]/10, e[i+1]/10) for i in range(0, len(e), 2)]).buffer(0) for b in buildings for e in [plans[b['floors'][0]['plan']]['env']]])
+    podium = []
+    for f in foot:
+        roof = f.difference(towers.buffer(0.02)).buffer(-0.01).buffer(0.01)
+        under = f.intersects(towers)
+        for q in getattr(roof, 'geoms', [roof]):
+            if not isinstance(q, Polygon) or q.area < 6: continue
+            green = q.buffer(-2.2, join_style=2).buffer(0.6, join_style=1).intersection(q.buffer(-1.6)) if under else Polygon()
+            podium.append({'kind': 'garden' if under else 'roof', 'area': round(q.area),
+                           'roof': [ring_dm(r) for r in no_holes(q.simplify(0.05))],
+                           'green': [ring_dm(r) for g in getattr(green, 'geoms', [green]) if isinstance(g, Polygon) and g.area > 6 for r in no_holes(g.simplify(0.1))],
+                           'edge': ring_dm(Polygon(q.exterior).simplify(0.05))})
+    print('גג המסד:', [(x['kind'], x['area']) for x in podium])
+
     res = {'tik': a.tik, 'source': conf.get('src', ''), 'made': __import__('datetime').date.today().isoformat(),
            'assume': {'heights': H, 'window': 'גובה החלונות: מ-0.9 מ\' (ויטרינה ויציאה למרפסת: מ-0.1 מ\') עד 0.35 מ\' מתחת לתקרה',
-                      'filled': 'קומה בלי תוכנית: התוכנית של הקומה שמתחתיה'},
-           'buildings': buildings, 'plans': plans}
+                      'filled': 'קומה בלי תוכנית: התוכנית של הקומה שמתחתיה',
+                      'podium': 'גג המסד: קומת הקרקע מתוכנית הפיתוח פחות המגדלים. הגינון והריצוף על הגג להמחשה',
+                      'roof': 'על גגות המגדלים: מבני היציאה מתוכנית הגג. מערכות, קולטים ותאים סולאריים להמחשה',
+                      'work': 'קומות תעסוקה וציבור בלי תוכנית: המתאר הטיפוסי עם קיר מסך, להמחשה'},
+           'buildings': buildings, 'plans': plans, 'podium': podium}
     json.dump(res, open(os.path.join(out, 'floors.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     print('נכתב', os.path.join(out, 'floors.json'), round(os.path.getsize(os.path.join(out, 'floors.json'))/1024), 'KB')
     if a.png: preview(res, lots, foot, envs, a.png)
