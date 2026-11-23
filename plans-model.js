@@ -53,7 +53,7 @@ const KINDS = [
  ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
  { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
  { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
- { id:'facade', topic:'build', label:'חזיתות להמחשה', color:'#e9e3d6', desc:'מגדל מעל קומת הקרקע: הקומות והגובה לפי התב"ע. החלונות, המרפסות והחיפוי הם המחשה, לא מהשרטוט.' },
+ { id:'facade', topic:'build', label:'חזיתות וקומות', color:'#e9e3d6', desc:'כשיש תוכניות קומה מהאדריכל: כל קומה מהשרטוט, עם החלונות והמרפסות שלה. גובה הקומות הוא הנחה. בלי תוכניות קומה: מגדל לפי התב"ע, להמחשה.' },
  { id:'under', topic:'park', label:'קומות מרתף וחניון', color:'#8d98a6', desc:'מספר הקומות מהוראות התוכנית. המתאר הוא גבול המגרש, וזו הנחה.' },
  { id:'rnEnvelope', topic:'renewal', label:'המעטפת המותרת', color:'#ffffff', desc:'השטח שבין קווי הבניין, עד הגובה המרבי.' }
 ];
@@ -418,7 +418,98 @@ function create(el, model, opts){
     const place = (list, geo, mat) => inst('facade', geo, mat, list, (d, t) => { d.position.set(t[0], t[1], -t[2]); d.rotation.y = t[3]; }, { cast:false });
     place(slabs, new T.BoxGeometry(3.1, .18, 1.6), slabM); place(rails, new T.BoxGeometry(3.1, 1.05, .05), railM);
   }
-  function setFacade(on){ facOn = !!on; if(facOn && !facBuilt) buildFacades(); applyActive(); }
+  /* הקומות והחזיתות מתוכניות האדריכל (floors.json, tools/extract-floors.py, ענת 23.11.2026).
+     כל קומה במקום ובגובה שלה: המתאר, החלונות והיציאות למרפסת לפי הפתחים בשרטוט, מרפסות עם מעקה זכוכית, וגג עם מבני היציאה.
+     גובה הקומות והחלונות: הנחה (אין חתכים). חתך קומה: הקומות שמעליה מוסתרות, והקירות שלה מוצגים כמו בתוכנית, בשחור. */
+  let fd = null, cut = 0, real = null, cutObj = [];
+  function setBuildings(d){ fd = d && d.buildings && d.buildings.length ? d : null; }
+  const USE_WALL = { res:'#eee9df', work:'#d9dde0', public:'#e4dbe8' };
+  function buildReal(){
+    const P = fd.plans, prep = {}, col = new T.Color();
+    const inR = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+    function plan(id){ if(prep[id]) return prep[id]; const p = P[id], r = ring2(p.env); let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; });
+      const out = A > 0 ? 1 : -1, balc = (p.balc||[]).map(ring2);
+      const edges = r.map((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1e-6; return { a, b, L, ux:(b[0]-a[0])/L, uy:(b[1]-a[1])/L, op:[] }; });
+      (p.open||[]).forEach(o => { const x0 = o[0]/10, y0 = o[1]/10, x1 = o[2]/10, y1 = o[3]/10, mx = (x0+x1)/2, my = (y0+y1)/2; let e = null, bd = .3;
+        edges.forEach(E => { const t = (mx-E.a[0])*E.ux + (my-E.a[1])*E.uy, d = Math.abs(-(mx-E.a[0])*E.uy + (my-E.a[1])*E.ux); if(t > -.1 && t < E.L+.1 && d < bd){ bd = d; e = E; } });
+        if(!e) return; let t0 = (x0-e.a[0])*e.ux + (y0-e.a[1])*e.uy, t1 = (x1-e.a[0])*e.ux + (y1-e.a[1])*e.uy; if(t0 > t1) [t0, t1] = [t1, t0];
+        t0 = Math.max(.15, t0); t1 = Math.min(e.L-.15, t1); if(t1-t0 < .4) return;
+        const door = balc.some(b => inR(mx + e.uy*out*.7, my - e.ux*out*.7, b));       // מאחורי הפתח מרפסת: יציאה, מהרצפה
+        e.op.push([t0, t1, door]); });
+      edges.forEach(e => e.op.sort((p, q) => p[0]-q[0]));
+      return prep[id] = { r, edges, out, balc, rail:(p.rail||[]).map(s => s.map(v => v/10)), walls:(p.walls||[]).map(w => [ring2(w)]), core:(p.core||[]).map(ring2) };
+    }
+    const mk = () => ({ pos:[], col:[] });
+    const quad = (A, ax, ay, bx, by, y0, y1, c) => { A.pos.push(ax, y0, -ay, bx, y0, -by, bx, y1, -by, ax, y0, -ay, bx, y1, -by, ax, y1, -ay); if(c) for(let i = 0; i < 6; i++) A.col.push(c.r, c.g, c.b); };
+    const cap = (A, r, y, c) => { let tris; try{ tris = T.ShapeUtils.triangulateShape(r.map(p => new T.Vector2(p[0], p[1])), []); }catch(e){ return; }
+      for(const t of tris) for(const i of [t[0], t[2], t[1]]){ A.pos.push(r[i][0], y, -r[i][1]); if(c) A.col.push(c.r, c.g, c.b); } };
+    const prism = (A, r, y0, y1, c) => { cap(A, r, y1, c); cap(A, r, y0, c); r.forEach((a, i) => { const b = r[(i+1)%r.length]; quad(A, a[0], a[1], b[0], b[1], y0, y1, c); }); };
+    const glassM = new T.MeshStandardMaterial({ color:'#4a6276', roughness:.05, metalness:.7, envMapIntensity:1.2, side:T.DoubleSide });
+    const railM = new T.MeshStandardMaterial({ color:'#c9e3ee', transparent:true, opacity:.34, roughness:.05, metalness:.5, envMapIntensity:1.3, side:T.DoubleSide, depthWrite:false });
+    const wallM = M.std({ vertexColors:true, roughness:.82 }), slabM = M.std({ color:'#f7f5f0', roughness:.7 }), coreM = M.std({ color:'#d8d3c8', roughness:.85 });
+    const handM = new T.LineBasicMaterial({ color:'#3c3f44' });
+    const geo = A => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.col.length) g.setAttribute('color', new T.Float32BufferAttribute(A.col, 3)); g.computeVertexNormals(); return g; };
+    real = fd.buildings.map(b => {
+      const W = mk(), G = mk(), S = mk(), R = mk(), Hd = mk(), roof = mk(), ends = { W:[0], G:[0], S:[0], R:[0], Hd:[0] };
+      b.floors.forEach((f, k) => {
+        const p = plan(f.plan), y = f.y, top = y + f.h - .3, t = k === 0 ? y - 4 : .3; col.set(USE_WALL[f.use] || USE_WALL.res);
+        // תקרה / רצפה: המתאר והמרפסות. דופן התקרה היא פס הקומה בחזית
+        cap(S, p.r, y); cap(S, p.r, y - t); p.r.forEach((a, i) => { const c = p.r[(i+1)%p.r.length]; quad(S, a[0], a[1], c[0], c[1], y - t, y); });
+        if(!f.bare) p.balc.forEach(bc => prism(S, bc, y - .3, y));
+        // קירות החוץ, עם פתחים: אדן, זכוכית שקועה, משקוף ודפנות הפתח
+        p.edges.forEach(e => { let s = 0; const nx = -e.uy*p.out*.14, ny = e.ux*p.out*.14;
+          const P2 = t2 => [e.a[0] + e.ux*t2, e.a[1] + e.uy*t2];
+          const solid = (u0, u1) => { if(u1-u0 < .01) return; const [ax, ay] = P2(u0), [bx, by] = P2(u1); quad(W, ax, ay, bx, by, y, top, col); };
+          e.op.forEach(([u0, u1, door]) => { if(u0 < s) u0 = s; if(u1 <= u0) return; solid(s, u0);
+            const sill = door && !f.bare ? y + .04 : y + .9, head = top - .3, [ax, ay] = P2(u0), [bx, by] = P2(u1);
+            quad(W, ax, ay, bx, by, y, sill, col); quad(W, ax, ay, bx, by, head, top, col);
+            quad(G, ax+nx, ay+ny, bx+nx, by+ny, sill, head);
+            quad(W, ax, ay, ax+nx, ay+ny, sill, head, col); quad(W, bx, by, bx+nx, by+ny, sill, head, col);
+            const sl = [[ax, ay], [bx, by], [bx+nx, by+ny], [ax+nx, ay+ny]]; cap(W, sl, sill, col); cap(W, sl, head, col);
+            s = u1; });
+          solid(s, e.L); });
+        if(!f.bare) p.rail.forEach(s2 => { quad(R, s2[0], s2[1], s2[2], s2[3], y, y + 1.1); Hd.pos.push(s2[0], y + 1.1, -s2[1], s2[2], y + 1.1, -s2[3]); });
+        for(const kk in ends) ends[kk].push(({ W, G, S, R, Hd })[kk].pos.length/3);
+      });
+      // גג: תקרה, מעקה, ומבני היציאה והמעליות מתוכנית הגג
+      const last = plan(b.floors[b.floors.length-1].plan), ty = b.top; col.set('#e8e3d8');
+      cap(roof, last.r, ty, col); cap(roof, last.r, ty - .3, col); last.r.forEach((a, i) => { const c = last.r[(i+1)%last.r.length]; quad(roof, a[0], a[1], c[0], c[1], ty - .3, ty + 1.1, col); });
+      if(b.roof) plan(b.roof.plan).core.forEach(c => prism(roof, c, ty, ty + b.roof.h, col));
+      if(b.mech) plan(b.mech.plan).core.forEach(c => prism(roof, c, b.mech.y, b.mech.y + b.mech.h, col));
+      const ms = { W:new T.Mesh(geo(W), wallM), G:new T.Mesh(geo(G), glassM), S:new T.Mesh(geo(S), slabM), R:new T.Mesh(geo(R), railM), Hd:new T.LineSegments(geo(Hd), handM), roof:new T.Mesh(geo(roof), M.std({ vertexColors:true, roughness:.85 })) };
+      for(const kk of ['W', 'G', 'S', 'roof']) add('facade', ms[kk], { cast:true, solid:true }); add('facade', ms.R, { solid:true, noReceive:true }); add('facade', ms.Hd);
+      // שם הבניין מעל הגג
+      const c = document.createElement('canvas'); c.width = 512; c.height = 96; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 512, 96); x.fillStyle = '#1a1a18'; x.font = '600 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+      x.fillText(`בניין ${b.id} · ${b.floors.length} קומות`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(30, 5.6, 1);
+      sp.position.set(last.r.reduce((s2, q) => s2+q[0], 0)/last.r.length, ty + 9, -last.r.reduce((s2, q) => s2+q[1], 0)/last.r.length); add('facade', sp);
+      return { b, ms, ends, sp, plan };
+    });
+    applyCut();
+  }
+  /** חתך קומה: 0 = כל הבניין */
+  function applyCut(){
+    if(!real) return; cutObj.forEach(o => { o.parent && o.parent.remove(o); o.geometry && o.geometry.dispose(); }); cutObj = [];
+    const pocheM = new T.MeshBasicMaterial({ color:'#1f1f22', side:T.DoubleSide }), sideM = M.std({ color:'#fbfaf7', roughness:.9 });
+    real.forEach(({ b, ms, ends, sp, plan }) => {
+      const n = b.floors.length, k = cut ? Math.min(cut, n) : n;
+      const range = (m, e) => m.geometry.setDrawRange(0, e);
+      range(ms.S, ends.S[k]); range(ms.R, ends.R[k]); range(ms.Hd, ends.Hd[k]);
+      range(ms.W, ends.W[cut ? k-1 : k]); range(ms.G, ends.G[cut ? k-1 : k]);
+      ms.roof.visible = !cut || cut >= n + 1; sp.visible = !cut;
+      if(!cut || cut > n) return;
+      const f = b.floors[k-1], p = plan(f.plan), top = [], side = [];
+      p.walls.forEach(w => { const all = [].concat(...w); let tris = [];      // קיר עם חלל בתוכו: המתאר והחורים
+        try{ tris = T.ShapeUtils.triangulateShape(w[0].map(q => new T.Vector2(q[0], q[1])), w.slice(1).map(h => h.map(q => new T.Vector2(q[0], q[1])))); }catch(e){}
+        for(const t of tris) for(const i of [t[0], t[2], t[1]]) top.push(all[i][0], f.y + 2.4, -all[i][1]);
+        w.forEach(r => r.forEach((a, i) => { const c = r[(i+1)%r.length]; side.push(a[0], f.y, -a[1], c[0], f.y, -c[1], c[0], f.y+2.4, -c[1], a[0], f.y, -a[1], c[0], f.y+2.4, -c[1], a[0], f.y+2.4, -a[1]); })); });
+      const g1 = new T.BufferGeometry(); g1.setAttribute('position', new T.Float32BufferAttribute(top, 3)); g1.computeVertexNormals();
+      const g2 = new T.BufferGeometry(); g2.setAttribute('position', new T.Float32BufferAttribute(side, 3)); g2.computeVertexNormals();
+      cutObj.push(add('facade', new T.Mesh(g1, pocheM), { cast:true, solid:true }), add('facade', new T.Mesh(g2, sideM), { cast:true, solid:true }));
+    });
+    draw();
+  }
+  function setCut(n){ cut = Math.max(0, n|0); if(facOn && fd && !facBuilt){ facBuilt = true; buildReal(); } applyCut(); applyActive(); }
+  function setFacade(on){ facOn = !!on; if(facOn && !facBuilt){ if(fd){ facBuilt = true; buildReal(); } else buildFacades(); } applyActive(); }
   /* קומות המרתף והחניון: מספר הקומות מהוראות התוכנית. המתאר הוא גבול המגרש, וזו הנחה */
   function buildUnder(){
     underBuilt = true; if(!rnData) return; const fl = r => r.flatMap(p => [Math.round(p[0]*10), Math.round(p[1]*10)]);
@@ -488,7 +579,8 @@ function create(el, model, opts){
   ctl.addEventListener('change', draw);
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
-  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setUnder, view, resize, center, groups,
+  if(window._pmDebug) window._pm = { cam, ctl, draw, groups };       // בדיקה בלבד
+  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, view, resize, center, groups,
     setStreets, setMap,
     dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
