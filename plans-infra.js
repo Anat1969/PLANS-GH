@@ -104,7 +104,7 @@ function analyze(ctx){
     out.push(r < 40 ? { disc:'land', infra:'trees', ok:false, title:'צל העצים המוצעים נמוך ביחס לריצוף', fact:`צמרות העצים המוצעים כ-**${N(Math.round(cn))}** מ"ר, כ-**${r}%** מהריצוף`, basis:'הערכה לפי קוטר הצמרת בשרטוט', hits:['אפקטיבי'], syn:'trees-walk',
       guide:'יש להוסיף שורת עצים לאורך מסלולי ההליכה, עם בית גידול רציף מתחת לריצוף, עד שצמרות העצים בבגרותם יכסו לפחות 40% משטחי הריצוף.' }
       : { disc:'land', infra:'trees', ok:true, title:'צל העצים המוצעים טוב ביחס לריצוף', fact:`צמרות העצים המוצעים כ-**${N(Math.round(cn))}** מ"ר, כ-**${r}%** מהריצוף`, basis:'הערכה לפי קוטר הצמרת בשרטוט', hits:[], syn:'trees-walk', guide:'' }); }
-  if(c.treeOld) out.push({ disc:'land', infra:'trees', ok:null, title:'עצים קיימים בתחום', fact:`**${c.treeOld}** עצים קיימים, צמרות כ-**${N(Math.round(co))}** מ"ר, ו-**${c.treeSurvey}** סימוני סקר`, basis:'נמדד בשרטוט', hits:['חסכוני'], syn:'trees-walk',
+  if(c.treeOld) out.push({ disc:'land', infra:'trees', ok:null, title:'עצים קיימים בתחום', fact:`**${c.treeOld}** עצים קיימים, צמרות כ-**${N(Math.round(co))}** מ"ר${c.treeSurvey ? `, ו-**${c.treeSurvey}** סימוני סקר` : ''}`, basis:'נמדד בשרטוט', hits:['חסכוני'], syn:'trees-walk',
     guide:'יש לסמן בתוכנית אילו עצים קיימים נשמרים, נעתקים או נכרתים, בהתאם לסקר העצים, ולשמר עצים בוגרים במקום כשהדבר אפשרי.' });
   // 3. מכשולים בתוך רחבות הכיבוי
   const inPad = (p, b) => { const dx = p[0]-b[0], dy = p[1]-b[1], cs = Math.cos(-b[4]), sn = Math.sin(-b[4]); return Math.abs(dx*cs-dy*sn) < b[2]/2 && Math.abs(dx*sn+dy*cs) < b[3]/2; };

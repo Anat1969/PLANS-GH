@@ -104,11 +104,32 @@ def polys(mask, min_m2, eps_m, res=RES):
 
 def area(P): P = np.asarray(P); return 0.5*abs(np.dot(P[:, 0], np.roll(P[:, 1], 1)) - np.dot(P[:, 1], np.roll(P[:, 0], 1)))
 
+def georef(im, rn, cen, gcp, label='', blue_lo=(100, 90, 90)):
+    """עיגון תמונה למגרשי התב"ע: דמיון מנקודות המגרשים, ואז כיול לפי הקווים הכחולים. מחזיר (A: תמונה→ITM, cal)"""
+    h, w = im.shape[:2]
+    G = [g.split(':') for g in gcp.split()]; G = [(int(l), tuple(map(float, xy.split(',')))) for l, xy in G]
+    p0 = fit_sim([xy for _, xy in G], [cen[l] for l, _ in G]); r0 = [np.linalg.norm(app(sim(p0), [xy])[0] - cen[l]) for l, xy in G]
+    blue = cv2.inRange(cv2.cvtColor(im, cv2.COLOR_BGR2HSV), blue_lo, (135, 255, 255)); dt = cv2.distanceTransform(255 - blue, cv2.DIST_L2, 5); E = edges(rn['parcels'])
+    def inside(P): return (P[:, 0] >= 2) & (P[:, 1] >= 2) & (P[:, 0] < w-2) & (P[:, 1] < h-2)
+    def cost(p, trim):
+        P = app(inv(sim(p)), E); ok = inside(P)
+        if ok.sum() < 0.3*len(E): return 1e3
+        return np.minimum(dt[P[ok, 1].astype(int), P[ok, 0].astype(int)] * math.exp(p[3]), trim).mean() + 0.5*(1 - ok.mean())
+    best = p0
+    for trim in (6.0, 3.0, 1.5):
+        best = list(minimize(lambda p: cost(p, trim), best, method='Nelder-Mead', options=dict(xatol=1e-3, fatol=1e-4, maxiter=4000,
+                     initial_simplex=[best] + [list(np.array(best) + d) for d in np.diag([2.0, 2.0, 0.02, 0.02])])).x)
+    P = app(inv(sim(best)), E); ok = inside(P); d = dt[P[ok, 1].astype(int), P[ok, 0].astype(int)] * math.exp(best[3])
+    cal = dict(median=round(float(np.median(d)), 2), within05=round(float((d < 0.5).mean()), 2), within1=round(float((d < 1).mean()), 2),
+               inside=round(float(ok.mean()), 2), pxPerM=round(1/math.exp(best[3]), 3), rotDeg=round(math.degrees(best[2]), 2), gcpMean=round(float(np.mean(r0)), 1))
+    print(f'כיול {label}:', cal)
+    return sim(best), cal
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--tik', required=True); ap.add_argument('--img', required=True); ap.add_argument('--plan-models', required=True)
     ap.add_argument('--gcp', required=True); ap.add_argument('--title', default=''); ap.add_argument('--src-name', default='')
-    ap.add_argument('--out'); ap.add_argument('--debug'); ap.add_argument('--typical'); ap.add_argument('--spec')
+    ap.add_argument('--out'); ap.add_argument('--debug'); ap.add_argument('--typical'); ap.add_argument('--spec'); ap.add_argument('--basement')
     a = ap.parse_args(); out = a.out or os.path.join(ROOT, 'layers', a.tik); os.makedirs(out, exist_ok=True)
     pm = json.load(open(a.plan_models, encoding='utf8'))
     rn = renewal_from(pm, a.title or pm.get('plan', ''))
@@ -151,6 +172,7 @@ def main():
     warp = lambda img, interp=cv2.INTER_LINEAR, bv=0: cv2.warpAffine(img, G2I[:2], (W, Hh), flags=interp | cv2.WARP_INVERSE_MAP, borderValue=bv)
     imN = warp(im, bv=(255, 255, 255)); valid = warp(np.full((h, w), 255, np.uint8), cv2.INTER_NEAREST)
     K = {k: warp(v, cv2.INTER_NEAREST) for k, v in classes(im).items()}
+    near0 = lambda m, k: cv2.dilate(m, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
     if a.debug: cv2.imwrite(a.debug, imN)
     e0, n0 = round((E0+E1)/2, 2), round((N0+N1)/2, 2)
     toM = lambda P: [(E0 + x*RES - e0, (N1 - y*RES) - n0) for x, y in P]          # פיקסל ברשת → מטרים יחסית למרכז
@@ -272,23 +294,114 @@ def main():
     spacing = sorted(best_pair.values(), key=lambda x: x['d'])
     if spacing: print('מרחקים:', [(x['a'], x['b'], x['d'], x['need']) for x in spacing])
 
+    # ── אלמנטים של הפיתוח (ענת, 24.11.2026: "כל האלמנטים, מופרדים לשכבות, ושלא חסר כלום") ──
+    # מה שמזוהה לפי צבע מחולץ כאן. מה שמסומן בקווים דקים (רחבות כיבוי, רמפות, מעליות אשפה, רומים, קו השלבים) סומן בעין בקובץ העובדות.
+    EL = (json.load(open(a.spec, encoding='utf8')) if a.spec else {}).get('elements', {})
+    I2G = lambda P: app(inv(G2I[:2]), np.asarray(P, float))                     # פיקסל בתמונה → פיקסל ברשת
+    mI = lambda P: toM(I2G(P))                                                  # פיקסל בתמונה → מטרים
+    pxm = 1/math.exp(best[3]); hI = cv2.cvtColor(im, cv2.COLOR_BGR2HSV); Hc, Sc, Vc = [hI[..., i].astype(int) for i in range(3)]
+    bldI = cv2.warpAffine(bldF, G2I[:2], (w, h), flags=cv2.INTER_NEAREST)
+    def blobs(mask, a0, a1):                                                    # מרכזי כתמים בגודל a0..a1 מ"ר, בתמונה
+        n_, lb, st_, cc_ = cv2.connectedComponentsWithStats(mask.astype(np.uint8)*255)
+        return [cc_[i] for i in range(1, n_) if a0 <= st_[i, 4]/pxm/pxm <= a1]
+    ptm = lambda q: [round(float(v), 2) for v in mI([q])[0]]
+    el = {}
+    # כניסות: משולש אדום רווי
+    red = (((Hc <= 8) | (Hc >= 172)) & (Sc > 170) & (Vc > 140))
+    el['entry'] = [ptm(c) for c in blobs(red, 0.25, 3.0)]
+    # עמודי תאורה: הסימן הצהוב מחוץ למבנים (בתוך המבנים הוא לא מזוהה, ונספר בנפרד)
+    yel = (Hc >= 20) & (Hc <= 35) & (Sc > 140) & (Vc > 190)
+    yb = blobs(yel, 0.15, 3.0); inB = lambda c: bldI[min(h-1, int(c[1])), min(w-1, int(c[0]))] > 0
+    el['lamp'] = [ptm(c) + [0] for c in yb if not inB(c)]; yellowInside = sum(1 for c in yb if inB(c))
+    # חדרי אופניים ועגלות: הסגול בתוך המבנים
+    bikeR = cv2.morphologyEx(K['lilac'] & bldF, cv2.MORPH_OPEN, np.ones((9, 9), np.uint8))
+    # חדר טכני ואוורור: רכיב הטורקיז שמכיל את נקודת הזרע (המרפאה נשארת בניין)
+    tealN = cv2.morphologyEx(cv2.morphologyEx(K['teal'] & bldF, cv2.MORPH_CLOSE, np.ones((31, 31), np.uint8)), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    techM = np.zeros_like(tealN); n_, lb, _, _ = cv2.connectedComponentsWithStats(tealN)
+    for q in (EL.get('techSeeds') or {}).get('pts', []):
+        gx, gy = I2G([q])[0].astype(int); win = lb[max(0, gy-10):gy+11, max(0, gx-10):gx+11].ravel(); win = win[win > 0]
+        if len(win): techM |= ((lb == np.bincount(win).argmax())*255).astype(np.uint8)
+    # רחבות שהייה: הבז' במרחב הפתוח (לא מבנה, לא חצר)
+    beige = (Hc >= 14) & (Hc <= 30) & (Sc >= 20) & (Sc <= 48) & (Vc >= 178) & (Vc <= 218)
+    plaza = cv2.morphologyEx(cv2.morphologyEx(warp((beige*255).astype(np.uint8), cv2.INTER_NEAREST), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))),
+                             cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))) & site & ~near0(bldF, 11) & ~yard
+    # מהקובץ: רחבות כיבוי, רמפות, מעליות אשפה, רומים, קו השלבים
+    def pad(Q):
+        Q = np.array(mI(Q)); e1, e2 = Q[1]-Q[0], Q[2]-Q[1]; L1, L2 = np.linalg.norm(e1), np.linalg.norm(e2)
+        ax = e1 if L1 >= L2 else e2; c = Q.mean(0)
+        return [round(float(c[0]), 2), round(float(c[1]), 2), round(float(max(L1, L2)), 2), round(float(min(L1, L2)), 2), round(math.atan2(ax[1], ax[0]), 3)], Q
+    pads = [pad(Q) for Q in (EL.get('fire') or {}).get('pads', [])]
+    el['fire'] = [p_[0] for p_ in pads]
+    rampP = [np.array(Q, float) for Q in (EL.get('ramps') or {}).get('polys', [])]
+    el['wasteLift'] = [ptm(q) for q in (EL.get('wasteLifts') or {}).get('pts', [])]
+    el['spot'] = [ptm(q[:2]) + [q[2], q[3]] for q in (EL.get('spots') or {}).get('pts', [])]
+    phase = (EL.get('phase') or {}).get('line')
+    rampM = np.zeros((Hh, W), np.uint8)
+    for Q in rampP: cv2.fillPoly(rampM, [I2G(Q).astype(np.int32)], 255)
+    print(f"אלמנטים: כניסות {len(el['entry'])}, עמודי תאורה {len(el['lamp'])} (צהוב בתוך מבנים {yellowInside}), רחבות כיבוי {len(el['fire'])}, "
+          f"רמפות {len(rampP)}, מעליות אשפה {len(el['wasteLift'])}, רומים {len(el['spot'])}, חדרי אופניים {int((bikeR>0).sum()*RES*RES)} מ\"ר, "
+          f"טכני {int((techM>0).sum()*RES*RES)} מ\"ר, רחבות שהייה {int((plaza>0).sum()*RES*RES)} מ\"ר")
+
+    # מרתף (שקף אחר, עיגון משלו): גבול המרתף ועצי הסקר הקיימים
+    under, survey, bcal = [], [], None
+    if a.basement:
+        bs = json.load(open(a.spec, encoding='utf8'))['basement']; bi = cv2.imread(a.basement); bh, bw = bi.shape[:2]
+        Ab, bcal = georef(bi, rn, cen, bs['gcp'], 'מרתף', blue_lo=(95, 40, 80))   # קווי המגרש דקים ודהויים בשקף הזה
+        bH = cv2.cvtColor(bi, cv2.COLOR_BGR2HSV); bh_, bs_, bv_ = [bH[..., i].astype(int) for i in range(3)]
+        B2G = np.array([[1/RES, 0, -E0/RES], [0, -1/RES, N1/RES]]) @ np.vstack([Ab, [0, 0, 1]])    # תמונת המרתף → רשת
+        bwarp = lambda m: cv2.warpAffine(m, B2G, (W, Hh), flags=cv2.INTER_NEAREST)
+        # המרתף: האפור של המעברים והחניות, והקווים האדומים של מקומות החניה. סגירה ומילוי
+        park = (((bs_ < 30) & (bv_ >= 90) & (bv_ <= 215)) | (((bh_ <= 10) | (bh_ >= 160)) & (bs_ > 100) & (bv_ > 120))).astype(np.uint8)*255
+        pm = cv2.morphologyEx(bwarp(park), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41)))
+        # השטח המקווקו (בלי מרתף) הוא השצ"פ שאין בו מגרש חניון תלת־ממדי. לפי הערה 3 בטבלה 5: רק בתאים 15, 17, 19, 20, 22, 24 יש מעבר בין מרתפים
+        park3d = {l['lot'] for l in rn['lots'] if 'חניון' in str(l.get('title', ''))}; noB = np.zeros((Hh, W), np.uint8)
+        for p_ in rn['parcels']:
+            if p_['cat'] == 'open' and p_['lot'] not in park3d: cv2.fillPoly(noB, [itmpx([wgs2itm(c[1], c[0]) for c in p_['c']]).astype(np.int32)], 255)
+        pm = cv2.morphologyEx(pm & ~noB, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))) & near0(site, 81)
+        under = polys(pm, 400, 0.8)
+        # עצי הסקר: סמל עץ כתום עם גזע חום כהה, ממוספר. הקוטר לא מסומן: 5 מ' (הנחה).
+        # בתוך תחום המרתף הקווים האדומים של החניות דומים לסמל, ולכן עץ בתוך המרתף לא נספר
+        stallR = (((bh_ <= 8) | (bh_ >= 160)) & (bs_ > 100) & (bv_ > 130)).astype(np.uint8)
+        stallD = cv2.boxFilter(stallR.astype(np.float32), -1, (17, 17), normalize=False)        # כמה פיקסלים אדומים של חניות סביב
+        tr = cv2.dilate((((bh_ >= 6) & (bh_ <= 22) & (bs_ > 140) & (bv_ > 50) & (bv_ < 220))*255).astype(np.uint8), np.ones((3, 3), np.uint8))
+        brown = (bh_ >= 4) & (bh_ <= 25) & (bs_ > 90) & (bv_ < 105)
+        n_, lb, st_, cc_ = cv2.connectedComponentsWithStats(tr)
+        for i in range(1, n_):
+            x_, y_, w_, h_, a_ = st_[i]
+            if not (12 <= a_ <= 140 and w_ <= 14 and h_ <= 14 and max(w_, h_)/max(1, min(w_, h_)) <= 1.8): continue
+            if brown[max(0, y_-2):y_+h_+2, max(0, x_-2):x_+w_+2].sum() < 4 or stallD[int(cc_[i][1]), int(cc_[i][0])] > 12: continue
+            E_, N_ = app(Ab, [cc_[i]])[0]
+            if any(math.hypot(E_-t[0], N_-t[1]) < 1.5 for t in survey): continue
+            survey.append((E_, N_))
+        print(f'מרתף: {len(under)} תחומים, {int(sum(area(P) for P in under)*RES*RES)} מ"ר; עצי סקר {len(survey)}')
+
     # משטחים
     surf = {}
     road = [p for p in rn['parcels'] if p['cat'] == 'road']
     surf['asphalt'] = [['#9a9a96', flat(toM(itmpx([wgs2itm(c[1], c[0]) for c in p['c']])))] for p in road]
-    pav = site & ~bldF
+    pav = site & ~bldF & ~rampM & ~plaza
     for p in road:
         m = np.zeros((Hh, W), np.uint8); cv2.fillPoly(m, [itmpx([wgs2itm(c[1], c[0]) for c in p['c']]).astype(np.int32)], 255); pav &= ~m
     surf['paving'] = [['#e6dfcc', flat(toM(P))] for P in polys(pav, 20, 0.5)]
     surf['green'] = [['#8add6e', flat(toM(P))] for P in polys(yard, 15, 0.4)]
-    surf['wall'] = [['#e8e4da', flat(toM(P))] for P in foot]
+    wallM = bldF & ~rampM
+    surf['wall'] = [['#e8e4da', flat(toM(P))] for P in polys(wallM, 20, 0.4)]
+    surf['ramp'] = [['#77777c', flat(toM(I2G(Q)))] for Q in rampP]
+    surf['plaza'] = [['#d9cdb0', flat(toM(P))] for P in polys(plaza, 6, 0.4)]
+    surf['bikeRoom'] = [['#cdb8e6', flat(toM(P))] for P in polys(bikeR, 6, 0.3)]
+    surf['tech'] = [['#9fd9cf', flat(toM(P))] for P in polys(techM, 6, 0.3)]
+    surf['firemark'] = [['#e23b3b', flat(Q.tolist())] for _, Q in pads]
     # קווים מהתב"ע: גבולות מגרשים וקווי בניין (מעטפות)
     ring_m = lambda C: [(e - e0, n - n0) for e, n in (wgs2itm(c[1], c[0]) for c in C)]
     closed = lambda R: flat(R + R[:1])
     lines = dict(plot=[closed(ring_m(p['c'])) for p in rn['parcels'] if p['lot'] in lotmask],
-                 bline=[closed(ring_m(m['c'])) for m in rn['massing'] if m['kind'] == 'envelope' and m['lot'] in lotmask])
-    obj = dict(treeNew=[[round(E0 + x*RES - e0, 2), round(N1 - y*RES - n0, 2), round(r, 2)] for x, y, r in trees])
-    topic = dict(asphalt='road', paving='walk', green='green', wall='build', plot='site', bline='site')
+                 bldline=[closed(ring_m(m['c'])) for m in rn['massing'] if m['kind'] == 'envelope' and m['lot'] in lotmask])   # קווי הבניין של התב"ע
+    if under: lines['bline'] = [closed(toM(P)) for P in under]                                                       # קו המרתף, משקף המרתף
+    if phase: lines['phase'] = [flat(mI(phase))]
+    obj = dict(treeNew=[[round(E0 + x*RES - e0, 2), round(N1 - y*RES - n0, 2), round(r, 2)] for x, y, r in trees], **{k: v for k, v in el.items() if v})
+    if survey: obj['treeOld'] = [[round(E_-e0, 2), round(N_-n0, 2), 2.5] for E_, N_ in survey]
+    topic = dict(asphalt='road', paving='walk', green='green', wall='build', plot='site', bldline='site', bline='site', phase='site', ramp='park', plaza='shade',
+                 bikeRoom='bike', tech='power', firemark='fire', entry='build', lamp='power', fire='fire', wasteLift='waste', spot='level', treeOld='trees')
     allp = np.array([v for L in surf.values() for _, f in L for v in f]).reshape(-1, 2) / 10
     model = dict(e0=e0, n0=n0, scale=None, surf=surf, lines=lines, obj=obj, topic=topic,
                  foot=[flat(toM(P)) for P in foot], footLot=footLots, parts=parts, spacing=spacing if parts else [], bbox=[round(float(v), 1) for v in (*allp.min(0), *allp.max(0))])
@@ -309,10 +422,29 @@ def main():
          ('trees', 'עצים', near(can, 3) & ~bldF & valid & siteD),
          ('walk', 'ריצוף והולכי רגל', pav & ~near(can, 3) & ~yard),
          ('road', 'כבישים', siteD & valid & ~site)]
+    def dots(pts_img, r_m):
+        m = np.zeros((Hh, W), np.uint8)
+        for q in pts_img: g = I2G([q])[0]; cv2.circle(m, (int(g[0]), int(g[1])), int(r_m/RES), 255, -1)
+        return m
+    toImg = lambda P_m: [((x + e0 - E0)/RES, (N1 - (y + n0))/RES) for x, y in P_m]          # מטרים → רשת
+    padM = np.zeros((Hh, W), np.uint8)
+    for _, Q in pads: cv2.fillPoly(padM, [np.array(toImg(Q.tolist())).astype(np.int32)], 255)
+    gridDots = lambda pts_m, r_m: (lambda m: ([cv2.circle(m, tuple(int(v) for v in toImg([q[:2]])[0]), int(r_m/RES), 255, -1) for q in pts_m], m)[1])(np.zeros((Hh, W), np.uint8))
+    L += [('fire', 'רחבות כיבוי', near(padM, 9)),
+          ('park', 'רמפות לחניון', near(rampM, 9)),
+          ('bike', 'חדרי אופניים ועגלות', near(bikeR, 5)),
+          ('power', 'תאורה וחדר טכני', near(techM, 5) | gridDots(el['lamp'], 1.2)),
+          ('waste', 'מעליות אשפה', gridDots(el['wasteLift'], 2.5)),
+          ('level', 'רומים', gridDots(el['spot'], 3.0)),
+          ('shade', 'רחבות שהייה', near(plaza, 5))]
     layers = [dict(id=i, name=nm, file=i + '.webp', ink=layer(i, m), cad=[]) for i, nm, m in L]
     man = dict(tik=a.tik, title=a.title, source=a.src_name or os.path.basename(a.img), scale=None, w=W//2, h=Hh//2, mPerPx=RES*2,
                cadTotal=len(layers), unassigned=[], siteArea=int((site > 0).sum()*RES*RES), layers=layers, raster=True, cal=cal,
-               missing=['park', 'bike', 'level', 'shade', 'water', 'power', 'waste', 'fire'])  # אין בתוכנית העמדה צבעונית: נאמר במסך ונדרש מהאדריכל
+               missing=['water'],   # אין בשקפים מים, ביוב וניקוז: נאמר במסך ונדרש מהאדריכל
+               elements=dict(entries=len(el['entry']), lamps=len(el['lamp']), yellowInside=yellowInside, fire=len(el['fire']), firePartial=(EL.get('fire') or {}).get('partial', ''),
+                             ramps=len(rampP), wasteLifts=len(el['wasteLift']), spots=len(el['spot']), bikeRoom=int((bikeR > 0).sum()*RES*RES), tech=int((techM > 0).sum()*RES*RES),
+                             plaza=int((plaza > 0).sum()*RES*RES), under=int(sum(area(P) for P in under)*RES*RES), survey=len(survey), basementCal=bcal,
+                             src={k: (EL.get(k) or {}).get('src', '') for k in ('fire', 'ramps', 'wasteLifts', 'techSeeds', 'phase', 'spots')}))
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
     src = dict(tik=a.tik, made=datetime.date.today().isoformat(), image=a.src_name or os.path.basename(a.img), method='siteplan-model.py: תמונה מעוגנת לתב"ע',
                calibration=cal, status='calibrated' if cal['median'] < 0.5 and cal['within1'] >= 0.8 else 'approx',

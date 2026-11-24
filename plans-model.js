@@ -52,6 +52,14 @@ const KINDS = [
  { id:'fire', topic:'fire', label:'רחבת כיבוי וכבאית', color:'#c8202a', desc:'כבאית באורך 9.5 מ\' עומדת בכל רחבה שסומנה.' },
  { id:'firemark', topic:'fire', label:'סימון הרחבות', color:'#e23b3b', desc:'הסימון האדום מהשרטוט.' },
  { id:'fireroute', topic:'fire', label:'מסלול רכב הכיבוי', color:'#e23b3b', desc:'רדיוסי הסיבוב והגישה.' }
+ /* מתוכנית העמדה כתמונה (tools/siteplan-model.py, ענת 24.11.2026) */
+ ,{ id:'phase', topic:'site', label:'גבול שלבי הביצוע', color:'#f08a1e', desc:'שלב א ושלב ב, מתוכנית ההעמדה.' }
+ ,{ id:'entry', topic:'build', label:'כניסות למבנים', color:'#d8202a', desc:'כניסה ללובי, למסחר ולמבני הציבור, מהסימן בתוכנית ההעמדה.' }
+ ,{ id:'plaza', topic:'shade', label:'רחבת שהייה', color:'#d9cdb0', desc:'משטחי ישיבה ושהייה בפארק, מהצבע בתוכנית ההעמדה. הערכה.' }
+ ,{ id:'bikeRoom', topic:'bike', label:'חדרי אופניים ועגלות', color:'#b89ad8', desc:'בקומת הקרקע. מוצג על גג קומת הקרקע.' }
+ ,{ id:'tech', topic:'power', label:'חדר טכני ואוורור', color:'#5fb8a8', desc:'אוורור החניון וחדר טכני בקומת הקרקע. מוצג על גג קומת הקרקע.' }
+ ,{ id:'wasteLift', topic:'waste', label:'מעלית אשפה', color:'#2f7d5a', desc:'פיר האשפה של כל מגדל, מהסימן בתוכנית ההעמדה.' }
+ ,{ id:'spot', topic:'level', label:'רומים', color:'#0b6b3a', desc:'מפלס הכניסה (שחור) ורומי הפיתוח (ירוק), במטרים מעל פני הים.' }
  ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
  { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
  { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
@@ -264,6 +272,8 @@ function create(el, model, opts){
   surf('deck', .07, M.std({ color:KIND.deck.color, map:TX.wood, vertexColors:true }));
   surf('green', .085, M.std({ color:'#9fd07f', map:TX.grass, vertexColors:true, roughness:1 }), .5);
   surf('firemark', .10, M.std({ color:KIND.firemark.color, transparent:true, opacity:.75 }));
+  surf('plaza', .06, M.std({ color:KIND.plaza.color, map:TX.paving, vertexColors:true, roughness:.9 }));
+  surf('bikeRoom', 4.03, M.std({ color:KIND.bikeRoom.color })); surf('tech', 4.03, M.std({ color:KIND.tech.color }));
   if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
     groups.wall.add(new T.LineSegments(new T.EdgesGeometry(wg, 35), outlineM)); }
   if(S.pergola){ const rs = S.pergola.map(p => ring2(p[1]));
@@ -288,7 +298,7 @@ function create(el, model, opts){
   rib('sewer', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewer.color, side:T.DoubleSide }), { noReceive:true });
   rib('drain', .1, .22, new T.MeshBasicMaterial({ color:KIND.drain.color, side:T.DoubleSide }), { noReceive:true });
   rib('gas', .1, .22, new T.MeshBasicMaterial({ color:KIND.gas.color, side:T.DoubleSide }), { noReceive:true });
-  lin('fireroute', .16, KIND.fireroute.color);
+  lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color);
 
   // אובייקטים
   const O = model.obj, dummy = new T.Object3D();
@@ -326,6 +336,13 @@ function create(el, model, opts){
     [-.34, -.22, .32].forEach(k => [-1, 1].forEach(s => { const wh = part(new T.CylinderGeometry(.52, .52, .4, 14), dark, len*k, .52, s*(w/2-.1)); wh.rotation.x = Math.PI/2; }));
     g.position.set(b[0], 0, -b[1]); g.rotation.y = b[4]; add('fire', g, { cast:true, solid:true });
   });
+  // כניסות, מעליות אשפה ורומים (תוכנית העמדה כתמונה)
+  inst('entry', new T.ConeGeometry(.55, 1.1, 3), M.std({ color:KIND.entry.color }), O.entry, (d, t) => d.position.set(t[0], .55, -t[1]));
+  box('wasteLift', (O.wasteLift||[]).map(t => [t[0], t[1], 1.6, 1.6, 0]), 4.8, M.std({ color:KIND.wasteLift.color }));
+  (O.spot||[]).forEach(t => { if(typeof document === 'undefined') return; const c = document.createElement('canvas'); c.width = 160; c.height = 44; const x = c.getContext('2d');
+    x.fillStyle = 'rgba(255,255,255,.88)'; x.fillRect(0, 0, 160, 44); x.fillStyle = t[3] === 'ffl' ? '#1a1a18' : KIND.spot.color; x.font = 'bold 26px IBM Plex Sans, Arial, sans-serif';
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText((t[3] === 'hp' ? 'HP ' : t[3] === 'lp' ? 'LP ' : '') + Number(t[2]).toFixed(2), 80, 23);
+    const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(4.4, 1.2, 1); sp.position.set(t[0], t[3] === 'ffl' ? 5.4 : 1.6, -t[1]); add('spot', sp, {}); });
   // מסת הבניינים: רק כשנבחר מספר קומות
   const massMat = M.std({ color:KIND.mass.color, transparent:true, opacity:.9, roughness:.7 }); let massMesh = null;
   function setFloors(n){ if(massMesh){ groups.mass.remove(massMesh); massMesh.geometry.dispose(); massMesh = null; }

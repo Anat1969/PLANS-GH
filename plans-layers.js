@@ -104,21 +104,24 @@ function discCount(disc){ const r = review(), ks = askKeys(disc), cu = r.custom.
 /* ── מה נמדד בשרטוט, לכל תחום. הכול הערכה מהגאומטריה ── */
 /* תוכנית העמדה כתמונה: רק מה שנמדד ממנה, ומה שחסר בה נאמר במפורש */
 function rasterFacts(disc){
-  const m = S.meas, a = m.area, c = m.count, man = S.man || {}, cal = man.cal || {}, miss = '==אין בתמונה מידע על ',
-    ask = 'נדרשת תוכנית פיתוח (PDF עם שכבות) מהאדריכל, דרך הטופס לאדריכל';
+  const m = S.meas, a = m.area, c = m.count, man = S.man || {}, cal = man.cal || {}, e = man.elements || {}, bc = e.basementCal || {},
+    none = t => `==אין בשקפים: ${t}==`, ask = 'לבקש מהאדריכל תוכנית פיתוח (PDF עם שכבות), דרך הטופס לאדריכל';
   switch(disc.id){
     case 'arch': { const fit = conform(), out = fit ? fit.reduce((s, r) => s+r.out, 0) : 0, tot = fit ? fit.reduce((s, r) => s+r.area, 0) : 0;
-      return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר (מהצבע בתוכנית ההעמדה)`,
+      return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר, ו-**${c.entry||0}** כניסות`,
         fit && fit.length ? (out > tot*0.02 ? `==כ-${N(out)} מ"ר מקומת הקרקע מחוץ לקווי הבניין של התב"ע== (הערכה, ${Math.round(out/tot*100)}%)` : `קומת הקרקע בתוך קווי הבניין של התב"ע (${fit.length} מגרשים, הערכה)`) : 'אין נתוני תב"ע להשוואה',
         spacingFact(), partsFact()].filter(Boolean); }
-    case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר`, miss + 'חניה, אופניים ורמפה לחניון==', ask];
-    case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר או דרך)`, miss + 'מפלסים, מדרגות וקירות פיתוח==', ask];
-    case 'land': return [`**${c.treeNew}** עצים מהתמונה, הערכה`, `חצרות גן ומעון: כ-**${N(a.green)}** מ"ר`, '==עץ קיים ועץ מוצע לא מובחנים בתמונה=='];
-    case 'water': return [miss + 'מים, ביוב וניקוז==', ask];
-    case 'power': return [miss + 'חשמל, תאורה וגז==', ask];
-    case 'waste': return [miss + 'חדרי אשפה ומסלול הפינוי==', ask];
-    case 'fire': return [miss + 'רחבות כיבוי ומסלולי גישה==', ask];
-    default: return [`**${c.foot}** מבנים, **${c.treeNew}** עצים, **${man.layers.length}** שכבות מהתמונה`,
+    case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר. **${e.ramps||0}** רמפות לחניון, כ-**${N(a.ramp)}** מ"ר`,
+      e.under ? `קו המרתף משקף המרתף: כ-**${N(e.under)}** מ"ר, הערכה (עיגון: **${Math.round((bc.within05||0)*100)}%** מהצלעות עד חצי מטר)` : '',
+      `חדרי אופניים ועגלות: כ-**${N(a.bikeRoom)}** מ"ר`, none('מקומות החניה, שבילי אופניים ופריקה וטעינה')].filter(Boolean);
+    case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר, רחבה או דרך)`, `**${c.spot||0}** רומים, מהכניסות ועד שולי המגרש`, none('מדרגות, קירות פיתוח ושיפועי הנגישות')];
+    case 'land': return [`**${c.treeNew}** עצים בתוכנית ההעמדה, ו-**${c.treeOld||0}** עצים קיימים מסקר העצים (מתוך כ-120 ממוספרים)`,
+      `חצרות גן ומעון: כ-**${N(a.green)}** מ"ר. רחבות שהייה: כ-**${N(a.plaza)}** מ"ר`, '==עץ לשימור, להעתקה או לכריתה לא מסומן=='];
+    case 'water': return [none('מים, ביוב וניקוז'), ask];
+    case 'power': return [`**${c.lamp||0}** סימנים צהובים לאורך הדרכים, כנראה עמודי תאורה (הערכה)`, `חדר טכני ואוורור: כ-**${N(a.tech)}** מ"ר`, none('חדר טרנספורמציה, ארונות וקווי חשמל')];
+    case 'waste': return [`**${c.wasteLift||0}** מעליות אשפה, אחת בכל מגדל`, none('חדר אשפה, דחסנית ומסלול משאית הפינוי'), ask];
+    case 'fire': return [`**${c.fire||0}** רחבות כיבוי של כ-6 על 12 מ', ובכל אחת כבאית`, e.firePartial ? e.firePartial : '', none('מסלולי הגישה ורדיוסי הסיבוב')].filter(Boolean);
+    default: return [`**${c.foot}** מבנים, **${c.treeNew + (c.treeOld||0)}** עצים, **${c.fire||0}** רחבות כיבוי, **${c.spot||0}** רומים`,
       `מקור: ${man.source}`, cal.within05 != null ? `מעוגן למגרשי התב"ע: **${Math.round(cal.within05*100)}%** מצלעות המגרשים עד חצי מטר מהקו בתמונה` : 'המודל ממוקם ברשת ישראל'];
   }
 }
@@ -396,7 +399,10 @@ function drawPanel(){
 /** ניתוח ורתימות (plans-infra.js): ממצאים מול מה שנמדד, הנחיה לייעול, וסימון לכל רתימה */
 function infraFold(disc, r, ed){
   const PI = window.PlanInfra; if(!PI || !S.meas) return '';
-  const fs = PI.analyze({ meas:S.meas, model:S.model, rn:S.rn }).filter(f => disc.id==='all' || f.disc===disc.id);
+  /* מודל מתמונה: ממצא שתלוי בשכבה שחסרה במקור (מים), או בריצוף (שבתמונה הוא "כל השאר"), לא מוצג. בשאר המקור הוא הערכה מהתמונה */
+  const rasterOk = f => !S.man.raster || (!(S.man.missing||[]).includes(f.disc) && !/ריצוף/.test(f.title));
+  const fs = PI.analyze({ meas:S.meas, model:S.model, rn:S.rn }).filter(f => (disc.id==='all' || f.disc===disc.id) && rasterOk(f))
+    .map(f => S.man.raster ? Object.assign({}, f, { basis:'מתוכנית ההעמדה (תמונה), הערכה' }) : f);
   const syns = PI.synergiesFor(disc.id === 'all' ? 'all' : disc.id); r.synergy = r.synergy || {};
   const have = new Set(r.custom.map(c => c.n)), gaps = fs.filter(f => f.ok===false).length;
   const ST = [['yes','קיים'], ['no','חסר'], ['na','לא רלוונטי']];

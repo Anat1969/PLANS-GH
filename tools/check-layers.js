@@ -49,6 +49,14 @@ for(const dir of sets){
     else ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
     ok(rn.lots.filter(l => l.floors > 0).every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
   }
+  if(man.raster){ // "שלא חסר כלום" (ענת, 24.11.2026): כל שכבה של תוכנית הפיתוח מכוסה במודל, או רשומה כחסרה. לא שתיהן
+    const TOP = ['site','build','road','park','bike','walk','level','green','trees','shade','water','power','waste','fire'];
+    const has = t => P.KINDS.some(k => k.topic === t && ((ms.count[k.id]||0) + (ms.area[k.id]||0) + (ms.len[k.id]||0)) > 0);
+    const gap = TOP.filter(t => !has(t) && !(man.missing||[]).includes(t)), both = TOP.filter(t => has(t) && (man.missing||[]).includes(t));
+    ok(!gap.length && !both.length, dir + ': מלאי השכבות: ' + TOP.filter(has).length + ' מתוך ' + TOP.length + ' עם תוכן, חסר במקור: ' + ((man.missing||[]).join(', ') || 'אין')
+      + (gap.length ? ' (בלי תוכן ולא רשום: ' + gap.join(', ') + ')' : '') + (both.length ? ' (רשום כחסר אבל יש תוכן: ' + both.join(', ') + ')' : ''));
+    ok(man.layers.every(l => l.ink > 0), dir + ': לכל שכבת שרטוט יש תוכן (' + man.layers.map(l => l.id).join(', ') + ')');
+  }
   if(m.parts && fs.existsSync(rf)){ // חלקי בניין מהמצגת מול התב"ע: מספר הקומות והגובה. חריגה היא ממצא לחוות הדעת, לא תקלה
     const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors > L.floors; });
     ok(m.parts.every(p => p.src && p.floors > 0 && p.top > 4), dir + ': לכל חלק בניין יש מקור, קומות וגובה (' + m.parts.length + ' חלקים)');
