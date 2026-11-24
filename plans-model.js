@@ -829,7 +829,7 @@ function create(el, model, opts){
      מסתירה את כל השכבות הטכניות (קו כחול, סימוני כיבוי, צנרת, שלטים וקווי מתאר), מציגה את כל התחומים בצבע,
      ומוסיפה שמיים ואובך, ופילטר צבע (רוויה, ניגודיות ווינייטה) ב-CSS. צל מגע (SAO) ועיבוד תמונה נוסו: הילות שחורות ושטיפה לבנה בכרטיסי מסך חלשים, ולכן הוסרו. */
   let renderOn = false, fxBuilt = false, sky = null; const composer = null;
-  const RENDER_HIDE = new Set(['plot', 'lots', 'bline', 'fireroute', 'firemark', 'fire', 'treeSurvey', 'water', 'sewer', 'drain', 'gas', 'cover', 'cabinet', 'spot', 'rnEnvelope', 'stairs', 'parking', 'mass']);
+  const RENDER_HIDE = new Set(['plot', 'lots', 'bline', 'fireroute', 'firemark', 'fire', 'treeSurvey', 'water', 'sewer', 'drain', 'gas', 'cover', 'cabinet', 'spot', 'rnEnvelope', 'stairs', 'parking', 'mass', 'bldline', 'phase', 'radius', 'easement', 'exSurvey']);
   function buildFx(){
     fxBuilt = true;
     // שמיים: מעבר מכחול בזנית לאובך בהיר באופק, והילה סביב השמש. בצבעים ליניאריים, כי הם עוברים את מחשבת הצבע
@@ -854,7 +854,7 @@ function create(el, model, opts){
       if(!kindOff.has(k)) g.visible = true;
       g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = !!x.userData.solid; } }); }
     // שלטים וקווי מתאר נעלמים: נשאר רק מה שנבנה
-    scene.traverse(x => { if(x.isSprite && x !== sunBall) x.visible = false; if(x.isLineSegments && (x.material === outlineM || x.userData.rim)) x.visible = false; });
+    scene.traverse(x => { if(x.isSprite && x !== sunBall && !x.userData.keep) x.visible = false; if(x.isLineSegments && (x.material === outlineM || x.userData.rim)) x.visible = false; });
   }
   function setRender(on){
     renderOn = !!on;
@@ -863,7 +863,8 @@ function create(el, model, opts){
       if(sky) sky.visible = renderOn; sunBall.visible = !renderOn && !!(lastSun && lastSun.day); pathLine.visible = !renderOn;
       scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null;
       groups && Object.values(groups).forEach(g => g.traverse(x => { const m = x.material; if(m && m.userData && m.userData.leaf){ m.transparent = !renderOn; m.opacity = renderOn ? 1 : .84; m.needsUpdate = true; } }));
-      if(!renderOn) scene.traverse(x => { if(x.isSprite || x.isLineSegments) x.visible = true; });
+      if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments) && !x.userData.keep) x.visible = true; });
+      if(renderOn && !lifeG) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design';
       renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
       applyActive(); draw(); };
     go(); return Promise.resolve();
@@ -872,7 +873,7 @@ function create(el, model, opts){
   /* ── הליכה בגובה העיניים (walk.json, tools/extract-walk.py) ──
      הולכים על רשת השבילים: ↑ הולכים, ↓ מסתובבים, ← → בוחרים פנייה בצומת (או מסובבים את המבט), רווח: הליכה ועצירה בצומת הבא.
      גרירה: הסתכלות סביב, והמבט חוזר לכיוון ההליכה. לחיצה על הקרקע או על המפה הקטנה: הולכים לשם לבד, במסלול הקצר. */
-  let WD = null, W = null, WG = null;
+  let WD = null, W = null, WG = null;   // רשת ההליכה, מצב ההולך, והגרף
   function setWalkData(d){ WD = d; WG = null; }
   function graph(){
     if(WG || !WD) return WG; const N = WD.nodes.map(n => [n[0]/10, n[1]/10]);
@@ -896,9 +897,9 @@ function create(el, model, opts){
   let arrows = null, arrowNode = -1, keyH = null, ptr = null;
   function walkStart(){
     if(!WD) return false; const G = graph(); if(!G.E.length) return false;
-    const tx = ctl.target.x, ty = -ctl.target.z, n = nearest(tx, ty), e = G.E[n.e], dir = 1;
+    const st0 = (WD.stops||[])[0], sp = st0 ? G.N[st0.n] : null, n = sp ? nearest(sp[0], sp[1]) : nearest(ctl.target.x, -ctl.target.z), e = G.E[n.e], dir = 1;   // מתחילים בכניסה מהרחוב
     W = { e:n.e, s:n.s, dir, yawNow:angOf(e, dir, n.s), yaw:angOf(e, dir, n.s), look:0, pitch:-.04, h:hAt(...at(e, n.s)) + 1.65, fwd:false, auto:false, route:null, pref:0, stopAt:-1, info:'' };
-    ctl.enabled = false; cam.fov = 62; cam.near = .15; cam.updateProjectionMatrix();
+    ctl.enabled = false; cam.fov = 62; cam.near = .15; cam.updateProjectionMatrix(); showTrail(true);
     if(!arrows){ arrows = new T.Group(); scene.add(arrows); walkM.arrow = new T.MeshBasicMaterial({ color:'#ffffff', transparent:true, opacity:.85, depthWrite:false, side:T.DoubleSide }); walkM.sel = new T.MeshBasicMaterial({ color:'#11998e', transparent:true, opacity:.95, depthWrite:false, side:T.DoubleSide }); }
     keyH = ev => { if(!W || /INPUT|TEXTAREA|SELECT/.test((ev.target||{}).tagName||'')) return; const k = ev.key, down = ev.type === 'keydown';
       if(['ArrowUp', 'w', 'W'].includes(k)){ W.fwd = down; if(down) W.route = null; }
@@ -917,12 +918,54 @@ function create(el, model, opts){
     dom.addEventListener('pointerdown', ptr.down); dom.addEventListener('pointermove', ptr.move); dom.addEventListener('pointerup', ptr.up);
     dom.classList.add('pm-walk'); setRender(true); draw(); return true;
   }
+  /* המסלולים על הקרקע: רצועה בהירה בטורקיז לאורך כל השבילים, ועמוד עם שם בכל תחנה של הסיור. רק בזמן ההליכה */
+  let trail = null;
+  function showTrail(on){
+    if(on && !trail && WD){ const G = graph(), pos = [], w = .28;
+      G.E.forEach(e => { for(let k = 1; k < e.p.length; k++){ const a = e.p[k-1], b = e.p[k], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = -(b[1]-a[1])/L*w, ny = (b[0]-a[0])/L*w, ha = hAt(a[0], a[1]) + .05, hb = hAt(b[0], b[1]) + .05;
+        pos.push(a[0]+nx, ha, -(a[1]+ny), b[0]+nx, hb, -(b[1]+ny), b[0]-nx, hb, -(b[1]-ny), a[0]+nx, ha, -(a[1]+ny), b[0]-nx, hb, -(b[1]-ny), a[0]-nx, ha, -(a[1]-ny)); } });
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+      trail = new T.Group(); const rib = new T.Mesh(g, new T.MeshBasicMaterial({ color:'#19b3a5', transparent:true, opacity:.42, depthWrite:false, side:T.DoubleSide, fog:false })); rib.renderOrder = 4; rib.userData.keep = true; trail.add(rib);
+      (WD.stops||[]).forEach((st, i) => { const q = G.N[st.n], h = hAt(q[0], q[1]);
+        const pole = new T.Mesh(new T.CylinderGeometry(.06, .06, 3, 8), new T.MeshBasicMaterial({ color:'#11998e' })); pole.position.set(q[0], h + 1.5, -q[1]); trail.add(pole);
+        const c = document.createElement('canvas'); c.width = 512; c.height = 84; const x = c.getContext('2d'); x.fillStyle = '#11998e'; x.fillRect(0, 0, 512, 84); x.fillStyle = '#fff'; x.font = '600 36px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+        x.fillText(`${i+1}. ${st.name}`, 256, 44); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:true, fog:false })); sp.scale.set(5.2, .85, 1); sp.position.set(q[0], h + 3.4, -q[1]); sp.userData.keep = true; trail.add(sp); });
+      scene.add(trail); }
+    if(trail) trail.visible = !!on; draw(); }
+  /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
+  let lifeG = null;
+  function buildLife(){
+    if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);
+    const r = i => { const v = Math.sin(i*91.7)*43758.5453; return v - Math.floor(v); }, col = new T.Color(), o = new T.Object3D();
+    const mesh = (geo, mat, n, fill) => { const m = new T.InstancedMesh(geo, mat, n); for(let i = 0; i < n; i++){ fill(o, i, col); o.updateMatrix(); m.setMatrixAt(i, o.matrix); m.setColorAt(i, col); } m.instanceMatrix.needsUpdate = true; if(m.instanceColor) m.instanceColor.needsUpdate = true; m.castShadow = true; m.receiveShadow = true; lifeG.add(m); return m; };
+    const P = WD.people || [], TOP = ['#2f4a6d', '#b8483b', '#e8e2d4', '#3e6b4a', '#d9a441', '#6b5b8e', '#f2f2ee', '#262626', '#8a5a44', '#4f8fbf'], LEG = ['#1e2633', '#3b3b3f', '#5a4a3a', '#2b3d5a', '#c9c2b3'], SKIN = ['#f1c9a5', '#d9a77f', '#a8714f', '#6e4a34', '#e8b896'];
+    const pm = M.std({ color:'#ffffff', roughness:.85 });
+    const place = (o2, p, i, y, k) => { const s = .92 + r(p[3])*.16, x = p[0]/10, z = p[1]/10, h = hAt(x, z); o2.position.set(x, h + y*s, -z); o2.rotation.set(0, p[2] + Math.PI/2, 0); o2.scale.setScalar(s*(k||1)); };
+    if(P.length){
+      mesh(new T.BoxGeometry(.32, .84, .2), pm, P.length, (o2, i, c) => { place(o2, P[i], i, .42); c.set(LEG[Math.floor(r(P[i][3]+1)*LEG.length)]).convertSRGBToLinear(); });
+      mesh(new T.CylinderGeometry(.19, .16, .64, 10), pm, P.length, (o2, i, c) => { place(o2, P[i], i, 1.16); c.set(TOP[Math.floor(r(P[i][3]+2)*TOP.length)]).convertSRGBToLinear(); });
+      mesh(new T.SphereGeometry(.115, 12, 10), pm, P.length, (o2, i, c) => { place(o2, P[i], i, 1.6); c.set(SKIN[Math.floor(r(P[i][3]+3)*SKIN.length)]).convertSRGBToLinear(); }); }
+    const C = WD.cars || [], CAR = ['#f4f4f2', '#c9ccd1', '#1d1f22', '#5c6168', '#26365a', '#9b2b2b', '#e8e6df', '#3d4a3f'];
+    if(C.length){ const cm = M.std({ color:'#ffffff', roughness:.35, metalness:.55, envMapIntensity:1 }), gm = new T.MeshStandardMaterial({ color:'#1b232b', roughness:.08, metalness:.8, envMapIntensity:1.3 }), wm = M.std({ color:'#1a1a1a', roughness:.9 });
+      const cp = (o2, c, y, fwd) => { const x = c[0]/10, z = c[1]/10, h = hAt(x, z); o2.position.set(x + Math.cos(c[2])*(fwd||0), h + y, -(z + Math.sin(c[2])*(fwd||0))); o2.rotation.set(0, c[2] + Math.PI/2, 0); o2.scale.set(1, 1, 1); };
+      mesh(new T.BoxGeometry(1.8, .66, 4.35), cm, C.length, (o2, i, c) => { cp(o2, C[i], .6); c.set(CAR[Math.floor(r(C[i][3])*CAR.length)]).convertSRGBToLinear(); });
+      mesh(new T.BoxGeometry(1.6, .52, 2.2), gm, C.length, (o2, i, c) => { cp(o2, C[i], 1.18, -.25); c.set('#ffffff'); });
+      const W4 = []; C.forEach(c => [[-.82, 1.35], [.82, 1.35], [-.82, -1.35], [.82, -1.35]].forEach(q => W4.push([c, q])));
+      mesh(new T.CylinderGeometry(.33, .33, .24, 14), wm, W4.length, (o2, i, c) => { const [car, q] = W4[i], x = car[0]/10, z = car[1]/10, h = hAt(x, z), a = car[2];
+        const ux = Math.cos(a), uy = Math.sin(a), sx = -uy, sy = ux; o2.position.set(x + ux*q[1] + sx*q[0], h + .33, -(z + uy*q[1] + sy*q[0])); o2.rotation.set(0, a + Math.PI/2, Math.PI/2); o2.scale.set(1, 1, 1); c.set('#ffffff'); }); }
+    lifeG.visible = renderOn;
+  }
   function walkStop(){ if(!W) return; W = null; if(arrows) arrows.clear(); arrowNode = -1;
     window.removeEventListener('keydown', keyH); window.removeEventListener('keyup', keyH);
     const dom = renderer.domElement; if(ptr){ dom.removeEventListener('pointerdown', ptr.down); dom.removeEventListener('pointermove', ptr.move); dom.removeEventListener('pointerup', ptr.up); }
-    dom.classList.remove('pm-walk'); ctl.enabled = true; cam.fov = 38; cam.near = .5; cam.updateProjectionMatrix(); view('home'); }
+    dom.classList.remove('pm-walk'); showTrail(false); ctl.enabled = true; cam.fov = 38; cam.near = .5; cam.updateProjectionMatrix(); view('home'); }
   /** פקודה מהמקלדת או מהכפתורים */
   function walkCmd(c){ if(!W) return; const G = graph(), e = G.E[W.e];
+    if(c === 'tour'){ if(W.tour){ W.tour = null; W.route = null; draw(); return; } const st = WD.stops||[]; if(!st.length) return;
+      // מתחילים מהתחנה הקרובה, וממשיכים לפי הסדר
+      const p0 = at(e, W.s); let i0 = 0, bd = 1e9; st.forEach((q, i) => { const d = Math.hypot(G.N[q.n][0]-p0[0], G.N[q.n][1]-p0[1]); if(d < bd){ bd = d; i0 = i; } });
+      const stops = st.slice(i0).concat(st.slice(0, i0)), q = G.N[stops[0].n]; walkTo(q[0], q[1]); W.tour = { stops, i:0, wait:3.2 }; draw(); return; }
+    if(c !== 'tour' && W.tour && c !== 'fwdUp'){ W.tour = null; }
     if(c === 'fwd'){ W.fwd = true; W.route = null; } else if(c === 'fwdUp') W.fwd = false;
     else if(c === 'stop'){ W.fwd = false; W.auto = false; W.route = null; }
     else if(c === 'go'){ W.auto = !W.auto; W.route = null; W.stopAt = -1; }
@@ -943,7 +986,7 @@ function create(el, model, opts){
     else { let n = ca <= cb ? et.a : et.b; if(!Number.isFinite(dist.get(n))) return false; const steps = [];
       while(prev.get(n)){ const p = prev.get(n); steps.unshift({ e:p.e, dir:p.dir }); n = p.n; }
       W.dir = n === e0.b ? 1 : -1; steps.push({ e:t.e, dir:ca <= cb ? 1 : -1 }); W.route = { steps, end:{ e:t.e, s:t.s } }; }
-    W.fwd = false; W.auto = false; W.look = 0; draw(); return true; }
+    W.fwd = false; W.auto = false; W.look = 0; W.tour = null; draw(); return true; }
   const ray = new T.Raycaster();
   function pick(ev){ const r = renderer.domElement.getBoundingClientRect(); ray.setFromCamera({ x:(ev.clientX-r.left)/r.width*2-1, y:-(ev.clientY-r.top)/r.height*2+1 }, cam);
     const ha = arrows ? ray.intersectObjects(arrows.children, false)[0] : null;
@@ -992,8 +1035,14 @@ function create(el, model, opts){
       r.forEach((a, i) => { const q = r[(i+1)%r.length], vx = q[0]-a[0], vy = q[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((p[0]-a[0])*vx+(p[1]-a[1])*vy)/l)), dd = Math.hypot(p[0]-a[0]-t*vx, p[1]-a[1]-t*vy);
         if(dd < bd){ bd = dd; info = 'ליד ' + z.name; } }); }); }
     if(!info) info = 'על השביל';
-    if(opts && opts.onWalk) opts.onWalk({ x:p[0], y:p[1], yaw:W.yawNow, info, moving:!!go, junction:rem < 14 && exits(node, W.e, W.yaw).length > 1 });
-    return go || Math.abs(W.look) > .002 || Math.abs(hNow - W.h) > .01;
+    // סיור מודרך: בכל תחנה עוצרים, מסתכלים סביב לאט, וממשיכים לתחנה הבאה
+    let tourOn = false;
+    if(W.tour){ tourOn = true; const T2 = W.tour;
+      if(!W.route && !W.fwd){ T2.wait -= dt; W.look += dt*.45;
+        if(T2.wait <= 0){ T2.i++; if(T2.i >= T2.stops.length){ W.tour = null; } else { const q = G.N[T2.stops[T2.i].n]; walkTo(q[0], q[1]); W.tour = T2; T2.wait = 3.2; } } } }
+    const tinfo = W.tour ? `תחנה ${W.tour.i + 1} מתוך ${W.tour.stops.length}: ${W.tour.stops[W.tour.i].name}` : '';
+    if(opts && opts.onWalk) opts.onWalk({ x:p[0], y:p[1], yaw:W.yawNow, info, tour:tinfo, moving:!!go || tourOn, junction:!W.tour && rem < 14 && exits(node, W.e, W.yaw).length > 1 });
+    return go || tourOn || Math.abs(W.look) > .002 || Math.abs(hNow - W.h) > .01;
   }
 
   // ציור לפי צורך

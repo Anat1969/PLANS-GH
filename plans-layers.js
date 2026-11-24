@@ -250,6 +250,7 @@ function shell(){
       <div class="ly-over" id="lyOver"></div>
       <div class="ly-north" id="lyNorth" title="צפון"><i></i><b>צ</b></div>
       <div class="ly-credit" id="lyCredit"></div>
+      <button class="ly-tour" id="lyTour" data-tourbtn="1" hidden><svg viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/></svg><span>טיול בפרויקט</span></button>
     </div>
     <div class="ly-tools" id="lyTools"></div>
     <aside class="ly-panel" id="lyPanel" aria-label="התחום הנוכחי"></aside>
@@ -284,6 +285,7 @@ function drawTools(){
       ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
       <span class="ly-mut" id="lySun"></span>`
     : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
+  const tb = document.getElementById('lyTour'); if(tb){ tb.hidden = !(S.wk && model); tb.classList.toggle('on', !!S.walk); tb.lastElementChild.textContent = S.walk ? 'יציאה מהטיול' : 'טיול בפרויקט'; }
   const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.streets ? 'רחובות: עיריית אשדוד' : S.map ? 'מפה: Esri, © OpenStreetMap' : '';
 }
 function sunNow(){ if(!S.api) return; const x = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), x[1], x[2], S.hour), el = document.getElementById('lySun');
@@ -317,7 +319,7 @@ function walkToggle(on){
         <span>${b('fwd', 'קדימה', '<path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/>', 'הליכה קדימה, כל עוד לוחצים (חץ למעלה)')}${b('back', 'אחורה', '<path d="M4 6a4 4 0 1 1 1 5"/><path d="M4 2.5V6h3.5"/>', 'הסתובבות לאחור (חץ למטה)')}</span>
         ${b('left', 'שמאלה', '<path d="M10 3L5 8l5 5"/>', 'פנייה שמאלה בצומת, או מבט שמאלה (חץ שמאלה)')}
       </div>
-      <div class="ly-wkeys">${b('go', 'עד הצומת', '<path d="M5 3l8 5-8 5z"/>', 'הליכה רציפה עד הצומת הבא (רווח)')}${b('stop', 'עצירה', '<rect x="4" y="4" width="8" height="8"/>', 'עצירה (Esc)')}</div>
+      <div class="ly-wkeys">${(S.wk.stops||[]).length ? b('tour', 'סיור מודרך', '<path d="M3 13V3l5 3 5-3v10l-5-3z"/>', 'סיור לבד בכל התחנות: הכניסה, הבניינים והגינות. לחיצה נוספת עוצרת') : ''}${b('go', 'עד הצומת', '<path d="M5 3l8 5-8 5z"/>', 'הליכה רציפה עד הצומת הבא (רווח)')}${b('stop', 'עצירה', '<rect x="4" y="4" width="8" height="8"/>', 'עצירה (Esc)')}</div>
       <p class="ly-whelp">גרירה: הסתכלות סביב · לחיצה על הקרקע או על המפה: הולכים לשם</p>
     </div>`;
   const fwd = hud.querySelector('[data-wcmd="fwd"]');
@@ -334,6 +336,8 @@ function miniBase(){
   let i = 0, v = 0; g.fillStyle = '#d9d4c7'; for(const run of wk.mask){ if(v){ for(let j = i; j < i + run; j++){ const cx = j % wk.nx, cy = Math.floor(j / wk.nx); g.fillRect(X(x0 + cx*wk.res), Y(y0 + (cy+1)*wk.res), wk.res/k + .4, wk.res/k + .4); } } i += run; v ^= 1; }
   g.fillStyle = 'rgba(70,70,70,.85)'; (S.model.foot||[]).forEach(f => { g.beginPath(); for(let q = 0; q < f.length; q += 2) g[q ? 'lineTo' : 'moveTo'](X(f[q]/10), Y(f[q+1]/10)); g.closePath(); g.fill(); });
   g.strokeStyle = 'rgba(17,153,142,.55)'; g.lineWidth = 1; wk.edges.forEach(e => { g.beginPath(); for(let q = 0; q < e.pts.length; q += 2) g[q ? 'lineTo' : 'moveTo'](X(e.pts[q]/10), Y(e.pts[q+1]/10)); g.stroke(); });
+  g.font = '600 11px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  (wk.stops||[]).forEach((st, i) => { const q = wk.nodes[st.n], x = X(q[0]/10), y = Y(q[1]/10); g.fillStyle = '#11998e'; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.fillStyle = '#fff'; g.fillText(String(i+1), x, y + .5); });   // תחנות הסיור
   S._mini = { c, x0, y1, k: k*N/220, X, Y };
 }
 let _wl = 0;
@@ -343,7 +347,8 @@ function walkHud(w){
   g.drawImage(m.c, 0, 0); const x = m.X(w.x), y = m.Y(w.y), a = -w.yaw;
   g.fillStyle = 'rgba(17,153,142,.22)'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 26, a - .55, a + .55); g.closePath(); g.fill();      // שדה הראייה
   g.fillStyle = '#11998e'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.stroke();
-  const inf = document.getElementById('lyWinfo'); if(inf) inf.innerHTML = `<b>${H(w.info)}</b>${w.junction ? ' · צומת: ← → לבחירה' : ''}`;
+  const inf = document.getElementById('lyWinfo'); if(inf) inf.innerHTML = w.tour ? `<b>${H(w.tour)}</b>` : `<b>${H(w.info)}</b>${w.junction ? ' · צומת: ← → לבחירה' : ''}`;
+  const tb = document.querySelector('[data-wcmd="tour"]'); if(tb) tb.classList.toggle('on', !!w.tour);
 }
 async function setMode(mode){
   S.mode = mode; const view = document.getElementById('lyView'); if(!view) return;
@@ -560,6 +565,10 @@ function bind(){
     else if(d.season){ S.season = +d.season; applyApi(); drawTools(); sunNow(); }
     else if(d.render){ S.render = !S.render; if(S.api) S.api.setRender(S.render).then(() => { drawTools(); sunNow(); }); drawTools(); }
     else if(d.walk){ walkToggle(!S.walk); }
+    else if(d.tourbtn){ // טיול מהכפתור הגדול: עוברים לתוכנית הבינוי, מדליקים חזיתות, ומתחילים מהכניסה
+      if(S.walk){ walkToggle(false); return; }
+      const go2 = () => { if(!S.fac && S.fl){ S.fac = true; } applyApi(); walkToggle(true); };
+      if(S.state !== 'design'){ const sb = document.querySelector('[data-state="design"]'); if(sb) sb.click(); setTimeout(go2, 400); } else go2(); }
     else if(d.wcmd){ if(S.api) S.api.walkCmd(d.wcmd); }
     else if(d.wind){ S.wind = !S.wind; applyApi(); drawTools(); sunNow(); }
     else if(d.kind){ if(S.off.has(d.kind)) S.off.delete(d.kind); else S.off.add(d.kind); if(S.api) S.api.setKind(d.kind, !S.off.has(d.kind)); b.classList.toggle('off', S.off.has(d.kind)); }
@@ -723,6 +732,9 @@ const CSS = `
 .ly-wkeys small{font-size:10.5px}
 .ly-whelp{margin:0;font-size:10.5px;color:var(--ink-mute);text-align:center;line-height:1.35}
 .pm-canvas.pm-walk{cursor:crosshair}
+.ly-tour{position:absolute;inset-inline-start:8px;bottom:24px;display:flex;align-items:center;gap:7px;padding:9px 14px !important;border:0 !important;background:#11998e !important;color:#fff !important;font:600 14px var(--sans) !important;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25);border-radius:0 !important;z-index:3}
+.ly-tour:hover{background:#0c7d74 !important} .ly-tour.on{background:var(--ink) !important}
+.ly-wkeys button.on{background:#11998e !important;color:#fff !important}
 .pm-canvas.pm-render{filter:saturate(1.14) contrast(1.07) brightness(.98)}
 .pm-render-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(20,24,28,.30) 100%)}
 @media (max-width:760px){.ly-mini{width:120px;height:120px}.ly-whelp{display:none}}
