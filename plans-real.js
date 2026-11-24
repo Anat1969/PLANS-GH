@@ -267,12 +267,72 @@ function build(ctx){
     const pl = new T.PlaneGeometry(1, 1); pl.rotateX(-Math.PI/2); const m = inst(pl, new T.MeshBasicMaterial({ map:new T.CanvasTexture(c), transparent:true, depthWrite:false }), treesAll.length, { cast:false });
     treesAll.forEach((t, i) => { const R = Math.max(1.4, Math.min(4.5, t[2] || 2.5))*2.1; dummy.position.set(t[0], hAt(t[0], t[1]) + .08, -t[1]); dummy.rotation.set(0, 0, 0); dummy.scale.set(R, 1, R); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); }); m.renderOrder = 2; }
   // רמפות: אספלט על הרצפה ובטון חשוף בקירות. מדרגות: אבן, כדי ששינוי המפלס ייקרא
-  const conc = (() => { const c = canvas(256), g = c.getContext('2d'); g.fillStyle = '#b9b5ad'; g.fillRect(0, 0, 256, 256); for(let q = 0; q < 5000; q++){ g.fillStyle = `rgba(${rnd(q) < .5 ? '80,78,72' : '235,232,225'},${.05 + rnd(q+3)*.1})`; g.fillRect(rnd(q*3)*256, rnd(q*7)*256, 2, 2); }
-    g.strokeStyle = 'rgba(70,68,62,.35)'; g.lineWidth = 2; for(let i = 0; i <= 2; i++){ g.beginPath(); g.moveTo(0, i*128); g.lineTo(256, i*128); g.stroke(); }
-    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/2.4, 1/1.2); t.encoding = T.sRGBEncoding; return t; })();
-  const roleMat = { rampFloor:{ map:AS.map, normalMap:AS.normal, color:'#8a8b8e', roughness:.9 }, rampWall:{ map:conc, color:'#ffffff', roughness:.85 }, rampCap:{ map:conc, color:'#e6e2da', roughness:.8 }, stairs:{ map:PV.map, normalMap:PV.normal, color:'#f2ede2', roughness:.75 } };
+  // חיפוי אבן (ענת, 24.11.2026: "אין בטון חשוף, בהנחיות הכול מחופה אבן"): לוחות של 60 על 30 ס"מ, בגוון גיר חם
+  const conc = (() => { const c = canvas(256), g = c.getContext('2d'); g.fillStyle = '#d9cfbb'; g.fillRect(0, 0, 256, 256);
+    for(let r = 0; r < 4; r++) for(let k = -1; k < 3; k++){ const x = k*128 + (r%2)*64, y = r*64, v = rnd(r*17 + k*5); g.fillStyle = `rgb(${215 + v*22|0},${203 + v*20|0},${182 + v*18|0})`; g.fillRect(x + 2, y + 2, 124, 60);
+      for(let q = 0; q < 60; q++){ g.fillStyle = `rgba(${rnd(q+r) < .5 ? '120,105,85' : '255,250,240'},${.06 + rnd(q*3+k)*.08})`; g.fillRect(x + 2 + rnd(q*5+r)*122, y + 2 + rnd(q*7+k)*58, 1 + rnd(q)*3, 1 + rnd(q+2)*2); } }
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/1.2, 1/1.2); t.encoding = T.sRGBEncoding; return t; })();
+  const roleMat = { rampFloor:{ map:AS.map, normalMap:AS.normal, color:'#8a8b8e', roughness:.9 }, rampWall:{ map:conc, color:'#ffffff', roughness:.75 }, rampCap:{ map:conc, color:'#f4efe4', roughness:.7 }, stairs:{ map:PV.map, normalMap:PV.normal, color:'#f2ede2', roughness:.75 } };
   scene.traverse(x => { const m = x.isMesh && (x.userData.mat || x.material); const r = m && m.userData && roleMat[m.userData.role]; if(!r || !m.isMeshStandardMaterial) return;
     Object.assign(m, { map:r.map, normalMap:r.normalMap || null, roughness:r.roughness }); m.color.set(r.color); if(r.map !== AS.map) m.color.convertSRGBToLinear(); m.needsUpdate = true; });
+  /* 8. הרחובות מסביב (ענת: "תשלים את הכבישים"): רחובות העירייה (geo/ashdod-streets.geojson) כאספלט ברוחב לפי המדרג, עם אבן שפה וקו הפרדה מקווקו.
+     בתוך התוכנית נשארים הכבישים מהשרטוט. מפת הרקע מוסתרת בהדמיה, והמדרכות הן הריצוף שמתחת */
+  const streetG = new T.Group(); fin.add(streetG);
+  fetch('geo/ashdod-streets.geojson').then(r => r.ok ? r.json() : null).then(fc => { if(!fc || !ctx.wgs2itm) return;
+    const loc = c => { const [E, N] = ctx.wgs2itm(c[1], c[0]); return [E - model.e0, N - model.n0]; }, R = 420, pos = [], uv = [], dash = [], curb = [];
+    for(const f of fc.features){ const g = f.geometry, pr = f.properties || {}, w = (pr.hierarchy === 1 ? 15 : pr.hierarchy === 2 ? 11 : 7.5)/2;
+      for(const l of (g.type === 'LineString' ? [g.coordinates] : g.coordinates)){ const P = l.map(loc);
+        for(let i = 0; i < P.length - 1; i++){ const a = P[i], b = P[i+1]; if(Math.hypot(a[0], a[1]) > R && Math.hypot(b[0], b[1]) > R) continue;
+          const L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, ux = (b[0]-a[0])/L, uy = (b[1]-a[1])/L, nx = -uy*w, ny = ux*w;
+          const Q = [[a[0]+nx, a[1]+ny], [a[0]-nx, a[1]-ny], [b[0]-nx, b[1]-ny], [b[0]+nx, b[1]+ny]];
+          [0, 1, 2, 0, 2, 3].forEach(j => { pos.push(Q[j][0], -.02, -Q[j][1]); uv.push(Q[j][0], Q[j][1]); });
+          curb.push({ a:Q[0], b:Q[3] }, { a:Q[1], b:Q[2] });
+          for(let s0 = 0; s0 < L - 1; s0 += 6){ const s1 = Math.min(L, s0 + 3); dash.push({ a:[a[0]+ux*s0, a[1]+uy*s0], b:[a[0]+ux*s1, a[1]+uy*s1] }); } } } }
+    if(!pos.length) return;
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
+    const asphaltM = new T.MeshStandardMaterial({ map:AS.map, normalMap:AS.normal, color:'#ffffff', roughness:.93, polygonOffset:true, polygonOffsetFactor:1 }), m = new T.Mesh(g, asphaltM); m.receiveShadow = true; streetG.add(m);
+    const lane = new T.MeshBasicMaterial({ color:'#f2f0ea' }), dm = new T.InstancedMesh(new T.BoxGeometry(1, .01, .14), lane, dash.length);
+    dash.forEach((e, i) => { const L = Math.hypot(e.b[0]-e.a[0], e.b[1]-e.a[1]); dummy.position.set((e.a[0]+e.b[0])/2, .0, -(e.a[1]+e.b[1])/2); dummy.rotation.set(0, Math.atan2(e.b[1]-e.a[1], e.b[0]-e.a[0]), 0); dummy.scale.set(L, 1, 1); dummy.updateMatrix(); dm.setMatrixAt(i, dummy.matrix); });
+    streetG.add(dm);
+    const cm = new T.InstancedMesh(new T.BoxGeometry(1, .15, .2), stoneM, curb.length);
+    curb.forEach((e, i) => { const L = Math.hypot(e.b[0]-e.a[0], e.b[1]-e.a[1]); dummy.position.set((e.a[0]+e.b[0])/2, .055, -(e.a[1]+e.b[1])/2); dummy.rotation.set(0, Math.atan2(e.b[1]-e.a[1], e.b[0]-e.a[0]), 0); dummy.scale.set(L + .05, 1, 1); dummy.updateMatrix(); cm.setMatrixAt(i, dummy.matrix); });
+    cm.castShadow = cm.receiveShadow = true; streetG.add(cm); }).catch(() => {});
+
+  /* 9. מכוניות ביציאות הרמפות (ענת: "כדי שאראה את מיקומם"): אחת יורדת באמצע הרמפה, ואחת יוצאת ממנה אל הרחוב */
+  const lvR = ctx.levels && ctx.levels(), RA = (lvR && lvR.ramps) || [];
+  if(RA.length){ const pm = new T.MeshStandardMaterial({ color:'#ffffff', roughness:.22, metalness:.6, envMapIntensity:1.5 }), gm = new T.MeshStandardMaterial({ color:sc('#0f171d'), roughness:.04, metalness:.9 }), tm = new T.MeshStandardMaterial({ color:sc('#151515'), roughness:.85 });
+    const D = CAR.sedan, body = prof(T, D.body, 1.64, .08), cab = prof(T, D.cab, 1.46, .05), tyre = new T.CylinderGeometry(.33, .33, .22, 16); tyre.rotateX(Math.PI/2);
+    const n = RA.length*2, mB = inst(body, pm, n), mC = inst(cab, gm, n), mT = inst(tyre, tm, n*4), cc = new T.Color(), COL = ['#c9ccd1', '#26365a', '#9b2b2b', '#f4f4f2'];
+    RA.forEach((r, k) => { const e0 = [r.e0[0]/10, r.e0[1]/10], u = r.u, g0 = hAt(e0[0], e0[1]);
+      const drop = s0 => s0 <= 2 ? 0 : s0 <= 5.5 ? (s0-2)*r.slope/2 : 3.5*r.slope/2 + (s0-5.5)*r.slope;
+      [[Math.min(r.len*.55, r.len - 3), 1], [-3.2, -1]].forEach(([s0, dir], j) => { const x = e0[0] + u[0]*s0, y = e0[1] + u[1]*s0, z = s0 > 0 ? g0 - drop(s0) : hAt(x, y);
+        const pitch = s0 > 5.5 ? Math.atan(r.slope) : 0, ang = Math.atan2(u[1], u[0]) + (dir < 0 ? Math.PI : 0);
+        dummy.position.set(x, z + .02, -y); dummy.rotation.set(0, ang, dir > 0 ? -pitch : pitch, 'YXZ'); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); const M0 = dummy.matrix.clone(), i = k*2 + j;
+        mB.setMatrixAt(i, M0); mC.setMatrixAt(i, M0); mB.setColorAt(i, cc.set(COL[(k*2+j) % COL.length]).convertSRGBToLinear());
+        [[1.42, .86], [1.42, -.86], [-1.38, .86], [-1.38, -.86]].forEach(([wx, wz], q) => { m4.makeTranslation(wx, .33, wz); m4.premultiply(M0); mT.setMatrixAt(i*4 + q, m4); }); }); });
+    if(mB.instanceColor) mB.instanceColor.needsUpdate = true; }
+
+  /* 10. שיחים לאורך שולי הגינון, ופח אשפה ליד כל כניסה: הקנה מידה האנושי של המרחב */
+  { const ge = outerEdges(ringsOf(S.green)), pts = [];
+    ge.forEach(e => { const L = Math.hypot(e.b[0]-e.a[0], e.b[1]-e.a[1]); for(let s0 = .6; s0 < L - .3; s0 += 1.4){ const t = s0/L; pts.push([e.a[0] + (e.b[0]-e.a[0])*t, e.a[1] + (e.b[1]-e.a[1])*t]); } });
+    const pick = pts.filter((_, i) => i % 2 === 0).slice(0, 2500);
+    if(pick.length){ const sh = inst(blobGeo(T, 2.2), new T.MeshStandardMaterial({ map:leafTex(T), alphaTest:.45, side:T.DoubleSide, roughness:.85 }), pick.length), c = new T.Color();
+      pick.forEach((q, i) => { const s0 = .45 + rnd(i*3)*.35; dummy.position.set(q[0], hAt(q[0], q[1]) + s0*.55, -q[1]); dummy.rotation.set(0, rnd(i)*6, 0); dummy.scale.set(s0, s0*.8, s0); dummy.updateMatrix(); sh.setMatrixAt(i, dummy.matrix); sh.setColorAt(i, c.setHSL(.27 + (rnd(i*7)-.5)*.06, .45, .32 + rnd(i*5)*.1)); });
+      if(sh.instanceColor) sh.instanceColor.needsUpdate = true; }
+    if(doors.length){ const bin = inst(new T.CylinderGeometry(.28, .25, .9, 14), new T.MeshStandardMaterial({ color:sc('#4b4f54'), roughness:.45, metalness:.6 }), doors.length);
+      doors.forEach((d, i) => { const ux = Math.cos(d.ang), uy = Math.sin(d.ang); dummy.position.set(d.x + ux*2.2 + d.nx*.8, d.h + .45, -(d.y + uy*2.2 + d.ny*.8)); dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); bin.setMatrixAt(i, dummy.matrix); }); } }
+
+  /* 11. הבינוי המאושר בשאר המתחם (1909): במקום קופסה לבנה, חזית כללית של חיפוי וחלונות, ממופה לפי הכיוון של כל פאה. להמחשה */
+  if(groups.appBuild){ const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
+    g.fillStyle = '#dcd2bf'; g.fillRect(0, 0, 128, 128); g.fillStyle = '#4c5f6e'; g.fillRect(22, 30, 84, 62); g.fillStyle = 'rgba(255,255,255,.22)'; g.fillRect(22, 30, 30, 62);
+    g.fillStyle = '#efe9dd'; g.fillRect(0, 112, 128, 16); g.fillStyle = '#2d3135'; g.fillRect(62, 30, 4, 62);
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/3.6, 1/3.2); t.encoding = T.sRGBEncoding;
+    const fm = new T.MeshStandardMaterial({ map:t, roughness:.75, envMapIntensity:.6 }), n = new T.Vector3();
+    groups.appBuild.traverse(o => { if(!o.isMesh || o.userData.boxUV) return; const ge = o.geometry, P = ge.attributes.position, N = ge.attributes.normal, uv = new Float32Array(P.count*2);
+      for(let i = 0; i < P.count; i++){ n.fromBufferAttribute(N, i); const x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+        if(Math.abs(n.y) > .7){ uv[2*i] = x; uv[2*i+1] = z; } else { uv[2*i] = Math.abs(n.x) > Math.abs(n.z) ? z : x; uv[2*i+1] = y; } }
+      ge.setAttribute('uv', new T.BufferAttribute(uv, 2)); o.userData.boxUV = true; o.userData.mat = fm; o.material = fm; }); }
+
   // רצף הקרקע: מה שלא מרוצף בשרטוט (חלל בין משטחים, שולי התוכנית) נראה כאבן בהירה ולא כלבן ריק
   const gm = ctx.ground && ctx.ground.material, saved = gm ? { map:gm.map, color:gm.color.clone(), normalMap:gm.normalMap } : null;
   const terr = ctx.terrain && ctx.terrain(), tsaved = terr ? { map:terr.material.map, color:terr.material.color.clone() } : null;
@@ -287,6 +347,7 @@ function build(ctx){
     if(terr){ if(on){ terr.material.map = groundTex; terr.material.color.set('#e2dccf').convertSRGBToLinear(); } else { terr.material.map = tsaved.map; terr.material.color.copy(tsaved.color); } terr.material.needsUpdate = true; }
     if(L0){ ctx.hemi.color.set(on ? '#cfe1f5' : L0.hs); ctx.hemi.groundColor.set(on ? '#9c8f78' : L0.hg); ctx.hemi.intensity = on ? .55 : L0.hi;
       ctx.sun.intensity = on ? 1.35 : L0.si; ctx.sun.color.set(on ? '#fff0d6' : L0.sc); ctx.fill.intensity = on ? .22 : L0.fi; ctx.renderer.toneMappingExposure = on ? .98 : L0.ex; }
+    if(ctx.ground){ ctx.ground.userData.render = !!on; if(ctx.updGround) ctx.updGround(); }
     root.visible = !!on; }
   setOn(true);
 

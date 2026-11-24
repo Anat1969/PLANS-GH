@@ -55,7 +55,7 @@ const DISC = [
 ];
 const DISC_COLOR = { arch:'#8a8478', traffic:'#48484c', walk:'#c9b96a', land:'#5c9a4a', water:'#1e73d8', power:'#e0a800', waste:'#2f7d5a', fire:'#c8202a', all:'#1a1a18' };
 /* אייקונים קטנים בקו דק, במקום טקסט. לכל אחד יש שם בריחוף */
-const ICON = { render:'<path d="M2 13l4-5 3 3 2-2 3 4z"/><circle cx="11" cy="4.5" r="1.6"/>', walk:'<circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/>', bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
+const ICON = { pin:'<path d="M4 2h8v12l-4-3-4 3z"/>', render:'<path d="M2 13l4-5 3 3 2-2 3 4z"/><circle cx="11" cy="4.5" r="1.6"/>', walk:'<circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/>', bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
   eye:'<path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>', map:'<path d="M2 4l4-1.5 4 1.5 4-1.5v10L10 14l-4-1.5L2 14z"/><path d="M6 2.5v10M10 4v10"/>',
   play:'<path d="M5 3l8 5-8 5z"/>', stop:'<rect x="4" y="4" width="8" height="8"/>', wind:'<path d="M2 6h8a2 2 0 1 0-2-2"/><path d="M2 9.5h11a2 2 0 1 1-2 2"/><path d="M2 13h4"/>',
   facade:'<path d="M4 14V2h8v12"/><path d="M6.5 5h1M9 5h1M6.5 8h1M9 8h1M6.5 11h1M9 11h1"/>', env:'<rect x="2.5" y="2.5" width="11" height="11" stroke-dasharray="2.2 1.6"/>',
@@ -243,7 +243,7 @@ async function open(tik){
       S.wk = await fetch(dir+'/walk.json').then(r => r.ok ? r.json() : null).catch(() => null); S.walk = false; S.render = false;   // מסלולי הליכה (tools/extract-walk.py)
       S.lv = await fetch(dir+'/levels.json').then(r => r.ok ? r.json() : null).catch(() => null);   // מפלסים, רמפות ונגישות (tools/extract-levels.py)   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.concept = S.model.concept ? await fetch(dir+'/concept.json').then(r => r.json()).then(c => ({ median:(c.georef||{}).median, cancelled:c.cancelled||[], towerLots:(c.towers||[]).map(x => x.lot), notes:c.notes||{} })).catch(() => ({})) : null;
-      S.state = S.rn ? 'exist' : 'design'; }
+      S.state = 'design'; S.d = Math.max(0, DISC.findIndex(x => x.id === 'all')); S.view = 'home'; }   // פתיחה: תוכנית בינוי, כל השכבות, מבט כולל (ענת, 24.11.2026)
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
   }
   shell(); await setMode(S.mode); drawPanel();
@@ -281,6 +281,17 @@ function drawSteps(){
   document.getElementById('lySteps').innerHTML = DISC.map((x, i) => { const c = discCount(x);
     return `<button role="tab" aria-selected="${i===S.d}" class="${i===S.d?'on':''}" data-disc="${i}" style="--dc:${DISC_COLOR[x.id]}"><u></u>${H(x.name)}<b>${c.done}/${c.total}</b></button>`; }).join('');
 }
+/* מבטים שמורים (ענת, 24.11.2026: "תאפשר לשמור מבטים חשובים"): המצלמה, המצב וההדמיה, נשמרים בתוכנית (layerReview.views) */
+function savedViews(){ const v = review().views || [];
+  return `<button class="ly-tg ly-ib" data-saveview="1" title="שמירת המבט הנוכחי" aria-label="שמירת מבט">${ic('pin')}</button>`
+    + (v.length ? `<select id="lyViews" class="ly-views" aria-label="מבטים שמורים"><option value="">מבטים (${v.length})</option>${v.map((x, i) => `<option value="${i}">${H(x.n)}</option>`).join('')}</select>` : ''); }
+function saveView(){ if(!S.api || !S.api.getCam) return; const r = review(); r.views = r.views || [];
+  const n = (window.prompt('שם המבט', 'מבט ' + (r.views.length + 1)) || '').trim(); if(!n) return;
+  r.views.push(Object.assign({ n, state:S.state, render:!!S.render, at:new Date().toISOString().slice(0, 10) }, S.api.getCam())); persist(); drawTools(); }
+async function goView(i){ const v = (review().views || [])[i]; if(!v || !S.api) return;
+  if(v.state && v.state !== S.state){ const b = document.querySelector(`[data-state="${v.state}"]`); if(b){ b.click(); await new Promise(f => setTimeout(f, 500)); } }
+  if(!!v.render !== !!S.render){ S.render = !!v.render; await S.api.setRender(S.render); }
+  S.api.setCam(v); drawTools(); sunNow(); }
 function drawTools(){
   const el = document.getElementById('lyTools'); if(!el) return;
   const seg = (name, list, cur) => `<span class="ly-seg">${list.map((t, i) => `<button data-${name}="${i}" class="${i===cur?'on':''}">${H(t)}</button>`).join('')}</span>`;
@@ -288,7 +299,7 @@ function drawTools(){
   const tg = (name, on, icon, label, title) => `<button class="ly-tg ly-ib${on?' on':''}" data-${name}="1" title="${H(label + (title ? ': ' + title : ''))}" aria-label="${H(label)}" aria-pressed="${!!on}">${ic(icon)}</button>`;
   const hh = Math.floor(S.hour), mm = Math.round((S.hour%1)*60), design = S.state==='design', model = S.mode==='model';
   el.innerHTML = (design ? `<span class="ly-grp">${iseg('mode', [['model', 'מודל תלת־ממדי'], ['draw', 'השרטוט המקורי']], model?0:1)}</span>` : '')
-    + (model ? `<span class="ly-grp">${iseg('view', [['bird', 'מעוף הציפור'], ['top', 'מבט על'], ['eye', 'גובה עיניים']], ['home','top','eye'].indexOf(S.view))}</span>
+    + (model ? `<span class="ly-grp">${iseg('view', [['bird', 'מעוף הציפור'], ['top', 'מבט על'], ['eye', 'גובה עיניים']], ['home','top','eye'].indexOf(S.view))}${savedViews()}</span>
       <span class="ly-grp">${tg('map', S.map, 'map', 'מפה', 'מפת רחובות אפורה של אשדוד')}</span>
       <span class="ly-grp">${seg('season', SEASONS.map(x => x[0]), S.season)}
         <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
@@ -302,6 +313,7 @@ function drawTools(){
       ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
       <span class="ly-mut" id="lySun"></span>`
     : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
+  const vs = document.getElementById('lyViews'); if(vs) vs.onchange = () => { if(vs.value !== '') goView(+vs.value); };
   const tb = document.getElementById('lyTour'); if(tb){ tb.hidden = !(S.wk && model); tb.classList.toggle('on', !!S.walk); tb.lastElementChild.textContent = S.walk ? 'יציאה מהטיול' : 'טיול בפרויקט'; }
   const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.streets ? 'רחובות: עיריית אשדוד' : S.map ? 'מפה: Esri, © OpenStreetMap' : '';
 }
@@ -581,6 +593,7 @@ function bind(){
     else if(d.mode){ setMode(d.mode==='0' ? 'model' : 'draw'); }
     else if(d.view){ S.view = ['home','top','eye'][+d.view]; if(S.api) S.api.view(S.view); drawTools(); sunNow(); }
     else if(d.season){ S.season = +d.season; applyApi(); drawTools(); sunNow(); }
+    else if(d.saveview) saveView();
     else if(d.render){ S.render = !S.render; if(S.api) S.api.setRender(S.render).then(() => { drawTools(); sunNow(); }); drawTools(); }
     else if(d.walk){ walkToggle(!S.walk); }
     else if(d.tourbtn){ // טיול מהכפתור הגדול: עוברים לתוכנית הבינוי, מדליקים חזיתות, ומתחילים מהכניסה
@@ -765,6 +778,7 @@ const CSS = `
 .ly-tools output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;min-width:36px}
 .ly-mut{color:var(--ink-mute);font-size:11.5px}
 .ly-seg{display:inline-flex;gap:2px}
+.ly-views{border:0;background:#eeede8;color:var(--ink-soft);font:inherit;font-size:12px;height:26px;padding:0 6px;border-radius:0;max-width:150px}
 .ly-seg button,.ly-tg{border:0 !important;background:#eeede8 !important;color:var(--ink-soft) !important;padding:2px 7px !important;font:400 11px var(--sans) !important;cursor:pointer;border-radius:0 !important}
 .ly-seg button.on,.ly-tg.on{background:var(--ink) !important;color:#fff !important;font-weight:600 !important}
 .ly-panel{overflow:auto;min-height:0;padding-inline-end:4px}
