@@ -146,11 +146,20 @@ function conceptFacts(disc){
   const NOPLAN = '==אין עדיין תוכנית פיתוח: שלב תכנון רעיוני==', DEV = dv ? `מתוכנית המתחם (עמ' ${dv.page})` : '';
   const mk = dv && dv.marks ? Object.entries(dv.marks).map(([k, v]) => `**${v}** ${k.replace('עץ ', '')}`).join(', ') : '';
   switch(disc.id){
-    case 'arch': return [`**${tw.length}** מגדלים של כ-**${tw[0] ? tw[0].total : ''}** קומות (כ-**${tw[0] ? Math.round(tw[0].top) : ''}** מ'), מול **${appr.length}** מגדלים של **${appr[0] ? appr[0].floors : ''}** קומות (**${appr[0] ? appr[0].height : ''}** מ') בתב"ע המאושרת`,
+    case 'arch': if(S.fl && S.fl.annex){ const tw2 = tw.filter(b => !String(b.id).startsWith('ציבור')), pub = tw.filter(b => String(b.id).startsWith('ציבור')), ax = S.model.annex || {}, H2 = ax.heights || {}, u = ax.uses || {};
+        return [`**נספח הבינוי:** **${tw2.length}** מגדלים של **${tw2[0] ? tw2[0].total : ''}** קומות, גג ב-**${H2.roof}** מ' ומבנה הגג עד **${H2.top}** מ' (החתכים)`,
+          `קומת קרקע של **${H2.ground}** מ': מסחר **${N(u.shop)}** מ"ר, לובי **${N(u.lobby)}**, מועדוני דיירים **${N(u.club)}**, ציבור **${N(u.public)}**`,
+          pub.length ? `**${pub.length}** מבני ציבור (מגרשים ${pub.map(b => b.lot).join(', ')}), ${pub[0].floors.length} קומות מעל המסחר` : '',
+          S.flAlt ? '==חלופת המצגת (07.2026) לא תואמת לתב"ע==: 3 מגדלים של כ-32 קומות. המתג "נספח הבינוי" מחליף ביניהן' : ''].filter(Boolean); }
+      return [`**${tw.length}** מגדלים של כ-**${tw[0] ? tw[0].total : ''}** קומות (כ-**${tw[0] ? Math.round(tw[0].top) : ''}** מ'), מול **${appr.length}** מגדלים של **${appr[0] ? appr[0].floors : ''}** קומות (**${appr[0] ? appr[0].height : ''}** מ') בתב"ע המאושרת`,
       (cf.cancelled||[]).length ? `מגרש **${cf.cancelled.join(', ')}**: המגדל מבוטל, ובמקומו בניין מסחר וציבור נפרד עם גג ירוק` : '',
       `חזית מסחרית לפי התשריט: **${N(l.front)}** מ'`, (S.model.appBuild||[]).length ? `**${S.model.appBuild.length}** בניינים מאושרים בשאר המתחם, ${DEV}` : '',
       '==מספר הקומות נספר בהדמיה: הערכה==, לבדיקה מול הוראות התב"ע המוצעת'].filter(Boolean);
-    case 'traffic': return [dv ? `כבישים: כ-**${N(a.asphalt)}** מ"ר, ${DEV}` : '', `**${c.exSign||0}** תמרורים ורמזורים קיימים ממפת המדידה`, NOPLAN, 'לבקש תוכנית תנועה, חניה ורמפות'].filter(Boolean);
+    case 'traffic': { const pk = (S.model.annex || {}).parking;
+      if(pk) return [`**נספח התנועה:** **${N(pk.planned.car)}** חניות רכב מול **${N(pk.required.car)}** בתקן (${N(pk.required.carWithDisabled)} כולל נכים)`,
+        `לפי מפלס: ${Object.entries(pk.byLevel).filter(([k, v]) => v.car).map(([k, v]) => `**${k}**: ${v.car}`).join(', ')}`,
+        `אופניים **${N(pk.planned.bike)}**, אופנועים **${N(pk.planned.moto)}**, חניה תפעולית **${pk.planned.service}**`, `קווי חניה במרתף: **${N(l.parking)}** מ'`];
+      return [dv ? `כבישים: כ-**${N(a.asphalt)}** מ"ר, ${DEV}` : '', `**${c.exSign||0}** תמרורים ורמזורים קיימים ממפת המדידה`, NOPLAN, 'לבקש תוכנית תנועה, חניה ורמפות'].filter(Boolean); }
     case 'walk': return [dv ? `ריצוף ומדרכות: כ-**${N(a.paving)}** מ"ר, ${DEV}` : '', `זיקות הנאה למעבר מהתשריט: **${N(l.easement)}** מ' של סימון`, 'לבקש מסלול נגיש רציף ומפלסים'].filter(Boolean);
     case 'land': return [dv ? `**${c.treeNew}** עצים מוצעים ו-**${N(a.green)}** מ"ר גינון, ${DEV}` : '', mk ? `סימון עצים: ${mk}` : '', `**${c.exTree||0}** עצים במפת המדידה`,
       dv ? `משחק **${N(a.play)}** מ"ר, ספורט **${N(a.sport)}** מ"ר, חצר גן ילדים **${N(a.yard)}** מ"ר` : ''].filter(Boolean);
@@ -212,7 +221,8 @@ async function open(tik){
     body().innerHTML = '<p class="ly-empty">טוען את המודל…</p>';
     try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
       S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
-      S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;
+      S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
+      S.flMain = S.fl; S.flAlt = S.fl && S.fl.alternative ? await fetch(dir+'/'+S.fl.alternative).then(r => r.ok ? r.json() : null).catch(() => null) : null; S.useAlt = false;   // חלופה להשוואה (1909: רעיון המצגת מול נספח הבינוי)
       S.wk = await fetch(dir+'/walk.json').then(r => r.ok ? r.json() : null).catch(() => null); S.walk = false; S.render = false;   // מסלולי הליכה (tools/extract-walk.py)
       S.lv = await fetch(dir+'/levels.json').then(r => r.ok ? r.json() : null).catch(() => null);   // מפלסים, רמפות ונגישות (tools/extract-levels.py)   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.concept = S.model.concept ? await fetch(dir+'/concept.json').then(r => r.json()).then(c => ({ median:(c.georef||{}).median, cancelled:c.cancelled||[], towerLots:(c.towers||[]).map(x => x.lot), notes:c.notes||{} })).catch(() => ({})) : null;
@@ -268,7 +278,8 @@ function drawTools(){
       ${design ? `<span class="ly-grp">${tg('render', S.render, 'render', 'הדמיה', 'גימור ריאליסטי: בלי שכבות טכניות, עם שמיים, אובך וצל מגע')}${S.wk ? tg('walk', S.walk, 'walk', 'הליכה', 'בגובה העיניים, על השבילים. חצים: הולכים ובוחרים פנייה') : ''}</span>` : ''}
       <span class="ly-grp">${tg('wind', S.wind, 'wind', 'רוח', 'כיוון לפי העונה. הערכה כללית')}
         ${design && S.rn ? tg('fac', S.fac, 'facade', 'חזיתות וקומות', S.fl ? 'כל קומה מתוכניות האדריכל. גובה הקומות: הנחה' : 'מגדלים לפי הקומות של התב"ע. להמחשה') + tg('env', S.env, 'env', 'מעטפת התב"ע', 'המותר מעל המוצע') : ''}
-        ${S.rn && S.state!=='exist' ? tg('under', S.under, 'under', 'תת־קרקע', 'קומות המרתף והחניון') : ''}</span>
+        ${S.rn && S.state!=='exist' ? tg('under', S.under, 'under', 'תת־קרקע', 'קומות המרתף והחניון') : ''}
+        ${design && S.flAlt ? `<button class="ly-tg${S.useAlt?' on':''}" data-alt="1" title="${S.useAlt ? 'מוצגת חלופת המצגת (07.2026): 3 מגדלים של כ-32 קומות, הערכה. לחיצה חוזרת לנספח הבינוי' : 'מוצג נספח הבינוי של התב&quot;ע. לחיצה מציגה את חלופת המצגת (07.2026)'}" aria-pressed="${S.useAlt}">${S.useAlt ? 'חלופת המצגת' : 'נספח הבינוי'}</button>` : ''}</span>
       ${design && S.fac && S.fl ? `<span class="ly-grp" title="חתך: הקומות שמעל מוסתרות, והקירות של הקומה מוצגים כמו בתוכנית"><b>חתך</b><input type="range" id="lyCut" min="0" max="${flTop()}" value="${S.cut||0}" aria-label="חתך קומה"><output id="lyCutOut">${cutLabel()}</output></span>` : ''}
       ${design && !S.rn ? `<span class="ly-grp"><b>קומות</b><input type="range" id="lyFloors" min="0" max="30" value="${S.floors}" aria-label="מספר קומות"><output id="lyFloorsOut">${S.floors||'בלי'}</output></span>` : ''}
       <span class="ly-mut" id="lySun"></span>`
@@ -537,6 +548,7 @@ function bind(){
     if(d.state){ S.state = d.state; stopRec(); if(S.state !== 'design'){ if(S.walk) walkToggle(false); if(S.render && S.api) S.api.setRender(false); } else if(S.render && S.api) S.api.setRender(true); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } drawTools(); applyDisc(); drawPanel(); }   // המבט נשאר זהה בין המצבים
     else if(d.env){ S.env = !S.env; applyApi(); drawTools(); sunNow(); }
     else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
+    else if(d.alt){ S.useAlt = !S.useAlt; S.fl = S.useAlt ? S.flAlt : S.flMain; S.cut = 0; S.fac = true; setMode(S.mode).then(() => { drawPanel(); sunNow(); }); }   // נספח הבינוי מול חלופת המצגת: המודל נבנה מחדש באותו מבט
     else if(d.under){ S.under = !S.under; applyApi(); drawTools(); sunNow(); }
     else if(d.map){ S.map = !S.map; S.streets = false; applyApi(); drawTools(); sunNow(); }
     else if(d.play){ playSun(!S.play); drawTools(); sunNow(); }
