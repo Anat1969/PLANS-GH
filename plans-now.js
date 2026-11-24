@@ -59,7 +59,23 @@ function compute(){ R = O.compute(live(), { today:T(), user:USER, contactsFor, g
 const P = tik => plans.find(p => String(p.tik) === String(tik) && !p._deleted);
 
 /* ══════════ ביצוע החלטות ופעולות המשך ══════════ */
-function sysLog(p, text){ if(typeof logAction === 'function') logAction(p, 'system', '[מערכת] ' + text); }
+const SRC = 'איפה אנחנו עומדים';
+/** פעולת המשך שהמערכת ביצעה לבד: נרשמת ביומן התוכנית בשם "המערכת", עם המקור */
+function sysLog(p, text){ if(typeof logAction === 'function') logAction(p, 'system', text, { by:'המערכת', src:SRC }); }
+/** הפעולה האחרונה ביומן (שנרשמה ע"י הפונקציה הקיימת) מקבלת את המקור, כדי שיהיה ברור מאיפה הגיעה */
+function tagLast(p, n){ const L = p && p.actionLog; if(!Array.isArray(L)) return; L.slice(-(n || 1)).forEach(a => { if(!a.src) a.src = SRC; }); }
+/** תיעוד של כל החלטה, בשלוש שכבות (ענת, 24.11.2026: "אני לא רואה שאתה מתעד את השינוי"):
+    1. יומן התוכנית (actionLog), עם מי, מתי ומאיפה. 2. ההחלטות של התוכנית (p.decisions), עם ההקשר וההמלצה. 3. הזיכרון המקצועי (ops_user.memory). */
+function record(p, it, opt, res, val){
+  const n = new Date(), time = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+  const label = ((it.options || []).find(o => o.id === opt) || {}).label || ({ snooze:'לא היום', delegate:'האצלה' })[opt] || opt;
+  const entry = { at:T(), time, by:(typeof actorName === 'function' ? actorName() : 'אדריכלית העיר'), src:SRC, kind:it.kind, key:it.key,
+    question:it.title, choice:label, input: typeof val === 'string' ? val.slice(0, 300) : '', result:res, why:it.why || '', rec:it.rec || '' };
+  if(p){ if(!Array.isArray(p.decisions)) p.decisions = []; p.decisions.push(Object.assign({ text:`${it.title}: ${label}. ${res}` }, entry)); }
+  remember(it, `${it.title}: ${label}. ${res}`, { at:T(), time, choice:label });
+  USER.journal = Array.isArray(USER.journal) ? USER.journal.slice(-200) : [];
+  USER.journal.push(Object.assign({ tik:it.tik || '', plan:it.plan || '' }, entry));
+}
 function markDone(p, key, extra){ if(!p.opsDone) p.opsDone = {}; p.opsDone[key] = Object.assign({ at:T(), by:'אדריכלית העיר' }, extra || {}); }
 function remember(it, text, extra){
   USER.memory = Array.isArray(USER.memory) ? USER.memory : [];
@@ -75,7 +91,7 @@ function act(it, opt, val){
   try{
     if(opt === 'held' && p){
       hiddenField(`mtSum_${p.id}_${it.meetKey}`, 'textarea', val);
-      window.meetHeld(p.id, it.meetKey);
+      window.meetHeld(p.id, it.meetKey); tagLast(p);
       done.push('סומן "התקיים"');
       // תגובת שרשרת (אוטומטית מותנית): אומדן לשלב הבא שמוקדם מהפגישה הזו, או שחלף, מתעדכן
       const m = O.MEET.find(x => x.key === it.meetKey), nx = m && O.MEET.find(x => x.key === m.next);
@@ -83,14 +99,11 @@ function act(it, opt, val){
         if(est && (!cur || cur <= it.date || cur < T())){ const sug = O.mondayAfter(it.date > T() ? it.date : T(), 21);
           window.MEET.find(x => x.key === nx.key).set(p, sug); p._est[nx.key] = 1;
           sysLog(p, `אומדן ${nx.label} עודכן ל-${O.fmt(sug)}, אחרי ${m.label}. זה אומדן, לא מועד שנקבע.`); done.push(`אומדן ${nx.label}: ${O.fmt(sug)}`); } }
-      if(!Array.isArray(p.decisions)) p.decisions = [];
-      p.decisions.push({ at:T(), text:`${m ? m.label : ''} התקיים${val ? ': '+val : ''}`, src:'מצב עבודה' });
-      remember(it, `${m ? m.label : 'פגישה'} סומנה כהתקיימה${val ? ': '+val.slice(0, 120) : ''}`);
       done.push('סיכום לצוות מוכן לאישורך');
     } else if((opt === 'missed' || opt === 'setdate') && p){
       if(!/^\d{4}-\d{2}-\d{2}$/.test(val||'')){ toast('בחרי תאריך'); return null; }
       hiddenField(`mtNew_${p.id}_${it.meetKey}`, 'input', val);
-      window.meetReschedule(p.id, it.meetKey);
+      window.meetReschedule(p.id, it.meetKey); tagLast(p);
       done.push(`המועד נקבע ל-${O.fmt(val)}`, 'לוח השנה וציר הזמן עודכנו');
     } else if(opt === 'mail' && p){
       openMail(it.mail); markDone(p, it.baseKey || it.key, { kind:it.kind, to:it.mail.to });
@@ -100,21 +113,27 @@ function act(it, opt, val){
     else if(opt === 'intent' && p){
       const v = String(val||'').trim(); if(!v){ toast('כתבי משפט אחד'); return null; }
       p.intent = { text:v, at:T(), by:'אדריכלית העיר', src: v === it.suggest ? 'אושר מתוך התיק' : 'נוסח ידנית' };
-      sysLog(p, 'המטרה התכנונית נשמרה: ' + v.slice(0, 120)); remember(it, 'המטרה: ' + v.slice(0, 160), { kind:'intent' }); done.push('המטרה נשמרה בתיק ובזיכרון');
+      sysLog(p, 'המטרה התכנונית נשמרה: ' + v.slice(0, 120)); done.push('המטרה נשמרה בתיק ובזיכרון');
     } else if(opt === 'status'){
       const sel = val || {}; let n = 0;
-      (it.plans || []).forEach(x => { const v = sel[x.tik]; const q = P(x.tik); if(!v || !q) return; q.status = v; q.updatedAt = T(); if(typeof logAction === 'function') logAction(q, 'status', `סטטוס נקבע: ${v} (מדף "איפה אנחנו עומדים")`); n++; });
+      (it.plans || []).forEach(x => { const v = sel[x.tik]; const q = P(x.tik); if(!v || !q) return; q.status = v; q.updatedAt = T(); if(typeof logAction === 'function') logAction(q, 'status', `סטטוס נקבע: ${v}`, { src:SRC });
+        if(!Array.isArray(q.decisions)) q.decisions = []; q.decisions.push({ at:T(), by:(typeof actorName === 'function' ? actorName() : 'אדריכלית העיר'), src:SRC, kind:'no_status', text:`סטטוס נקבע: ${v}`, rec:x.sug === v ? 'לפי ההמלצה' : 'שונה מההמלצה (' + x.sug + ')' }); n++; });
       if(!n){ toast('לא נבחר סטטוס'); return null; } if(typeof savePlans === 'function') savePlans(); done.push(`${n} סטטוסים נקבעו`);
     } else if(opt === 'snooze'){ USER.snooze[it.key] = O.addDays(T(), 1); done.push('נדחה למחר'); }
     else if(opt === 'delegate'){
       const c = val; if(!c || !c.email){ toast('בחרי איש קשר עם מייל'); return null; }
       openMail({ to:c.email, subject:`לטיפולך: ${it.title}`, body:`שלום ${c.name},\n\n${it.title}\n${it.why}\n\nההמלצה: ${it.rec||''}\n\nנודה לעדכון עד ${O.fmt(O.addDays(T(), 5))}.\n\nאדריכלית העיר, עיריית אשדוד` });
       USER.delegated[it.key] = { to:c.name, at:T() }; if(p) sysLog(p, `הואצל ל${c.name}: ${it.title}`); done.push(`הואצל ל${c.name}`, 'עובר ל"ממתינים לאחרים"');
+    } else if(opt === 'heldAll' && p){
+      (it.meetKeys || []).forEach(k => { hiddenField(`mtSum_${p.id}_${k}`, 'textarea', 'אושר שהתקיים, כי אבן דרך מאוחרת יותר כבר נקבעה'); window.meetHeld(p.id, k); tagLast(p); });
+      done.push(`${(it.meetKeys || []).length} מועדים סומנו "התקיים"`);
     } else if(opt === 'contacts'){ navTo({ page:'contacts' }); return 'nav'; }
     else if(opt === 'prep' && p){ showPrep(p, it.meetKey); return 'nav'; }
     else if(opt === 'open'){ navTo(it.link); return 'nav'; }
     else return null;
   }catch(e){ console.warn('ops act', e); toast('הפעולה לא הושלמה: ' + e.message); return null; }
+  try{ record(p, it, opt, done.join(' · '), val); if(p && typeof savePlans === 'function') savePlans(); }catch(e){ console.warn('ops record', e); }
+  OPEN['tier:done'] = true;
   metric(opt === 'snooze' ? 'snoozed' : opt === 'delegate' ? 'delegated' : it.tier === 'approve' ? 'approved' : 'decided');
   metric('chain', Math.max(0, done.length - 1));
   saveUser();
@@ -209,12 +228,14 @@ function render(){
   if(typeof isDeveloper === 'function' && isDeveloper()){ box.innerHTML = '<div class="nw"><h1>איפה אנחנו עומדים?</h1><p>הדף הזה שייך לאדריכלית העיר.</p></div>'; return; }
   compute();
   const focusKeys = new Set(R.focus.map(i => i.key));
+  const todayLog = R.tiers.done.filter(d => d.at === R.today);
+  if(OPEN['tier:done'] === undefined && todayLog.length) OPEN['tier:done'] = true;
   const ro = typeof isManager === 'function' && isManager();
   const ses = readSession();
   const tiers = O.TIERS.map(([k, name, sub]) => {
     const list = k === 'done' ? R.tiers.done : R.tiers[k].filter(i => !focusKeys.has(i.key));
     const body = k === 'done'
-      ? (list.length ? `<ul class="nw-log">${list.map(d => `<li><span>${O.fmt(d.at)}</span> ${H(d.plan)}: ${H(d.text)}${d.sys ? ' <small>המערכת</small>' : ''}</li>`).join('')}</ul>` : '<p class="nw-empty">לא נרשמה פעולה בשבועיים האחרונים.</p>')
+      ? (list.length ? `<ul class="nw-log">${list.map(d => `<li><span>${O.fmt(d.at)}${d.time ? ' ' + H(d.time) : ''}</span> ${H(d.plan)}: ${H(d.text)} <small class="${d.sys ? 'sys' : 'who'}">${H(d.sys ? 'המערכת' : (d.by || 'לא ידוע'))}${d.src ? ' · ' + H(d.src) : ''}</small></li>`).join('')}</ul>` : '<p class="nw-empty">לא נרשמה פעולה בשבועיים האחרונים.</p>')
       : (list.length ? `<ul class="nw-list">${list.map(i => rowHTML(i)).join('')}</ul>` : `<p class="nw-empty">${k === 'decide' ? 'אין החלטה נוספת שמחכה לך.' : k === 'approve' ? 'אין תוצר נוסף שמחכה לאישור.' : k === 'upcoming' ? `אין פגישה ב-${R.params.upcomingDays} הימים הקרובים.` : 'אין.'}</p>`);
     const n = k === 'done' ? list.length : list.length;
     return `<details class="nw-tier nw-${k}"${OPEN['tier:'+k] ? ' open' : ''} ontoggle="NowPage.tier('${k}',this.open)"><summary><span class="nw-num">${TIER_NUM[k]}</span><span class="nw-tn">${H(name)}</span><small>${H(sub)}</small><b>${n}</b></summary>${body}</details>`;
@@ -228,7 +249,7 @@ function render(){
         <div class="nw-budget" role="radiogroup" aria-label="מסגרת זמן">${[5, 15, 30, 60].map(m => `<button class="${(USER.budget || 15) === m ? 'on' : ''}" onclick="NowPage.budget(${m})">${m} דק'</button>`).join('')}</div>
         <button class="btn btn-primary nw-go" onclick="NowPage.start()">${ses && ses.queue && ses.idx < ses.queue.length ? 'המשך העבודה' : 'התחלת עבודה'}</button></div>`}
     </header>
-    <section class="nw-morning"><span class="nw-num">01</span><div><h2>תמונת הבוקר</h2>${R.morning.lines.map(l => `<p>${B(l)}</p>`).join('')}</div></section>
+    <section class="nw-morning"><span class="nw-num">01</span><div><h2>תמונת הבוקר</h2>${R.morning.lines.map(l => `<p>${B(l)}</p>`).join('')}${todayLog.length ? `<p>${B(`היום תועדו **${todayLog.length}** פעולות: ${todayLog.filter(d => !d.sys).length} שלך ו-${todayLog.filter(d => d.sys).length} של המערכת. הפירוט ב"מה כבר נעשה".`)}</p>` : ''}</div></section>
     <section class="nw-focus"><h2>${R.focus.length ? 'שלוש הפעולות החשובות' : 'אין פעולה שמחייבת אותך'}</h2>
       ${R.focus.length ? `<ul class="nw-list">${R.focus.map(i => rowHTML(i, true)).join('')}</ul>` : '<p class="nw-empty">המערכת ממשיכה לעקוב, ותעדכן כשמשהו ידרוש אותך.</p>'}</section>
     ${tiers}
@@ -328,8 +349,8 @@ window.NowPage = {
     if(opt === 'delegate'){ const ppl = contactsFor(P(it.tik) || {}).filter(c => c.email); val = el && el.value !== '' ? ppl[+el.value] : null; }
     const inMode = !!document.getElementById('nwMode');
     const res = act(it, opt, val); if(res == null || res === 'nav') return;
-    if(inMode){ const s = readSession(); if(s){ s.done.push(`${it.plan ? it.plan + ': ' : ''}${it.title}: ${res}`); s.idx++; writeSession(s); drawMode('בוצע: ' + res); } }
-    else { toast('בוצע: ' + res); OPEN[k] = false; render(); }
+    if(inMode){ const s = readSession(); if(s){ s.done.push(`${it.plan ? it.plan + ': ' : ''}${it.title}: ${res}`); s.idx++; writeSession(s); drawMode('בוצע ותועד ביומן התוכנית ובהחלטות: ' + res); } }
+    else { toast('בוצע ותועד: ' + res); OPEN[k] = false; render(); }
   },
   pause(id){ USER.paused[id] = !USER.paused[id]; saveUser(); render(); },
   param(k, v){ const n = Math.max(1, Math.min(60, +v || 0)); USER.params[k] = n; saveUser(); render(); },
@@ -407,7 +428,7 @@ const CSS = `
 .nw-tier{box-shadow:inset 0 -1px 0 var(--rule)}.nw-tier>summary{display:flex;gap:10px;align-items:baseline;padding:11px 4px;list-style:none}.nw-tier>summary::-webkit-details-marker{display:none}
 .nw-tn{font-weight:700;font-size:15px}.nw-tier summary small{color:var(--ink-mute);font-size:12.5px}.nw-tier summary b{margin-inline-start:auto;font-family:var(--mono)}
 .nw-decide>summary b{color:var(--err)}.nw-empty{color:var(--ink-mute);font-size:13.5px;margin:4px 0 12px}
-.nw-log{list-style:none;margin:0 0 10px;padding:0;font-size:13.5px}.nw-log li{padding:3px 0}.nw-log span{font-family:var(--mono);font-size:12px;color:var(--ink-mute);margin-inline-end:6px}.nw-log small{background:var(--teal-pale);color:var(--teal);padding:0 5px}
+.nw-log{list-style:none;margin:0 0 10px;padding:0;font-size:13.5px}.nw-log li{padding:3px 0}.nw-log span{font-family:var(--mono);font-size:12px;color:var(--ink-mute);margin-inline-end:6px}.nw-log small{padding:0 5px;font-size:11.5px}.nw-log small.sys{background:var(--teal-pale);color:var(--teal)}.nw-log small.who{background:var(--fog);color:var(--ink-soft)}
 .nw-stl{margin:0 0 12px;padding-inline-start:18px;font-size:14px;line-height:1.6}
 .nw-admin{margin-top:22px;font-size:13.5px}.nw-admin>summary{font-weight:600;color:var(--ink-soft);padding:8px 0}.nw-admin h3{font-size:14px;margin:16px 0 6px}
 .nw-scroll{overflow-x:auto}.nw-auto,.nw-met{width:100%;border-collapse:collapse}.nw-auto td,.nw-auto th,.nw-met td,.nw-met th{text-align:start;padding:6px;box-shadow:inset 0 -1px 0 var(--rule);vertical-align:top}
