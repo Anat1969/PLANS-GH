@@ -141,16 +141,25 @@ function partsFact(){
 }
 /* תכנון רעיוני: מה יש בשלב הזה, ומה לבקש מכל יועץ לפורום. בלי מספרים של תוכנית פיתוח שעוד לא קיימת */
 function conceptFacts(disc){
-  const fl = S.fl || { buildings:[] }, rn = S.rn || { lots:[] }, c = S.meas.count, l = S.meas.len, cf = S.concept || {};
+  const fl = S.fl || { buildings:[] }, rn = S.rn || { lots:[] }, c = S.meas.count, a = S.meas.area, l = S.meas.len, cf = S.concept || {}, dv = S.model.dev || null;
   const tw = fl.buildings, appr = rn.lots.filter(x => (cf.towerLots||[]).concat(cf.cancelled||[]).includes(x.lot) && x.floors >= 20);
-  const NOPLAN = '==אין עדיין תוכנית פיתוח: שלב תכנון רעיוני==';
+  const NOPLAN = '==אין עדיין תוכנית פיתוח: שלב תכנון רעיוני==', DEV = dv ? `מתוכנית המתחם (עמ' ${dv.page})` : '';
+  const mk = dv && dv.marks ? Object.entries(dv.marks).map(([k, v]) => `**${v}** ${k.replace('עץ ', '')}`).join(', ') : '';
   switch(disc.id){
     case 'arch': return [`**${tw.length}** מגדלים של כ-**${tw[0] ? tw[0].total : ''}** קומות (כ-**${tw[0] ? Math.round(tw[0].top) : ''}** מ'), מול **${appr.length}** מגדלים של **${appr[0] ? appr[0].floors : ''}** קומות (**${appr[0] ? appr[0].height : ''}** מ') בתב"ע המאושרת`,
       (cf.cancelled||[]).length ? `מגרש **${cf.cancelled.join(', ')}**: המגדל מבוטל, ובמקומו בניין מסחר וציבור נפרד עם גג ירוק` : '',
-      `חזית מסחרית לפי התשריט: **${N(l.front)}** מ'`, '==מספר הקומות נספר בהדמיה: הערכה==, לבדיקה מול הוראות התב"ע המוצעת'].filter(Boolean);
-    case 'land': return [`**${c.treeOld}** עצים ממפת המדידה, בתחום ובסביבה`, NOPLAN, 'לבקש סקר עצים ותוכנית נוף: עצים לשימור, להעתקה ולכריתה'];
-    case 'power': return [`**${c.lamp}** סימוני עמודים ממפת המדידה`, NOPLAN, 'לבקש מיקום חדר טרנספורמציה ופילרים כבר בשלב הבינוי'];
-    case 'all': return [`תשריט התב"ע המוצעת מעוגן לחלקות הגוש (סטייה חציונית **${cf.median != null ? cf.median.toFixed(2) : '?'}** מ')`, `**${tw.length}** מגדלים, **${c.treeOld}** עצים ו-**${c.lamp}** עמודים ממפת המדידה`, 'המגדלים, המסד והגגות להמחשה, לפי ההדמיות'];
+      `חזית מסחרית לפי התשריט: **${N(l.front)}** מ'`, (S.model.appBuild||[]).length ? `**${S.model.appBuild.length}** בניינים מאושרים בשאר המתחם, ${DEV}` : '',
+      '==מספר הקומות נספר בהדמיה: הערכה==, לבדיקה מול הוראות התב"ע המוצעת'].filter(Boolean);
+    case 'traffic': return [dv ? `כבישים: כ-**${N(a.asphalt)}** מ"ר, ${DEV}` : '', `**${c.exSign||0}** תמרורים ורמזורים קיימים ממפת המדידה`, NOPLAN, 'לבקש תוכנית תנועה, חניה ורמפות'].filter(Boolean);
+    case 'walk': return [dv ? `ריצוף ומדרכות: כ-**${N(a.paving)}** מ"ר, ${DEV}` : '', `זיקות הנאה למעבר מהתשריט: **${N(l.easement)}** מ' של סימון`, 'לבקש מסלול נגיש רציף ומפלסים'].filter(Boolean);
+    case 'land': return [dv ? `**${c.treeNew}** עצים מוצעים ו-**${N(a.green)}** מ"ר גינון, ${DEV}` : '', mk ? `סימון עצים: ${mk}` : '', `**${c.exTree||0}** עצים במפת המדידה`,
+      dv ? `משחק **${N(a.play)}** מ"ר, ספורט **${N(a.sport)}** מ"ר, חצר גן ילדים **${N(a.yard)}** מ"ר` : ''].filter(Boolean);
+    case 'water': return [`**${c.cover||0}** שוחות קיימות ממפת המדידה`, NOPLAN, 'לבקש תוכנית מים, ביוב וניקוז, ופתרון החדרה בשטח הגינון'];
+    case 'power': return [`**${c.lamp}** עמודים ו-**${c.cabinet||0}** ארונות ממפת המדידה`, NOPLAN, 'לבקש מיקום חדר טרנספורמציה ופילרים כבר בשלב הבינוי'];
+    case 'waste': return [`**${c.exBin||0}** אשפטונים קיימים ממפת המדידה`, NOPLAN, 'לבקש חדרי אשפה ומסלול פינוי'];
+    case 'fire': return [NOPLAN, 'לבקש דרכי גישה ורחבות כיבוי לשלושת המגדלים'];
+    case 'all': return [`תשריט התב"ע המוצעת מעוגן לחלקות הגוש (סטייה חציונית **${cf.median != null ? cf.median.toFixed(2) : '?'}** מ')`, dv ? `תוכנית המתחם מעוגנת לתאי השטח (סטייה **${dv.georef.median.toFixed(2)}** מ')` : '',
+      `**${tw.length}** מגדלים, **${c.treeNew||0}** עצים מוצעים, **${c.exTree||0}** עצים ו-**${c.cover||0}** שוחות במפת המדידה`, 'המגדלים, המסד והגגות להמחשה, לפי ההדמיות'].filter(Boolean);
     default: return [NOPLAN, `מה לבקש מ${disc.who} לפורום: ${disc.ask ? disc.ask.map(k => (itemOf(k)||[''])[0]).filter(Boolean).slice(0, 3).join(', ') : ''}`];
   }
 }
@@ -355,8 +364,11 @@ function drawStatePanel(el){
   const lg = k => `<button class="ly-lg${S.off.has(k)?' off':''}" data-kind="${k}"><i style="background:${K[k].color}"></i><span>${H(K[k].label)}<small>${H(K[k].desc)}</small></span><em>${H(k==='exBuild' ? String(rn.demolish.length) : kindMeasure(k))}</em></button>`;
   el.innerHTML = ex ? `
     <div class="ly-who">קיים · מפת המדידה ומפת הרקע העירונית</div><h2 class="ly-h">מה יש היום במתחם</h2>
-    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה${m.count.treeOld != null ? `, <b>${m.count.treeOld}</b> עצים קיימים` : ''}</p>
-    ${fold('exfacts', 'מה יש בשטח', S.man.raster ? 2 : 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
+    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה${S.model.concept ? `, <b>${m.count.exTree||0}</b> עצים קיימים` : m.count.treeOld != null ? `, <b>${m.count.treeOld}</b> עצים קיימים` : ''}</p>
+    ${S.model.concept ? fold('exfacts', 'מה יש בשטח: מפת המדידה', 4, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה (מפת הרקע העירונית). 4 קומות לפי מפת המדידה</li>
+      <li><b>${m.count.exTree||0}</b> עצים, <b>${m.count.cover||0}</b> שוחות, <b>${m.count.lamp||0}</b> עמודים, <b>${m.count.cabinet||0}</b> ארונות</li>
+      <li><b>${m.count.exBench||0}</b> ספסלים, <b>${m.count.exBin||0}</b> אשפטונים, <b>${m.count.exSign||0}</b> תמרורים ורמזורים</li>
+      <li>כל קווי המדידה: <b>${N(m.len.exSurvey)}</b> מ' (אבני שפה, גדרות, קירות ומבנים)</li></ul>`) : fold('exfacts', 'מה יש בשטח', S.man.raster ? 2 : 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
       ${S.man.raster ? `<li><mark class="ly-warn">אין מפת מדידה: עצים ותשתית קיימים לא ידועים</mark></li>` : `<li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
       <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li>`}</ul>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(lg).join('')}</div><p class="ly-src">${H(rn.sources.context)}.</p>`)}` : `
@@ -409,7 +421,7 @@ function levelsFold(disc, ed){
   return fold('levels', 'מפלסים ונגישות', rows.length, `<ul class="ly-facts">${rows.join('')}</ul><p class="ly-src">רומים: ${H(lv.src)}. ${H(lv.assume)}</p>`);
 }
 function infraFold(disc, r, ed){
-  const PI = window.PlanInfra; if(!PI || !S.meas) return '';
+  const PI = window.PlanInfra; if(!PI || !S.meas || S.model.concept) return '';   // תכנון רעיוני: אין עדיין תוכנית פיתוח לנתח
   /* מודל מתמונה: ממצא שתלוי בשכבה שחסרה במקור (מים), או בריצוף (שבתמונה הוא "כל השאר"), לא מוצג. בשאר המקור הוא הערכה מהתמונה */
   const rasterOk = f => !S.man.raster || (!(S.man.missing||[]).includes(f.disc) && !/ריצוף/.test(f.title));
   const fs = PI.analyze({ meas:S.meas, model:S.model, rn:S.rn }).filter(f => (disc.id==='all' || f.disc===disc.id) && rasterOk(f))

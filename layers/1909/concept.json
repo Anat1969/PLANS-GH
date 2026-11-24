@@ -81,5 +81,39 @@
  ],
  "cancelled": [
   20
- ]
+ ],
+ "survey": {
+  "exTree": 246,
+  "cabinet": 20,
+  "lamp": 60,
+  "exBin": 6,
+  "exSign": 29,
+  "cover": 148,
+  "exBench": 15
+ },
+ "dev": {
+  "page": 9,
+  "title": "תוכנית המתחם החדש (עמ' 9): נספח הפיתוח של כל המתחם",
+  "georef": {
+   "median": 0.323,
+   "inliers": 0.724,
+   "trimmed": 0.602
+  },
+  "mPerPx": 0.0994,
+  "areas": {
+   "asphalt": 9562,
+   "green": 9864,
+   "paving": 7644,
+   "yard": 825,
+   "play": 417,
+   "sport": 392
+  },
+  "trees": 267,
+  "marks": {
+   "עץ לכריתה": 3,
+   "עץ להעתקה": 34,
+   "עץ לשימור": 63
+  },
+  "buildings": 49
+ }
 }
