@@ -118,10 +118,12 @@ function build(ctx){
 
   /* 2. קומת הקרקע: ויטרינות, פס שילוט ודלתות (רק במודל מתוכנית העמדה, שבו קומת הקרקע היא מתאר המבנה) */
   const doors = [];
-  if(model.parts && S.wall){
+  // במודל מהשרטוט הווקטורי (model.vector) surf.wall הוא קירות דקים, ולכן הוויטרינה נבנית על מתאר המבנה (model.foot)
+  const WALLS = model.vector && (model.foot||[]).length ? model.foot.map(f => [null, f]) : S.wall;
+  if(model.parts && WALLS){
     const shop = new T.MeshStandardMaterial({ map:shopTex(T), roughness:.32, metalness:.25, envMapIntensity:1.1, side:T.DoubleSide });
     const pos = [], uv = [], rings = [];
-    S.wall.forEach(([, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push([flat[i]/10, flat[i+1]/10]); let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; }); if(A < 0) r.reverse(); rings.push(r);
+    WALLS.forEach(([, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push([flat[i]/10, flat[i+1]/10]); let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; }); if(A < 0) r.reverse(); rings.push(r);
       let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]), u1 = u + L/3.6, h0 = hAt(a[0]-.0, a[1]), H = 4;
         const ox = (b[1]-a[1])/(L||1)*.02, oy = -(b[0]-a[0])/(L||1)*.02, ha = hAt(a[0]-ox*50, a[1]-oy*50), hb = hAt(b[0]-ox*50, b[1]-oy*50);   // גובה הרצפה: מבפנים
         pos.push(a[0]+ox, ha, -(a[1]+oy), b[0]+ox, hb, -(b[1]+oy), b[0]+ox, hb+H, -(b[1]+oy), a[0]+ox, ha, -(a[1]+oy), b[0]+ox, hb+H, -(b[1]+oy), a[0]+ox, ha+H, -(a[1]+oy));
