@@ -25,6 +25,16 @@ srv.listen(0, async () => {
   ok(r.todo === 1, 'רשימת ההשלמות מופיעה פעם אחת');
   ok(r.lots === 20, `טבלה 5 של 1912: ${r.lots} מגרשים`);
   ok(r.people >= 2, `בעלי העניין: ${r.people}`);
+  const a = await pg.evaluate(async () => {   // 1909: השוואת החלופות מול טבלה 5, והפרשי הגובה בכניסות
+    const p = plans.find(p => String(p.tik) === '1909'); if(!p) return null; currentProjectId = p.id; try{ openProject(p.id, true); }catch(e){} try{ ppTab('opinion'); }catch(e){}
+    renderOpinionTab(p); await new Promise(f => setTimeout(f, 2500));
+    const d = [...document.querySelectorAll('#opinionDoc details.op-fold')].find(d => d.querySelector('summary').textContent.includes('חלופות ומפלסים'));
+    const li = d ? [...d.querySelectorAll('.ck-list li')].map(x => x.textContent) : [];
+    return { n:li.length, alt:li.filter(t => t.includes('חלופת המצגת')).length, over:li.filter(t => t.includes('חלופת המצגת') && t.includes('חריגה')).length, towers:li.some(t => t.includes('מספר המגדלים')), lv:li.filter(t => t.includes('מעבר נגיש')).length,
+      unit: compareAlts([{ name:'א', f:{ buildings:[{ lot:1, total:20, top:60 }] } }, { name:'ב', f:{ buildings:[{ lot:1, total:30, top:95 }, { lot:1, total:3, top:12 }] } }], { lots:[{ lot:1, floors:24, height:82 }] }).map(x => x.st).join(',') }; });
+  ok(a && a.unit === 'yes,no', 'השוואת חלופות (פונקציה): עומד, חורג ' + (a && a.unit));
+  ok(a && a.alt === 4 && a.over === 3 && a.towers, `1909: חלופת המצגת חורגת בשלושת המגדלים (${a && a.over}), ומספר המגדלים שונה`);
+  ok(a && a.lv === 4 && a.n >= 13, `1909: הפרשי גובה בכניסות לארבעת המגדלים, והפרש המפלסים בממשק (${a && a.lv})`);
   ok(!errs.length, 'בלי שגיאות בדף' + (errs.length ? ': ' + errs[0] : ''));
   await b.close(); srv.close();
   if(fail){ console.error(fail + ' בדיקות נכשלו'); process.exit(1); }

@@ -499,6 +499,7 @@ function levelsFold(disc, ed){
   const rows = [];
   if(disc.id !== 'walk') (lv.ramps||[]).forEach((r, i) => rows.push(`<li>רמפה לחניון: <b>${r.len}</b> מ', שיפוע <b>${Math.round(r.slope*100)}%</b>, עומק בסוף כ-<b>${r.depth}</b> מ' (הערכה)${r.under ? ', ונכנסת מתחת לבניין' : ''} <button class="ly-b" data-goramp="${i}">להראות</button></li>`));
   if(disc.id !== 'traffic') (lv.checks||[]).forEach((c, i) => rows.push(`<li>${H(c.text)}${ed ? ` <button class="ly-b" data-addlv="${i}">הוספה להנחיות</button>` : ''}</li>`));
+  if(disc.id !== 'traffic') (lv.notes||[]).forEach((c, i) => rows.push(`<li><b>הפרש מפלסים בממשק:</b> ${H(c.text)} <small>${H(c.src)}</small>${ed ? ` <button class="ly-b" data-addlvn="${i}">הוספה להנחיות</button>` : ''}</li>`));   // 1909: המגדל במגרש 15 מול מגרש הכדורגל
   if(!rows.length) return '';
   return fold('levels', 'מפלסים ונגישות', rows.length, `<ul class="ly-facts">${rows.join('')}</ul><p class="ly-src">רומים: ${H(lv.src)}. ${H(lv.assume)}</p>`);
 }
@@ -594,6 +595,7 @@ function bind(){
     else if(d.act==='add'){ const inp = document.getElementById('lyNew'), v = inp.value.trim(); if(!v) return inp.focus(); review().custom.push({ t:DISC[S.d].id, n:v, d:false, at:today() }); persist(); drawPanel(); drawSteps(); }
     else if(d.goramp != null){ if(S.mode !== 'model'){ setMode('model').then(() => S.api && S.api.viewRamp(+d.goramp)); } else if(S.api) S.api.viewRamp(+d.goramp); }
     else if(d.addlv){ const c = ((S.lv||{}).checks||[])[+d.addlv]; if(!c) return; review().custom.push({ t:'walk', n:c.text, d:false, at:today(), src:'מפלסים' }); persist(); drawPanel(); drawSteps(); }
+    else if(d.addlvn){ const c = ((S.lv||{}).notes||[])[+d.addlvn]; if(!c) return; review().custom.push({ t:'walk', n:c.text, d:false, at:today(), src:'מפלסים' }); persist(); drawPanel(); drawSteps(); }
     else if(d.addg){ const f = (S._fs||[])[+d.addg]; if(!f) return; review().custom.push({ t:DISC[S.d].id==='all' ? f.disc : DISC[S.d].id, n:f.guide, d:false, at:today(), src:'ניתוח רב תשתיות' }); persist(); drawPanel(); drawSteps(); }
     else if(d.synst){ const [id, k] = d.synst.split('|'), r = review(); r.synergy = r.synergy || {}; r.synergy[id] = r.synergy[id]===k ? '' : k; persist(); drawPanel(); }
     else if(d.del){ review().custom.splice(+d.del.split('.')[1], 1); persist(); drawPanel(); drawSteps(); }
