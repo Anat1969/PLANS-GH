@@ -199,9 +199,11 @@ async function cityScan(){
   try{ await window.LAYER_SETS_READY; }catch(e){}
   const sets = window.LAYER_SETS || {}, PM = window.PlanModel, all = plansAll();
   const hasPlanDoc = p => { try{ return typeof window.planMaterials === 'function' && window.planMaterials(p).some(x => x.cat === 'plan'); }catch(e){ return false; } };
-  /* מודל מתוכנית העמדה כתמונה (raster) לא נכנס לניתוח: מה שחסר בתמונה היה נספר כ"חסר" ומטה את ההנחיה העירונית */
+  /* תכנון רעיוני (concept, 1909) ותוכנית העמדה כתמונה (raster, 1887) אינם תוכנית פיתוח: לא נכנסים לניתוח העירוני.
+     מה שחסר בהם היה נספר כ"חסר" בתוכנית ומטה את ההנחיה העירונית */
+  const dev = p => sets[String(p.tik)] && !sets[String(p.tik)].concept && !sets[String(p.tik)].raster;
   const img = all.filter(p => sets[String(p.tik)] && sets[String(p.tik)].raster);
-  const done = all.filter(p => sets[String(p.tik)] && !sets[String(p.tik)].raster), rest = all.filter(p => !sets[String(p.tik)]);
+  const done = all.filter(dev), rest = all.filter(p => !sets[String(p.tik)]);
   const vec = rest.filter(p => (p.documents || []).some(d => d && d.layers)), rest2 = rest.filter(p => !vec.includes(p));
   const ready = rest2.filter(hasPlanDoc), none = rest2.filter(p => !ready.includes(p));
   const results = [];

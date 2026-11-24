@@ -19,8 +19,10 @@ ok(P.KINDS.every(k => k.label && k.desc && /^#[0-9a-f]{6}$/.test(k.color)), 'ל�
 for(const dir of sets){
   const man = JSON.parse(fs.readFileSync(path.join(root, dir, 'manifest.json'), 'utf8')), ids = man.layers.map(l => l.id);
   ok(man.layers.every(l => fs.existsSync(path.join(root, dir, l.file))), dir + ': כל ' + ids.length + ' קובצי השכבות קיימים');
+  const cpath = path.join(root, dir, 'concept.json'), concept = fs.existsSync(cpath) ? JSON.parse(fs.readFileSync(cpath, 'utf8')) : null;   // תכנון רעיוני (tools/concept-model.py)
   const miss = [...used].filter(id => !ids.includes(id));
-  if(man.raster){ // תוכנית העמדה מתמונה: מה שאין בתמונה חייב להיות רשום כחסר, כדי שהמסך יאמר זאת
+  if(concept) ok(src.includes("'" + concept.tik + "': { dir:'" + dir + "'") && /concept:true/.test(src), dir + ': תכנון רעיוני, רשום עם concept:true (אין עדיין תוכנית פיתוח, ולכן אין שכבות לכל הדרישות)');
+  else if(man.raster){ // תוכנית העמדה מתמונה: מה שאין בתמונה חייב להיות רשום כחסר, כדי שהמסך יאמר זאת
     const undeclared = miss.filter(id => !(man.missing||[]).includes(id));
     ok(!undeclared.length, dir + ': תמונה. ' + miss.length + ' שכבות שאין בתמונה רשומות כחסרות' + (undeclared.length ? ' (לא רשום: ' + undeclared.join(', ') + ')' : ''));
   } else ok(!miss.length, dir + ': כל שכבה שדרישה מפנה אליה קיימת' + (miss.length ? ' (חסר: ' + miss.join(', ') + ')' : ''));
@@ -32,6 +34,9 @@ for(const dir of sets){
   ok(lat > 31.74 && lat < 31.85 && lng > 34.6 && lng < 34.72, dir + ': המודל ממוקם באשדוד (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')');
   ok(Math.hypot(back[0]-m.e0, back[1]-m.n0) < 0.05, dir + ': המרה לרשת ישראל ובחזרה מדויקת עד 5 ס"מ');
   if(man.raster) ok(ms.count.treeNew > 0 && ms.count.foot > 0 && ms.area.paving > 0 && (m.parts||[]).length > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), מבנים (' + ms.count.foot + '), חלקי בניין (' + (m.parts||[]).length + ') וריצוף (' + ms.area.paving + ' מ"ר)');
+  else if(concept){ ok(m.concept && m.lines.plot.length && m.lines.lots.length >= 2 && m.lines.bldline.length && m.foot.length, dir + ': במודל הרעיוני יש קו כחול, ' + m.lines.lots.length + ' מגרשים, קווי בניין ו-' + m.foot.length + ' מבנים בקומת הקרקע');
+    const g = concept.georef; ok(g.median < 0.5 && g.plotMedian < 0.5, dir + ': התשריט מעוגן לחלקות הגוש ב-GIS העירוני (סטייה חציונית ' + g.median + " מ', הקו הכחול " + g.plotMedian + " מ')");
+    const dA = Math.abs(concept.planArea.drawn/1000 - concept.planArea.stated)/concept.planArea.stated; ok(dA < 0.06, dir + ': שטח הקו הכחול ' + concept.planArea.drawn + ' מ"ר מול ' + concept.planArea.stated + ' דונם בתשריט (' + (dA*100).toFixed(1) + '%)'); }
   else ok(ms.count.treeNew > 0 && ms.count.fire > 0 && ms.area.paving > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), רחבות כיבוי (' + ms.count.fire + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   const rf = path.join(root, dir, 'renewal.json');
   if(fs.existsSync(rf)){ // התב"ע והשרטוט באותו מקום: קו הגבול שבשרטוט יושב על צלעות מגרשי התב"ע
@@ -40,6 +45,7 @@ for(const dir of sets){
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
     if(man.raster){ const c = man.cal || {}; ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
+    else if(concept) ok(ds.length > 20 && ds[ds.length >> 1] < 1.5, dir + ': הקו הכחול של התב"ע המוצעת קרוב למגרשי התב"ע המאושרת (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ'. מגרשי \"מה נבנה סביבי\" פחות מדויקים מה-GIS)");
     else ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
     ok(rn.lots.filter(l => l.floors > 0).every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
   }
@@ -62,7 +68,8 @@ for(const dir of sets){
       if(inside/n < .9) out.push(b.id + ' ' + Math.round(inside/n*100) + '%');
       if(L && L.height && b.top > L.height) high.push(b.id + ' ' + b.top + '>' + L.height); });
     ok(!out.length, dir + ': כל בניין יושב בתוך המגרש שלו בתב"ע' + (out.length ? ' (חורג: ' + out.join(', ') + ')' : ''));
-    ok(!high.length, dir + ': אף בניין לא גבוה מהגובה המרבי בתב"ע' + (high.length ? ' (' + high.join(', ') + ')' : ''));
+    if(concept){ const decl = concept.towers.map(t => String(t.lot)); ok(high.every(h => decl.includes(h.split(' ')[0])), dir + ': בניין שגבוה מהתב"ע המאושרת מוצהר כתוספת קומות של התב"ע המוצעת' + (high.length ? ' (' + high.join(', ') + ')' : '')); }
+    else ok(!high.length, dir + ': אף בניין לא גבוה מהגובה המרבי בתב"ע' + (high.length ? ' (' + high.join(', ') + ')' : ''));
     ok(fd.buildings.filter(b => b.fit.median != null).every(b => b.fit.median < 0.6), dir + ': עיגון הקומות לקווי המגרש (סטייה חציונית ' + fd.buildings.filter(b => b.fit.median != null).map(b => b.id + ' ' + b.fit.median).join(', ') + " מ')");
     ok(fs.statSync(ff).size < 1.5e6, dir + ': floors.json ' + (fs.statSync(ff).size/1e3).toFixed(0) + 'KB');
   }

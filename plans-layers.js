@@ -10,7 +10,9 @@
 'use strict';
 const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true },
   /* raster: אין תוכנית פיתוח וקטורית. המודל מתוכנית ההעמדה שבמצגת (תמונה), מעוגן אוטומטית למגרשי התב"ע (tools/siteplan-model.py) */
-  '1887': { dir:'layers/1887', title:'הרצל - נאות ספיר: תוכנית העמדה', date:'24.11.2026', renewal:true, raster:true } };
+  '1887': { dir:'layers/1887', title:'הרצל - נאות ספיר: תוכנית העמדה', date:'24.11.2026', renewal:true, raster:true },
+  /* תכנון רעיוני: מתשריט התב"ע המוצעת שבמצגת ומההדמיות (tools/concept-model.py, ענת 24.11.2026). אין עדיין תוכנית פיתוח */
+  '1909': { dir:'layers/1909', title:'מתחם צפוני, האיצטדיון: תכנון רעיוני', date:'06.07.2026', renewal:true, concept:true } };
 window.LAYER_SETS = SETS;          // מקור אחד לרשימת התוכניות שיש להן מודל (גם ל-plans-infra.js)
 /* מודלים שהופקו אוטומטית (tools/auto-model.py, ה-Action): layers/index.json. 1913 נשאר בקוד ככיול ידני.
    auto:'approx' = מיקום משוער: אין renewal.json, ולכן אין מעטפת, מצב התחדשות ובדיקת קווי בניין. הכמויות מדויקות. */
@@ -134,7 +136,23 @@ function partsFact(){
   return ids.length ? `==${ids.join(', ')}: ${over[0].floors} קומות במצגת, ${rn.lots.find(l => l.lot === over[0].lot).floors} בטבלה 5== (לבירור: עד 2 קומות טכניות מותרות)`
     : `**${[...new Set(p.map(x => x.id))].length}** בניינים בגובה מהמצגת, בתוך מספר הקומות בתב"ע`;
 }
+/* תכנון רעיוני: מה יש בשלב הזה, ומה לבקש מכל יועץ לפורום. בלי מספרים של תוכנית פיתוח שעוד לא קיימת */
+function conceptFacts(disc){
+  const fl = S.fl || { buildings:[] }, rn = S.rn || { lots:[] }, c = S.meas.count, l = S.meas.len, cf = S.concept || {};
+  const tw = fl.buildings, appr = rn.lots.filter(x => (cf.towerLots||[]).concat(cf.cancelled||[]).includes(x.lot) && x.floors >= 20);
+  const NOPLAN = '==אין עדיין תוכנית פיתוח: שלב תכנון רעיוני==';
+  switch(disc.id){
+    case 'arch': return [`**${tw.length}** מגדלים של כ-**${tw[0] ? tw[0].total : ''}** קומות (כ-**${tw[0] ? Math.round(tw[0].top) : ''}** מ'), מול **${appr.length}** מגדלים של **${appr[0] ? appr[0].floors : ''}** קומות (**${appr[0] ? appr[0].height : ''}** מ') בתב"ע המאושרת`,
+      (cf.cancelled||[]).length ? `מגרש **${cf.cancelled.join(', ')}**: המגדל מבוטל, ובמקומו בניין מסחר וציבור נפרד עם גג ירוק` : '',
+      `חזית מסחרית לפי התשריט: **${N(l.front)}** מ'`, '==מספר הקומות נספר בהדמיה: הערכה==, לבדיקה מול הוראות התב"ע המוצעת'].filter(Boolean);
+    case 'land': return [`**${c.treeOld}** עצים ממפת המדידה, בתחום ובסביבה`, NOPLAN, 'לבקש סקר עצים ותוכנית נוף: עצים לשימור, להעתקה ולכריתה'];
+    case 'power': return [`**${c.lamp}** סימוני עמודים ממפת המדידה`, NOPLAN, 'לבקש מיקום חדר טרנספורמציה ופילרים כבר בשלב הבינוי'];
+    case 'all': return [`תשריט התב"ע המוצעת מעוגן לחלקות הגוש (סטייה חציונית **${cf.median != null ? cf.median.toFixed(2) : '?'}** מ')`, `**${tw.length}** מגדלים, **${c.treeOld}** עצים ו-**${c.lamp}** עמודים ממפת המדידה`, 'המגדלים, המסד והגגות להמחשה, לפי ההדמיות'];
+    default: return [NOPLAN, `מה לבקש מ${disc.who} לפורום: ${disc.ask ? disc.ask.map(k => (itemOf(k)||[''])[0]).filter(Boolean).slice(0, 3).join(', ') : ''}`];
+  }
+}
 function facts(disc){
+  if(S.model.concept) return conceptFacts(disc);
   if(S.man && S.man.raster) return rasterFacts(disc);
   const m = S.meas, a = m.area, c = m.count, l = m.len, man = S.man || {}, g = (man.layers||[]).find(x => x.id==='green');
   const pct = g && g.areaIn && man.siteArea ? Math.round(g.areaIn/man.siteArea*100) : null;
@@ -183,6 +201,7 @@ async function open(tik){
     try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
       S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
       S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
+      S.concept = S.model.concept ? await fetch(dir+'/concept.json').then(r => r.json()).then(c => ({ median:(c.georef||{}).median, cancelled:c.cancelled||[], towerLots:(c.towers||[]).map(x => x.lot), notes:c.notes||{} })).catch(() => ({})) : null;
       S.state = S.rn ? 'exist' : 'design'; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
   }
