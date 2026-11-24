@@ -765,6 +765,7 @@ function create(el, model, opts){
     // 3. רמפות לחניון
     const rampSurf = groups.ramp; if(rampSurf) rampSurf.children.forEach(o => { if(o.isMesh) o.visible = false; });   // המשטח השטוח של השרטוט מוחלף ברמפה עצמה
     const floorM = M.std({ color:sc('#5d5e62'), map:TX.asphalt, roughness:.95 }), wallM = M.std({ color:sc('#bdb7ac'), roughness:.9 }), capM = M.std({ color:sc('#d7d1c4'), roughness:.8 });
+    floorM.userData.role = 'rampFloor'; wallM.userData.role = 'rampWall'; capM.userData.role = 'rampCap';   // לגימור בהדמיה (plans-real.js)
     const darkM = new T.MeshBasicMaterial({ color:'#16171a', side:T.DoubleSide }), paintM = new T.LineBasicMaterial({ color:'#f4f1e6' }), railM = new T.LineBasicMaterial({ color:'#3a3d42' });
     ramps.forEach(r => {
       const g0 = hAt(r.e0[0], r.e0[1]), sOf = (x, y) => Math.max(0, Math.min(r.len, (x-r.e0[0])*r.u[0] + (y-r.e0[1])*r.u[1]));
@@ -791,7 +792,7 @@ function create(el, model, opts){
       const mk = (o, opt) => { o.userData.lifted = true; return add('ramp', o, opt); };
       if(Ap.length) mk(new T.Mesh(geo(Ap), M.std({ color:sc('#d8d2c2'), map:TX.paving, roughness:.9 })), { solid:true });
       mk(new T.Mesh(geo(F), floorM), { solid:true }); mk(new T.Mesh(geo(W), wallM), { cast:true, solid:true }); if(C.length) mk(new T.Mesh(geo(C), capM), { cast:true, solid:true });
-      mk(new T.Mesh(geo(K), darkM)); mk(new T.LineSegments(geo(Pt, true), paintM)); if(Rl.length) mk(new T.LineSegments(geo(Rl, true), railM));
+      mk(new T.Mesh(geo(K), darkM)); { const ar = new T.LineSegments(geo(Pt, true), paintM); ar.userData.keep = true; mk(ar); } if(Rl.length){ const rr = new T.LineSegments(geo(Rl, true), railM); rr.userData.keep = true; mk(rr); }
       // שלט: שיפוע ועומק
       const c = document.createElement('canvas'); c.width = 600; c.height = 92; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 600, 92);
       x.fillStyle = '#1a1a18'; x.font = '600 38px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
@@ -800,7 +801,7 @@ function create(el, model, opts){
       const m0 = [r.e0[0] - r.u[0]*2, r.e0[1] - r.u[1]*2]; sp.position.set(m0[0], g0 + 3.2, -m0[1]); mk(sp, {});   // השלט בפתח הרמפה, מעל המדרכה
     });
     // 4. מדרגות בפיתוח: גרם לפי קווי השלח, מהקרקע הנמוכה לגבוהה. רום כל שלח לפי פני הקרקע בשני הקצוות
-    { const stM = M.std({ color:sc('#cfc6b4'), roughness:.85 }), A = [];
+    { const stM = M.std({ color:sc('#cfc6b4'), roughness:.85 }), A = []; stM.userData.role = 'stairs';
       (lv.flights||[]).forEach(f => { const a = [f.a[0]/10, f.a[1]/10], b = [f.b[0]/10, f.b[1]/10], za = hAt(...a), zb = hAt(...b), up = zb >= za, lo = up ? a : b, hi = up ? b : a, z0 = Math.min(za, zb), z1 = Math.max(za, zb, z0 + .15*f.n);
         const ux = hi[0]-lo[0], uy = hi[1]-lo[1], L = Math.hypot(ux, uy) || 1, nx = -uy/L*f.w/2, ny = ux/L*f.w/2, rise = (z1-z0)/f.n;
         for(let k = 0; k < f.n; k++){ const t0 = k/f.n, t1 = (k+1)/f.n, p0 = [lo[0]+ux*t0, lo[1]+uy*t0], p1 = [lo[0]+ux*t1, lo[1]+uy*t1], y = z0 + rise*(k+1);
@@ -875,7 +876,7 @@ function create(el, model, opts){
       if(!kindOff.has(k)) g.visible = true;
       g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = !!x.userData.solid; } }); }
     // שלטים וקווי מתאר נעלמים: נשאר רק מה שנבנה
-    scene.traverse(x => { if(x.isSprite && x !== sunBall && !x.userData.keep) x.visible = false; if(x.isLineSegments && (x.material === outlineM || x.userData.rim)) x.visible = false; });
+    scene.traverse(x => { if(x.isSprite && x !== sunBall && !x.userData.keep) x.visible = false; if((x.isLineSegments || x.isLine) && !x.userData.keep) x.visible = false; });   // בהדמיה אין קווים טכניים: רק מה שנבנה
   }
   function setRender(on){
     renderOn = !!on;
@@ -884,7 +885,8 @@ function create(el, model, opts){
       if(sky) sky.visible = renderOn; sunBall.visible = !renderOn && !!(lastSun && lastSun.day); pathLine.visible = !renderOn;
       scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null;
       groups && Object.values(groups).forEach(g => g.traverse(x => { const m = x.material; if(m && m.userData && m.userData.leaf){ m.transparent = !renderOn; m.opacity = renderOn ? 1 : .84; m.needsUpdate = true; } }));
-      if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments) && !x.userData.keep) x.visible = true; });
+      if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments || x.isLine) && !x.userData.keep) x.visible = true; });
+      if(rl && rl.setOn) rl.setOn(renderOn);
       if(renderOn && state === 'design' && !rl && window.PlanReal){ try{ buildReal2(); }catch(e){ console.warn('real', e); rl = null; } }   // המחשה ראליסטית (plans-real.js)
       if(renderOn && !lifeG && !rl) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design'; if(rl) rl.root.visible = renderOn && state === 'design';
       renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
@@ -957,7 +959,7 @@ function create(el, model, opts){
   /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
   let lifeG = null, rl = null; const realHide = new Set(), realCtx = {};
   /* המחשה ראליסטית (plans-real.js): חומרים, ויטרינות ודלתות, עצים, עמודי תאורה, אנשים בתנועה ומכוניות. נבנית פעם אחת, כשמדליקים הדמיה */
-  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)) });
+  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)), ground, terrain:() => terrainM, renderer, sun, hemi, fill, levels:() => LV });
     rl = window.PlanReal.build(realCtx); renderFix(); draw(); }
   function buildLife(){
     if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);

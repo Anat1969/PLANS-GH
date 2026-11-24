@@ -240,9 +240,59 @@ function build(ctx){
     function loc(M0, x, y, z, m, i){ m4.makeTranslation(x, y, z); m4.premultiply(M0); m.setMatrixAt(i, m4); }
   }
 
+  /* 7. רצף המרחב הציבורי (ענת, 24.11.2026: "החיבורים של הכבישים, המדרכות, רצף", "המפגש של הבניינים עם הקרקע") */
+  const fin = new T.Group(); fin.name = 'finish'; root.add(fin);
+  const ringsOf = list => (list || []).map(([, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push([flat[i]/10, flat[i+1]/10]); return r; });
+  /** קצוות חיצוניים בלבד: צלע שמופיעה בשני משטחים היא תפר בתוך אותו משטח, לא שפה */
+  const outerEdges = rings => { const m = new Map(), k = (a, b) => (a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1])) ? a.join() + '|' + b.join() : b.join() + '|' + a.join();
+    rings.forEach(r => r.forEach((a, i) => { const b = r[(i+1)%r.length], kk = k(a, b), e = m.get(kk); if(e) e.c++; else m.set(kk, { a, b, c:1 }); })); return [...m.values()].filter(e => e.c === 1 && Math.hypot(e.b[0]-e.a[0], e.b[1]-e.a[1]) > .3); };
+  const stoneM = new T.MeshStandardMaterial({ color:sc('#bdb8ae'), map:PV.map, roughness:.7 }), edgeM = new T.MeshStandardMaterial({ color:sc('#a9a59c'), roughness:.75 });
+  const strip = (edges, w, h, mat, y0) => { if(!edges.length) return; const m = inst(new T.BoxGeometry(1, 1, 1), mat, edges.length);
+    edges.forEach((e, i) => { const L = Math.hypot(e.b[0]-e.a[0], e.b[1]-e.a[1]), mx = (e.a[0]+e.b[0])/2, my = (e.a[1]+e.b[1])/2;
+      dummy.position.set(mx, hAt(mx, my) + (y0 || 0) + h/2, -my); dummy.rotation.set(0, Math.atan2(e.b[1]-e.a[1], e.b[0]-e.a[0]), 0); dummy.scale.set(L + .02, h, w); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); }); fin.add(m); return m; };
+  // אבן שפה לאורך כל קצה של כביש: 20 ס"מ רוחב, 15 ס"מ גובה. ואבן גן נמוכה סביב הגינון
+  strip(outerEdges(ringsOf(S.asphalt)), .2, .15, stoneM);
+  strip(outerEdges(ringsOf(S.green)), .1, .1, edgeM);
+  // צל מגע: רצועה כהה ורכה סביב כל מבנה, מהקיר החוצה (במקום צל סביבתי, שבכרטיס מסך חלש יצר הילות)
+  const feet = (model.foot || []).map(f => { const r = []; for(let i = 0; i < f.length; i += 2) r.push([f[i]/10, f[i+1]/10]); return r; });
+  { const pos = [], col = [], W = 1.6;
+    feet.forEach(r => { let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; }); const sg = A > 0 ? 1 : -1;
+      r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]); if(L < .2) return; const ox = (b[1]-a[1])/L*sg*W, oy = -(b[0]-a[0])/L*sg*W;
+        const P = [[a[0], a[1], .42], [b[0], b[1], .42], [b[0]+ox, b[1]+oy, 0], [a[0]+ox, a[1]+oy, 0]];
+        [0, 1, 2, 0, 2, 3].forEach(j => { const q = P[j]; pos.push(q[0], hAt(q[0] - ox*.3, q[1] - oy*.3) + .075, -q[1]); col.push(0, 0, 0, q[2]); }); }); });
+    if(pos.length){ const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new T.Float32BufferAttribute(col, 4));
+      const ao = new T.Mesh(g, new T.MeshBasicMaterial({ vertexColors:true, transparent:true, depthWrite:false, side:T.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2 })); ao.renderOrder = 2; fin.add(ao); } }
+  // צל רך מתחת לכל עץ: כתם מעגלי, כדי שהעץ "יושב" על הקרקע גם כשהשמש גבוהה
+  if(treesAll.length){ const c = canvas(128), g = c.getContext('2d'), rg = g.createRadialGradient(64, 64, 0, 64, 64, 64); rg.addColorStop(0, 'rgba(0,0,0,.42)'); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(0, 0, 128, 128);
+    const pl = new T.PlaneGeometry(1, 1); pl.rotateX(-Math.PI/2); const m = inst(pl, new T.MeshBasicMaterial({ map:new T.CanvasTexture(c), transparent:true, depthWrite:false }), treesAll.length, { cast:false });
+    treesAll.forEach((t, i) => { const R = Math.max(1.4, Math.min(4.5, t[2] || 2.5))*2.1; dummy.position.set(t[0], hAt(t[0], t[1]) + .08, -t[1]); dummy.rotation.set(0, 0, 0); dummy.scale.set(R, 1, R); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); }); m.renderOrder = 2; }
+  // רמפות: אספלט על הרצפה ובטון חשוף בקירות. מדרגות: אבן, כדי ששינוי המפלס ייקרא
+  const conc = (() => { const c = canvas(256), g = c.getContext('2d'); g.fillStyle = '#b9b5ad'; g.fillRect(0, 0, 256, 256); for(let q = 0; q < 5000; q++){ g.fillStyle = `rgba(${rnd(q) < .5 ? '80,78,72' : '235,232,225'},${.05 + rnd(q+3)*.1})`; g.fillRect(rnd(q*3)*256, rnd(q*7)*256, 2, 2); }
+    g.strokeStyle = 'rgba(70,68,62,.35)'; g.lineWidth = 2; for(let i = 0; i <= 2; i++){ g.beginPath(); g.moveTo(0, i*128); g.lineTo(256, i*128); g.stroke(); }
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/2.4, 1/1.2); t.encoding = T.sRGBEncoding; return t; })();
+  const roleMat = { rampFloor:{ map:AS.map, normalMap:AS.normal, color:'#8a8b8e', roughness:.9 }, rampWall:{ map:conc, color:'#ffffff', roughness:.85 }, rampCap:{ map:conc, color:'#e6e2da', roughness:.8 }, stairs:{ map:PV.map, normalMap:PV.normal, color:'#f2ede2', roughness:.75 } };
+  scene.traverse(x => { const m = x.isMesh && (x.userData.mat || x.material); const r = m && m.userData && roleMat[m.userData.role]; if(!r || !m.isMeshStandardMaterial) return;
+    Object.assign(m, { map:r.map, normalMap:r.normalMap || null, roughness:r.roughness }); m.color.set(r.color); if(r.map !== AS.map) m.color.convertSRGBToLinear(); m.needsUpdate = true; });
+  // רצף הקרקע: מה שלא מרוצף בשרטוט (חלל בין משטחים, שולי התוכנית) נראה כאבן בהירה ולא כלבן ריק
+  const gm = ctx.ground && ctx.ground.material, saved = gm ? { map:gm.map, color:gm.color.clone(), normalMap:gm.normalMap } : null;
+  const terr = ctx.terrain && ctx.terrain(), tsaved = terr ? { map:terr.material.map, color:terr.material.color.clone() } : null;
+  const groundTex = PV.map.clone(); groundTex.needsUpdate = true; groundTex.repeat.set(1/4, 1/4);
+  // uv במטרים לקרקע ולפני השטח (למישור של 2,400 מ' ה-uv הוא 0 עד 1, ולכן המרקם נמתח עד שלא נראה)
+  [ctx.ground && ctx.ground.geometry, terr && terr.geometry].forEach(g => { if(!g || g.userData.uvM) return; const p = g.attributes.position, uv = new Float32Array(p.count*2), wl = new T.Vector3(), o = g === (ctx.ground && ctx.ground.geometry) ? ctx.ground : terr;
+    o.updateMatrixWorld(true); for(let i = 0; i < p.count; i++){ wl.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); uv[2*i] = wl.x; uv[2*i+1] = -wl.z; } g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.userData.uvM = true; });
+  // תאורה: שמיים קרירים מלמעלה ואור חם שמוחזר מהקרקע, ושמש מעט חזקה וחמה. הצל קשה יותר, ולכן שינויי המפלס נקראים
+  const L0 = ctx.hemi ? { hs:ctx.hemi.color.clone(), hg:ctx.hemi.groundColor.clone(), hi:ctx.hemi.intensity, si:ctx.sun.intensity, sc:ctx.sun.color.clone(), fi:ctx.fill.intensity, ex:ctx.renderer.toneMappingExposure } : null;
+  function setOn(on){
+    if(gm){ if(on){ gm.map = groundTex; gm.color.set('#d9d3c6').convertSRGBToLinear(); } else { gm.map = saved.map; gm.color.copy(saved.color); } gm.needsUpdate = true; }
+    if(terr){ if(on){ terr.material.map = groundTex; terr.material.color.set('#e2dccf').convertSRGBToLinear(); } else { terr.material.map = tsaved.map; terr.material.color.copy(tsaved.color); } terr.material.needsUpdate = true; }
+    if(L0){ ctx.hemi.color.set(on ? '#cfe1f5' : L0.hs); ctx.hemi.groundColor.set(on ? '#9c8f78' : L0.hg); ctx.hemi.intensity = on ? .55 : L0.hi;
+      ctx.sun.intensity = on ? 1.35 : L0.si; ctx.sun.color.set(on ? '#fff0d6' : L0.sc); ctx.fill.intensity = on ? .22 : L0.fi; ctx.renderer.toneMappingExposure = on ? .98 : L0.ex; }
+    root.visible = !!on; }
+  setOn(true);
+
   /* מה שהוחלף לא מוצג בהדמיה: העצים, העמודים והכניסות הישנים, ואנשים ומכוניות הפשוטים */
   ctx.hide(['treeNew', 'treeOld', 'exTree', 'lamp', 'entry']);
-  return { root, people:people.length, doors:doors.length };
+  return { root, setOn, people:people.length, doors:doors.length };
 }
 
 window.PlanReal = { build, version:'1125' };
