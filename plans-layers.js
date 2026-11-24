@@ -203,7 +203,8 @@ async function open(tik){
     body().innerHTML = '<p class="ly-empty">טוען את המודל…</p>';
     try{ const dir = SETS[tik].dir; [S.man, S.model] = await Promise.all([fetch(dir+'/manifest.json').then(r => r.json()), fetch(dir+'/model.json').then(r => r.json())]); S.meas = PM().measure(S.model);
       S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
-      S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
+      S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;
+      S.lv = await fetch(dir+'/levels.json').then(r => r.ok ? r.json() : null).catch(() => null);   // מפלסים, רמפות ונגישות (tools/extract-levels.py)   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.concept = S.model.concept ? await fetch(dir+'/concept.json').then(r => r.json()).then(c => ({ median:(c.georef||{}).median, cancelled:c.cancelled||[], towerLots:(c.towers||[]).map(x => x.lot), notes:c.notes||{} })).catch(() => ({})) : null;
       S.state = S.rn ? 'exist' : 'design'; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
@@ -285,7 +286,7 @@ async function setMode(mode){
     try{ await PM().loadThree();
       S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onMapError: () => { S.streets = true; applyApi(); drawTools(); sunNow(); },   // המפה לא נטענה: עוברים לרחובות העירייה שבאפליקציה
         onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
-      if(S.rn) S.api.setRenewal(S.rn); if(S.fl) S.api.setBuildings(S.fl); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
+      if(S.lv) S.api.setLevels(S.lv); if(S.rn) S.api.setRenewal(S.rn); if(S.fl) S.api.setBuildings(S.fl); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
     view.innerHTML = '<div class="ly-world" id="lyWorld">' + S.man.layers.map(l => `<div class="ly-sheet" data-id="${l.id}"><img src="${SETS[S.tik].dir}/${l.file}" alt="${H(l.name)}" draggable="false" decoding="async"><span class="ly-tag">${H(l.name)}</span></div>`).join('') + '</div>';
@@ -389,6 +390,7 @@ function drawPanel(){
     ${fold('concept', 'הקונספט של היועץ', r.concept[disc.id] ? 'נרשם' : '', `<div class="ly-note"><textarea data-concept="${disc.id}" data-voice="k:${disc.id}" rows="2" placeholder="מה היועץ מסביר על התכנון…" ${ed?'':'readonly'}>${H(r.concept[disc.id]||'')}</textarea>${micBtn('k:'+disc.id)}</div>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(k => `<button class="ly-lg${S.off.has(k.id)?' off':''}" data-kind="${k.id}" title="${H(k.desc)}"><i style="background:${k.color}"></i><span>${H(k.label)}<small>${H(k.desc)}</small></span><em>${H(kindMeasure(k.id))}</em></button>`).join('')}</div>`)}
     ${infraFold(disc, r, ed)}
+    ${levelsFold(disc, ed)}
     ${fold('checks', 'מה בודקים', discCount(disc).done + '/' + discCount(disc).total, `<ol class="ly-items">${qs}${cust}</ol>
     ${ed ? `<div class="ly-add"><input id="lyNew" data-voice="new" type="text" placeholder="הנחיה נוספת בתחום…" aria-label="הנחיה נוספת">${micBtn('new')}<button class="ly-b" data-act="add">הוספה</button></div>` : ''}`)}
 
@@ -397,6 +399,15 @@ function drawPanel(){
   el.querySelectorAll('textarea').forEach(grow);
 }
 /** ניתוח ורתימות (plans-infra.js): ממצאים מול מה שנמדד, הנחיה לייעול, וסימון לכל רתימה */
+/** מפלסים: הרמפות לחניון (תנועה) והפרשי הגובה בכניסות (נגישות), מ-levels.json. כל ערך עם מקור, וההערכות מסומנות */
+function levelsFold(disc, ed){
+  const lv = S.lv; if(!lv || !['traffic', 'walk', 'all'].includes(disc.id)) return '';
+  const rows = [];
+  if(disc.id !== 'walk') (lv.ramps||[]).forEach((r, i) => rows.push(`<li>רמפה לחניון: <b>${r.len}</b> מ', שיפוע <b>${Math.round(r.slope*100)}%</b>, עומק בסוף כ-<b>${r.depth}</b> מ' (הערכה)${r.under ? ', ונכנסת מתחת לבניין' : ''} <button class="ly-b" data-goramp="${i}">להראות</button></li>`));
+  if(disc.id !== 'traffic') (lv.checks||[]).forEach((c, i) => rows.push(`<li>${H(c.text)}${ed ? ` <button class="ly-b" data-addlv="${i}">הוספה להנחיות</button>` : ''}</li>`));
+  if(!rows.length) return '';
+  return fold('levels', 'מפלסים ונגישות', rows.length, `<ul class="ly-facts">${rows.join('')}</ul><p class="ly-src">רומים: ${H(lv.src)}. ${H(lv.assume)}</p>`);
+}
 function infraFold(disc, r, ed){
   const PI = window.PlanInfra; if(!PI || !S.meas) return '';
   /* מודל מתמונה: ממצא שתלוי בשכבה שחסרה במקור (מים), או בריצוף (שבתמונה הוא "כל השאר"), לא מוצג. בשאר המקור הוא הערכה מהתמונה */
@@ -479,6 +490,8 @@ function bind(){
     else if(d.mic) mic(d.mic);
     else if(d.act==='copy') copyText();
     else if(d.act==='add'){ const inp = document.getElementById('lyNew'), v = inp.value.trim(); if(!v) return inp.focus(); review().custom.push({ t:DISC[S.d].id, n:v, d:false, at:today() }); persist(); drawPanel(); drawSteps(); }
+    else if(d.goramp != null){ if(S.mode !== 'model'){ setMode('model').then(() => S.api && S.api.viewRamp(+d.goramp)); } else if(S.api) S.api.viewRamp(+d.goramp); }
+    else if(d.addlv){ const c = ((S.lv||{}).checks||[])[+d.addlv]; if(!c) return; review().custom.push({ t:'walk', n:c.text, d:false, at:today(), src:'מפלסים' }); persist(); drawPanel(); drawSteps(); }
     else if(d.addg){ const f = (S._fs||[])[+d.addg]; if(!f) return; review().custom.push({ t:DISC[S.d].id==='all' ? f.disc : DISC[S.d].id, n:f.guide, d:false, at:today(), src:'ניתוח רב תשתיות' }); persist(); drawPanel(); drawSteps(); }
     else if(d.synst){ const [id, k] = d.synst.split('|'), r = review(); r.synergy = r.synergy || {}; r.synergy[id] = r.synergy[id]===k ? '' : k; persist(); drawPanel(); }
     else if(d.del){ review().custom.splice(+d.del.split('.')[1], 1); persist(); drawPanel(); drawSteps(); }
