@@ -413,14 +413,35 @@ function checkList(items, link){
   const n = items.length, done = items.filter(x => x.st !== 'open').length, bad = items.filter(x => x.st === 'no').length;
   const ed = typeof isArchitect !== 'function' || isArchitect();
   const mk = x => x.id && ed ? `<span class="ck-mk no-print">${[['yes', 'עומד'], ['no', 'לא עומד'], ['na', 'לא רלוונטי']].map(([k, l]) => `<button class="${x.st === k ? 'on' : ''}" data-tk="${H(x.id)}|${k}">${l}</button>`).join('')}</span>` : '';
-  const rows = items.slice().sort((a, b) => ST[a.st][1] - ST[b.st][1]).map(x => `<li class="ck-${x.st}"><span class="ck-st">${ST[x.st][0]}</span><span class="ck-t">${H(x.t)}${x.sub ? ` <small>${H(x.sub)}</small>` : ''}${x.note ? `<em>${H(x.note)}</em>` : ''}${mk(x)}</span></li>`).join('');
-  return `<div class="ck-sum">נבדקו <b>${done}</b> מתוך ${n}${bad ? ` · <b class="t5bad">${bad === 1 ? 'אחת לא עומדת' : bad + ' לא עומדות'}</b>` : ''}${link ? ` <button class="btn btn-sm no-print" onclick="${link}">לבדיקה</button>` : ''}</div><ul class="ck-list">${rows}</ul>`;
+  const sg = x => x.sug && ed ? `<span class="ck-sug">הצעה מהמודל: <b>${ST[x.sug.st][0]}</b>. ${H(x.sug.why)}<span class="no-print"><button data-sg="${H(x.id)}|ok">אישור</button><button data-sg="${H(x.id)}|x">דחייה</button></span></span>` : '';
+  const ord = x => ST[x.st][1] - (x.sug ? 0.5 : 0);
+  const rows = items.slice().sort((a, b) => ord(a) - ord(b)).map(x => `<li class="ck-${x.st}${x.sug ? ' ck-has-sug' : ''}"><span class="ck-st">${ST[x.st][0]}</span><span class="ck-t">${H(x.t)}${x.sub ? ` <small>${H(x.sub)}</small>` : ''}${x.note ? `<em>${H(x.note)}</em>` : ''}${sg(x)}${mk(x)}</span></li>`).join('');
+  const ns = items.filter(x => x.sug).length;
+  return `<div class="ck-sum">${ns ? `<b>${ns === 1 ? 'הצעה אחת' : ns + ' הצעות'}</b> מהמודל לבדיקה · ` : ''}נבדקו <b>${done}</b> מתוך ${n}${bad ? ` · <b class="t5bad">${bad === 1 ? 'אחת לא עומדת' : bad + ' לא עומדות'}</b>` : ''}${link ? ` <button class="btn btn-sm no-print" onclick="${link}">לבדיקה</button>` : ''}</div><ul class="ck-list">${rows}</ul>`;
+}
+/* הצעה מהמודל (ענת, 24.11.2026): ממצא של הניתוח הרב תשתיתי מוצע כסימון לדרישת תב"ע באותו נושא.
+   זו הצעה, לא קביעה: רק "אישור" של אדריכלית העיר נכנס ל-p.tabaChecks (עם src:'מודל'). "דחייה" נרשמת ב-p.tabaSugNo, כדי שלא תחזור */
+const SUG_RULES = [   // re: הדרישה עוסקת במה שנמדד. no: דרישה שהמודל לא יכול לענות עליה
+  { infra:'drain', re:/ניהול הנגר|ויסות הנגר|איגום|חלחול|קליטת נגר/, no:/מרתפ|פניאומט/ },
+  { infra:'trees', title:/צל/, re:/הצלל|רצף צל|מוצלל/, no:/חניונ|בית גידול/ },
+  { infra:'waste', re:/חדרי? (ה)?אשפה|אצירה|פינוי .*אשפה/, no:/^אם יש|פניאומט.*תשתית/ },
+  { infra:'fire', re:/רחבות כיבוי|רחבת כיבוי/ },
+  { infra:'walk', re:/שטחים מגוננים|יחס .*גינון/, no:/חניונ|עומק/ }
+];
+function suggestFor(p, r){
+  const fs = INFRA_CACHE[p.tik]; if(!fs || ((p.tabaSugNo || {})[r.id])) return null;
+  for(const R of SUG_RULES){
+    if(!R.re.test(r.text) || (R.no && R.no.test(r.text))) continue;
+    const f = fs.find(f => f.infra === R.infra && f.ok !== null && f.ok !== undefined && (!R.title || R.title.test(f.title)));
+    if(f) return { st:f.ok ? 'yes' : 'no', why:`${f.title}: ${String(f.fact || '').replace(/\*\*/g, '')} (${f.basis || 'נמדד בשרטוט'})`, guide:f.guide || '' };
+  }
+  return null;
 }
 /** דרישות התב"ע: הסימון נעשה כאן, בחוות הדעת (p.tabaChecks[id] = { st, note, at }) */
 function checksTaba(p){
   const tb = TABA_C[p.tik]; if(!tb) return [];
-  return (tb.requirements || []).map(r => { const c = (p.tabaChecks || {})[r.id] || {};
-    return { id:r.id, t:r.text, sub:`${r.topic} · ${r.stage} · סעיף ${r.section}, עמ' ${r.page}`, st:c.st || 'open', note:c.note || '', r }; });
+  return (tb.requirements || []).map(r => { const c = (p.tabaChecks || {})[r.id] || {}, st = c.st || 'open';
+    return { id:r.id, t:r.text, sub:`${r.topic} · ${r.stage} · סעיף ${r.section}, עמ' ${r.page}${c.src ? ' · לפי ' + c.src : ''}`, st, note:c.note || '', r, sug:st === 'open' ? suggestFor(p, r) : null }; });
 }
 function checksSpatial(p){
   const G = typeof SPATIAL_GUIDELINES !== 'undefined' ? SPATIAL_GUIDELINES : [];
@@ -449,7 +470,8 @@ function secChecks(p){
 async function fillAsync(p){
   try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
   try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || !window.PlanInfra || !window.PlanModel) return;
-    const fs = await infraFindings(p);
+    const had = !!INFRA_CACHE[p.tik], fs = await infraFindings(p);
+    if(!had && checksTaba(p).some(x => x.sug) && pj && pj() === p){ refreshOpinion(p); return; }   // ההצעות מהמודל נכנסות לסעיף הדרישות
     el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)
       + (set.auto === 'approx' ? '<p class="muted">המודל במיקום משוער. הכמויות מדויקות.</p>' : ''); }catch(e){ console.warn('opinion infra', e); }
 }
@@ -476,7 +498,13 @@ function rebuildOpinion(p){
   ].join('');
   try{ if(typeof autoGrowAll === 'function') setTimeout(autoGrowAll, 30); }catch(e){}
   fillAsync(p); fillTodo(p);
-  doc.onclick = e => { const b = e.target.closest('[data-tk]'); if(!b) return; const [id, st] = b.dataset.tk.split('|'); p.tabaChecks = p.tabaChecks || {};
+  const onSug = e => { const b = e.target.closest('[data-sg]'); if(!b) return false; const [id, a] = b.dataset.sg.split('|');
+    const x = checksTaba(p).find(x => x.id === id); if(!x || !x.sug) return true;
+    if(a === 'ok'){ p.tabaChecks = p.tabaChecks || {}; p.tabaChecks[id] = { st:x.sug.st, note:x.sug.st === 'no' ? (x.sug.guide || x.sug.why) : '', at:today(), src:'מודל' };
+      try{ logAction(p, 'review', `אושרה הצעה מהמודל: ${ST[x.sug.st][0]}, ${x.t.slice(0, 60)}`); }catch(err){} }
+    else { p.tabaSugNo = p.tabaSugNo || {}; p.tabaSugNo[id] = today(); }
+    try{ savePlans(); }catch(err){} refreshOpinion(p); return true; };
+  doc.onclick = e => { if(onSug(e)) return; const b = e.target.closest('[data-tk]'); if(!b) return; const [id, st] = b.dataset.tk.split('|'); p.tabaChecks = p.tabaChecks || {};
     const cur = p.tabaChecks[id] || {}; if(cur.st === st){ delete p.tabaChecks[id]; }
     else { let note = cur.note || ''; if(st === 'no'){ const n = prompt('מה חסר או לא עומד? (יופיע בחוות הדעת וברשימת ההשלמות)', note); if(n === null) return; note = n.trim(); }
       p.tabaChecks[id] = { st, note:st === 'no' ? note : '', at:today() }; }

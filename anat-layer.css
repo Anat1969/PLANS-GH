@@ -334,7 +334,7 @@ textarea.mt-in{min-width:220px;resize:vertical}
 .home-zones{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
 .hz-vision{background:#fff;border:1px solid var(--stone);box-shadow:var(--shadow);padding:12px 14px}
 .hz-vision p{margin:0 0 4px;font-size:14.5px;line-height:1.6}
-.hz-steps{list-style:none;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:0;margin:8px 0}
+.hz-steps{list-style:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:0;margin:8px 0}
 .hz-steps li{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500}
 .hz-steps .pr-n{width:22px;height:22px;font-size:12px}
 .hz-ar{color:var(--ink-mute)}
@@ -467,3 +467,55 @@ details.calm-fold > :not(summary){margin:10px 14px}
 .btn:not(.btn-primary),.btn.btn-ghost,.btn-ghost{background:var(--btn-bg) !important;color:var(--ink) !important;border:1px solid var(--btn-line) !important;box-shadow:none !important}
 .btn:not(.btn-primary):hover,.btn.btn-ghost:hover,.btn-ghost:hover{background:var(--btn-bg-h) !important;color:var(--ink) !important;border-color:var(--btn-line) !important}
 .ly-b,.if-tik,.mv-ic{background:var(--btn-bg) !important}
+
+/* אייקונים קטנים במקום כפתורים באנשי הקשר (ענת, 24.11.2026) */
+.ic-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;margin:0 1px;border:0;background:transparent;color:var(--ink-mute,#777);cursor:pointer;vertical-align:middle;text-decoration:none;border-radius:0}
+.ic-btn:hover,.ic-btn:focus-visible{color:var(--ink,#111);background:var(--btn-bg,#e9e8e3)}
+.ic-btn[data-ic="trash"]:hover{color:#a33}
+.mc-actions{display:flex;gap:2px;align-items:center}
+.cc-actions{display:flex;gap:2px;justify-content:flex-start}
+.cf-match{grid-column:1/-1;font-size:12.5px;color:#1f5e8c;background:#eef5fb;padding:5px 8px;margin:2px 0 6px}
+.hz-steps .hz-ar{line-height:1;padding-inline-start:5px;font-size:12px}
+.lib-fold>summary{cursor:pointer;list-style:none}
+.lib-fold>summary::-webkit-details-marker{display:none}
+.lib-fold>summary::before{content:'+ ';color:var(--ink-mute)}
+.lib-fold[open]>summary::before{content:'− '}
+.ck-sug{display:block;margin-top:4px;padding:4px 8px;background:#fff7e0;border-inline-start:3px solid #c9a227;font-size:12.5px}
+.ck-sug button{margin-inline-start:6px;font:inherit;font-size:12px;padding:1px 8px;border:1px solid var(--btn-line,#ccc);background:var(--btn-bg,#e9e8e3);cursor:pointer}
+
+/* דף הכניסה: העיר בתלת־ממד (plans-city.js, ענת 24.11.2026) */
+#cityIntro{position:fixed;inset:0;z-index:10050;background:#0e1a2b;color:#111;font-family:inherit;overflow:hidden}
+body.city-open{overflow:hidden}
+.cy-scene{position:absolute;inset:0}
+.cy-scene canvas{display:block;width:100%;height:100%}
+.cy-top{position:absolute;top:0;inset-inline:0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 20px;background:linear-gradient(#ffffffee,#ffffffcc 70%,#ffffff00);pointer-events:none}
+.cy-top>*{pointer-events:auto}
+.cy-top h1{margin:0;font-size:22px;font-weight:600;letter-spacing:0}
+.cy-top p{margin:2px 0 0;font-size:13.5px;color:#444}
+.cy-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.cy-clock{font-variant-numeric:tabular-nums;font-size:13px;background:#fff;border:1px solid #d6d4cc;padding:5px 9px;white-space:nowrap}
+.cy-ghost{font:inherit;font-size:13px;padding:6px 11px;background:var(--btn-bg,#e9e8e3);border:1px solid var(--btn-line,#cfcdc4);cursor:pointer;border-radius:0}
+.cy-go{font:inherit;font-size:13.5px;font-weight:600;padding:7px 14px;background:#111;color:#fff;border:0;cursor:pointer;border-radius:0}
+.cy-legend{position:absolute;top:84px;inset-inline-start:20px;display:flex;flex-direction:column;gap:3px;font-size:12px;background:#ffffffe6;padding:8px 10px;max-width:220px}
+.cy-legend span{display:flex;align-items:center;gap:6px}
+.cy-legend i{width:12px;height:12px;display:inline-block}
+.cy-legend i.cy-flat{background:#7fb3b0;opacity:.7}
+.cy-legend small{color:#555;margin-top:3px;line-height:1.35}
+.cy-strip{position:absolute;bottom:0;inset-inline:0;height:148px;overflow:hidden;background:linear-gradient(#ffffff00,#ffffffd9 30%);direction:ltr}
+.cy-track{display:flex;gap:10px;padding:16px 10px 10px;width:max-content;will-change:transform}
+.cy-card{direction:rtl;flex:0 0 172px;display:flex;flex-direction:column;gap:2px;text-align:right;background:#fff;border:1px solid #d6d4cc;padding:5px;cursor:pointer;font:inherit;border-radius:0}
+.cy-card.on{outline:2px solid #111}
+.cy-img{position:relative;display:block;height:76px;background:#e4e9ec;overflow:hidden}
+.cy-img img{width:100%;height:100%;object-fit:cover;display:block}
+.cy-img em{position:absolute;bottom:2px;inset-inline-start:2px;font-style:normal;font-size:10px;background:#ffffffd9;padding:0 4px}
+.cy-t{font-size:12.5px;display:flex;justify-content:space-between;gap:4px}
+.cy-t small{color:#555}
+.cy-d{font-size:11.5px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy-info{position:absolute;bottom:160px;inset-inline-end:20px;background:#fff;border:1px solid #d6d4cc;padding:10px 12px;font-size:13px;max-width:300px;display:flex;flex-direction:column;gap:4px}
+.cy-info .cy-go{align-self:flex-start;margin-top:4px}
+@media (max-width:640px){
+  .cy-top{flex-direction:column;padding:12px 16px}
+  .cy-top h1{font-size:18px}
+  .cy-legend{display:none}
+  .cy-info{inset-inline:16px;bottom:156px;max-width:none}
+}

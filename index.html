@@ -2117,7 +2117,7 @@ tbody tr{transition:background .12s}
 /* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
 .dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
-<link rel="stylesheet" href="anat-layer.css?v=1124g">
+<link rel="stylesheet" href="anat-layer.css?v=1124k">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2965,7 +2965,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
   'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
-  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm','mmDept','_mmDone','t5lots','todoDone','tabaChecks'];
+  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm','mmDept','_mmDone','t5lots','todoDone','tabaChecks','tabaSugNo'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -12997,16 +12997,18 @@ function aiSyncContext() {
 <script src="plans-geo.js"></script>
 <script src="plans-safe.js?v=1123g"></script>
 <script src="plans-plus.js?v=1124c"></script>
-<script src="plans-process.js?v=1123j"></script>
+<script src="plans-process.js?v=1124k"></script>
 <script src="mail-index.js"></script>
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js?v=1124c"></script>
 <script src="plans-model.js?v=1123f"></script>
 <script src="plans-layers.js?v=1124c"></script>
-<script src="plans-opinion.js?v=1124j"></script>
+<script src="plans-opinion.js?v=1124k"></script>
 <script src="plans-view.js?v=1123g"></script>
 <script src="plans-infra.js?v=1123p"></script>
-<script src="plans-import.js?v=1123k"></script>
+<script src="plans-contacts.js?v=1124k"></script>
+<script src="plans-import.js?v=1124k"></script>
+<script src="plans-city.js?v=1124k"></script>
 </body>
 </html>

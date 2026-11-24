@@ -37,7 +37,9 @@ function applyContacts(){
   if(typeof contacts === 'undefined' || !Array.isArray(contacts)) return 0;
   let n = 0;
   const add = (tik, type, name, phone, email, address, org) => {
-    if(empty(name)) return; const k = nm(name); let c = contacts.find(x => nm(x.name) === k);
+    if(empty(name)) return;
+    if(typeof window.upsertContact === 'function'){ n += window.upsertContact({ name, type, org:org || '', phone:phone || '', email:email || '', address:address || '', src:SRC }, tik); return; }   // plans-contacts.js
+    const k = nm(name); let c = contacts.find(x => nm(x.name) === k);
     if(!c){ c = { id:(typeof _cid === 'function' ? _cid() : 'c'+Date.now()), name, type, org:org || '', phone:phone || '', email:email || '', address:address || '', plans:[], notes:'', sample:false, src:SRC, _seeded:1 }; contacts.push(c); n++; }
     else { if(empty(c.phone) && phone){ c.phone = phone; n++; } if(empty(c.email) && email){ c.email = email; n++; } }
     c.plans = Array.isArray(c.plans) ? c.plans : []; if(!c.plans.map(String).includes(String(tik))){ c.plans.push(String(tik)); n++; } };
