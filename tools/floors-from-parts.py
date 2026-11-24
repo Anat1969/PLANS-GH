@@ -26,6 +26,7 @@ D = lambda P: [int(round(v*10)) for q in P for v in q]
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--tik', required=True); ap.add_argument('--spec', required=True)
     ap.add_argument('--pdf'); ap.add_argument('--core-layer', default=r'level karka-TDM\|h-pir$')
+    ap.add_argument('--win', type=float, default=1.8); ap.add_argument('--balc', action='store_true')   # רוחב החלון במפתח, ומרפסות להמחשה (הנחה)
     a = ap.parse_args(); out = os.path.join(ROOT, 'layers', a.tik)
     model = json.load(open(os.path.join(out, 'model.json'), encoding='utf8')); spec = json.load(open(a.spec, encoding='utf8'))
     rn = json.load(open(os.path.join(out, 'renewal.json'), encoding='utf8'))
@@ -44,7 +45,9 @@ def main():
     plans, buildings = {}, []
     bspec = {b['id']: b for b in spec['buildings']}
     for i, p in enumerate(model.get('parts', [])):
-        P = ring(p['c']); b = bspec.get(p['id'], {}); pid = f"{p['id']}{i}"
+        P = ring(p['c']); b = bspec.get(p['id'], {})
+        same = [q for q in model['parts'] if q['id'] == p['id']]                 # שם קריא: מספר הבניין, ובשני חלקים עם אותו מספר גם סוג החלק
+        pid = p['id'] if len(same) == 1 else f"{p['id']} {dict(tower='מגדל', wing='אגף', mid='מרקמי', public='ציבור').get(p['kind'], p['kind'])}"
         # גרעין: הפירים שבתוך החלק, המעטפת הקמורה שלהם. בלי פיר: מלבן 7 על 9 מ' במרכז (הנחה)
         S_ = [np.array(s) for s in shafts if inside(np.mean(s, 0), P)]
         if S_:
@@ -52,20 +55,25 @@ def main():
         else: cx, cy = P.mean(0); w_, h_ = 7, 9; coreSrc = 'הנחה'
         core = [[cx-w_/2, cy-h_/2], [cx+w_/2, cy-h_/2], [cx+w_/2, cy+h_/2], [cx-w_/2, cy+h_/2]]
         # פתחים: חלון של 1.8 מ' בכל מפתח של 3.6 מ' לאורך כל צלע (הנחה)
-        opens = []
+        opens, balc, rail = [], [], []
+        sA = 0.5*sum(P[k][0]*P[(k+1) % len(P)][1] - P[(k+1) % len(P)][0]*P[k][1] for k in range(len(P))); sg = 1 if sA > 0 else -1
         for k in range(len(P)):
             a_, b_ = P[k], P[(k+1) % len(P)]; L = float(np.hypot(*(b_-a_)))
-            n = int(L // 3.6)
+            n = int(L // 3.6); u = (b_-a_)/max(L, 1e-6); o = np.array([u[1], -u[0]])*sg         # הכיוון החוצה
             for j in range(n):
-                t0, t1 = (j*3.6 + .9)/L, (j*3.6 + 2.7)/L
+                m0 = (3.6 - a.win)/2; t0, t1 = (j*3.6 + m0)/L, (j*3.6 + m0 + a.win)/L
                 opens.append(D([a_ + (b_-a_)*t0, a_ + (b_-a_)*t1]))
+                # מרפסת בכל מפתח שני, בחזית של 7.2 מ' לפחות, במגורים בלבד (הנחה, להמחשה)
+                if a.balc and p['kind'] in ('tower', 'mid') and L >= 7.2 and j % 2 == 1:
+                    q0, q1 = a_ + u*(j*3.6 + .3), a_ + u*(j*3.6 + 3.3); q2, q3 = q1 + o*1.6, q0 + o*1.6
+                    balc.append(D([q0, q1, q2, q3])); rail += [D([q3, q2]), D([q0, q3]), D([q1, q2])]
         # קירות לחתך: רצועה של 0.3 מ' לאורך כל צלע
         cen = P.mean(0); walls = []
         for k in range(len(P)):
             a_, b_ = P[k], P[(k+1) % len(P)]; ia, ib = a_ + (cen-a_)/max(np.hypot(*(cen-a_)), 1e-6)*.3, b_ + (cen-b_)/max(np.hypot(*(cen-b_)), 1e-6)*.3
             walls.append(D([a_, b_, ib, ia]))
         plans[pid] = dict(name=f"בניין {p['id']}: {dict(tower='מגדל', wing='אגף', mid='בניין מרקמי', public='מבנה ציבור')[p['kind']]}", src='parts',
-                          area=int(area(P)), env=D(P), open=opens, rail=[], balc=[], walls=walls)
+                          area=int(area(P)), env=D(P), open=opens, rail=rail, balc=balc, walls=walls)
         plans[pid + 'R'] = dict(name=f"בניין {p['id']}: גג", src='parts', area=int(area(P)), env=D(P), open=[], rail=[], balc=[], walls=walls, core=[D(core)], coreSrc=coreSrc)
         # הקומות: קרקע מהשרטוט (קירות קומת הקרקע), ומעליה קומות מגורים. קומה טכנית לפי החתך
         use = 'public' if p['kind'] == 'public' else 'res'; h1 = fh.get('public', 3.6) if use == 'public' else rh
@@ -87,9 +95,10 @@ def main():
                               total=len(floors)+1, fit=dict(method='חלקי הבניין מתוכנית הקומה הטיפוסית במצגת, מעוגנת לתב"ע', lot=lot)))
     fd = dict(tik=a.tik, source='חלקי הבניין במודל (תוכנית הקומה הטיפוסית במצגת), גבהים מהחתכים בחוברת העיצוב, גרעינים מהשרטוט 4215-J-1', made=datetime.date.today().isoformat(),
               assume=dict(heights=dict(ground=g0, res=rh, public=fh.get('public', 3.6)), sections=fh.get('note', ''),
-                          window="חלון של 1.8 מ' בכל מפתח של 3.6 מ' לאורך כל חזית: הנחה, עד שיגיעו חזיתות", balc='מרפסות: אין עדיין תוכנית מרפסות כשרטוט, ולכן לא מוצגות',
+                          window=f"חלון של {a.win} מ' בכל מפתח של 3.6 מ' לאורך כל חזית: הנחה, עד שיגיעו חזיתות", balc=("מרפסות של 3 על 1.6 מ' בכל מפתח שני בחזיתות המגורים: הנחה, להמחשה, עד שיגיעו תוכניות קומה" if a.balc else 'מרפסות: אין עדיין תוכנית מרפסות כשרטוט, ולכן לא מוצגות'),
                           core='הגרעין: המעטפת של פירי המעליות שבשרטוט. בלי פיר: מלבן במרכז (הנחה)', tech='קומה טכנית: לפי החתך, בלי פתחים'),
               buildings=buildings, plans=plans)
+    fd['buildings'] = [b for b in fd['buildings'] if b['floors']]          # מבנה של קומה אחת (שימור, אגף בקומת הקרקע): קומת הקרקע כבר במודל
     json.dump(fd, open(os.path.join(out, 'floors.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'))
     print('בניינים:', [(b['id'], b['total'], b['top']) for b in buildings])
 

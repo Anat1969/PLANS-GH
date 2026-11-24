@@ -230,6 +230,9 @@ def main():
     bldF = np.zeros_like(bld); cs, _ = cv2.findContours(bld, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); cv2.drawContours(bldF, cs, -1, 255, -1)
     bldF &= site
     yard = cv2.morphologyEx(K['yard'] & site & ~bldF, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
+    if SPEC.get('yardSmooth'):                                                # דשא מקווקו בתמונה יוצא משונן: סגירה ופתיחה עגולות, ואז קצוות ישרים
+        ks = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (SPEC['yardSmooth'], SPEC['yardSmooth']))
+        yard = cv2.morphologyEx(cv2.morphologyEx(yard, cv2.MORPH_CLOSE, ks), cv2.MORPH_OPEN, ks) & site & ~bldF
     foot = [P for P in polys(bldF, 60, 0.4)]
     # כל מבנה שייך למגרש שבו רוב שטחו
     def lot_of(P):
@@ -495,7 +498,7 @@ def main():
     for p in road:
         m = np.zeros((Hh, W), np.uint8); cv2.fillPoly(m, [itmpx([wgs2itm(c[1], c[0]) for c in p['c']]).astype(np.int32)], 255); pav &= ~m
     surf['paving'] = [['#e6dfcc', flat(toM(P))] for P in polys(pav, 20, 0.5)]
-    surf['green'] = [['#8add6e', flat(toM(P))] for P in polys(yard, 15, 0.4)]
+    surf['green'] = [['#8add6e', flat(toM(P))] for P in polys(yard, 15, SPEC.get('yardEps', 0.4))]
     wallM = bldF & ~rampM
     surf['wall'] = [['#e8e4da', flat(toM(P))] for P in polys(wallM, 20, 0.4)]
     surf['ramp'] = [['#77777c', flat(toM(I2G(Q)))] for Q in rampP]
