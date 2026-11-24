@@ -117,11 +117,11 @@ function build(ctx){
   ['asphalt', 'brt', 'ramp', 'bike'].forEach(k => setMat(k, AS, .93, .5)); ['paving', 'plaza', 'yard', 'deck'].forEach(k => setMat(k, PV, .78, .9)); setMat('green', GR, 1, .8);
 
   /* 2. קומת הקרקע: ויטרינות, פס שילוט ודלתות (רק במודל מתוכנית העמדה, שבו קומת הקרקע היא מתאר המבנה) */
-  const doors = [];
+  const doors = []; let shop = null, doorG = null, canL = null, led = null, headM = null, tailM = null;   // חומרים שנדלקים בערב
   // במודל מהשרטוט הווקטורי (model.vector) surf.wall הוא קירות דקים, ולכן הוויטרינה נבנית על מתאר המבנה (model.foot)
   const WALLS = model.vector && (model.foot||[]).length ? model.foot.map(f => [null, f]) : S.wall;
   if(model.parts && WALLS){
-    const shop = new T.MeshStandardMaterial({ map:shopTex(T), roughness:.32, metalness:.25, envMapIntensity:1.1, side:T.DoubleSide });
+    const shopT = shopTex(T); shop = new T.MeshStandardMaterial({ map:shopT, emissiveMap:shopT, emissive:'#000000', roughness:.32, metalness:.25, envMapIntensity:1.1, side:T.DoubleSide });
     const pos = [], uv = [], rings = [];
     WALLS.forEach(([, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push([flat[i]/10, flat[i+1]/10]); let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; }); if(A < 0) r.reverse(); rings.push(r);
       let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]), u1 = u + L/3.6, h0 = hAt(a[0]-.0, a[1]), H = 4;
@@ -135,14 +135,14 @@ function build(ctx){
       rings.forEach(r => r.forEach((a, i) => { const b = r[(i+1)%r.length], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(.08, Math.min(.92, ((p[0]-a[0])*vx+(p[1]-a[1])*vy)/l)), x = a[0]+t*vx, y = a[1]+t*vy, d = Math.hypot(p[0]-x, p[1]-y);
         if(L2(vx, vy) > 3 && (!best || d < best.d)) best = { d, x, y, ang:Math.atan2(vy, vx), nx:vy/Math.sqrt(l), ny:-vx/Math.sqrt(l) }; }));
       if(best && best.d < 5 && !doors.some(q => Math.hypot(q.x-best.x, q.y-best.y) < 4)) doors.push(Object.assign(best, { h:hAt(best.x - best.nx*.6, best.y - best.ny*.6) })); });
-    const frameM = new T.MeshStandardMaterial({ color:sc('#2a2c2f'), roughness:.4, metalness:.6 }), dGlass = new T.MeshStandardMaterial({ color:sc('#1d2a33'), roughness:.05, metalness:.85, envMapIntensity:1.6 }), canM = new T.MeshStandardMaterial({ color:sc('#efece6'), roughness:.55 });
+    const frameM = new T.MeshStandardMaterial({ color:sc('#2a2c2f'), roughness:.4, metalness:.6 }), dGlass = new T.MeshStandardMaterial({ color:sc('#1d2a33'), emissive:'#ffcf8a', emissiveIntensity:0, roughness:.05, metalness:.85, envMapIntensity:1.6 }); doorG = dGlass, canM = new T.MeshStandardMaterial({ color:sc('#efece6'), roughness:.55 });
     const putD = (geo, mat, f) => { const m = inst(geo, mat, doors.length); doors.forEach((d, i) => { dummy.position.set(d.x + d.nx*.06, d.h, -(d.y + d.ny*.06)); dummy.rotation.set(0, d.ang, 0); dummy.scale.set(1, 1, 1); f(dummy, d); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); }); };
     if(doors.length){
       putD(new T.BoxGeometry(2.3, 2.75, .16), frameM, o => o.translateY(1.375));
       putD(new T.BoxGeometry(2.0, 2.55, .18), dGlass, o => o.translateY(1.3));
       putD(new T.BoxGeometry(.05, 2.5, .22), frameM, o => o.translateY(1.3));
       putD(new T.BoxGeometry(3.4, .16, 1.7), canM, o => { o.translateY(3.15); o.translateZ(.8); });         // גגון מעל הכניסה
-      putD(new T.BoxGeometry(1.2, .05, .9), new T.MeshStandardMaterial({ color:'#fff4d6', emissive:'#fff1cc', emissiveIntensity:.6 }), o => { o.translateY(3.06); o.translateZ(.8); }); }
+      canL = new T.MeshStandardMaterial({ color:'#fff4d6', emissive:'#fff1cc', emissiveIntensity:.6 }); putD(new T.BoxGeometry(1.2, .05, .9), canL, o => { o.translateY(3.06); o.translateZ(.8); }); }
   }
   function L2(x, y){ return Math.hypot(x, y); }
 
@@ -168,11 +168,11 @@ function build(ctx){
 
   /* 4. עמודי תאורה */
   const lamps = O.lamp || [];
-  if(lamps.length){ const pole = new T.MeshStandardMaterial({ color:sc('#3a3d41'), roughness:.45, metalness:.65 }), led = new T.MeshStandardMaterial({ color:'#f5f2ea', emissive:'#fff6dd', emissiveIntensity:.25 });
+  let ledM = null; if(lamps.length){ const pole = new T.MeshStandardMaterial({ color:sc('#3a3d41'), roughness:.45, metalness:.65 }), ledM = new T.MeshStandardMaterial({ color:'#f5f2ea', emissive:'#fff6dd', emissiveIntensity:.25 }); led = ledM;
     const put = (geo, mat, f) => { const m = inst(geo, mat, lamps.length); lamps.forEach((l, i) => { const h = hAt(l[0], l[1]); dummy.position.set(l[0], h, -l[1]); dummy.rotation.set(0, rnd(i)*6.28, 0); dummy.scale.set(1, 1, 1); f(dummy, i); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); }); };
     put(new T.CylinderGeometry(.06, .11, 6, 10), pole, o => o.translateY(3)); put(new T.CylinderGeometry(.16, .2, .5, 10), pole, o => o.translateY(.25));
     put(new T.BoxGeometry(1.4, .07, .08), pole, o => { o.translateY(5.95); o.translateX(.65); }); put(new T.BoxGeometry(.62, .1, .26), pole, o => { o.translateY(5.92); o.translateX(1.32); });
-    put(new T.BoxGeometry(.54, .02, .2), led, o => { o.translateY(5.86); o.translateX(1.32); }); }
+    put(new T.BoxGeometry(.54, .02, .2), ledM, o => { o.translateY(5.86); o.translateX(1.32); }); }
 
   /* 5. אנשים: מפרקיים, בתנועה על רשת השבילים */
   const WD = ctx.walkData(), people = [];
@@ -222,7 +222,7 @@ function build(ctx){
   if(C.length){
     const paint = new T.MeshStandardMaterial({ color:'#ffffff', roughness:.22, metalness:.6, envMapIntensity:1.5 });   // צבע מבריק. MeshPhysical (clearcoat) נכשל בגרסה המקומית של three
     const glass = new T.MeshStandardMaterial({ color:sc('#0f171d'), roughness:.04, metalness:.9, envMapIntensity:1.6 }), tire = new T.MeshStandardMaterial({ color:sc('#151515'), roughness:.85 }), rim = new T.MeshStandardMaterial({ color:sc('#7d8186'), roughness:.3, metalness:.8, envMapIntensity:.6 });
-    const headM = new T.MeshStandardMaterial({ color:'#f6f6f2', emissive:'#ffffff', emissiveIntensity:.15, roughness:.1 }), tailM = new T.MeshStandardMaterial({ color:sc('#8e1010'), emissive:'#a01010', emissiveIntensity:.3, roughness:.2 });
+    headM = new T.MeshStandardMaterial({ color:'#f6f6f2', emissive:'#ffffff', emissiveIntensity:.15, roughness:.1 }); tailM = new T.MeshStandardMaterial({ color:sc('#8e1010'), emissive:'#a01010', emissiveIntensity:.3, roughness:.2 });
     const cols = ['#f4f4f2', '#c9ccd1', '#1d1f22', '#5c6168', '#26365a', '#9b2b2b', '#e8e6df', '#3d4a3f', '#8a8f95', '#0f1012'];
     const kinds = [0, 1].map(suv => C.map((c, i) => ({ c, i })).filter(o => (rnd(o.i*7) < .3 ? 1 : 0) === suv));
     kinds.forEach((list, suv) => { if(!list.length) return; const n = list.length, D = suv ? CAR.suv : CAR.sedan;
@@ -340,20 +340,41 @@ function build(ctx){
   // uv במטרים לקרקע ולפני השטח (למישור של 2,400 מ' ה-uv הוא 0 עד 1, ולכן המרקם נמתח עד שלא נראה)
   [ctx.ground && ctx.ground.geometry, terr && terr.geometry].forEach(g => { if(!g || g.userData.uvM) return; const p = g.attributes.position, uv = new Float32Array(p.count*2), wl = new T.Vector3(), o = g === (ctx.ground && ctx.ground.geometry) ? ctx.ground : terr;
     o.updateMatrixWorld(true); for(let i = 0; i < p.count; i++){ wl.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); uv[2*i] = wl.x; uv[2*i+1] = -wl.z; } g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.userData.uvM = true; });
-  // תאורה: שמיים קרירים מלמעלה ואור חם שמוחזר מהקרקע, ושמש מעט חזקה וחמה. הצל קשה יותר, ולכן שינויי המפלס נקראים
-  const L0 = ctx.hemi ? { hs:ctx.hemi.color.clone(), hg:ctx.hemi.groundColor.clone(), hi:ctx.hemi.intensity, si:ctx.sun.intensity, sc:ctx.sun.color.clone(), fi:ctx.fill.intensity, ex:ctx.renderer.toneMappingExposure } : null;
-  function setOn(on){
+  /* 12. אור ערב: כתמי אור חמים על הקרקע מתחת לכל פנס ומול כל דלת. מצוירים כמרקם (בלי עשרות מקורות אור, שמכבידים על הציור) */
+  const poolTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,214,150,1)'); gr.addColorStop(.35, 'rgba(255,190,120,.55)'); gr.addColorStop(1, 'rgba(255,170,100,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new T.CanvasTexture(c); })();
+  const poolM = new T.MeshBasicMaterial({ map:poolTex, transparent:true, opacity:0, blending:T.AdditiveBlending, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-4, fog:false });
+  const poolG = new T.PlaneGeometry(1, 1); poolG.rotateX(-Math.PI/2);
+  const spots = lamps.map((l, i) => { const a = rnd(i)*6.28; return [l[0] + Math.cos(a)*1.32, l[1] + Math.sin(a)*1.32, 14]; })
+    .concat(doors.map(d => [d.x + d.nx*1.8, d.y + d.ny*1.8, 6.5]));
+  const pools = spots.length ? inst(poolG, poolM, spots.length) : null;
+  if(pools){ pools.castShadow = pools.receiveShadow = false; pools.renderOrder = 3; spots.forEach((q, i) => { dummy.position.set(q[0], hAt(q[0], q[1]) + .06, -q[1]); dummy.rotation.set(0, 0, 0); dummy.scale.set(q[2], 1, q[2]); dummy.updateMatrix(); pools.setMatrixAt(i, dummy.matrix); }); pools.visible = false; }
+
+  // תאורה: ביום שמיים קרירים מלמעלה ואור חם מהקרקע, ושמש חזקה וחמה (הצל נקרא, ולכן גם שינויי המפלס). בערב השמש נמוכה וכתומה, ובלילה רק הפנסים, הוויטרינות והחלונות
+  let on = false, alt = 45;
+  const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x-a)/(b-a))); return t*t*(3-2*t); }, mix = (a, b, t) => a + (b-a)*t;
+  function light(){ if(!on || !ctx.hemi) return;
+    const dusk = sm(14, 1, alt), night = sm(3, -7, alt), C = (a, b, c) => new T.Color(a).lerp(new T.Color(b), dusk).lerp(new T.Color(c), night);
+    ctx.hemi.color.copy(C('#cfe1f5', '#9fb0d6', '#2e3f6e')); ctx.hemi.groundColor.copy(C('#9c8f78', '#8a6a52', '#2a2219')); ctx.hemi.intensity = mix(mix(.55, .45, dusk), .34, night);
+    ctx.sun.intensity = alt > 0 ? mix(1.35, .75, dusk)*Math.min(1, alt/2.5) : 0; ctx.sun.color.copy(C('#fff0d6', '#ffa860', '#ff8a40'));
+    ctx.fill.intensity = mix(mix(.22, .14, dusk), .04, night); ctx.renderer.toneMappingExposure = mix(mix(.98, 1.04, dusk), 1.18, night);
+    const glow = sm(4, -3, alt);   // מדליקים מעט לפני השקיעה
+    if(shop){ shop.emissive.set('#ffd8a0'); shop.emissiveIntensity = glow*.95; shop.envMapIntensity = mix(1.1, .25, night); }
+    if(doorG) doorG.emissiveIntensity = glow*.55; if(canL) canL.emissiveIntensity = mix(.6, 3.2, glow); if(ledM) ledM.emissiveIntensity = mix(.25, 4, glow);
+    if(headM) headM.emissiveIntensity = mix(.15, 3, glow); if(tailM) tailM.emissiveIntensity = mix(.3, 2.6, glow);
+    if(pools){ poolM.opacity = glow*.8; pools.visible = glow > .02; } }
+  function setTime(a){ alt = a; light(); }
+  function setOn(o){ on = !!o;
     if(gm){ if(on){ gm.map = groundTex; gm.color.set('#d9d3c6').convertSRGBToLinear(); } else { gm.map = saved.map; gm.color.copy(saved.color); } gm.needsUpdate = true; }
     if(terr){ if(on){ terr.material.map = groundTex; terr.material.color.set('#e2dccf').convertSRGBToLinear(); } else { terr.material.map = tsaved.map; terr.material.color.copy(tsaved.color); } terr.material.needsUpdate = true; }
-    if(L0){ ctx.hemi.color.set(on ? '#cfe1f5' : L0.hs); ctx.hemi.groundColor.set(on ? '#9c8f78' : L0.hg); ctx.hemi.intensity = on ? .55 : L0.hi;
-      ctx.sun.intensity = on ? 1.35 : L0.si; ctx.sun.color.set(on ? '#fff0d6' : L0.sc); ctx.fill.intensity = on ? .22 : L0.fi; ctx.renderer.toneMappingExposure = on ? .98 : L0.ex; }
-    if(ctx.ground){ ctx.ground.userData.render = !!on; if(ctx.updGround) ctx.updGround(); }
-    root.visible = !!on; }
+    if(on) light(); else if(ctx.resun) ctx.resun();   // בלי הדמיה: התאורה הרגילה של המודל לפי השעה
+    if(ctx.ground){ ctx.ground.userData.render = on; if(ctx.updGround) ctx.updGround(); }
+    root.visible = on; }
   setOn(true);
 
   /* מה שהוחלף לא מוצג בהדמיה: העצים, העמודים והכניסות הישנים, ואנשים ומכוניות הפשוטים */
   ctx.hide(['treeNew', 'treeOld', 'exTree', 'lamp', 'entry']);
-  return { root, setOn, people:people.length, doors:doors.length };
+  return { root, setOn, setTime, people:people.length, doors:doors.length, pools:spots.length };
 }
 
 window.PlanReal = { build, version:'1125' };
