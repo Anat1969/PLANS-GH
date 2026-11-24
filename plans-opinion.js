@@ -477,7 +477,10 @@ async function fillAsync(p){
         it.push({ t:`בניין ${x.id}, מגרש ${x.lot}: מספר קומות`, sub:`${x.floors} במצגת, ${L.floors} בטבלה 5`, st: over ? 'na' : 'yes',
           note: over ? 'לבירור: ההוראות מתירות עד 2 קומות טכניות מעבר לטבלה (הוראות טבלה 5, סעיף ד). לבקש מהאדריכל לסמן איזו קומה טכנית' : '' }); });
       (m.spacing || []).filter(x => x.need).forEach(x => it.push({ t:`מרחק ${x.a} - ${x.b}`, sub:`כ-${x.d} מ', נדרש ${x.need} מ' (הערכה מהתמונה)`, st: x.ok ? 'yes' : 'no', note: x.ok ? '' : `להגדיל את המרחק ל-${x.need} מ' לפחות` }));
-      el.innerHTML = checkList(it, `openLayers('${p.tik}')`) + '<p class="muted">מתוכנית ההעמדה שבמצגת (תמונה). אין בה שכבות תשתית, ולכן אין ניתוח רב תשתיות עד שיגיע PDF עם שכבות.</p>'; return; }
+      try{ const man = await fetch(set.dir + '/manifest.json').then(r => r.json());   // ממצאי פיתוח שנמדדו מהתמונה (רחבות כיבוי, עצים): בלי מה שתלוי בשכבה חסרה או בריצוף
+        window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }).filter(f => f.ok === false && !(man.missing||[]).includes(f.disc) && !/ריצוף|ניקוז|חדר אשפה/.test(f.title))
+          .forEach(f => it.push({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, '') + ' (הערכה מהתמונה)', st:'no', note:f.guide })); }catch(e){}
+      el.innerHTML = checkList(it, `openLayers('${p.tik}')`) + '<p class="muted">מתוכנית ההעמדה שבמצגת (תמונה), הערכה. אין בה מים, ביוב וניקוז, ולכן אין ניתוח רב תשתיות מלא עד שיגיע PDF עם שכבות.</p>'; return; }
     const had = !!INFRA_CACHE[p.tik], fs = await infraFindings(p);
     if(!had && checksTaba(p).some(x => x.sug) && pj && pj() === p){ refreshOpinion(p); return; }   // ההצעות מהמודל נכנסות לסעיף הדרישות
     el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)

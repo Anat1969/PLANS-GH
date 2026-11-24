@@ -1,12 +1,12 @@
 {
  "tik": "1887",
  "title": "מתחם הרצל - נאות ספיר",
- "source": "מצגת חזיתות נאות ספיר 19.07.2026, שקפים 7, 9, 10",
+ "source": "מצגת חזיתות נאות ספיר 19.07.2026, שקפים 7, 9, 10; מצגת אדריכלות 22.12.2025, שקף 16",
  "scale": null,
  "w": 1272,
  "h": 996,
  "mPerPx": 0.2,
- "cadTotal": 6,
+ "cadTotal": 13,
  "unassigned": [],
  "siteArea": 20230,
  "layers": [
@@ -42,7 +42,7 @@
    "id": "walk",
    "name": "ריצוף והולכי רגל",
    "file": "walk.webp",
-   "ink": 18.7,
+   "ink": 17.38,
    "cad": []
   },
   {
@@ -50,6 +50,55 @@
    "name": "כבישים",
    "file": "road.webp",
    "ink": 2.51,
+   "cad": []
+  },
+  {
+   "id": "fire",
+   "name": "רחבות כיבוי",
+   "file": "fire.webp",
+   "ink": 1.03,
+   "cad": []
+  },
+  {
+   "id": "park",
+   "name": "רמפות לחניון",
+   "file": "park.webp",
+   "ink": 0.9,
+   "cad": []
+  },
+  {
+   "id": "bike",
+   "name": "חדרי אופניים ועגלות",
+   "file": "bike.webp",
+   "ink": 0.51,
+   "cad": []
+  },
+  {
+   "id": "power",
+   "name": "תאורה וחדר טכני",
+   "file": "power.webp",
+   "ink": 0.26,
+   "cad": []
+  },
+  {
+   "id": "waste",
+   "name": "מעליות אשפה",
+   "file": "waste.webp",
+   "ink": 0.15,
+   "cad": []
+  },
+  {
+   "id": "level",
+   "name": "רומים",
+   "file": "level.webp",
+   "ink": 2.5,
+   "cad": []
+  },
+  {
+   "id": "shade",
+   "name": "רחבות שהייה",
+   "file": "shade.webp",
+   "ink": 0.71,
    "cad": []
   }
  ],
@@ -64,13 +113,38 @@
   "gcpMean": 8.1
  },
  "missing": [
-  "park",
-  "bike",
-  "level",
-  "shade",
-  "water",
-  "power",
-  "waste",
-  "fire"
- ]
+  "water"
+ ],
+ "elements": {
+  "entries": 35,
+  "lamps": 32,
+  "yellowInside": 75,
+  "fire": 6,
+  "firePartial": "שתי רחבות נוספות בשולי השקף (צפון, ליד מגרש 2, ופינה צפון־מזרחית) חתוכות, ולא נכללו",
+  "ramps": 2,
+  "wasteLifts": 4,
+  "spots": 45,
+  "bikeRoom": 184,
+  "tech": 11,
+  "plaza": 287,
+  "under": 16842,
+  "survey": 46,
+  "basementCal": {
+   "median": 0.44,
+   "within05": 0.51,
+   "within1": 0.57,
+   "inside": 0.85,
+   "pxPerM": 3.171,
+   "rotDeg": 0.02,
+   "gcpMean": 8.9
+  },
+  "src": {
+   "fire": "מלבן עם איקס בשקף 7. כל השש בגודל של כ-6 על 12 מ'",
+   "ramps": "שקף 7: 'רמפה כניסה לחניון תת\"ק' במגרש 1 (L=3.6 ב-7%, L=21.5 ב-15%), והירידה בשיפוע 12% במגרש 4",
+   "wasteLifts": "תיבה עם איקס ו'מעלית אשפה' בשקף 7, בבניינים A, B, C, D",
+   "techSeeds": "'אוורור / טכני' בשקף 7, מגרש 1",
+   "phase": "הקו הכתום המקווקו 'שלב א / שלב ב' בשקף 7",
+   "spots": "רומים בשקף 7 (מ' מעל פני הים). ffl: מפלס הכניסה עם צלב, hp/lp: נקודה גבוהה ונמוכה"
+  }
+ }
 }
