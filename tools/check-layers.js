@@ -101,7 +101,9 @@ for(const dir of sets){
   if(fs.existsSync(lf)){ // מפלסים (tools/extract-levels.py): רמפות בשיפוע סביר, פני קרקע בטווח סביר, ולכל רום ובדיקה יש מקור
     const lv = JSON.parse(fs.readFileSync(lf, 'utf8')), hs = lv.h.map(v => v/100), mn = Math.min(...hs), mx = Math.max(...hs);
     ok(lv.h.length === lv.nx*lv.ny, dir + ': רשת פני הקרקע שלמה (' + lv.nx + '×' + lv.ny + ')');
-    ok(mx - mn < 6, dir + ': פני הקרקע בטווח של ' + (mx-mn).toFixed(2) + " מ' (סביר לאתר עירוני)");
+    const zz = (lv.zones || []).map(z => z.z), lim = Math.max(6, zz.length ? Math.max(...zz) - Math.min(...zz) + 3 : 0);   // אתר ארוך עם מפלסי 0.00 שונים (1909: 21.90 עד 26.30) מקבל את הפרש המפלסים שלו, ועוד 3 מ'
+    ok(mx - mn < lim, dir + ': פני הקרקע בטווח של ' + (mx-mn).toFixed(2) + " מ' (סביר לאתר עירוני, עד " + lim.toFixed(1) + " מ')");
+    ok((lv.notes || []).every(n => n.text && n.src), dir + ': לכל ממצא מפלסים (' + (lv.notes || []).length + ') יש נוסח ומקור');
     ok(lv.spots.every(s => s.src && Number.isFinite(s.z) && s.at && s.at.length === 2), dir + ': לכל רום (' + lv.spots.length + ') יש מקום, גובה ומקור');
     const rs = lv.ramps || [];
     ok(rs.every(r => r.slope > 0 && r.slope <= .2 && r.len > 5 && r.tris.length >= 6 && r.wall.length && r.depth > 0), dir + ': ' + rs.length + ' רמפות לחניון, שיפוע עד 20%, עם רצפה וקירות');

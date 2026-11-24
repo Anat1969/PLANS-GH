@@ -464,10 +464,42 @@ function secChecks(p){
     ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
     ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
     ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
-    [((window.LAYER_SETS || {})[String(p.tik)] || {}).raster ? 'בדיקת הבינוי מהמצגת' : 'ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
+    [((window.LAYER_SETS || {})[String(p.tik)] || {}).raster ? 'בדיקת הבינוי מהמצגת' : ((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? 'בדיקת הבינוי: חלופות ומפלסים' : 'ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
   ];
 }
+/** השוואת חלופות מול טבלה 5 (ענת, 24.11.2026): כל חלופה בינוי (floors.json, והחלופה שב-alternative) מול הקומות והגובה המותרים
+ *  לכל מגרש (renewal.json). מגדל = בניין עם יותר מ-6 קומות. גובה: גג המגדל מעל מפלס 0.00, מול "גובה מעל הכניסה הקובעת". טהורה, לבדיקה */
+function compareAlts(alts, rn){
+  const lots = {}; (rn && rn.lots || []).forEach(l => { lots[String(l.lot)] = l; });
+  const towers = f => (f && f.buildings || []).filter(b => +b.total > 6);
+  const it = [], n0 = towers(alts[0] && alts[0].f).length;
+  alts.forEach(({ name, f }) => {
+    const T = towers(f); if(!T.length) return;
+    if(n0 && T.length !== n0) it.push({ t:`${name}: מספר המגדלים`, sub:`${T.length} מול ${n0} ב${alts[0].name}`, st:'no', note:'שינוי בבינוי של התב"ע. לבדוק אם נדרש הליך של סטייה ניכרת' });
+    T.forEach(b => { const L = lots[String(b.lot)]; if(!L || !L.floors) return;
+      const fl = +b.total, h = +b.top, ok = fl <= L.floors && (!L.height || h <= L.height + 0.01);
+      it.push({ t:`${name}, מגרש ${b.lot}: קומות וגובה`, sub:`${fl} קומות ו-${h.toFixed(1)} מ' לגג, מול ${L.floors} קומות ו-${L.height} מ' בטבלה 5`, st: ok ? 'yes' : 'no',
+        note: ok ? '' : `חריגה מטבלה 5: ${fl > L.floors ? `${fl - L.floors} קומות` : ''}${fl > L.floors && h > L.height ? ' ו-' : ''}${h > L.height ? `${(h - L.height).toFixed(1)} מ'` : ''}. לבקש מהיזם להתאים, או לבחון את ההליך הנדרש` }); });
+  });
+  return it;
+}
+window.compareAlts = compareAlts;
+/** הפרשי גובה בכניסות (levels.json), כממצא לחוות הדעת. הערכה: רום הרחוב הקרוב מול מפלס 0.00 */
+function levelItems(lv){
+  return ((lv && lv.notes) || []).map(n => ({ t:`${n.name}: הפרש מפלסים בממשק`, sub:n.text + ' (' + n.src + ')', st:'no', note:'לפתור את הממשק בתוכנית הפיתוח: קיר תמך, מדרגות ורמפה, או התאמה של מפלס 0.00' })).concat(((lv && lv.checks) || []).filter(c => Math.abs(c.dz) >= 0.02).map(c => ({ t:`${c.name}: מעבר נגיש מהרחוב`, sub:`מפלס 0.00 ${c.ffl.toFixed(2)}, רום הרחוב הקרוב ${c.street.toFixed(2)} (הפרש ${Math.abs(c.dz).toFixed(2)} מ', כ-${c.dist} מ' מהבניין)`,
+    st: c.link ? 'yes' : 'na', note: c.link ? '' : `לסמן בתוכנית הפיתוח רמפה של ${c.ramp} מ' לפחות (1:12)${c.landings ? `, עם ${c.landings} משטחי ביניים` : ''}, או ${c.steps} מדרגות ומעלון` })));
+}
+window.levelItems = levelItems;
 async function fillAsync(p){
+  try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)];
+    if(el && set && set.concept){   // תכנון רעיוני: השוואת החלופות מול טבלה 5, והפרשי הגובה בכניסות
+      const get = u => fetch(set.dir + '/' + u).then(r => r.ok ? r.json() : null).catch(() => null);
+      const [f, rn, lv] = await Promise.all([get('floors.json'), get('renewal.json'), get('levels.json')]);
+      const alts = f ? [{ name: f.annex ? 'נספח הבינוי' : 'הבינוי במודל', f }] : [];
+      if(f && f.alternative){ const a = await get(f.alternative); if(a) alts.push({ name: a.concept ? 'חלופת המצגת' : 'החלופה', f:a }); }
+      const it = [...compareAlts(alts, rn), ...levelItems(lv)];
+      if(it.length) el.innerHTML = checkList(it, `openLayers('${p.tik}')`) + '<p class="muted">השוואת החלופות מול טבלה 5, והפרשי הגובה בכניסות מול רומי הרחוב (הערכה). אין עדיין תוכנית פיתוח, ולכן אין ניתוח רב תשתיות.</p>';
+    } }catch(e){ console.warn('opinion alts', e); }
   try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
   try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || set.concept || !window.PlanInfra || !window.PlanModel) return;
     if(set.raster){   // מודל מתוכנית העמדה כתמונה: בדיקות הבינוי שאפשר למדוד ממנו (קומות מול טבלה 5, מרחקים), ובלי ניתוח תשתיות

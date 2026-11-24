@@ -199,18 +199,19 @@ def main():
         link = any(Point(f['a'][0]/10, f['a'][1]/10).distance(door) < 15 for f in flights)
         checks.append({'name': s.get('name') or 'כניסה', 'ffl': s['z'], 'at': [round(door.x, 2), round(door.y, 2)], 'link': link, 'street': n['z'], 'dz': round(dz, 2), 'dist': round(math.dist(n['at'], s['at']), 1),
                        'ramp': round(ln, 1), 'landings': land, 'steps': int(math.ceil(abs(dz)/0.16)),
-                       'text': f"{s.get('name') or 'כניסה ברום ' + format(s['z'], '.2f')}: {'מעל' if dz > 0 else 'מתחת'} לרום {n['z']:.2f} הקרוב ב-{abs(dz):.2f} מ'. מעבר נגיש: רמפה של {ln:.1f} מ' לפחות (1:12)" + (f", עם {land} משטחי ביניים" if land else '') + f", או {int(math.ceil(abs(dz)/0.16))} מדרגות ומעלון." + ('' if link else (' בתוכנית הפיתוח אין מדרגות או רמפה בפיתוח ליד הכניסה.' if has_stairs else ' מדרגות ורמפות בפיתוח לא זוהו, כי המודל נבנה מתמונה. לבדוק בתוכנית.'))})
+                       'text': f"{s.get('name') or 'כניסה ברום ' + format(s['z'], '.2f')}: {'מעל' if dz > 0 else 'מתחת'} לרום {n['z']:.2f} הקרוב ב-{abs(dz):.2f} מ'. מעבר נגיש: רמפה של {ln:.1f} מ' לפחות (1:12)" + (f", עם {land} משטחי ביניים" if land else '') + f", או {int(math.ceil(abs(dz)/0.16))} מדרגות ומעלון." + ('' if link else (' בתוכנית הפיתוח אין מדרגות או רמפה בפיתוח ליד הכניסה.' if has_stairs else ' ' + conf.get('noStairsNote', 'מדרגות ורמפות בפיתוח לא זוהו, כי המודל נבנה מתמונה. לבדוק בתוכנית.')))})
     res = {'tik': a.tik, 'datum': round(datum, 2), 'res': RES, 'x0': round(x0, 2), 'y0': round(y0, 2), 'nx': nx, 'ny': ny,
            'h': [int(round(v*100)) for v in H.ravel()], 'spots': spots, 'ramps': ramps,
            'zones': [{'z': z, 'poly': ring_dm(p if isinstance(p, Polygon) else max(p.geoms, key=lambda q: q.area))} for p, z in zones if not p.is_empty],
-           'checks': checks, 'flights': flights, 'stairsIndoor': len(inside), 'src': conf.get('src', 'רומים מתוכנית ההעמדה'),
+           'checks': checks, 'notes': conf.get('notes', []), 'flights': flights, 'stairsIndoor': len(inside), 'src': conf.get('src', 'רומים מתוכנית ההעמדה'),
            'assume': 'פני הקרקע בין הרומים: ממוצע משוקלל לפי מרחק (הערכה). עומק הרמפה: לפי השיפוע והאורך (הערכה). קומת הקרקע של כל בניין במפלס 0.00 שלו.'}
     json.dump(res, open(os.path.join(d, 'levels.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     print(f'מפלס ייחוס {datum:.2f}, טווח {H.min():+.2f} עד {H.max():+.2f} מ\', רומים {len(spots)}, אזורי בניין {len(zones)}, בדיקות {len(checks)}')
     for c in checks: print(' ', c['text'])
     print('נכתב', os.path.join(d, 'levels.json'), round(os.path.getsize(os.path.join(d, 'levels.json'))/1024), 'KB')
     if a.png:
-        import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+        try: import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+        except ImportError: print('אין matplotlib: בלי תמונת בדיקה'); return
         fig = plt.figure(figsize=(10, 12)); ax = fig.gca(); ax.set_aspect('equal')
         im = ax.imshow(H + datum, origin='lower', extent=(x0, x0+(nx-1)*RES, y0, y0+(ny-1)*RES), cmap='terrain'); plt.colorbar(im)
         for f in foot: ax.plot(*f.exterior.xy, 'k-', lw=.8)
