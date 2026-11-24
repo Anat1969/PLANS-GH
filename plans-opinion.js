@@ -334,7 +334,7 @@ function secLocation(p){
 /* ── השלמות ליזם (ענת, 24.11.2026): כל מה שלא עומד, עם ההנחיה, בנוסח מוכן להעתקה ולמייל ── */
 const INFRA_CACHE = {};
 async function infraFindings(p){
-  const set = (window.LAYER_SETS || {})[String(p.tik)]; if(!set || set.concept || !window.PlanInfra || !window.PlanModel) return [];   // תכנון רעיוני: אין עדיין מה לנתח
+  const set = (window.LAYER_SETS || {})[String(p.tik)]; if(!set || set.concept || set.raster || !window.PlanInfra || !window.PlanModel) return [];   // תכנון רעיוני או תמונה: אין שכבות תשתית לנתח
   if(!INFRA_CACHE[p.tik]){ const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = set.renewal ? await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
     INFRA_CACHE[p.tik] = window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }); }
   return INFRA_CACHE[p.tik];
@@ -354,7 +354,7 @@ async function completions(p){
       const ls = Object.keys(miss).sort((a, b) => a - b), tot = ls.reduce((a, l) => a + miss[l].size, 0);
       if(ls.length) it.push(`חסרים ${tot} ערכים מבוקשים בטבלה 5, ב-${ls.length === 1 ? 'מגרש ' + ls[0] : ls.length + ' מגרשים: ' + ls.join(', ')}. יש להשלים בטופס הנתונים.`); }
     add('טבלה 5', it); }
-  const lset = (window.LAYER_SETS || {})[String(p.tik)], hasPdf = (p.documents || []).some(d => d && d.layers) || !!(lset && !lset.concept);   // מודל רעיוני אינו תוכנית פיתוח
+  const lset = (window.LAYER_SETS || {})[String(p.tik)], hasPdf = (p.documents || []).some(d => d && d.layers) || !!(lset && !lset.concept && !lset.raster);   // מודל רעיוני או מתמונה אינו תוכנית פיתוח
   add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
   const tc = checksTaba(p);
   add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t.replace(/[.\s]+$/, '')}. ${x.note ? x.note.replace(/[.\s]+$/, '') + ' ' : ''}(סעיף ${x.r.section}).`));
@@ -443,12 +443,20 @@ function secChecks(p){
     ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
     ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
     ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
-    ['ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
+    [((window.LAYER_SETS || {})[String(p.tik)] || {}).raster ? 'בדיקת הבינוי מהמצגת' : 'ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
   ];
 }
 async function fillAsync(p){
   try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
   try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || set.concept || !window.PlanInfra || !window.PlanModel) return;
+    if(set.raster){   // מודל מתוכנית העמדה כתמונה: בדיקות הבינוי שאפשר למדוד ממנו (קומות מול טבלה 5, מרחקים), ובלי ניתוח תשתיות
+      const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null), it = [];
+      const byB = {}; (m.parts || []).forEach(x => { if(!byB[x.id] || x.floors > byB[x.id].floors) byB[x.id] = x; });
+      Object.values(byB).forEach(x => { const L = rn && rn.lots.find(l => l.lot === x.lot); if(!L || !L.floors) return; const over = x.floors > L.floors;
+        it.push({ t:`בניין ${x.id}, מגרש ${x.lot}: מספר קומות`, sub:`${x.floors} במצגת, ${L.floors} בטבלה 5`, st: over ? 'na' : 'yes',
+          note: over ? 'לבירור: ההוראות מתירות עד 2 קומות טכניות מעבר לטבלה (הוראות טבלה 5, סעיף ד). לבקש מהאדריכל לסמן איזו קומה טכנית' : '' }); });
+      (m.spacing || []).filter(x => x.need).forEach(x => it.push({ t:`מרחק ${x.a} - ${x.b}`, sub:`כ-${x.d} מ', נדרש ${x.need} מ' (הערכה מהתמונה)`, st: x.ok ? 'yes' : 'no', note: x.ok ? '' : `להגדיל את המרחק ל-${x.need} מ' לפחות` }));
+      el.innerHTML = checkList(it, `openLayers('${p.tik}')`) + '<p class="muted">מתוכנית ההעמדה שבמצגת (תמונה). אין בה שכבות תשתית, ולכן אין ניתוח רב תשתיות עד שיגיע PDF עם שכבות.</p>'; return; }
     const fs = await infraFindings(p);
     el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)
       + (set.auto === 'approx' ? '<p class="muted">המודל במיקום משוער. הכמויות מדויקות.</p>' : ''); }catch(e){ console.warn('opinion infra', e); }
