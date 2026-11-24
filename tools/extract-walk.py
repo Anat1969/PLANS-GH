@@ -137,10 +137,77 @@ def main():
             ids = sorted({pt['id'] for pt in m['parts'] if f.buffer(1).contains(Polygon([(pt['c'][i]/10, pt['c'][i+1]/10) for i in range(0, len(pt['c']), 2)]).buffer(0).representative_point())})
             if ids: zones.append({'name': ('בניין ' if len(ids) == 1 else 'בניינים ') + ' ו-'.join(ids), 'kind': 'in', 'poly': [dm(v) for xy_ in list(f.simplify(.3).exterior.coords)[:-1] for v in xy_]})
     gr = unary_union([P(x[1]).buffer(0.3) for x in S.get('green', [])]).buffer(-0.3)
+    bz = [(z['name'], Polygon([(z['poly'][k]/10, z['poly'][k+1]/10) for k in range(0, len(z['poly']), 2)]).buffer(0)) for z in zones if z['kind'] == 'in']
     for g in sorted([g for g in getattr(gr, 'geoms', [gr]) if g.area > 80], key=lambda g: -g.area)[:8]:
-        zones.append({'name': 'גינה', 'kind': 'garden', 'poly': [dm(v) for xy_ in list(g.simplify(.5).exterior.coords)[:-1] for v in xy_]})
+        near = min(bz, key=lambda z: z[1].distance(g))[0] if bz else ''      # שם לגינה: לפי הבניין הקרוב, כדי שהסיור יגיד איפה
+        zones.append({'name': 'גינה' + (' ליד ' + near if near else ''), 'kind': 'garden', 'poly': [dm(v) for xy_ in list(g.simplify(.5).exterior.coords)[:-1] for v in xy_]})
+    # ── הרכיב המחובר הגדול: שם הסיור עובר ──
+    par = list(range(len(nodes_out)))
+    def fnd(x):
+        while par[x] != x: par[x] = par[par[x]]; x = par[x]
+        return x
+    for e in edges_out: par[fnd(e['a'])] = fnd(e['b'])
+    clen = {}
+    for e in edges_out: r = fnd(e['a']); clen[r] = clen.get(r, 0) + e['len']
+    main_c = max(clen, key=clen.get) if clen else None
+    mainN = [i for i in range(len(nodes_out)) if fnd(i) == main_c]
+    NP = lambda i: Point(nodes_out[i][0]/10, nodes_out[i][1]/10)
+    # ── תחנות לסיור המודרך: כניסה מהרחוב, בתוך כל בניין (לובי), וכל גינה. כל תחנה היא צומת ברשת המחוברת ──
+    road = unary_union([P(x[1]) for k in ('asphalt',) for x in S.get(k, [])]) if S.get('asphalt') else None
+    stops = []
+    if mainN:
+        out = [i for i in mainN if not any(f.buffer(.5).contains(NP(i)) for f in foot)]
+        if road is not None and out:
+            i = min(out, key=lambda i: road.distance(NP(i))); stops.append({'name': 'הכניסה מהרחוב', 'n': i})
+        for z in zones:
+            zp = Polygon([(z['poly'][k]/10, z['poly'][k+1]/10) for k in range(0, len(z['poly']), 2)]).buffer(0)
+            ins = [i for i in mainN if zp.contains(NP(i))]
+            if not ins: continue
+            c = zp.representative_point(); i = min(ins, key=lambda i: NP(i).distance(c))
+            stops.append({'name': ('בתוך ' if z['kind'] == 'in' else 'ב') + z['name'], 'n': i})
+        if stops:                                                        # סדר: השכן הקרוב, מהכניסה
+            order = [stops.pop(0)]
+            while stops: j = min(range(len(stops)), key=lambda j: NP(stops[j]['n']).distance(NP(order[-1]['n']))); order.append(stops.pop(j))
+            stops = order
+    # ── אנשים: על השבילים, במרווחים אקראיים, מעט הצידה מהציר. להמחשה ──
+    rng = np.random.default_rng(7); people = []
+    for e in edges_out:
+        ls = LineString([(e['pts'][k]/10, e['pts'][k+1]/10) for k in range(0, len(e['pts']), 2)]); t = rng.uniform(2, 9)
+        while t < ls.length - 1 and len(people) < 420:
+            q = ls.interpolate(t); q2 = ls.interpolate(min(ls.length, t + .5)); h = math.atan2(q2.y - q.y, q2.x - q.x) + (math.pi if rng.random() < .5 else 0)
+            off = rng.uniform(-.7, .7); people.append([dm(q.x - math.sin(h)*off), dm(q.y + math.cos(h)*off), round(h, 2), int(rng.integers(0, 1000))])
+            t += rng.uniform(6, 18)
+    # ── מכוניות: בנתיב הצמוד לאבן השפה (גבול האספלט), בכיוון התנועה (שפה מימין), ובחניות המסומנות. להמחשה ──
+    cars = []
+    if road is not None:
+        cross = unary_union([Ls(f).buffer(6) for f in L.get('cross', [])]) if L.get('cross') else Polygon()
+        ramp = unary_union([P(x[1]).buffer(3) for x in S.get('ramp', [])]) if S.get('ramp') else Polygon()
+        inner = road.buffer(-1.0)
+        rings = [r for g in getattr(road, 'geoms', [road]) if isinstance(g, Polygon) for r in [g.exterior, *g.interiors]]
+        taken = []
+        for r in rings:
+            ls = LineString(r.coords); t = rng.uniform(0, 8)
+            while t < ls.length and len(cars) < 170:
+                c = ls.interpolate(t); c2 = ls.interpolate(min(ls.length, t + .6)); tx, ty = c2.x - c.x, c2.y - c.y; l = math.hypot(tx, ty) or 1; tx, ty = tx/l, ty/l
+                for sd in (1, -1):
+                    pt = Point(c.x - ty*1.6*sd, c.y + tx*1.6*sd)
+                    if inner.contains(pt) and not cross.contains(pt) and not ramp.contains(pt) and all(pt.distance(q) > 6.5 for q in taken[-40:]):
+                        # השפה מימין לנהג: הכיוון שבו (שפה - רכב) נמצא בצד ימין
+                        h = math.atan2(ty, tx); vx, vy = c.x - pt.x, c.y - pt.y
+                        if math.cos(h)*vy - math.sin(h)*vx > 0: h += math.pi
+                        cars.append([dm(pt.x), dm(pt.y), round(h, 2), int(rng.integers(0, 1000)), 0]); taken.append(pt); break
+                t += rng.uniform(7, 24)
+        # חניות: מלבנים שנסגרים מקווי החניה
+        from shapely.ops import polygonize as _pz
+        if L.get('parking'):
+            for q in _pz(unary_union([Ls(f) for f in L['parking']])):
+                mr = q.minimum_rotated_rectangle; cs = list(mr.exterior.coords); a_ = math.dist(cs[0], cs[1]); b_ = math.dist(cs[1], cs[2])
+                if not (9 < q.area < 18 and 1.6 < max(a_, b_)/max(.1, min(a_, b_)) < 2.6) or rng.random() > .7: continue
+                i0 = 0 if a_ > b_ else 1; h = math.atan2(cs[i0+1][1]-cs[i0][1], cs[i0+1][0]-cs[i0][0]) + (math.pi if rng.random() < .5 else 0)
+                cars.append([dm(q.centroid.x), dm(q.centroid.y), round(h, 2), int(rng.integers(0, 1000)), 1])
+    print(f'סיור: {len(stops)} תחנות ({", ".join(x["name"] for x in stops)}), אנשים {len(people)}, מכוניות {len(cars)}')
     res = {'tik': a.tik, 'res': RES, 'x0': round(x0, 2), 'y0': round(y0, 2), 'nx': nx, 'ny': ny, 'mask': rle(mask.ravel().astype(int).tolist()),
-           'nodes': nodes_out, 'edges': edges_out, 'zones': zones,
+           'nodes': nodes_out, 'edges': edges_out, 'zones': zones, 'stops': stops, 'people': people, 'cars': cars,
            'src': 'מהשרטוט: ריצוף, דק, גינון, מעברי חצייה ושבילים, ובתוך קומת הקרקע מה שאינו קיר. רשת השבילים היא ציר האמצע של השטח (חישוב), לא שבילים מסומנים.'}
     json.dump(res, open(os.path.join(d, 'walk.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
     tot = sum(e['len'] for e in edges_out)

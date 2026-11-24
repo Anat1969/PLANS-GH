@@ -115,6 +115,8 @@ for(const dir of sets){
     const par = [...Array(n).keys()], f = x => par[x] === x ? x : (par[x] = f(par[x])); wk.edges.forEach(e => { par[f(e.a)] = f(e.b); });
     const comp = {}; wk.edges.forEach(e => { const r = f(e.a); comp[r] = (comp[r] || 0) + e.len; }); const big2 = Math.max(...Object.values(comp));
     ok(big2/tot > .5, dir + ': ' + Math.round(big2/tot*100) + '% מאורך השבילים (' + Math.round(tot) + " מ') ברשת אחת מחוברת");
+    ok((wk.stops||[]).length >= 2 && wk.stops.every(t => t.n < n && t.name), dir + ': סיור מודרך עם ' + (wk.stops||[]).length + ' תחנות על הרשת');
+    ok((wk.people||[]).length > 20 && (wk.cars||[]).every(c => c.length === 5), dir + ': אנשים (' + (wk.people||[]).length + ') ומכוניות (' + (wk.cars||[]).length + ') להדמיה');
     ok(wk.zones.some(z => z.kind === 'in'), dir + ': יש אזורי בניין ל"איפה אני" (' + wk.zones.filter(z => z.kind === 'in').map(z => z.name).join(', ') + ')');
   }
   const big = fs.statSync(path.join(root, dir, 'model.json')).size + man.layers.reduce((s, l) => s + fs.statSync(path.join(root, dir, l.file)).size, 0);
