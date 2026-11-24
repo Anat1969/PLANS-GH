@@ -162,9 +162,27 @@ def check(rows, mlots):
         res.append(dict(lot=lot, ok=not bad, diff=bad) if bad else dict(lot=lot, ok=True))
     return res
 
+def xls_check(path, rows):
+    """טבלת הזכויות של תכנון זמין (HTML): כל שורה (תא שטח ושימוש) מול מה שנקרא מההוראות"""
+    import html as H
+    t = open(path, 'rb').read().decode('utf-8', 'replace'); got = []
+    num = lambda s: (lambda m: float(m.group(0)) if m else None)(re.search(r'\d+(?:\.\d+)?', re.sub(r'\(\d+\)', '', s or '')))
+    for r in re.findall(r'<tr[^>]*>(.*?)</tr>', t, re.S):
+        c = [H.unescape(re.sub(r'<[^>]+>', '', x)).strip() for x in re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', r, re.S)]
+        if len(c) >= 16 and re.fullmatch(r'\d+', c[3] or '') and c[2] and not c[0].startswith('סך'):   # בלי שורת הסיכום
+            got.append(dict(lot=c[3], use=c[2], lotSize=num(c[5]), mainAbove=num(c[6]), servAbove=num(c[7]), total=num(c[9]), coverage=num(c[11]), units=num(c[12]), height=num(c[14]), floorsAbove=num(c[15])))
+    diff = []
+    for g in got:
+        r = next((r for r in rows if r['lot'] == g['lot'] and (r.get('use') or '').startswith(g['use'][:4])), None)
+        if not r: diff.append(dict(lot=g['lot'], use=g['use'], why='לא נקרא מההוראות')); continue
+        bad = {k: [r.get(k), v] for k, v in g.items() if k not in ('lot', 'use') and v is not None and r.get(k) is not None and abs(float(r[k]) - v) > 0.01}
+        if bad: diff.append(dict(lot=g['lot'], use=g['use'], diff=bad))
+    return dict(source=os.path.basename(path), rows=len(got), ok=bool(got) and not diff, diff=diff)
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('pdf'); ap.add_argument('tik'); ap.add_argument('--taba', required=True)
     ap.add_argument('--pages', default=''); ap.add_argument('--src', default=''); ap.add_argument('--fixes', default='', help='קובץ JSON של תיקונים ידניים מול העמוד')
+    ap.add_argument('--xls', default='', help='טבלת הזכויות של תכנון זמין (HTML בסיומת xls): בדיקה שנייה, כשאין לתב"ע plan_models')
     ap.add_argument('--lots', default='', help='רק המגרשים של תוכנית הבינוי, למשל 3,15,19,20,21')
     a = ap.parse_args()
     doc = pymupdf.open(a.pdf)
@@ -187,7 +205,9 @@ def main():
     used = [k for k in NUMERIC if any(k in r or k in r.get('notes', {}) for r in rows)]
     notes = table_notes(a.pdf, pages); notes.update(fx.get('notes', {}))
     chk = check(rows, [L for L in model_lots(a.taba) if not a.lots or str(L.get('lot')) in a.lots.split(',')])
-    out = dict(tik=str(a.tik), taba=a.taba, source=a.src or os.path.basename(a.pdf), pages=pages, **plan_info(a.pdf), readAt=datetime.date.today().isoformat(),
+    xls = xls_check(a.xls, rows) if a.xls else None
+    if xls: print('  מול טבלת תכנון זמין:', 'הכול תואם' if xls['ok'] else xls['diff'])
+    out = dict(tik=str(a.tik), xls=xls, taba=a.taba, source=a.src or os.path.basename(a.pdf), pages=pages, **plan_info(a.pdf), readAt=datetime.date.today().isoformat(),
                lots=a.lots.split(',') if a.lots else None, columns=[dict(key=k, label=LABEL[k][0], unit=LABEL[k][1]) for k in used], notes=notes, rows=rows, check=chk, fixes=fixes, notesFixed=sorted(fx.get('notes', {}), key=int), fixSource=fx.get('source'))
     os.makedirs(os.path.join(ROOT, 'data', 'table5'), exist_ok=True)
     f = os.path.join(ROOT, 'data', 'table5', f'{a.tik}.json'); json.dump(out, open(f, 'w', encoding='utf8'), ensure_ascii=False, indent=1)

@@ -27,6 +27,9 @@ function applyPlan(p, rec, src){
     if(p._mmDone[path] || ue[path]) return; p._mmDone[path] = 1;
     if(!empty(getPath(p, path))) return;
     setPath(p, path, v); p._seeded[path] = 1; n++; });
+  /* תיקון מקור: ערך שמולא קודם אוטומטית ונמצא שגוי (למשל שם היזם מלוגו במצגת, מול סעיף 1.8 בהוראות). מוחלף רק אם הוא עדיין הערך הישן, ולא נערך ידנית */
+  Object.entries(rec.replace || {}).forEach(([path, [from, to]]) => { if(ue[path] || p._mmDone['fix:'+path+':'+to]) return; p._mmDone['fix:'+path+':'+to] = 1;
+    if(String(getPath(p, path) ?? '').trim() === String(from).trim()){ setPath(p, path, to); p._seeded[path] = 1; n++; } });
   if(rec.dept && !p.mmDept){ p.mmDept = rec.dept; n++; }
   if(Array.isArray(rec.docs) && rec.docs.length){ p.documents = Array.isArray(p.documents) ? p.documents : []; const have = new Set(p.documents.map(d => d && d.url));
     rec.docs.forEach(d => { if(!have.has(d.url) && !p._mmDone['doc:'+d.url]){ p._mmDone['doc:'+d.url] = 1; p.documents.push({ name:d.name, type:d.type || '', url:d.url, date:d.date || DATA.readAt, src:src || SRC }); n++; } }); }
@@ -58,7 +61,7 @@ const extraFor = p => EXTRA && EXTRA.plans[key(p.planNum)] ? EXTRA.plans[key(p.p
 
 async function run(){
   if(!DATA){ try{ const raw = await (await fetch('data/merhav-import.json?v=1123k')).json(); DATA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ console.warn('merhav import', e); return; } }
-  if(!EXTRA){ try{ const raw = await (await fetch('data/concept-import.json?v=1124a')).json(); EXTRA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ EXTRA = { plans:{} }; } }
+  if(!EXTRA){ try{ const raw = await (await fetch('data/concept-import.json?v=1125a')).json(); EXTRA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ EXTRA = { plans:{} }; } }
   if(typeof isArchitect === 'function' && typeof session !== 'undefined' && session && !isArchitect()) return;   // רק אדריכלית העיר משנה נתונים
   let n = 0, plansHit = 0;
   livePlans().forEach(p => { const r = recFor(p), x = extraFor(p); let k = 0; if(r) k += applyPlan(p, r); if(x) k += applyPlan(p, x, x.src || EXTRA.source); if(k){ n += k; plansHit++; } });

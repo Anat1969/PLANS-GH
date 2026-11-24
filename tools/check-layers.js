@@ -39,6 +39,11 @@ for(const dir of sets){
     if(concept.dev){ const d = concept.dev, need = ['asphalt', 'green', 'paving', 'play'];
       ok(d.georef.median < 0.5, dir + ': תוכנית הפיתוח (תמונה, עמ\' ' + d.page + ') מעוגנת לתאי השטח (סטייה חציונית ' + d.georef.median + " מ')");
       ok(need.every(k => (m.surf[k]||[]).length) && (m.obj.treeNew||[]).length > 20 && (m.obj.treeSurvey||[]).length === 3, dir + ': מתוכנית הפיתוח: כבישים, גינון, ריצוף, משחק, ' + (m.obj.treeNew||[]).length + ' עצים ושלושת סימוני העצים'); }
+    const fdx = fs.existsSync(path.join(root, dir, 'floors.json')) ? JSON.parse(fs.readFileSync(path.join(root, dir, 'floors.json'), 'utf8')) : null, t5f = path.join(root, 'data', 'table5', concept.tik + '.json');
+    if(fdx && fdx.annex && fs.existsSync(t5f)){ const t5 = JSON.parse(fs.readFileSync(t5f, 'utf8')), tw = fdx.buildings.filter(b => !String(b.id).startsWith('ציבור'));   // נספח הבינוי מול טבלה 5 של אותה תב"ע
+      const bad = tw.filter(b => { const r = t5.rows.find(x => x.lot === String(b.lot) && x.use === 'מגורים'); return !r || r.floorsAbove !== b.total || b.top > r.height; });
+      ok(tw.length && !bad.length, dir + ': נספח הבינוי: ' + tw.length + ' מגדלים, מספר הקומות והגובה תואמים לטבלה 5 (' + t5.taba + ')' + (bad.length ? ' (לא תואם: ' + bad.map(b => b.lot).join(', ') + ')' : ''));
+      ok(fs.existsSync(path.join(root, dir, fdx.alternative || '-')), dir + ': חלופת המצגת נשמרה להשוואה (' + fdx.alternative + ')'); }
     if(concept.survey){ const sv = concept.survey;
       ok(['exTree', 'cover', 'lamp'].every(k => sv[k] > 0) && (m.lines.exSurvey||[]).length > 1000, dir + ': ממפת המדידה: ' + Object.entries(sv).map(([k, v]) => v + ' ' + P.KIND[k].label).join(', ')); }
     const dA = Math.abs(concept.planArea.drawn/1000 - concept.planArea.stated)/concept.planArea.stated; ok(dA < 0.06, dir + ': שטח הקו הכחול ' + concept.planArea.drawn + ' מ"ר מול ' + concept.planArea.stated + ' דונם בתשריט (' + (dA*100).toFixed(1) + '%)'); }

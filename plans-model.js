@@ -66,6 +66,10 @@ const KINDS = [
  { id:'easement', topic:'walk', label:'זיקת הנאה למעבר', color:'#b8d43a', desc:'מעבר ציבורי להולכי רגל או לרכב בתוך המגרש, מתשריט התב"ע. הקווקוו הוא הסימון בתשריט.' },
  { id:'radius', topic:'site', label:'רדיוס מגבלות בנייה', color:'#d0202a', desc:'אזורי המגן של קידוח מי השתייה. בתוכם אסורים מגורים, מסחר ומבני ציבור.' },
  { id:'appBuild', topic:'build', label:'הבינוי המאושר בשאר המתחם', color:'#dcd9d1', desc:'הבניינים של תוכנית הפיתוח בשאר המתחם, בגובה המרבי של המגרש בטבלה 5. הקשר, הערכה.' },
+ { id:'useShop', topic:'build', label:'מסחר בקומת הקרקע', color:'#b9cdf2', desc:'השימוש בקומת הקרקע, מנספח הבינוי.' },
+ { id:'useLobby', topic:'build', label:'לובי', color:'#f6c6d6', desc:'הכניסה למגדל, מנספח הבינוי.' },
+ { id:'usePublic', topic:'build', label:'מבני ציבור', color:'#eba996', desc:'גני ילדים ומעון, מנספח הבינוי.' },
+ { id:'useClub', topic:'build', label:'מועדון דיירים', color:'#f1f2b0', desc:'שטח ציבורי לדיירים, מנספח הבינוי.' },
  { id:'exTree', topic:'exist', label:'עץ קיים', color:'#6f8f5a', desc:'ממפת המדידה, לפי הסימון "ע". קוטר הצמרת הנחה: 5 מ\'.' },
  { id:'exSurvey', topic:'exist', label:'מפת המדידה', color:'#8c8c8c', desc:'כל הקווים של מפת המדידה: אבני שפה, גדרות, קירות, מבנים ומדרגות.' },
  { id:'exBench', topic:'exist', label:'ספסל קיים', color:'#9a7b55', desc:'ממפת המדידה.' },
@@ -285,12 +289,13 @@ function create(el, model, opts){
   surf('firemark', .10, M.std({ color:KIND.firemark.color, transparent:true, opacity:.75 }));
   surf('plaza', .06, M.std({ color:KIND.plaza.color, map:TX.paving, vertexColors:true, roughness:.9 }));
   surf('bikeRoom', 4.03, M.std({ color:KIND.bikeRoom.color })); surf('tech', 4.03, M.std({ color:KIND.tech.color }));
+  ['useShop', 'useLobby', 'usePublic', 'useClub'].forEach((k, i) => surf(k, .11 + i*.004, M.std({ color:'#ffffff', vertexColors:true, roughness:.7 }), 1));   // רצפת קומת הקרקע לפי השימוש
   surf('sport', .062, M.std({ color:'#ffffff', map:TX.rubber, vertexColors:true, roughness:.8 }), 1); surf('yard', .058, M.std({ color:'#ffffff', map:TX.paving, vertexColors:true }), 1);
   // הבינוי המאושר בשאר המתחם (תכנון רעיוני): נפח בהיר בגובה המרבי של המגרש
   if(model.appBuild && model.appBuild.length){
     model.appBuild.forEach(b => { const eg = extrudeGeo(T, [ring2(b[1])], 0, b[0]); add('appBuild', new T.Mesh(eg, M.std({ color:KIND.appBuild.color, roughness:.85, transparent:true, opacity:.92 })), { cast:true, solid:true });
       groups.appBuild.add(new T.LineSegments(new T.EdgesGeometry(eg, 35), outlineM)); }); }
-  if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
+  if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, model.wallH || 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
     groups.wall.add(new T.LineSegments(new T.EdgesGeometry(wg, 35), outlineM)); }
   if(S.pergola){ const rs = S.pergola.map(p => ring2(p[1]));
     add('pergola', new T.Mesh(extrudeGeo(T, rs, 2.8, .16), M.std({ color:KIND.pergola.color, map:TX.wood, transparent:true, opacity:.9, side:T.DoubleSide })), { cast:true, solid:true });
@@ -308,7 +313,7 @@ function create(el, model, opts){
   rib('lowwall', 0, .9, M.std({ color:KIND.lowwall.color, side:T.DoubleSide }), { cast:true, solid:true });
   rib('fence', 0, 1.2, M.std({ color:KIND.fence.color, side:T.DoubleSide, transparent:true, opacity:.45 }), { solid:true });
   lin('stairs', .12, KIND.stairs.color); lin('gardenedge', .11, KIND.gardenedge.color);
-  rib('glass', 0, 3.7, M.std({ color:KIND.glass.color, side:T.DoubleSide, transparent:true, opacity:.5, roughness:.15, metalness:.2 }), { solid:true });
+  rib('glass', 0, model.glassH || 3.7, M.std({ color:KIND.glass.color, side:T.DoubleSide, transparent:true, opacity:.5, roughness:.15, metalness:.2 }), { solid:true });
   rib('door', 0, 2.2, M.std({ color:KIND.door.color, side:T.DoubleSide }), { solid:true });
   rib('water', .1, .22, new T.MeshBasicMaterial({ color:KIND.water.color, side:T.DoubleSide }), { noReceive:true });
   rib('sewer', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewer.color, side:T.DoubleSide }), { noReceive:true });
@@ -599,14 +604,15 @@ function create(el, model, opts){
     const ring = (A, r, y0, y1) => { let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]); quad(A, a[0], a[1], b[0], b[1], y0, y1, u, u+L); u += L; }); };
     const rnd = i => { const x = Math.sin(i*127.1)*43758.5453; return x - Math.floor(x); };
     pods.forEach((pd, j) => {
-      pd.roof.forEach(f => { const r = ring2(f); cap(S, r, 4.0); cap(pd.kind === 'garden' ? Pv : Rv, r, 4.52); });
-      const e = ring2(pd.edge); ring(S, e, 3.55, 4.52);                                  // פס החזית של המסד: קורה לבנה מעל העמודים
-      if(pd.kind === 'garden'){ ring(Rl, e, 4.52, 5.62); e.forEach((a, i) => { const b = e[(i+1)%e.length]; Hd.push(a[0], 5.62, -a[1], b[0], 5.62, -b[1]); });
-        (pd.green||[]).forEach((g, gi) => { const r = ring2(g); cap(Gr, r, 4.98); ring(Pl, r, 4.52, 4.98);
+      const z = (pd.top || 4.52) - 4.52;                                                  // גובה המסד: 4.5 מ' כברירת מחדל, או מהחתך (1909: 6.4 מ')
+      pd.roof.forEach(f => { const r = ring2(f); cap(S, r, 4.0+z); cap(pd.kind === 'garden' ? Pv : Rv, r, 4.52+z); });
+      const e = ring2(pd.edge); ring(S, e, 3.55+z, 4.52+z);                                  // פס החזית של המסד: קורה לבנה מעל העמודים
+      if(pd.kind === 'garden'){ ring(Rl, e, 4.52+z, 5.62+z); e.forEach((a, i) => { const b = e[(i+1)%e.length]; Hd.push(a[0], 5.62+z, -a[1], b[0], 5.62+z, -b[1]); });
+        (pd.green||[]).forEach((g, gi) => { const r = ring2(g); cap(Gr, r, 4.98+z); ring(Pl, r, 4.52+z, 4.98+z);
           const xs = r.map(q => q[0]), ys = r.map(q => q[1]);
           for(let i = 0; i < 40; i++){ const x = Math.min(...xs) + rnd(j*97+gi*13+i)*(Math.max(...xs)-Math.min(...xs)), y = Math.min(...ys) + rnd(j*31+gi*7+i+.5)*(Math.max(...ys)-Math.min(...ys));
             let c = false; for(let a = 0, b = r.length-1; a < r.length; b = a++){ const p = r[a], q = r[b]; if((p[1] > y) !== (q[1] > y) && x < (q[0]-p[0])*(y-p[1])/(q[1]-p[1])+p[0]) c = !c; }
-            if(c && shrubs.every(s => Math.hypot(s[0]-x, s[1]-y) > 2.6)) shrubs.push([x, y, .7 + rnd(i+gi)*.9]); } }); }
+            if(c && shrubs.every(s => Math.hypot(s[0]-x, s[1]-y) > 2.6)) shrubs.push([x, y, .7 + rnd(i+gi)*.9, z]); } }); }
     });
     const g = A => { const q = new T.BufferGeometry(); q.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.uv.length) q.setAttribute('uv', new T.Float32BufferAttribute(A.uv, 2)); q.computeVertexNormals(); return q; };
     add('facade', new T.Mesh(g(S), M.std({ color:'#fbfaf6', roughness:.6 })), { cast:true, solid:true });
@@ -616,7 +622,7 @@ function create(el, model, opts){
     add('facade', new T.Mesh(g(Pl), M.std({ color:sc('#bdb3a0'), roughness:.8 })), { cast:true, solid:true });
     add('facade', new T.Mesh(g(Rl), new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.32, roughness:.04, metalness:.5, side:T.DoubleSide, depthWrite:false })), { noReceive:true });
     { const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute(Hd, 3)); add('facade', new T.LineSegments(lg, new T.LineBasicMaterial({ color:'#2e3135' }))); }
-    inst('facade', new T.IcosahedronGeometry(1, 1), M.std({ color:sc('#4f7f3a'), roughness:.95 }), shrubs, (d, q) => { d.position.set(q[0], 4.98 + q[2]*.8, -q[1]); d.scale.set(q[2], q[2]*.85, q[2]); });
+    inst('facade', new T.IcosahedronGeometry(1, 1), M.std({ color:sc('#4f7f3a'), roughness:.95 }), shrubs, (d, q) => { d.position.set(q[0], 4.98 + (q[3]||0) + q[2]*.8, -q[1]); d.scale.set(q[2], q[2]*.85, q[2]); });
   }
   /** לילה: חלונות מוארים (כמחצית, בגוונים חמים), כמו בתמונה של העיר בערב */
   function setNight(on){ nightOn = on; nightObjs.forEach(o => o.visible = on); }
