@@ -54,7 +54,9 @@ for(const dir of sets){
     const segs = []; rn.parcels.forEach(p => { const c = p.c.map(loc); c.forEach((a, i) => { const b = c[(i+1)%c.length]; segs.push([a[0], a[1], b[0], b[1]]); }); });
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
-    if(man.raster){ const c = man.cal || {}; ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
+    if(man.raster){ const c = man.cal || {}, dr = c.drawn;
+      if(dr) ok(dr.share >= 0.7 && dr.within05 >= 0.8 && dr.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round(dr.share*100) + '% מהצלעות מצוירות בתמונה; מהן ' + Math.round(dr.within05*100) + '% עד חצי מטר מהקו, ' + Math.round(dr.within1*100) + '% עד מטר)');
+      else ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
     else if(concept) ok(ds.length > 20 && ds[ds.length >> 1] < 1.5, dir + ': הקו הכחול של התב"ע המוצעת קרוב למגרשי התב"ע המאושרת (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ'. מגרשי \"מה נבנה סביבי\" פחות מדויקים מה-GIS)");
     else ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
     ok(rn.lots.filter(l => l.floors > 0).every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
@@ -65,7 +67,7 @@ for(const dir of sets){
     const gap = TOP.filter(t => !has(t) && !(man.missing||[]).includes(t)), both = TOP.filter(t => has(t) && (man.missing||[]).includes(t));
     ok(!gap.length && !both.length, dir + ': מלאי השכבות: ' + TOP.filter(has).length + ' מתוך ' + TOP.length + ' עם תוכן, חסר במקור: ' + ((man.missing||[]).join(', ') || 'אין')
       + (gap.length ? ' (בלי תוכן ולא רשום: ' + gap.join(', ') + ')' : '') + (both.length ? ' (רשום כחסר אבל יש תוכן: ' + both.join(', ') + ')' : ''));
-    ok(man.layers.every(l => l.ink > 0), dir + ': לכל שכבת שרטוט יש תוכן (' + man.layers.map(l => l.id).join(', ') + ')');
+    ok(man.layers.every(l => l.ink > 0 || (man.missing||[]).includes(l.id)), dir + ': לכל שכבת שרטוט יש תוכן, חוץ ממה שרשום כחסר במקור (' + man.layers.filter(l => l.ink > 0).map(l => l.id).join(', ') + ')');
   }
   if(m.parts && fs.existsSync(rf)){ // חלקי בניין מהמצגת מול התב"ע: מספר הקומות והגובה. חריגה היא ממצא לחוות הדעת, לא תקלה
     const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors > L.floors; });
