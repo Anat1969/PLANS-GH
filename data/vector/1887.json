@@ -153,6 +153,16 @@
    "easement",
    "site",
    "^level karka-TDM\\|pzikab1$"
+  ],
+  [
+   "lots",
+   "site",
+   "^level karka-TDM\\|pgvul1$"
+  ],
+  [
+   "cross",
+   "walk",
+   "\\|olline-zeva.*$"
   ]
  ],
  "obj": {
@@ -189,9 +199,58 @@
   "lamp",
   "wasteLift",
   "spot",
-  "drain",
-  "manhole",
   "foot",
-  "pavingRaster"
- ]
+  "pavingRaster",
+  "useShop",
+  "useLobby",
+  "usePublic",
+  "yardFromRaster"
+ ],
+ "whiteOk": [
+  "pergola"
+ ],
+ "survey": {
+  "note": "קודי מפת המדידה (survey_20), המשמעות מהתווית שליד הסמל: M4402 עץ, M5220 שוחה, M3902/M5145 מכסה, M5221/M5280 ארון, M6251/M6252/M6351 עמוד (חח\"י), M4611 הידרנט, M2442 תמרור, M5207 מתקן לפח, M5111 צובר גז תת\"ק",
+  "symbols": {
+   "exTree": "survey_20-TDM\\|M4402$",
+   "cover": "survey_20-TDM\\|(M5220|M3902|M5145)$",
+   "cabinet": "survey_20-TDM\\|(M5221|M5280)$",
+   "exPole": "survey_20-TDM\\|(M6251|M6252|M6351)$",
+   "hydrant": "survey_20-TDM\\|M4611$",
+   "exSign": "survey_20-TDM\\|M2442$",
+   "exBin": "survey_20-TDM\\|M5207$",
+   "gasCab": "survey_20-TDM\\|M5111$"
+  },
+  "lines": "survey_20-TDM\\|(M1506|M2207|M2404|M2417|M2418|M2602|M2603|M4001|M2612|M4601)$"
+ },
+ "hatch": {
+  "bike": [
+   "\\|(40-shvil ofnayim.*|AM-Ofnim)$",
+   1.2,
+   "bike"
+  ],
+  "brt": [
+   "\\|AM-BRT-[23]$",
+   1.5,
+   "road"
+  ]
+ },
+ "hatchColor": {
+  "bike": "#3f8fb5",
+  "brt": "#b5653a"
+ },
+ "textPoints": {
+  "trafo": [
+   "^שנאים$",
+   6,
+   4,
+   "power"
+  ],
+  "gasCab": [
+   "^גז$",
+   0.8,
+   0.4,
+   "power"
+  ]
+ }
 }

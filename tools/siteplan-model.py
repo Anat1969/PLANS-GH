@@ -502,6 +502,11 @@ def main():
     surf['plaza'] = [['#d9cdb0', flat(toM(P))] for P in polys(plaza, 6, 0.4)]
     surf['bikeRoom'] = [['#cdb8e6', flat(toM(P))] for P in polys(bikeR, 6, 0.3)]
     surf['tech'] = [['#9fd9cf', flat(toM(P))] for P in polys(techM, 6, 0.3)]
+    if SPEC.get('uses'):   # שימושי קומת הקרקע לפי הצבע בתוכנית ההעמדה: מסחר, לובי ומועדון, ציבור. הערכה
+        for kind, key, col in (('useShop', 'salmon', '#f2b8a8'), ('useLobby', 'cream', '#f6e7b8'), ('usePublic', 'brown', '#d9a57a')):
+            um = cv2.morphologyEx(K[key] & bldF, cv2.MORPH_OPEN, np.ones((7, 7), np.uint8))
+            P_ = polys(um, 8, .3)
+            if P_: surf[kind] = [[col, flat(toM(P))] for P in P_]
     surf['firemark'] = [['#e23b3b', flat(Q.tolist())] for _, Q in pads]
     # קווים מהתב"ע: גבולות מגרשים וקווי בניין (מעטפות)
     ring_m = lambda C: [(e - e0, n - n0) for e, n in (wgs2itm(c[1], c[0]) for c in C)]
@@ -514,7 +519,7 @@ def main():
     obj = dict(treeNew=[[round(E0 + x*RES - e0, 2), round(N1 - y*RES - n0, 2), round(r, 2)] for x, y, r in trees], **{k: v for k, v in el.items() if v})
     if survey: obj['treeOld'] = [[round(E_-e0, 2), round(N_-n0, 2), 2.5] for E_, N_ in survey]
     topic = dict(asphalt='road', paving='walk', green='green', wall='build', plot='site', bldline='site', bline='site', phase='site', ramp='park', plaza='shade',
-                 bikeRoom='bike', tech='power', firemark='fire', entry='build', lamp='power', fire='fire', wasteLift='waste', spot='level', treeOld='trees', cross='walk')
+                 bikeRoom='bike', tech='power', firemark='fire', entry='build', lamp='power', fire='fire', wasteLift='waste', spot='level', treeOld='trees', cross='walk', useShop='build', useLobby='build', usePublic='build')
     allp = np.array([v for L in surf.values() for _, f in L for v in f]).reshape(-1, 2) / 10
     model = dict(e0=e0, n0=n0, scale=None, surf=surf, lines=lines, obj=obj, topic=topic,
                  foot=[flat(toM(P)) for P in foot], footLot=footLots, parts=parts, spacing=spacing if parts else [], bbox=[round(float(v), 1) for v in (*allp.min(0), *allp.max(0))])
@@ -553,7 +558,7 @@ def main():
     layers = [dict(id=i, name=nm, file=i + '.webp', ink=layer(i, m), cad=[]) for i, nm, m in L]
     man = dict(tik=a.tik, title=a.title, source=a.src_name or os.path.basename(a.img), scale=None, w=W//2, h=Hh//2, mPerPx=RES*2,
                cadTotal=len(layers), unassigned=[], siteArea=int((site > 0).sum()*RES*RES), layers=layers, raster=True, cal=cal,
-               findings=SPEC.get('findings', []), missingWhy=SPEC.get('missingWhy', {}),
+               findings=SPEC.get('findings', []), missingWhy=SPEC.get('missingWhy', {}), parking=SPEC.get('parking'),
                missing=SPEC.get('missing', ['water']),   # מה שאין בשקפים: נאמר במסך ונדרש מהאדריכל
                elements=dict(entries=len(el['entry']), lamps=len(el['lamp']), yellowInside=yellowInside, fire=len(el['fire']), firePartial=(EL.get('fire') or {}).get('partial', ''),
                              ramps=len(rampP), wasteLifts=len(el['wasteLift']), spots=len(el['spot']), bikeRoom=int((bikeR > 0).sum()*RES*RES), tech=int((techM > 0).sum()*RES*RES),

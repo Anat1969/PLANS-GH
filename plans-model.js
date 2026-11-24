@@ -66,6 +66,12 @@ const KINDS = [
  ,{ id:'contour', topic:'level', label:'קווי גובה', color:'#8c7a5a', desc:'קווי הגובה של הפיתוח, מתוכנית הנוף.' }
  ,{ id:'manhole', topic:'water', label:'שוחות מי גשם', color:'#1e5fa8', desc:'שוחה עם רום מכסה ורום תחתית, מחוברת העיצוב.' }
  ,{ id:'wasteInlet', topic:'waste', label:'פתח פינוי פניאומטי', color:'#7a4a8a', desc:'פתח ההשלכה של מערכת האשפה הפניאומטית.' }
+ ,{ id:'waterNew', topic:'water', label:'קו מים מוצע', color:'#5ab4e6', desc:'קווי המים החדשים והחיבורים למבנים, מחוברת העיצוב.' }
+ ,{ id:'sewerNew', topic:'water', label:'קו ביוב מוצע', color:'#f08a1e', desc:'קווי הביוב החדשים והחיבורים למבנים, מחוברת העיצוב.' }
+ ,{ id:'meter', topic:'water', label:'מד מים', color:'#2a6fb0', desc:'מד המים של כל חיבור, מחוברת העיצוב.' }
+ ,{ id:'hydrant', topic:'fire', label:'הידרנט', color:'#d0202a', desc:'ברז כיבוי: קיים ממפת המדידה, ומוצע מחוברת העיצוב.' }
+ ,{ id:'exPole', topic:'exist', label:'עמוד קיים', color:'#7d8288', desc:'עמודי חשמל ותאורה ממפת המדידה.' }
+ ,{ id:'gasCab', topic:'power', label:'גז', color:'#d8a51e', desc:'נקודות הגז בשרטוט, וצוברי גז ממפת המדידה.' }
  /* תכנון רעיוני: תוכנית המתחם ומפת המדידה (tools/concept-model.py, ענת 24.11.2026) */
  ,{ id:'sport', topic:'shade', label:'מגרש ספורט', color:'#86b6de', desc:'מגרש כדורסל או ספורט, מתוכנית הפיתוח של המתחם.' },
  { id:'yard', topic:'shade', label:'חצר גן ילדים', color:'#c9c27a', desc:'החצר המגודרת של גן הילדים, מתוכנית הפיתוח.' },
@@ -90,7 +96,7 @@ const KINDS = [
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
 const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
-const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign'], renewal:['rnParcel','rnMass','rnEnvelope'] };
+const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign','exPole','hydrant'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
 /* ── רשת ישראל החדשה ↔ WGS84 ── */
@@ -328,6 +334,8 @@ function create(el, model, opts){
   rib('water', .1, .22, new T.MeshBasicMaterial({ color:KIND.water.color, side:T.DoubleSide }), { noReceive:true });
   rib('sewer', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewer.color, side:T.DoubleSide }), { noReceive:true });
   rib('drain', .1, .22, new T.MeshBasicMaterial({ color:KIND.drain.color, side:T.DoubleSide }), { noReceive:true });
+  rib('waterNew', .1, .22, new T.MeshBasicMaterial({ color:KIND.waterNew.color, side:T.DoubleSide }), { noReceive:true });
+  rib('sewerNew', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewerNew.color, side:T.DoubleSide }), { noReceive:true });
   rib('gas', .1, .22, new T.MeshBasicMaterial({ color:KIND.gas.color, side:T.DoubleSide }), { noReceive:true });
   lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color); lin('contour', .14, KIND.contour.color);
 
@@ -378,6 +386,10 @@ function create(el, model, opts){
   box('wasteLift', (O.wasteLift||[]).map(t => [t[0], t[1], 1.6, 1.6, 0]), 4.8, M.std({ color:KIND.wasteLift.color }));
   inst('manhole', new T.CylinderGeometry(.6, .6, .06, 16), M.std({ color:KIND.manhole.color, metalness:.4 }), O.manhole, (d, t) => d.position.set(t[0], .14, -t[1]), { cast:false });
   inst('wasteInlet', new T.CylinderGeometry(.35, .35, 1.0, 12), M.std({ color:KIND.wasteInlet.color }), O.wasteInlet, (d, t) => d.position.set(t[0], .5, -t[1]));
+  inst('hydrant', new T.CylinderGeometry(.13, .16, .8, 10), M.std({ color:KIND.hydrant.color }), O.hydrant, (d, t) => d.position.set(t[0], .4, -t[1]));
+  box('meter', O.meter && O.meter.map(t => [t[0], t[1], .5, .4, 0]), .25, M.std({ color:KIND.meter.color }));
+  box('gasCab', O.gasCab, 1.0, M.std({ color:KIND.gasCab.color }));
+  inst('exPole', new T.CylinderGeometry(.09, .12, 8, 7), M.std({ color:KIND.exPole.color, metalness:.4 }), O.exPole, (d, t) => d.position.set(t[0], 4, -t[1]));
   (O.spot||[]).forEach(t => { if(typeof document === 'undefined') return; const c = document.createElement('canvas'); c.width = 160; c.height = 44; const x = c.getContext('2d');
     x.fillStyle = 'rgba(255,255,255,.88)'; x.fillRect(0, 0, 160, 44); x.fillStyle = t[3] === 'ffl' ? '#1a1a18' : KIND.spot.color; x.font = 'bold 26px IBM Plex Sans, Arial, sans-serif';
     x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText((t[3] === 'hp' ? 'HP ' : t[3] === 'lp' ? 'LP ' : '') + Number(t[2]).toFixed(2), 80, 23);
@@ -838,7 +850,7 @@ function create(el, model, opts){
      מסתירה את כל השכבות הטכניות (קו כחול, סימוני כיבוי, צנרת, שלטים וקווי מתאר), מציגה את כל התחומים בצבע,
      ומוסיפה שמיים ואובך, ופילטר צבע (רוויה, ניגודיות ווינייטה) ב-CSS. צל מגע (SAO) ועיבוד תמונה נוסו: הילות שחורות ושטיפה לבנה בכרטיסי מסך חלשים, ולכן הוסרו. */
   let renderOn = false, fxBuilt = false, sky = null; const composer = null;
-  const RENDER_HIDE = new Set(['plot', 'lots', 'bline', 'fireroute', 'firemark', 'fire', 'treeSurvey', 'water', 'sewer', 'drain', 'gas', 'cover', 'cabinet', 'spot', 'rnEnvelope', 'stairs', 'parking', 'mass', 'bldline', 'phase', 'radius', 'easement', 'exSurvey']);
+  const RENDER_HIDE = new Set(['plot', 'waterNew', 'sewerNew', 'meter', 'lots', 'bline', 'fireroute', 'firemark', 'fire', 'treeSurvey', 'water', 'sewer', 'drain', 'gas', 'cover', 'cabinet', 'spot', 'rnEnvelope', 'stairs', 'parking', 'mass', 'bldline', 'phase', 'radius', 'easement', 'exSurvey']);
   function buildFx(){
     fxBuilt = true;
     // שמיים: מעבר מכחול בזנית לאובך בהיר באופק, והילה סביב השמש. בצבעים ליניאריים, כי הם עוברים את מחשבת הצבע

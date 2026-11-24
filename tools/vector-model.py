@@ -101,7 +101,7 @@ def main():
         Gc = tr(C, *par); off = Gc - np.round(Gc/round(step))*round(step); cal['gridOffset'] = [round(float(np.median(off[:, 0])), 2), round(float(np.median(off[:, 1])), 2)]
     print('כיול:', cal)
     e0, n0 = base['e0'], base['n0']
-    th, tx, ty = par; c_, s_ = math.cos(th), math.sin(th)
+    th, tx, ty = [float(v) for v in par]; c_, s_ = math.cos(th), math.sin(th)
     T = lambda p: (c_*p.x*K + s_*p.y*K + tx - e0, s_*p.x*K - c_*p.y*K + ty - n0)     # נקודת PDF → מטרים יחסית למרכז המודל
 
     # ── 2. חילוץ ──
@@ -147,7 +147,7 @@ def main():
         for d_ in layers(rx):
             if not d_.get('fill') or 'f' not in d_['type']: continue
             col = hexc(d_['fill'])
-            if col == '#ffffff': continue
+            if col == '#ffffff' and kind not in PR.get('whiteOk', []): continue
             for r in rings(d_):
                 if not all(inf(p) for p in r): continue
                 m = simp([T(p) for p in r])
@@ -258,8 +258,74 @@ def main():
             b = obox(Pp)
             if 4 <= b[2] <= 24 and 2.5 <= b[3] <= 14 and all(math.hypot(b[0]-f[0], b[1]-f[1]) > 2 for f in fire): fire.append(b)
     obj['fire'] = fire
+    # ── מפת המדידה: סמלים (נקודה) וקווים, לפי קוד השכבה. המשמעות מהתווית שליד הסמל בשרטוט (נקרא בעין, רשום בפרופיל) ──
+    SV = PR.get('survey', {})
+    def symbols(rx, link=.8):
+        """סמל נקודה במפת המדידה: עיגול (גם עיגולים קונצנטריים מקשתות), ריבוע או משושה. הטקסט שליד הסמל הוא קווים, ולא נספר"""
+        cand = []
+        for d_ in layers(rx):
+            r = d_['rect']; sz = max(r.width, r.height)*K
+            if not (.04 <= sz <= 2.5): continue
+            ks = [it[0] for it in d_['items']]; sq = .5 < r.width/max(r.height, 1e-6) < 2
+            p = fitz.Point((r.x0+r.x1)/2, (r.y0+r.y1)/2)
+            if not inf(p): continue
+            if all(k == 'c' for k in ks) and sz <= 1.2: cand.append((*T(p), sz, 2 if len(ks) >= 4 and sq else 1))
+            elif sq and ('qu' in ks or 're' in ks or (len(ks) >= 5 and all(k == 'l' for k in ks) and sz >= .25)): cand.append((*T(p), sz, 2))
+        if not cand: return []
+        C = np.array([c[:2] for c in cand]); par_ = list(range(len(C)))
+        def find(i):
+            while par_[i] != i: par_[i] = par_[par_[i]]; i = par_[i]
+            return i
+        for a_, b_ in cKDTree(C).query_pairs(.35): par_[find(a_)] = find(b_)
+        g = collections.defaultdict(list)
+        for i in range(len(C)): g[find(i)].append(i)
+        pts = []
+        for idx in g.values():
+            score = sum(cand[i][3] for i in idx)
+            if score < 2: continue
+            x, y = C[idx].mean(0); sz = max(cand[i][2] for i in idx)
+            if all(math.hypot(x-q[0], y-q[1]) > link for q in pts): pts.append((float(x), float(y), sz/2))
+        return pts
+    BOX = dict(cabinet=(.8, .5), exBench=(1.8, .5), exBin=(.6, .6), gasCab=(.8, .4), meter=(.5, .4))
+    for kind, rx in (SV.get('symbols') or {}).items():
+        P_ = symbols(rx)
+        if kind in BOX: obj[kind] = [[round(x, 2), round(y, 2), BOX[kind][0], BOX[kind][1], 0] for x, y, _ in P_]
+        elif kind in ('exTree', 'cover'): obj[kind] = [[round(x, 2), round(y, 2), 2.5 if kind == 'exTree' else .5] for x, y, _ in P_]
+        else: obj[kind] = [[round(x, 2), round(y, 2)] for x, y, _ in P_]
+        print(f'  מדידה {kind}: {len(P_)}')
+    ex = []
+    for d_ in layers(SV.get('lines', '^$')):
+        if 's' not in d_['type']: continue
+        for r in rings(d_):
+            if not all(inf(p) for p in r): continue
+            m = simp([T(p) for p in r], .08)
+            if len(m) >= 2 and sum(math.dist(m[i], m[i+1]) for i in range(len(m)-1)) >= .8: ex.append(flat(m))
+    if ex: lines['exSurvey'] = ex; topic['exSurvey'] = 'exist'; print(f'  מדידה קווים: {len(ex)}')
+    # ── קווקוו של קווים (שביל אופניים, נתיב תחבורה ציבורית): רסטר וסגירה לתחום ──
+    for kind, (rx, cl, tp) in (PR.get('hatch') or {}).items():
+        segs_ = [[T(it[1]), T(it[2])] for d_ in layers(rx) for it in d_['items'] if it[0] == 'l' and inf(it[1]) and inf(it[2])]
+        if not segs_: continue
+        A_ = np.array([q for s_ in segs_ for q in s_]); hx0, hy0 = A_.min(0) - 3; hx1, hy1 = A_.max(0) + 3
+        mk = np.zeros((int((hy1-hy0)/.1)+1, int((hx1-hx0)/.1)+1), np.uint8)
+        for (x1, y1), (x2, y2) in segs_: cv2.line(mk, (int((x1-hx0)/.1), int((hy1-y1)/.1)), (int((x2-hx0)/.1), int((hy1-y2)/.1)), 255, 2)
+        k_ = int(cl/.1) | 1; mk = cv2.morphologyEx(mk, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_, k_)))
+        P_ = SP.polys(mk, 3, .2, .1)
+        if P_: surf[kind] = [[PR.get('hatchColor', {}).get(kind, '#888888'), flat([(hx0 + x*.1, hy1 - y*.1) for x, y in Q])] for Q in P_]; topic[kind] = tp; print(f'  קווקוו {kind}: {len(P_)} תחומים')
+    # ── נקודות מטקסט בשרטוט (חדר שנאים, גז): המילה הפוכה בתוך ה-PDF ──
+    words = page.get_text('words')
+    for kind, (rx, bw, bl, tp) in (PR.get('textPoints') or {}).items():
+        pts = []
+        for w_ in words:
+            t_ = w_[4][::-1]
+            if not re.search(rx, t_) or not inf(fitz.Point(w_[0], w_[1])): continue
+            x, y = T(fitz.Point((w_[0]+w_[2])/2, (w_[1]+w_[3])/2))
+            if all(math.hypot(x-q[0], y-q[1]) > 2 for q in pts): pts.append([round(x, 2), round(y, 2), bw, bl, 0])
+        if pts: obj[kind] = obj.get(kind, []) + [q for q in pts if all(math.hypot(q[0]-o[0], q[1]-o[1]) > 2 for o in obj.get(kind, []))]; topic[kind] = tp; print(f'  מטקסט {kind}: {len(pts)}')
+    if surf.get('firepath'): lines['fireroute'] = [f_ + f_[:2] for _, f_ in surf['firepath']]; topic['fireroute'] = 'fire'   # קו המתאר של מסלול הכבאית
     obj = {k: v for k, v in obj.items() if v}
-    for k in obj: topic[k] = {'treeNew': 'trees', 'treeOld': 'trees', 'treeSurvey': 'trees', 'bench': 'shade', 'bin': 'waste', 'wasteInlet': 'waste', 'fire': 'fire'}[k]
+    TOP = {'treeNew': 'trees', 'treeOld': 'trees', 'treeSurvey': 'trees', 'bench': 'shade', 'bin': 'waste', 'wasteInlet': 'waste', 'fire': 'fire', 'exTree': 'exist', 'cover': 'water',
+           'cabinet': 'power', 'exPole': 'power', 'hydrant': 'fire', 'exSign': 'exist', 'exBin': 'exist', 'exBench': 'exist', 'gasCab': 'power', 'trafo': 'power'}
+    for k in obj: topic[k] = topic.get(k) or TOP.get(k, 'exist')
     print('משטחים:', {k: len(v) for k, v in surf.items()}); print('קווים:', {k: len(v) for k, v in lines.items()})
     print('אובייקטים:', {k: (sum(len(x[1]) for x in v) if k == 'treeSurvey' else len(v)) for k, v in obj.items()})
 
@@ -268,10 +334,12 @@ def main():
     model = dict(base); model['surf'] = {k: v for k, v in base['surf'].items() if k in keep}; model['lines'] = {k: v for k, v in base['lines'].items() if k in keep}
     model['obj'] = {k: v for k, v in base['obj'].items() if k in keep}; model['topic'] = {k: v for k, v in base['topic'].items() if k in keep}
     for D, S_ in ((model['surf'], surf), (model['lines'], lines), (model['obj'], obj)): D.update(S_)
+    if 'yardFromRaster' in keep and base['surf'].get('green'):   # חצרות הגנים והמעון: הירוק של תוכנית ההעמדה
+        model['surf']['yard'] = base['surf']['green']; model['topic']['yard'] = 'shade'
     if 'pavingRaster' in keep and base['surf'].get('paving'):   # שאר הריצוף מצויר בשרטוט בקווקוו בלבד: נשאר מהתמונה, כהערכה
         model['surf']['paving'] = base['surf']['paving'] + surf.get('paving', [])
     model['topic'].update(topic); model['scale'] = PR['scale']; model['lampNew'] = len(model['obj'].get('lamp', []))
-    model['vector'] = dict(source=PR['source'], cal=cal)
+    model['vector'] = dict(source=PR['source'], cal=cal, xf=[th, tx, ty, K])   # נקודת PDF → רשת ישראל: E = cos·x·K + sin·y·K + tx, N = sin·x·K − cos·y·K + ty
     allp = np.array([v for L in model['surf'].values() for _, f in L for v in f]).reshape(-1, 2) / 10
     model['bbox'] = [round(float(v), 1) for v in (*allp.min(0), *allp.max(0))]
     json.dump(model, open(os.path.join(out, 'model.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'))
