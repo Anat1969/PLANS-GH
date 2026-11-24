@@ -519,3 +519,9 @@ body.city-open{overflow:hidden}
   .cy-legend{display:none}
   .cy-info{inset-inline:16px;bottom:156px;max-width:none}
 }
+/* דף הכניסה הציבורי: משפט ושיתוף (24.11.2026) */
+.cy-say{margin:2px 0;font-size:13px;line-height:1.45;color:#222}
+.cy-purpose:empty{display:none}
+.cy-purpose{color:#444;font-size:12.5px}
+.cy-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.cy-info{max-width:340px}

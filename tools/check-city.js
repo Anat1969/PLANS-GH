@@ -24,6 +24,8 @@ srv.listen(0, async () => {
     ok(a.canvas, `${vp.tag}: הסצנה מצוירת`);
     ok(a.cards > 0 && a.cards % 2 === 0, `${vp.tag}: בקרוסלה ${a.cards/2} תוכניות (מתוך ${a.plans}). ${a.sub}`);
     ok(a.thumbs === a.cards, `${vp.tag}: לכל כרטיס הדמיה או תמונת נפחים`);
+    const rr = await pg.evaluate(() => [...document.querySelectorAll('#cityIntro .cy-img img')].filter(i => /renders\//.test(i.getAttribute('src'))).length / 2);
+    ok(rr >= 15, `${vp.tag}: ${rr} כרטיסים עם הדמיה אמיתית מ"מרחב מדבר"`);
     if(shots) await pg.screenshot({ path:path.join(shots, `city-${vp.tag}-a.png`) });
     await pg.waitForTimeout(9000);
     const c2 = await pg.evaluate(() => document.getElementById('cityClock').textContent);
@@ -34,6 +36,16 @@ srv.listen(0, async () => {
     if(shots) await pg.screenshot({ path:path.join(shots, `city-${vp.tag}-c.png`) });
     await pg.$eval('#cityIntro .cy-info [data-enter]', e => e.click()); await pg.waitForTimeout(800);
     ok(!(await pg.$('#cityIntro')), `${vp.tag}: "כניסה לתוכנית" סוגר את דף הכניסה`);
+    // קישור ישיר לתוכנית, משפט ציבורי, שיתוף, ובלי פרטים פנימיים
+    await pg.goto(`http://localhost:${port}/index.html#city=1913`); await pg.waitForSelector('#cityIntro .cy-info', { timeout:40000 }).catch(() => {});
+    await pg.waitForTimeout(800);
+    const d = await pg.evaluate(() => { const b = document.querySelector('#cityIntro .cy-info'); return { t:b ? b.textContent : '', say:b ? b.querySelector('.cy-say').textContent : '' }; });
+    ok(/1913/.test(d.t) && /יח"ד/.test(d.say), `${vp.tag}: #city=1913 נפתח ממוקד, עם משפט: ${d.say}`);
+    await pg.$eval('#cityShare', e => e.click()); await pg.waitForTimeout(400);
+    const sh = await pg.evaluate(() => window._cityShared || '');
+    ok(/#city=1913$|#city$/.test(sh), `${vp.tag}: שיתוף: ${sh}`);
+    const txt = await pg.evaluate(() => document.getElementById('cityIntro').textContent);
+    ok(!/דמרי|רבייב|איבריקה|ספיר התחדשות|\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2}/.test(txt), `${vp.tag}: בדף הציבורי אין יזם ואין תאריך`);
     ok(!errs.length, `${vp.tag}: בלי שגיאות בדף` + (errs.length ? ': ' + errs[0] : ''));
     await pg.close();
   }

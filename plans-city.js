@@ -7,7 +7,9 @@
      והתאריך מתקדם בכל יום בחודש: חורף, אביב, קיץ, סתיו. בלילה החלונות נדלקים.
    - קרוסלה: כרטיס לכל תוכנית. ההדמיה מחומרי התוכנית (planMaterials, קטגוריה render),
      ובלעדיה תמונה של הנפחים מאותה סצנה. לחיצה מקרבת את המצלמה. "כניסה לתוכנית" פותחת את הכרטיס.
-   - נפתח כשנכנסים בלי יעד בכתובת, או ב-#city. "כניסה למערכת" סוגר. רק מידע ציבורי: שם, מיקום ונפח.
+   - נפתח כשנכנסים בלי יעד בכתובת, או ב-#city (ו-#city=<מספר תוכנית>, ממוקד בה). "כניסה למערכת" סוגר.
+   - דף ציבורי (ענת, 24.11.2026): רק שם, רובע ומגרש, סטטוס כללי, נפח, הדמיה ומשפט מעובדות. בלי יזם, מועדים והערות.
+   - הדמיות: data/renders.json (tools/city-renders.py), עותק מוקטן של ההדמיה מ"מרחב מדבר". שיתוף: קישור לדף או לתוכנית.
    ══════════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -21,7 +23,9 @@ let st = null;
 function plansList(){ try{ return (typeof livePlans === 'function' ? livePlans() : plans).filter(p => p && !p.deleted); }catch(e){ return []; } }
 function lotsOf(p){ return (String(p.location || '').match(/\d{1,4}/g) || []).map(Number); }
 function lotList(p){ const s = String(p.location || ''); const r = s.match(/(\d{1,4})\s*-\s*(\d{1,4})/); if(r && +r[2] - +r[1] < 30){ const a = []; for(let i = +r[1]; i <= +r[2]; i++) a.push(i); return a; } return lotsOf(p); }
-function renderOf(p){ try{ const m = (window.planMaterials ? window.planMaterials(p) : []).find(x => x.cat === 'render' && x.img); return m ? m.img : ''; }catch(e){ return ''; } }
+let RENDERS = {};                                          // data/renders.json: הדמיות מ"מרחב מדבר" (tools/city-renders.py)
+const pnum = p => String(p.planNum || '').replace(/\D/g, '');
+function renderOf(p){ const r = RENDERS[pnum(p)]; if(r) return r.img; try{ const m = (window.planMaterials ? window.planMaterials(p) : []).find(x => x.cat === 'render' && x.img); return m ? m.img : ''; }catch(e){ return ''; } }
 
 /** לכל תוכנית: נפחים (מהתב"ע) או משטח המגרש, ומרכז */
 function collect(D){
@@ -32,7 +36,7 @@ function collect(D){
     if(t){ const L = lotList(p); fs = t.f.filter(f => L.includes(+f.lot)); scope = fs.length ? 'lots' : 'taba'; if(!fs.length) fs = t.f; }
     const parcel = !fs.length && geo && geo.geo ? geo.geo : null;
     if(!fs.length && !geo) return;
-    items.push({ p, fs, scope, parcel, geo, taba:t ? t.n : '', render:renderOf(p) });
+    items.push({ p, fs, scope, parcel, geo, taba:t ? t.n : '', sum:t && t.sum || null, render:renderOf(p) });
     fs.forEach(f => used.add(f));
   });
   return items;
@@ -211,6 +215,34 @@ function streets(T, scene, xy){
 }
 
 /* ── הדף ── */
+const CAT_HE = { residential:'מגורים', mixed:'מגורים ומסחר', commerce:'מסחר', public:'מבני ציבור', open:'שטח פתוח', employment:'תעסוקה', hotel:'מלונאות' };
+const N = n => Number(n).toLocaleString('he-IL');
+/** משפט ציבורי לתוכנית, רק מעובדות: הנפחים שלה (data/city.json) והסיכום של התב"ע (plan_models.summary) */
+function sentence(it){
+  const a = [];
+  if(it.fs.length && it.scope === 'lots'){ const lots = new Set(it.fs.map(f => f.lot)).size, cats = [...new Set(it.fs.map(f => CAT_HE[f.cat]).filter(Boolean))];
+    a.push(`${lots === 1 ? 'מגרש אחד' : lots + ' מגרשים'}${cats.length ? ', ' + cats.join(' ו') : ''}, עד ${Math.round(it.h)} מ'.`); }
+  const S = it.sum; if(S && it.taba){ const b = [];
+    if(S.units_after) b.push(`${N(S.units_after)} יח"ד`); if(S.floors_max) b.push(`עד ${S.floors_max} קומות`); if(S.height_max) b.push(`עד ${Math.round(S.height_max)} מ'`);
+    if(b.length) a.push(`התב"ע ${it.taba}${S.lots ? `, ${S.lots} מגרשים` : ''}: ${b.join(', ')}.`); }
+  return a.join(' ');
+}
+const PURPOSE = {};
+async function purposeOf(p){
+  const k = String(p.tik); if(PURPOSE[k] !== undefined) return PURPOSE[k];
+  try{ const r = await fetch(`data/taba/${encodeURIComponent(k)}.json?v=1124a`); const d = r.ok ? await r.json() : null; const t = d && d.purpose && d.purpose.text || '';
+    PURPOSE[k] = t ? (t.split(/(?<=\.)\s/)[0]) : ''; }catch(e){ PURPOSE[k] = ''; }
+  return PURPOSE[k];
+}
+const shareUrl = it => location.origin + location.pathname + '#city' + (it ? '=' + pnum(it.p) : '');
+async function share(it, btn){
+  const url = shareUrl(it), title = it ? `תוכנית בינוי ${it.p.planNum}, אשדוד` : 'תוכניות הבינוי של אשדוד';
+  try{ if(navigator.share && /Mobi|Android|iPhone/i.test(navigator.userAgent)){ await navigator.share({ title, url }); return; } }catch(e){ return; }
+  let ok = false; try{ await navigator.clipboard.writeText(url); ok = true; }catch(e){}
+  if(!ok) prompt('הקישור לשיתוף', url);
+  if(btn){ const t = btn.textContent; btn.textContent = 'הקישור הועתק'; setTimeout(() => { btn.textContent = t; }, 1600); }
+  window._cityShared = url;
+}
 function stLabel(p){ const s = String(p.status || ''); return /הושלם/.test(s) ? 'אושרה' : /בטיפול|דחוף|בהמתנה/.test(s) ? 'בטיפול' : 'בהכנה'; }
 function card(it, i){
   const p = it.p, img = it.render || it.thumb || '';
@@ -224,14 +256,15 @@ async function open(){
   const ov = document.createElement('div'); ov.id = 'cityIntro'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'תוכניות הבינוי של אשדוד');
   ov.innerHTML = `<div class="cy-scene" id="cityScene"></div>
     <header class="cy-top"><div><h1>תוכניות הבינוי של אשדוד</h1><p id="citySub">טוען את העיר…</p></div>
-      <div class="cy-acts"><span id="cityClock" class="cy-clock"></span><button class="cy-ghost" id="cityPause">עצירה</button><button class="cy-ghost" id="cityHome">כל העיר</button><button class="cy-go" id="cityEnter">כניסה למערכת</button></div></header>
+      <div class="cy-acts"><span id="cityClock" class="cy-clock"></span><button class="cy-ghost" id="cityPause">עצירה</button><button class="cy-ghost" id="cityHome">כל העיר</button><button class="cy-ghost" id="cityShare">שיתוף</button><button class="cy-go" id="cityEnter">כניסה למערכת</button></div></header>
     <div class="cy-legend">${[['residential','מגורים'],['mixed','מגורים ומסחר'],['commerce','מסחר'],['public','מבני ציבור']].map(([k, l]) => `<span><i style="background:${COL[k]}"></i>${l}</span>`).join('')}<span><i class="cy-flat"></i>מגרש בלי נפח</span><small>הנפחים לפי טבלה 5 והתשריט של כל תב"ע. הערכה, לא תוכנית הבינוי.</small></div>
     <div class="cy-strip" id="cityStrip"><div class="cy-track" id="cityTrack"></div></div>`;
   document.body.appendChild(ov); document.body.classList.add('city-open');
   ov.querySelector('#cityEnter').onclick = close;
   try{
     await window.PlanModel.loadThree();
-    const D = await (await fetch('data/city.json?v=1124a')).json();
+    try{ RENDERS = (await (await fetch('data/renders.json?v=1124p')).json()).renders || {}; }catch(e){ RENDERS = {}; }
+    const D = await (await fetch('data/city.json?v=1124p')).json();
     st = build(ov.querySelector('#cityScene'), D);
   }catch(e){ console.warn('city', e); ov.querySelector('#citySub').textContent = 'ההדמיה לא נטענה. אפשר להיכנס למערכת.'; return; }
   const it = st.items, nv = it.filter(x => x.fs.length).length;
@@ -244,14 +277,19 @@ async function open(){
   const pick = i => { sel = i; st.focus(it[i]); st.setAuto(true); track.querySelectorAll('.cy-card').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
     const p = it[i].p; let b = ov.querySelector('.cy-info'); if(!b){ b = document.createElement('div'); b.className = 'cy-info'; ov.appendChild(b); }
     b.innerHTML = `<div><b>${H(p.planNum)}</b> <small>${H(stLabel(p))}</small></div><div>${H([p.district, p.location].filter(Boolean).join(', '))}</div>
-      <div class="muted">${it[i].fs.length ? `${it[i].fs.length} נפחים מתב"ע ${H(it[i].taba)}${it[i].scope === 'taba' ? ', כל התב"ע' : ''}, עד ${Math.round(it[i].h)} מ'` : 'בלי נפח במקור. המגרש בלבד'}</div>
-      <button class="cy-go" data-enter="${p.id}">כניסה לתוכנית</button>`; };
+      <p class="cy-say">${H(sentence(it[i]) || (it[i].fs.length ? '' : 'בלי נפח במקור. מוצג המגרש בלבד.'))}</p><p class="cy-say cy-purpose"></p>
+      ${it[i].render && RENDERS[pnum(p)] ? '<small class="muted">ההדמיה: מתוך חומרי התוכנית שהוגשו לעירייה.</small>' : ''}
+      <div class="cy-row"><button class="cy-go" data-enter="${p.id}">כניסה לתוכנית</button><button class="cy-ghost" data-share="${i}">שיתוף התוכנית</button></div>`;
+    try{ history.replaceState(null, '', '#city=' + pnum(p)); }catch(e){}
+    purposeOf(p).then(t => { const q = b.querySelector('.cy-purpose'); if(q && sel === i && t) q.textContent = 'מטרת התב"ע: ' + t; }); };
   track.onclick = e => { const c = e.target.closest('.cy-card'); if(c) pick(+c.dataset.i); };
-  ov.addEventListener('click', e => { const b = e.target.closest('[data-enter]'); if(!b) return; const id = +b.dataset.enter; close(); setTimeout(() => { try{ openProject(id); }catch(err){} }, 60); });
+  ov.addEventListener('click', e => { const sh = e.target.closest('[data-share]'); if(sh){ share(it[+sh.dataset.share], sh); return; } const b = e.target.closest('[data-enter]'); if(!b) return; const id = +b.dataset.enter; close(); setTimeout(() => { try{ openProject(id); }catch(err){} }, 60); });
   strip.onmouseenter = () => { hover = true; }; strip.onmouseleave = () => { hover = false; last = performance.now(); };
   strip.addEventListener('wheel', e => { pos += e.deltaY || e.deltaX; e.preventDefault(); }, { passive:false });
   ov.querySelector('#cityPause').onclick = e => { const p = st.pause(!st.paused); e.target.textContent = p ? 'המשך' : 'עצירה'; };
-  ov.querySelector('#cityHome').onclick = () => { sel = -1; st.home(); ov.querySelector('.cy-info')?.remove(); track.querySelectorAll('.cy-card.on').forEach(c => c.classList.remove('on')); };
+  ov.querySelector('#cityShare').onclick = e => share(null, e.target);
+  const want = ((location.hash.match(/^#city=(\d+)/) || [])[1]); if(want){ const k = it.findIndex(x => pnum(x.p) === want); if(k >= 0) pick(k); }
+  ov.querySelector('#cityHome').onclick = () => { try{ history.replaceState(null, '', '#city'); }catch(e){} sel = -1; st.home(); ov.querySelector('.cy-info')?.remove(); track.querySelectorAll('.cy-card.on').forEach(c => c.classList.remove('on')); };
   const roll = now => { if(!document.getElementById('cityIntro')) return; requestAnimationFrame(roll);
     const dt = now - last; last = now; if(!hover && !st.paused) pos += dt*.03;
     const half = track.scrollWidth/2; if(half > 0){ pos = ((pos % half) + half) % half; track.style.transform = `translateX(${-pos}px)`; } };
@@ -263,15 +301,15 @@ function close(){
   const ov = document.getElementById('cityIntro'); if(!ov) return;
   document.removeEventListener('keydown', esc);
   if(st){ st.dispose(); st = null; } ov.remove(); document.body.classList.remove('city-open');
-  if(location.hash === '#city') history.replaceState(null, '', location.pathname + location.search);
+  if(/^#city\b/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search);
 }
 window.openCity = open; window.closeCity = close;
 
 function boot(){
   let skip = false; try{ skip = localStorage.getItem('ashdod_skip_city') === '1' || /[?&]nocity\b/.test(location.search); }catch(e){}
   const h = (location.hash || '').replace('#', '');
-  if(h === 'city' || (!h && !skip)) setTimeout(open, 50);
-  window.addEventListener('hashchange', () => { if(location.hash === '#city') open(); });
+  if(/^city(=\d+)?$/.test(h) || (!h && !skip)) setTimeout(open, 50);
+  window.addEventListener('hashchange', () => { if(/^#city(=\d+)?$/.test(location.hash)) open(); });
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
