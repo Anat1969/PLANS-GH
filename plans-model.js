@@ -60,6 +60,12 @@ const KINDS = [
  ,{ id:'tech', topic:'power', label:'חדר טכני ואוורור', color:'#5fb8a8', desc:'אוורור החניון וחדר טכני בקומת הקרקע. מוצג על גג קומת הקרקע.' }
  ,{ id:'wasteLift', topic:'waste', label:'מעלית אשפה', color:'#2f7d5a', desc:'פיר האשפה של כל מגדל, מהסימן בתוכנית ההעמדה.' }
  ,{ id:'spot', topic:'level', label:'רומים', color:'#0b6b3a', desc:'מפלס הכניסה (שחור) ורומי הפיתוח (ירוק), במטרים מעל פני הים.' }
+ /* מתוכנית פיתוח וקטורית בשמות שכבות אחרים (tools/vector-model.py) ומחוברת העיצוב (tools/drainage-from-page.py) */
+ ,{ id:'fountain', topic:'shade', label:'אלמנט מים', color:'#5fa8c8', desc:'בריכת מים או מזרקה בפארק, מתוכנית הנוף.' }
+ ,{ id:'firepath', topic:'fire', label:'מסלול הכבאית', color:'#e23b3b', desc:'רצועת התנועה של רכב הכיבוי, מתוכנית הבטיחות.' }
+ ,{ id:'contour', topic:'level', label:'קווי גובה', color:'#8c7a5a', desc:'קווי הגובה של הפיתוח, מתוכנית הנוף.' }
+ ,{ id:'manhole', topic:'water', label:'שוחות מי גשם', color:'#1e5fa8', desc:'שוחה עם רום מכסה ורום תחתית, מחוברת העיצוב.' }
+ ,{ id:'wasteInlet', topic:'waste', label:'פתח פינוי פניאומטי', color:'#7a4a8a', desc:'פתח ההשלכה של מערכת האשפה הפניאומטית.' }
  /* תכנון רעיוני: תוכנית המתחם ומפת המדידה (tools/concept-model.py, ענת 24.11.2026) */
  ,{ id:'sport', topic:'shade', label:'מגרש ספורט', color:'#86b6de', desc:'מגרש כדורסל או ספורט, מתוכנית הפיתוח של המתחם.' },
  { id:'yard', topic:'shade', label:'חצר גן ילדים', color:'#c9c27a', desc:'החצר המגודרת של גן הילדים, מתוכנית הפיתוח.' },
@@ -290,6 +296,7 @@ function create(el, model, opts){
   surf('deck', .07, M.std({ color:KIND.deck.color, map:TX.wood, vertexColors:true }));
   surf('green', .085, M.std({ color:'#9fd07f', map:TX.grass, vertexColors:true, roughness:1 }), .5);
   surf('firemark', .10, M.std({ color:KIND.firemark.color, transparent:true, opacity:.75 }));
+  surf('fountain', .09, M.std({ color:KIND.fountain.color, roughness:.1, metalness:.2 })); surf('firepath', .11, M.std({ color:KIND.firepath.color, transparent:true, opacity:.35 }));
   surf('plaza', .06, M.std({ color:KIND.plaza.color, map:TX.paving, vertexColors:true, roughness:.9 }));
   surf('bikeRoom', 4.03, M.std({ color:KIND.bikeRoom.color })); surf('tech', 4.03, M.std({ color:KIND.tech.color }));
   ['useShop', 'useLobby', 'usePublic', 'useClub'].forEach((k, i) => surf(k, .11 + i*.004, M.std({ color:'#ffffff', vertexColors:true, roughness:.7 }), 1));   // רצפת קומת הקרקע לפי השימוש
@@ -322,7 +329,7 @@ function create(el, model, opts){
   rib('sewer', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewer.color, side:T.DoubleSide }), { noReceive:true });
   rib('drain', .1, .22, new T.MeshBasicMaterial({ color:KIND.drain.color, side:T.DoubleSide }), { noReceive:true });
   rib('gas', .1, .22, new T.MeshBasicMaterial({ color:KIND.gas.color, side:T.DoubleSide }), { noReceive:true });
-  lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color);
+  lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color); lin('contour', .14, KIND.contour.color);
 
   // אובייקטים
   const O = model.obj, dummy = new T.Object3D();
@@ -369,6 +376,8 @@ function create(el, model, opts){
   // כניסות, מעליות אשפה ורומים (תוכנית העמדה כתמונה)
   inst('entry', new T.ConeGeometry(.55, 1.1, 3), M.std({ color:KIND.entry.color }), O.entry, (d, t) => d.position.set(t[0], .55, -t[1]));
   box('wasteLift', (O.wasteLift||[]).map(t => [t[0], t[1], 1.6, 1.6, 0]), 4.8, M.std({ color:KIND.wasteLift.color }));
+  inst('manhole', new T.CylinderGeometry(.6, .6, .06, 16), M.std({ color:KIND.manhole.color, metalness:.4 }), O.manhole, (d, t) => d.position.set(t[0], .14, -t[1]), { cast:false });
+  inst('wasteInlet', new T.CylinderGeometry(.35, .35, 1.0, 12), M.std({ color:KIND.wasteInlet.color }), O.wasteInlet, (d, t) => d.position.set(t[0], .5, -t[1]));
   (O.spot||[]).forEach(t => { if(typeof document === 'undefined') return; const c = document.createElement('canvas'); c.width = 160; c.height = 44; const x = c.getContext('2d');
     x.fillStyle = 'rgba(255,255,255,.88)'; x.fillRect(0, 0, 160, 44); x.fillStyle = t[3] === 'ffl' ? '#1a1a18' : KIND.spot.color; x.font = 'bold 26px IBM Plex Sans, Arial, sans-serif';
     x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText((t[3] === 'hp' ? 'HP ' : t[3] === 'lp' ? 'LP ' : '') + Number(t[2]).toFixed(2), 80, 23);

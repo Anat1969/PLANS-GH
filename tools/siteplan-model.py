@@ -346,7 +346,7 @@ def main():
                     cv2.fillPoly(tm, [oh.astype(np.int32)], 255); of = b.get('otherFloors', 10)
                     parts.append(dict(lot=b['lot'], id=f"{b['id']}{'אבגדהו'[k_]}", kind='mid', floors=of, top=round(g0 + (of-1)*res_h, 2),
                                       c=flat(toM(cv2.approxPolyDP(oh.astype(np.float32), 4, True).reshape(-1, 2))), src=b.get('otherSrc', b['src']) + '. מתאר מהקומה הטיפוסית (הערכה). גובה הקומות: הנחה'))
-                top = g0 + (b['floors']-1)*res_h
+                top = round(b['roof'] - b['ground'], 2) if b.get('roof') else g0 + (b['floors']-1)*res_h   # גג מהחתכים, כשיש
                 parts.append(dict(lot=b['lot'], id=b['id'], kind='tower', floors=b['floors'], top=round(top, 2), c=flat(toM(cv2.approxPolyDP(hull.astype(np.float32), 4, True).reshape(-1, 2))),
                                   src=b['src'] + '. מתאר המגדל משקף 9 (הערכה). גובה הקומות: הנחה'))
                 if b.get('wingRoof') or b.get('wing'):

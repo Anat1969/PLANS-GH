@@ -1,0 +1,197 @@
+{
+ "tik": "1887",
+ "pdf": "4215-J-1.pdf",
+ "source": "4215-J-1, תוכנית קומת קרקע (תנועה וחניה, עם רקע הנוף 881-PIT והאדריכלות), מתוך ה-zip בדרייב 'תב - נאות ספיר', 24.11.2026",
+ "scale": 250,
+ "frame": [
+  3561,
+  147,
+  6482,
+  2453
+ ],
+ "georef": {
+  "method": "דמיון: קנה מידה 1:250 מהשרטוט, סיבוב והזזה בכיול מול צלעות מגרשי התב\"ע (שכבת pgvul1). נקודות פתיחה: מרכזי 7 מגרשים בצילום הגיליון",
+  "lotLayer": "level karka-TDM\\|pgvul1",
+  "gcp": [
+   [
+    1,
+    1250,
+    300
+   ],
+   [
+    2,
+    720,
+    420
+   ],
+   [
+    3,
+    420,
+    650
+   ],
+   [
+    4,
+    400,
+    1080
+   ],
+   [
+    5,
+    930,
+    820
+   ],
+   [
+    6,
+    1230,
+    780
+   ],
+   [
+    7,
+    800,
+    1000
+   ]
+  ],
+  "gcpZoom": 0.6
+ },
+ "surf": [
+  [
+   "green",
+   "green",
+   "KSM\\$2D\\$Planting hatch color plan\\$Groundcover"
+  ],
+  [
+   "play",
+   "shade",
+   "KSM\\$2D\\$(Hardscape General Hatches\\$EPDM|Site furniture\\$PF_Play\\$Brown hatch)"
+  ],
+  [
+   "fountain",
+   "shade",
+   "KSM\\$2D\\$Hardscape General Hatches\\$Water$"
+  ],
+  [
+   "pergola",
+   "shade",
+   "KSM\\$2D\\$Site furniture\\$SF_Shading\\$(Fabric|Structure)$"
+  ],
+  [
+   "deck",
+   "shade",
+   "KSM\\$2D\\$Site furniture\\$SF_Furniture\\$Wood$"
+  ],
+  [
+   "paving",
+   "walk",
+   "KSM\\$2D\\$Hardscape General Hatches\\$Colored Concrete$"
+  ],
+  [
+   "wall",
+   "build",
+   "^level karka-TDM\\|(A-WALL-PATT-CUT-\\d|hach-wall)$"
+  ],
+  [
+   "firepath",
+   "fire",
+   "Firetruck Route$"
+  ],
+  [
+   "firemark",
+   "fire",
+   "0-keboy-ash$"
+  ]
+ ],
+ "lines": [
+  [
+   "curb",
+   "road",
+   "\\|(olcurb\\d?|40-even_safa.*)$"
+  ],
+  [
+   "paint",
+   "road",
+   "\\|(OLLINE.*|Am-Paint.*|AM-Paint.*)$"
+  ],
+  [
+   "gardenedge",
+   "green",
+   "(\\|40-evengan.*|KSM\\$2D\\$General\\$Planting Line)$"
+  ],
+  [
+   "fence",
+   "level",
+   "\\|40-maake betihot$"
+  ],
+  [
+   "lowwall",
+   "level",
+   "\\|olwall.*$"
+  ],
+  [
+   "stairs",
+   "walk",
+   "^level karka-TDM\\|S-STRS$"
+  ],
+  [
+   "glass",
+   "build",
+   "^level karka-TDM\\|A-GLAZ.*$"
+  ],
+  [
+   "door",
+   "build",
+   "^level karka-TDM\\|A-DOOR$"
+  ],
+  [
+   "contour",
+   "level",
+   "\\|L-CONTOUR$"
+  ],
+  [
+   "fireroute",
+   "fire",
+   "Firetruck Route$"
+  ],
+  [
+   "easement",
+   "site",
+   "^level karka-TDM\\|pzikab1$"
+  ]
+ ],
+ "obj": {
+  "treeNew": [
+   "KSM\\$2D\\$Trees planting plan\\$|KSM-L-TREE STREET$",
+   1.5,
+   14
+  ],
+  "treeOld": [
+   "CONTEXT\\$2D\\$Existing trees - Preserved$|\\|40-trees kayam.*$",
+   1.5,
+   16
+  ],
+  "treeSurvey": "^level karka-TDM\\|TREES-SHIMUR_dwg-[234]$",
+  "bench": [
+   "KSM\\$2D\\$Site furniture\\$SF_Furniture(\\$Concrete)?$",
+   0.6
+  ],
+  "bin": "KSM\\$2D\\$General\\$Waste Points$",
+  "wasteInlet": "^level karka-TDM\\|pneomati$",
+  "fire": "TDM-Simon-Kabaet$"
+ },
+ "keepFromRaster": [
+  "asphalt",
+  "plot",
+  "bldline",
+  "bline",
+  "phase",
+  "ramp",
+  "plaza",
+  "bikeRoom",
+  "tech",
+  "entry",
+  "lamp",
+  "wasteLift",
+  "spot",
+  "drain",
+  "manhole",
+  "foot",
+  "pavingRaster"
+ ]
+}

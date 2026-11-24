@@ -54,6 +54,7 @@ for(const dir of sets){
     const segs = []; rn.parcels.forEach(p => { const c = p.c.map(loc); c.forEach((a, i) => { const b = c[(i+1)%c.length]; segs.push([a[0], a[1], b[0], b[1]]); }); });
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
+    if(man.vector){ const v = man.vector.cal; ok(v.within05 >= .9 && v.gridRotDiff < .1, dir + ': ' + man.vector.pdf + ' מעוגן לתב"ע (סטייה חציונית ' + v.median + " מ', " + Math.round(v.within05*100) + '% עד חצי מטר, הסיבוב זהה לרשת הגיליון עד ' + v.gridRotDiff + '°)'); }
     if(man.raster){ const c = man.cal || {}, dr = c.drawn;
       if(dr) ok(dr.share >= 0.7 && dr.within05 >= 0.8 && dr.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round(dr.share*100) + '% מהצלעות מצוירות בתמונה; מהן ' + Math.round(dr.within05*100) + '% עד חצי מטר מהקו, ' + Math.round(dr.within1*100) + '% עד מטר)');
       else ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
@@ -70,7 +71,7 @@ for(const dir of sets){
     ok(man.layers.every(l => l.ink > 0 || (man.missing||[]).includes(l.id)), dir + ': לכל שכבת שרטוט יש תוכן, חוץ ממה שרשום כחסר במקור (' + man.layers.filter(l => l.ink > 0).map(l => l.id).join(', ') + ')');
   }
   if(m.parts && fs.existsSync(rf)){ // חלקי בניין מהמצגת מול התב"ע: מספר הקומות והגובה. חריגה היא ממצא לחוות הדעת, לא תקלה
-    const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors > L.floors; });
+    const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors - (p.techFloors || 0) > L.floors; });
     ok(m.parts.every(p => p.src && p.floors > 0 && p.top > 4), dir + ': לכל חלק בניין יש מקור, קומות וגובה (' + m.parts.length + ' חלקים)');
     console.log('  ממצא: ' + (over.length ? over.map(p => 'בניין ' + p.id + ' ' + p.floors + ' קומות, בתב"ע ' + rn.lots.find(l => l.lot === p.lot).floors).join('; ') : 'כל החלקים בתוך מספר הקומות של התב"ע'));
   }
