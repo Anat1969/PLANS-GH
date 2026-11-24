@@ -37,7 +37,7 @@ COLS = [
  ('servBelow',  'שירות מתחת לכניסה',       'מ"ר', lambda h: 'שטחי' in h and 'מתחת' in h and ('שירות' in h or 'שרות' in h)),
  ('total',      'סה"כ שטחי בנייה',         'מ"ר', lambda h: 'שטחי' in h and ('סה"כ' in h or not re.search('מעל|מתחת', h))),
  ('coverage',   'תכסית',                   '%',   lambda h: 'תכסית' in h),
- ('units',      'יח"ד',                    '',    lambda h: 'יח"ד' in h),
+ ('units',      'יח"ד',                    '',    lambda h: 'יח"ד' in h and 'צפיפות' not in h),   # "צפיפות יח"ד לדונם" היא עמודה אחרת (603-0346031)
  ('height',     'גובה מבנה',               'מ\'', lambda h: 'גובה' in h),
  ('floorsAbove','קומות מעל הכניסה',        '',    lambda h: 'קומות' in h and 'מעל' in h),
  ('floorsBelow','קומות מתחת לכניסה',       '',    lambda h: 'קומות' in h and 'מתחת' in h),
@@ -152,7 +152,9 @@ def check(rows, mlots):
     res = []
     for L in mlots:
         lot = str(L.get('lot')); rs = [r for r in rows if r['lot'] == lot and not r.get('total_row')]
-        if not rs: res.append(dict(lot=lot, ok=False, why='המגרש לא נמצא בטבלה')); continue
+        if not rs:                                             # שביל או דרך: אין לו זכויות בנייה, ולכן גם אין לו שורה בטבלה
+            nil = not any(L.get(k) for k in ('units', 'height_m', 'floors_above', 'main_above'))
+            res.append(dict(lot=lot, ok=nil, why='בלי זכויות בנייה' if nil else 'המגרש לא נמצא בטבלה')); continue
         got = dict(units=sum(r.get('units') or 0 for r in rs) or None, height=max([r['height'] for r in rs if 'height' in r] or [None], key=lambda x: x or 0),
                    floorsAbove=max([r['floorsAbove'] for r in rs if 'floorsAbove' in r] or [None], key=lambda x: x or 0), lotSize=max([r['lotSize'] for r in rs if 'lotSize' in r] or [None], key=lambda x: x or 0))
         want = dict(units=L.get('units'), height=L.get('height_m'), floorsAbove=L.get('floors_above'), lotSize=L.get('lot_size'))
@@ -163,6 +165,7 @@ def check(rows, mlots):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('pdf'); ap.add_argument('tik'); ap.add_argument('--taba', required=True)
     ap.add_argument('--pages', default=''); ap.add_argument('--src', default=''); ap.add_argument('--fixes', default='', help='קובץ JSON של תיקונים ידניים מול העמוד')
+    ap.add_argument('--lots', default='', help='רק המגרשים של תוכנית הבינוי, למשל 3,15,19,20,21')
     a = ap.parse_args()
     doc = pymupdf.open(a.pdf)
     if a.pages: pages = [int(x) for x in a.pages.split(',')]
@@ -175,14 +178,17 @@ def main():
     ff = a.fixes or os.path.join(ROOT, 'data', 'table5', f'{a.tik}.fix.json')     # תיקונים ידניים, שנקראו מהעמוד
     fx = json.load(open(ff, encoding='utf8')) if os.path.exists(ff) else {}
     fixes = fx.get('cells', [])
+    for r in fx.get('rows', []):                               # שורה שלא נקראה אוטומטית (עמוד המשך עם מבנה עמודות אחר), נקראה מצילום העמוד
+        r = dict(r); r['lot'] = str(r['lot']); r.setdefault('total_row', False); r['fixed'] = {'row': fx.get('source', 'נקרא מהעמוד')}; rows.append(r)
+    if a.lots: keep = set(a.lots.split(',')); rows = [r for r in rows if r['lot'] in keep]
     for f in fixes:                                            # תיקון ידני: {lot, use, key, value, why}
         r = next((r for r in rows if r['lot'] == str(f['lot']) and r.get('use') == f.get('use')), None)
         if r: r[f['key']] = f['value']; r.setdefault('fixed', {})[f['key']] = f['why']
     used = [k for k in NUMERIC if any(k in r or k in r.get('notes', {}) for r in rows)]
     notes = table_notes(a.pdf, pages); notes.update(fx.get('notes', {}))
-    chk = check(rows, model_lots(a.taba))
+    chk = check(rows, [L for L in model_lots(a.taba) if not a.lots or str(L.get('lot')) in a.lots.split(',')])
     out = dict(tik=str(a.tik), taba=a.taba, source=a.src or os.path.basename(a.pdf), pages=pages, **plan_info(a.pdf), readAt=datetime.date.today().isoformat(),
-               columns=[dict(key=k, label=LABEL[k][0], unit=LABEL[k][1]) for k in used], notes=notes, rows=rows, check=chk, fixes=fixes, notesFixed=sorted(fx.get('notes', {}), key=int), fixSource=fx.get('source'))
+               lots=a.lots.split(',') if a.lots else None, columns=[dict(key=k, label=LABEL[k][0], unit=LABEL[k][1]) for k in used], notes=notes, rows=rows, check=chk, fixes=fixes, notesFixed=sorted(fx.get('notes', {}), key=int), fixSource=fx.get('source'))
     os.makedirs(os.path.join(ROOT, 'data', 'table5'), exist_ok=True)
     f = os.path.join(ROOT, 'data', 'table5', f'{a.tik}.json'); json.dump(out, open(f, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
     lots = sorted({r['lot'] for r in rows}, key=lambda x: int(x))

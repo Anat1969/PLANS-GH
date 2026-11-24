@@ -1,0 +1,691 @@
+{
+ "tik": "1887",
+ "taba": "תמל/2024",
+ "source": "הוראות תמל/2024 (Drive: תבע - הרצל - נאות ספיר / הוראות - תמל 2024.pdf, הפקה 25/12/2024)",
+ "pages": [
+  17,
+  18
+ ],
+ "planArea": 38.39,
+ "planAreaPage": 3,
+ "planType": "תכנית מועדפת לדיור",
+ "readAt": "2026-11-24",
+ "columns": [
+  {
+   "key": "lotSize",
+   "label": "גודל מגרש",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainAbove",
+   "label": "עיקרי מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servAbove",
+   "label": "שירות מעל הכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "mainBelow",
+   "label": "עיקרי מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "servBelow",
+   "label": "שירות מתחת לכניסה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "total",
+   "label": "סה\"כ שטחי בנייה",
+   "unit": "מ\"ר"
+  },
+  {
+   "key": "coverage",
+   "label": "תכסית",
+   "unit": "%"
+  },
+  {
+   "key": "units",
+   "label": "יח\"ד",
+   "unit": ""
+  },
+  {
+   "key": "height",
+   "label": "גובה מבנה",
+   "unit": "מ'"
+  },
+  {
+   "key": "floorsAbove",
+   "label": "קומות מעל הכניסה",
+   "unit": ""
+  },
+  {
+   "key": "floorsBelow",
+   "label": "קומות מתחת לכניסה",
+   "unit": ""
+  },
+  {
+   "key": "front",
+   "label": "קו בניין קדמי",
+   "unit": "מ'"
+  },
+  {
+   "key": "back",
+   "label": "קו בניין אחורי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideL",
+   "label": "קו בניין צידי שמאלי",
+   "unit": "מ'"
+  },
+  {
+   "key": "sideR",
+   "label": "קו בניין צידי ימני",
+   "unit": "מ'"
+  }
+ ],
+ "notes": {
+  "1": "בהתאם למסומן בתשריט",
+  "2": "תכסית מקסימלית לבנייה, לרבות עבור מרתפים תת קרקעיים",
+  "3": "השטחים התת קרקעיים הנ\"ל בתאי שטח15,17,19,20,22,24 הינם שטחים המיועדים לרישום תלת ממדי לטובת מעברים בין מרתפי חניה, והם ירשמו במסגרת מגרשים תלת מימדיים15A,17A,19A, 20A,22A, 24A . כמפורט בנספח קביעת מגרש תלת מימדי .נאות ספיר"
+ },
+ "rows": [
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 30,
+   "height": 109.5,
+   "units": 208,
+   "total": 38519,
+   "servBelow": 12235,
+   "servAbove": 9020,
+   "mainAbove": 17264,
+   "lotSize": 2447,
+   "lot": "1",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 500,
+   "servAbove": 100,
+   "mainAbove": 400,
+   "lotSize": 2447,
+   "lot": "1",
+   "use": "מסחר",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "total": 130,
+   "servAbove": 30,
+   "mainAbove": 100,
+   "lotSize": 2447,
+   "lot": "1",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 30,
+   "height": 109.5,
+   "units": 224,
+   "total": 39397,
+   "servBelow": 11225,
+   "servAbove": 9580,
+   "mainAbove": 18592,
+   "lotSize": 2245,
+   "lot": "2",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 500,
+   "servAbove": 100,
+   "mainAbove": 400,
+   "lotSize": 2245,
+   "lot": "2",
+   "use": "מסחר",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "total": 130,
+   "servAbove": 30,
+   "mainAbove": 100,
+   "lotSize": 2245,
+   "lot": "2",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 30,
+   "height": 109.5,
+   "units": 176,
+   "total": 30053,
+   "servBelow": 7525,
+   "servAbove": 7920,
+   "mainAbove": 14608,
+   "lotSize": 1505,
+   "lot": "3",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 364,
+   "servAbove": 73,
+   "mainAbove": 291,
+   "lotSize": 1505,
+   "lot": "3",
+   "use": "מסחר",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 30,
+   "height": 109.5,
+   "units": 176,
+   "total": 31098,
+   "servBelow": 8570,
+   "servAbove": 7920,
+   "mainAbove": 14608,
+   "lotSize": 1714,
+   "lot": "4",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 484,
+   "servAbove": 97,
+   "mainAbove": 387,
+   "lotSize": 1714,
+   "lot": "4",
+   "use": "מסחר",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 10,
+   "height": 35.2,
+   "units": 50,
+   "total": 11530,
+   "servBelow": 5630,
+   "servAbove": 1750,
+   "mainAbove": 4150,
+   "lotSize": 1126,
+   "lot": "5",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 200,
+   "servAbove": 40,
+   "mainAbove": 160,
+   "lotSize": 1126,
+   "lot": "5",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "floorsBelow": 5,
+   "floorsAbove": 10,
+   "height": 35.2,
+   "units": 66,
+   "total": 18013,
+   "servBelow": 10225,
+   "servAbove": 2310,
+   "mainAbove": 5478,
+   "lotSize": 2045,
+   "lot": "6",
+   "use": "מגורים ה'",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ]
+   },
+   "total": 520,
+   "servAbove": 104,
+   "mainAbove": 416,
+   "lotSize": 2045,
+   "lot": "6",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מגורים ה'",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ],
+    "coverage": [
+     "2"
+    ]
+   },
+   "floorsBelow": 2,
+   "floorsAbove": 6,
+   "coverage": 60,
+   "total": 8643,
+   "servBelow": 804,
+   "mainBelow": 804,
+   "servAbove": 1005,
+   "mainAbove": 6030,
+   "lotSize": 2010,
+   "lot": "7",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "front": [
+     "1"
+    ],
+    "back": [
+     "1"
+    ],
+    "sideL": [
+     "1"
+    ],
+    "sideR": [
+     "1"
+    ],
+    "coverage": [
+     "2"
+    ]
+   },
+   "floorsBelow": 1,
+   "floorsAbove": 6,
+   "coverage": 60,
+   "total": 44315,
+   "servBelow": 4122,
+   "mainBelow": 4122,
+   "servAbove": 5153,
+   "mainAbove": 30918,
+   "lotSize": 10306,
+   "lot": "8",
+   "use": "מבנים ומוסדות ציבור",
+   "zone": "מבנים ומוסדות ציבור",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 5,
+   "coverage": 100,
+   "servBelow": 2395,
+   "lotSize": 479,
+   "lot": "15",
+   "use": "חניון",
+   "zone": "דרך מוצעת",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 5,
+   "coverage": 100,
+   "servBelow": 752,
+   "lotSize": 188,
+   "lot": "17",
+   "use": "חניון",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  },
+  {
+   "page": 17,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 2,
+   "coverage": 80,
+   "servBelow": 446,
+   "lotSize": 279,
+   "lot": "19",
+   "use": "חניון",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  },
+  {
+   "page": 18,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 5,
+   "coverage": 50,
+   "servBelow": 458,
+   "lotSize": 229,
+   "lot": "20",
+   "use": "חניון",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  },
+  {
+   "page": 18,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 5,
+   "coverage": 80,
+   "servBelow": 822,
+   "lotSize": 257,
+   "lot": "22",
+   "use": "חניון",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  },
+  {
+   "page": 18,
+   "notes": {
+    "coverage": [
+     "2"
+    ],
+    "servBelow": [
+     "3"
+    ]
+   },
+   "floorsBelow": 5,
+   "coverage": 60,
+   "servBelow": 933,
+   "lotSize": 389,
+   "lot": "24",
+   "use": "חניון",
+   "zone": "שטח ציבורי פתוח",
+   "total_row": false
+  }
+ ],
+ "check": [
+  {
+   "lot": "1",
+   "ok": true
+  },
+  {
+   "lot": "2",
+   "ok": true
+  },
+  {
+   "lot": "3",
+   "ok": true
+  },
+  {
+   "lot": "4",
+   "ok": true
+  },
+  {
+   "lot": "5",
+   "ok": true
+  },
+  {
+   "lot": "6",
+   "ok": true
+  },
+  {
+   "lot": "7",
+   "ok": true
+  },
+  {
+   "lot": "8",
+   "ok": true
+  },
+  {
+   "lot": "15",
+   "ok": true
+  },
+  {
+   "lot": "17",
+   "ok": true
+  },
+  {
+   "lot": "19",
+   "ok": true
+  },
+  {
+   "lot": "20",
+   "ok": true
+  },
+  {
+   "lot": "22",
+   "ok": true
+  },
+  {
+   "lot": "24",
+   "ok": true
+  }
+ ],
+ "fixes": [],
+ "notesFixed": [],
+ "fixSource": null,
+ "pageCheck": "24.11.2026: כל 22 השורות וההפניות להערות נבדקו מול צילום עמודים 17-18. תואם, בלי תיקון."
+}
