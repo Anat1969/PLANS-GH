@@ -21,7 +21,7 @@ function setPath(p, path, v){ const a = path.split('.'), last = a.pop(); let o =
 const empty = v => v == null || String(v).trim() === '' || String(v).trim() === '—';
 
 /** ממלא תוכנית אחת. מחזיר כמה ערכים נכנסו */
-function applyPlan(p, rec){
+function applyPlan(p, rec, src){
   let n = 0; p._seeded = p._seeded || {}; p._mmDone = p._mmDone || {}; const ue = p._userEdited || {};
   Object.entries(rec.fields || {}).forEach(([path, v]) => {
     if(p._mmDone[path] || ue[path]) return; p._mmDone[path] = 1;
@@ -29,7 +29,7 @@ function applyPlan(p, rec){
     setPath(p, path, v); p._seeded[path] = 1; n++; });
   if(rec.dept && !p.mmDept){ p.mmDept = rec.dept; n++; }
   if(Array.isArray(rec.docs) && rec.docs.length){ p.documents = Array.isArray(p.documents) ? p.documents : []; const have = new Set(p.documents.map(d => d && d.url));
-    rec.docs.forEach(d => { if(!have.has(d.url) && !p._mmDone['doc:'+d.url]){ p._mmDone['doc:'+d.url] = 1; p.documents.push({ name:d.name, type:d.type || '', url:d.url, date:d.date || DATA.readAt, src:SRC }); n++; } }); }
+    rec.docs.forEach(d => { if(!have.has(d.url) && !p._mmDone['doc:'+d.url]){ p._mmDone['doc:'+d.url] = 1; p.documents.push({ name:d.name, type:d.type || '', url:d.url, date:d.date || DATA.readAt, src:src || SRC }); n++; } }); }
   return n;
 }
 /** אנשי קשר: יזם, אדריכל ומנהל פרויקט */
@@ -49,15 +49,20 @@ function applyContacts(){
   return n;
 }
 function recFor(p){ return DATA && DATA.plans[key(p.planNum)] ? DATA.plans[key(p.planNum)] : null; }
+/* מקור נוסף באותו מבנה: data/concept-import.json, פרטים שחולצו ממצגות של תכנון רעיוני (ענת, 24.11.2026, תיק 1909).
+   אותם כללים: רק שדה ריק, פעם אחת לכל שדה, לא שדה שנערך ידנית, וסימון בכחול. המקור נרשם על כל מסמך */
+let EXTRA = null;
+const extraFor = p => EXTRA && EXTRA.plans[key(p.planNum)] ? EXTRA.plans[key(p.planNum)] : null;
 
 async function run(){
   if(!DATA){ try{ const raw = await (await fetch('data/merhav-import.json?v=1123k')).json(); DATA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ console.warn('merhav import', e); return; } }
+  if(!EXTRA){ try{ const raw = await (await fetch('data/concept-import.json?v=1124a')).json(); EXTRA = { ...raw, plans:Object.fromEntries(Object.entries(raw.plans).map(([k, v]) => [key(k), v])) }; }catch(e){ EXTRA = { plans:{} }; } }
   if(typeof isArchitect === 'function' && typeof session !== 'undefined' && session && !isArchitect()) return;   // רק אדריכלית העיר משנה נתונים
   let n = 0, plansHit = 0;
-  livePlans().forEach(p => { const r = recFor(p); if(!r) return; const k = applyPlan(p, r); if(k){ n += k; plansHit++; } });
+  livePlans().forEach(p => { const r = recFor(p), x = extraFor(p); let k = 0; if(r) k += applyPlan(p, r); if(x) k += applyPlan(p, x, x.src || EXTRA.source); if(k){ n += k; plansHit++; } });
   if(n){ try{ savePlans(); }catch(e){} }
   const waitC = () => { if(typeof _contactsLoaded !== 'undefined' && !_contactsLoaded) return setTimeout(waitC, 300); const c = applyContacts();
-    if(n || c) say(`ממרחב מדבר: ${n} ערכים ב-${plansHit} תוכניות${c ? `, ${c} עדכוני אנשי קשר` : ''}. מסומנים בכחול`); };
+    if(n || c) say(`ממרחב מדבר ומהמצגות: ${n} ערכים ב-${plansHit} תוכניות${c ? `, ${c} עדכוני אנשי קשר` : ''}. מסומנים בכחול`); };
   waitC();
   try{ const a = document.querySelector('.page.active'); if(a && a.id === 'table' && typeof applyFilters === 'function') applyFilters(); if(a && a.id === 'projectPage' && typeof pj === 'function' && pj()){ renderInfoTab(pj()); mark(); } }catch(e){}
 }

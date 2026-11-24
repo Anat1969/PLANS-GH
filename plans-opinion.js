@@ -334,7 +334,7 @@ function secLocation(p){
 /* ── השלמות ליזם (ענת, 24.11.2026): כל מה שלא עומד, עם ההנחיה, בנוסח מוכן להעתקה ולמייל ── */
 const INFRA_CACHE = {};
 async function infraFindings(p){
-  const set = (window.LAYER_SETS || {})[String(p.tik)]; if(!set || !window.PlanInfra || !window.PlanModel) return [];
+  const set = (window.LAYER_SETS || {})[String(p.tik)]; if(!set || set.concept || !window.PlanInfra || !window.PlanModel) return [];   // תכנון רעיוני: אין עדיין מה לנתח
   if(!INFRA_CACHE[p.tik]){ const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = set.renewal ? await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null) : null;
     INFRA_CACHE[p.tik] = window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }); }
   return INFRA_CACHE[p.tik];
@@ -354,7 +354,7 @@ async function completions(p){
       const ls = Object.keys(miss).sort((a, b) => a - b), tot = ls.reduce((a, l) => a + miss[l].size, 0);
       if(ls.length) it.push(`חסרים ${tot} ערכים מבוקשים בטבלה 5, ב-${ls.length === 1 ? 'מגרש ' + ls[0] : ls.length + ' מגרשים: ' + ls.join(', ')}. יש להשלים בטופס הנתונים.`); }
     add('טבלה 5', it); }
-  const hasPdf = (p.documents || []).some(d => d && d.layers) || !!(window.LAYER_SETS || {})[String(p.tik)];
+  const lset = (window.LAYER_SETS || {})[String(p.tik)], hasPdf = (p.documents || []).some(d => d && d.layers) || !!(lset && !lset.concept);   // מודל רעיוני אינו תוכנית פיתוח
   add('תוכנית הפיתוח', [hasPdf ? '' : 'יש להגיש את תוכנית הפיתוח כקובץ PDF מקורי מ-AutoCAD, עם שכבות.']);
   const tc = checksTaba(p);
   add('הוראות התב"ע: לא עומד', tc.filter(x => x.st === 'no').map(x => `${x.t.replace(/[.\s]+$/, '')}. ${x.note ? x.note.replace(/[.\s]+$/, '') + ' ' : ''}(סעיף ${x.r.section}).`));
@@ -443,12 +443,12 @@ function secChecks(p){
     ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
     ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
     ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
-    ['ניתוח רב תשתיות', `<div id="opInfra">${hasModel ? '…' : '<p class="muted">אין עדיין מודל לתוכנית. הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>'}</div>`]
+    ['ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
   ];
 }
 async function fillAsync(p){
   try{ const el = document.getElementById('opStreet'); if(el && typeof window.planStreet === 'function'){ const s = await window.planStreet(p); el.textContent = s || 'אין רחוב עד 150 מ\''; } }catch(e){}
-  try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || !window.PlanInfra || !window.PlanModel) return;
+  try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || set.concept || !window.PlanInfra || !window.PlanModel) return;
     const fs = await infraFindings(p);
     el.innerHTML = checkList(fs.map(f => ({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, ''), st:f.ok === false ? 'no' : f.ok === true ? 'yes' : 'na', note:f.ok === false ? f.guide : '' })), `openLayers('${p.tik}')`)
       + (set.auto === 'approx' ? '<p class="muted">המודל במיקום משוער. הכמויות מדויקות.</p>' : ''); }catch(e){ console.warn('opinion infra', e); }
