@@ -45,5 +45,67 @@
   "trees": "עצים: נקודת מרכז בתוך עיגול צמרת. הקוטר מעיגול הצמרת (56 עצים), ובשאר 5 מ' (הנחה). עד 10 מ'. עץ ירוק ועץ אפור לא מובחנים. הערכה.",
   "paving": "ריצוף: כל תחום המגרשים שאינו מבנה, חצר או דרך. הערכה.",
   "heights": "גובה המבנים מעל קומת הקרקע: מהתב\"ע (קומות וגובה מרבי), הנחה עד שיגיעו חזיתות וחתכים."
+ },
+ "vector": {
+  "made": "2026-11-24",
+  "pdf": "4215-J-1.pdf",
+  "source": "4215-J-1, תוכנית קומת קרקע (תנועה וחניה, עם רקע הנוף 881-PIT והאדריכלות), מתוך ה-zip בדרייב 'תב - נאות ספיר', 24.11.2026",
+  "calibration": {
+   "rotDeg": -28.554,
+   "median": 0.1,
+   "within05": 1.0,
+   "within1": 1.0,
+   "points": 7591,
+   "gridStep": 25.0,
+   "gridRotDiff": 0.01,
+   "gridOffset": [
+    -8.69,
+    -9.02
+   ]
+  },
+  "georef": "דמיון: קנה מידה 1:250 מהשרטוט, סיבוב והזזה בכיול מול צלעות מגרשי התב\"ע (שכבת pgvul1). נקודות פתיחה: מרכזי 7 מגרשים בצילום הגיליון",
+  "kinds": [
+   "bench",
+   "bin",
+   "contour",
+   "curb",
+   "door",
+   "easement",
+   "fence",
+   "fire",
+   "firemark",
+   "firepath",
+   "fountain",
+   "gardenedge",
+   "glass",
+   "green",
+   "lowwall",
+   "paint",
+   "paving",
+   "play",
+   "stairs",
+   "treeNew",
+   "treeOld",
+   "treeSurvey",
+   "wall",
+   "wasteInlet"
+  ],
+  "keptFromImage": [
+   "asphalt",
+   "bikeRoom",
+   "bldline",
+   "bline",
+   "drain",
+   "entry",
+   "lamp",
+   "manhole",
+   "phase",
+   "plaza",
+   "plot",
+   "ramp",
+   "spot",
+   "tech",
+   "wasteLift"
+  ]
  }
 }

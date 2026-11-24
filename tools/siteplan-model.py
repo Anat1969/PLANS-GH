@@ -258,7 +258,7 @@ def main():
                         k_ = 1 + int(np.argmax(st_[1:, 4])); cs_, _ = cv2.findContours(((lb == k_)*255).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                         hull = cv2.convexHull(cs_[0]).reshape(-1, 2).astype(float)
                 tm = np.zeros_like(fm); cv2.fillPoly(tm, [hull.astype(np.int32)], 255)
-                top = g0 + (b['floors']-1)*res_h
+                top = round(b['roof'] - b['ground'], 2) if b.get('roof') else g0 + (b['floors']-1)*res_h
                 parts.append(dict(lot=b['lot'], id=b['id'], kind='tower', floors=b['floors'], top=round(top, 2), c=flat(toM(cv2.approxPolyDP(hull.astype(np.float32), 4, True).reshape(-1, 2))),
                                   src=b['src'] + '. מתאר המגדל משקף 9 (הערכה). גובה הקומות: הנחה'))
                 if b.get('wingRoof'):

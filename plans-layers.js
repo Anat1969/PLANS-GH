@@ -104,25 +104,28 @@ function discCount(disc){ const r = review(), ks = askKeys(disc), cu = r.custom.
 /* ── מה נמדד בשרטוט, לכל תחום. הכול הערכה מהגאומטריה ── */
 /* תוכנית העמדה כתמונה: רק מה שנמדד ממנה, ומה שחסר בה נאמר במפורש */
 function rasterFacts(disc){
-  const m = S.meas, a = m.area, c = m.count, man = S.man || {}, cal = man.cal || {}, e = man.elements || {}, bc = e.basementCal || {},
-    none = t => `==אין בשקפים: ${t}==`, ask = 'לבקש מהאדריכל תוכנית פיתוח (PDF עם שכבות), דרך הטופס לאדריכל';
+  const m = S.meas, a = m.area, c = m.count, l = m.len, man = S.man || {}, cal = man.cal || {}, e = man.elements || {}, bc = e.basementCal || {}, v = man.vector,
+    none = t => `==אין במקור: ${t}==`, ask = 'לבקש מהאדריכל תוכנית פיתוח (PDF עם שכבות), דרך הטופס לאדריכל', sv = (S.model.obj.treeSurvey || []).reduce((s2, x) => s2 + x[1].length, 0);
   switch(disc.id){
     case 'arch': { const fit = conform(), out = fit ? fit.reduce((s, r) => s+r.out, 0) : 0, tot = fit ? fit.reduce((s, r) => s+r.area, 0) : 0;
-      return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר, ו-**${c.entry||0}** כניסות`,
+      return [`**${c.foot}** מבנים, **${c.entry||0}** כניסות${v ? `, קירות קומת הקרקע מ-${v.pdf}` : `, קומת קרקע של כ-**${N(a.foot)}** מ"ר`}`,
         fit && fit.length ? (out > tot*0.02 ? `==כ-${N(out)} מ"ר מקומת הקרקע מחוץ לקווי הבניין של התב"ע== (הערכה, ${Math.round(out/tot*100)}%)` : `קומת הקרקע בתוך קווי הבניין של התב"ע (${fit.length} מגרשים, הערכה)`) : 'אין נתוני תב"ע להשוואה',
         spacingFact(), partsFact()].filter(Boolean); }
-    case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר. **${e.ramps||0}** רמפות לחניון, כ-**${N(a.ramp)}** מ"ר`,
-      e.under ? `קו המרתף משקף המרתף: כ-**${N(e.under)}** מ"ר, הערכה (עיגון: **${Math.round((bc.within05||0)*100)}%** מהצלעות עד חצי מטר)` : '',
-      `חדרי אופניים ועגלות: כ-**${N(a.bikeRoom)}** מ"ר`, none('מקומות החניה, שבילי אופניים ופריקה וטעינה')].filter(Boolean);
-    case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר, רחבה או דרך)`, `**${c.spot||0}** רומים, מהכניסות ועד שולי המגרש`, none('מדרגות, קירות פיתוח ושיפועי הנגישות')];
-    case 'land': return [`**${c.treeNew}** עצים בתוכנית ההעמדה, ו-**${c.treeOld||0}** עצים קיימים מסקר העצים (מתוך כ-120 ממוספרים)`,
-      `חצרות גן ומעון: כ-**${N(a.green)}** מ"ר. רחבות שהייה: כ-**${N(a.plaza)}** מ"ר`, '==עץ לשימור, להעתקה או לכריתה לא מסומן=='];
-    case 'water': return [none('מים, ביוב וניקוז'), ask];
-    case 'power': return [`**${c.lamp||0}** סימנים צהובים לאורך הדרכים, כנראה עמודי תאורה (הערכה)`, `חדר טכני ואוורור: כ-**${N(a.tech)}** מ"ר`, none('חדר טרנספורמציה, ארונות וקווי חשמל')];
-    case 'waste': return [`**${c.wasteLift||0}** מעליות אשפה, אחת בכל מגדל`, none('חדר אשפה, דחסנית ומסלול משאית הפינוי'), ask];
-    case 'fire': return [`**${c.fire||0}** רחבות כיבוי של כ-6 על 12 מ', ובכל אחת כבאית`, e.firePartial ? e.firePartial : '', none('מסלולי הגישה ורדיוסי הסיבוב')].filter(Boolean);
-    default: return [`**${c.foot}** מבנים, **${c.treeNew + (c.treeOld||0)}** עצים, **${c.fire||0}** רחבות כיבוי, **${c.spot||0}** רומים`,
-      `מקור: ${man.source}`, cal.within05 != null ? `מעוגן למגרשי התב"ע: **${Math.round(cal.within05*100)}%** מצלעות המגרשים עד חצי מטר מהקו בתמונה` : 'המודל ממוקם ברשת ישראל'];
+    case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר${l.curb ? `, אבני שפה **${N(l.curb)}** מ'` : ''}${l.paint ? `, סימון **${N(l.paint)}** מ'` : ''}`,
+      `**${e.ramps||0}** רמפות לחניון${e.under ? `, קו המרתף כ-**${N(e.under)}** מ"ר (הערכה, משקף המרתף)` : ''}`, `חדרי אופניים ועגלות: כ-**${N(a.bikeRoom)}** מ"ר`,
+      v ? '==מקומות החניה במרתפים (J-2) עוד לא נספרו==' : none('מקומות החניה, שבילי אופניים ופריקה וטעינה')].filter(Boolean);
+    case 'walk': return [v ? `ריצוף: כ-**${N(a.paving)}** מ"ר (הבטון הצבעוני מהשרטוט, השאר הערכה מתוכנית ההעמדה)` : `ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר, רחבה או דרך)`,
+      `**${c.spot||0}** רומים${l.contour ? `, קווי גובה **${N(l.contour)}** מ'` : ''}${l.stairs ? `, מדרגות **${N(l.stairs)}** מ'` : ''}`, l.easement ? `זיקת הנאה למעבר הציבור: **${N(l.easement)}** מ' של גבולות` : none('מדרגות, קירות פיתוח ושיפועי הנגישות')];
+    case 'land': return [`**${c.treeNew}** עצים מוצעים${c.treeOld ? `, **${c.treeOld}** קיימים לשימור` : ''}${sv ? `, ו-**${sv}** סימוני סקר העצים` : ''}`,
+      `גינון: כ-**${N(a.green)}** מ"ר${a.play ? `, משחק כ-**${N(a.play)}** מ"ר` : ''}${a.fountain ? `, אלמנט מים כ-**${N(a.fountain)}** מ"ר` : ''}${a.plaza ? `, רחבות שהייה כ-**${N(a.plaza)}** מ"ר` : ''}`,
+      v ? 'צבע סימון הסקר לפי מקרא הסקר: לשימור, להעתקה או לכריתה' : '==עץ לשימור, להעתקה או לכריתה לא מסומן=='];
+    case 'water': return l.drain ? [`ניקוז מי גשם: **${N(l.drain)}** מ' צינורות ו-**${c.manhole||0}** שוחות עם רום מכסה ותחתית (חוברת העיצוב, עמ' 15)`, 'מיקום השוחה: קצה הצינור הקרוב לתווית (הערכה)', '==ניהול הנגר (עמ\' 14) ותוכנית הביוב עוד לא חולצו=='] : [none('מים, ביוב וניקוז'), ask];
+    case 'power': return [`**${c.lamp||0}** סימנים צהובים לאורך הדרכים, כנראה עמודי תאורה (הערכה, מהמצגת)`, `חדר טכני ואוורור: כ-**${N(a.tech)}** מ"ר`, none('חדר טרנספורמציה, ארונות וקווי חשמל')];
+    case 'waste': return [`**${c.wasteInlet||0}** פתחי פינוי פניאומטי, **${c.wasteLift||0}** מעליות אשפה${c.bin ? `, **${c.bin}** נקודות אשפה בפיתוח` : ''}`, v ? 'המערכת הפניאומטית במרתף: חוברת העיצוב, עמ\' 21' : none('חדר אשפה, דחסנית ומסלול משאית הפינוי')];
+    case 'fire': return [`**${c.fire||0}** רחבות כיבוי של כ-12 על 6 מ', ובכל אחת כבאית`, a.firepath ? `מסלול הכבאית: כ-**${N(a.firepath)}** מ"ר, מתוכנית הבטיחות` : none('מסלולי הגישה ורדיוסי הסיבוב')].filter(Boolean);
+    default: return [`**${c.foot}** מבנים, **${c.treeNew + (c.treeOld||0)}** עצים, **${c.fire||0}** רחבות כיבוי, **${c.manhole||0}** שוחות ניקוז`,
+      v ? `${v.pdf}: מעוגן לתב"ע בסטייה חציונית **${v.cal.median}** מ'. הסיבוב זהה לרשת הגיליון (הפרש **${v.cal.gridRotDiff}**°)` : `מקור: ${man.source}`,
+      cal.within05 != null ? `תוכנית ההעמדה מהמצגת: **${Math.round(cal.within05*100)}%** מצלעות המגרשים עד חצי מטר` : 'המודל ממוקם ברשת ישראל'];
   }
 }
 /* מרחקים בין מבנים (model.spacing) וחלקי בניין מהמצגת (model.parts) */
@@ -133,11 +136,11 @@ function spacingFact(){
     : `מרחקים בין מבנים תואמים להוראות${t ? `: בין מגדלים לפחות **${t.d}** מ' (נדרש 18)` : ''}, הערכה`;
 }
 function partsFact(){
-  const p = S.model.parts||[], rn = S.rn, over = rn ? p.filter(x => { const L = rn.lots.find(l => l.lot === x.lot); return L && L.floors && x.floors > L.floors; }) : [];
+  const p = S.model.parts||[], rn = S.rn, fl = x => x.floors - (x.techFloors || 0), over = rn ? p.filter(x => { const L = rn.lots.find(l => l.lot === x.lot); return L && L.floors && fl(x) > L.floors; }) : [], tech = p.filter(x => x.techFloors);
   if(!p.length) return 'גובה הבניינים אינו בתמונה: החזיתות עולות לפי הקומות של התב"ע, להמחשה';
   const ids = [...new Set(over.map(x => x.id))];
-  return ids.length ? `==${ids.join(', ')}: ${over[0].floors} קומות במצגת, ${rn.lots.find(l => l.lot === over[0].lot).floors} בטבלה 5== (לבירור: עד 2 קומות טכניות מותרות)`
-    : `**${[...new Set(p.map(x => x.id))].length}** בניינים בגובה מהמצגת, בתוך מספר הקומות בתב"ע`;
+  return ids.length ? `==${ids.join(', ')}: ${fl(over[0])} קומות במצגת, ${rn.lots.find(l => l.lot === over[0].lot).floors} בטבלה 5== (לבירור: עד 2 קומות טכניות מותרות)`
+    : `**${[...new Set(p.map(x => x.id))].length}** בניינים בתוך מספר הקומות בתב"ע${tech.length ? `. ב-${tech.map(x => x.id).join(', ')} קומה טכנית אחת (מותרות עד 2), מהחתכים` : ''}`;
 }
 /* תכנון רעיוני: מה יש בשלב הזה, ומה לבקש מכל יועץ לפורום. בלי מספרים של תוכנית פיתוח שעוד לא קיימת */
 function conceptFacts(disc){
@@ -217,7 +220,7 @@ function shell(){
   <div class="ly-head">
     <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
     ${set.auto === 'approx' ? `<p class="ly-approx">מיקום משוער: הכמויות מדויקות, המיקום לא נבדק מול התב"ע</p>` : ''}
-    ${set.raster ? `<p class="ly-approx">מתוכנית העמדה כתמונה: מבנים, עצים וריצוף הם הערכה. חסרה תוכנית פיתוח עם שכבות</p>` : ''}
+    ${S.man && S.man.vector ? `<p class="ly-approx ly-src2">פיתוח: ${H(S.man.vector.pdf)} וקטורי, מעוגן לתב"ע. גבהים מהמצגת, ניקוז מחוברת העיצוב</p>` : set.raster ? `<p class="ly-approx">מתוכנית העמדה כתמונה: מבנים, עצים וריצוף הם הערכה. חסרה תוכנית פיתוח עם שכבות</p>` : ''}
     ${plan() ? `<nav class="ly-links" aria-label="שלבי התוכנית">${stageChips()}<button data-card="opinion" title="כרטיס התוכנית בפורמט של חוות הדעת לוועדה">חוות דעת</button></nav>` : ''}
     <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
   </div>
@@ -547,6 +550,7 @@ const CSS = `
 .ly-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 6px}
 .ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
 .ly-approx{margin:0;font-size:12.5px;color:#8a5a00;background:#fff3d6;padding:2px 8px;white-space:nowrap}
+.ly-src2{color:#2f5f2f;background:#e9f3e4}
 @media (max-width:700px){.ly-approx{white-space:normal}}
 .ly-title b{color:var(--ink);font-weight:600}
 .ly-nav{display:flex;gap:3px;flex:none}
