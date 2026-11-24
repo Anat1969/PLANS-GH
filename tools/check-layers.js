@@ -86,6 +86,21 @@ for(const dir of sets){
     ok(fd.buildings.filter(b => b.fit.median != null).every(b => b.fit.median < 0.6), dir + ': עיגון הקומות לקווי המגרש (סטייה חציונית ' + fd.buildings.filter(b => b.fit.median != null).map(b => b.id + ' ' + b.fit.median).join(', ') + " מ')");
     ok(fs.statSync(ff).size < 1.5e6, dir + ': floors.json ' + (fs.statSync(ff).size/1e3).toFixed(0) + 'KB');
   }
+  const lf = path.join(root, dir, 'levels.json');
+  if(fs.existsSync(lf)){ // מפלסים (tools/extract-levels.py): רמפות בשיפוע סביר, פני קרקע בטווח סביר, ולכל רום ובדיקה יש מקור
+    const lv = JSON.parse(fs.readFileSync(lf, 'utf8')), hs = lv.h.map(v => v/100), mn = Math.min(...hs), mx = Math.max(...hs);
+    ok(lv.h.length === lv.nx*lv.ny, dir + ': רשת פני הקרקע שלמה (' + lv.nx + '×' + lv.ny + ')');
+    ok(mx - mn < 6, dir + ': פני הקרקע בטווח של ' + (mx-mn).toFixed(2) + " מ' (סביר לאתר עירוני)");
+    ok(lv.spots.every(s => s.src && Number.isFinite(s.z) && s.at && s.at.length === 2), dir + ': לכל רום (' + lv.spots.length + ') יש מקום, גובה ומקור');
+    const rs = lv.ramps || [];
+    ok(rs.every(r => r.slope > 0 && r.slope <= .2 && r.len > 5 && r.tris.length >= 6 && r.wall.length && r.depth > 0), dir + ': ' + rs.length + ' רמפות לחניון, שיפוע עד 20%, עם רצפה וקירות');
+    ok(rs.every(r => Math.abs(r.depth - (3.5*r.slope/2 + Math.max(0, r.len-5.5)*r.slope)) < .05), dir + ': עומק כל רמפה תואם לאורך ולשיפוע');
+    ok((lv.checks||[]).every(c => /1:12/.test(c.text) && c.at), dir + ': ' + (lv.checks||[]).length + ' בדיקות כניסה מנוסחות עם הכלל (1:12) ומקום');
+    // הקרקע במקום כל רום: הרשת עוברת דרך הרומים שמחוץ לבניינים (עד 25 ס"מ), ובתוך בניין במפלס 0.00 שלו
+    const hAt = (x, y) => { const i = Math.round((x-lv.x0)/lv.res), j = Math.round((y-lv.y0)/lv.res); return lv.h[Math.max(0, Math.min(lv.ny-1, j))*lv.nx + Math.max(0, Math.min(lv.nx-1, i))]/100 + lv.datum; };
+    const bad = lv.spots.filter(s => s.kind !== 'ffl' && Math.abs(hAt(s.at[0], s.at[1]) - s.z) > .25);
+    ok(bad.length <= Math.ceil(lv.spots.length*.15), dir + ': פני הקרקע עוברים דרך הרומים (' + bad.length + ' חריגים מעל 25 ס"מ, מותר 15%)');
+  }
   const big = fs.statSync(path.join(root, dir, 'model.json')).size + man.layers.reduce((s, l) => s + fs.statSync(path.join(root, dir, l.file)).size, 0);
   ok(big < 7e6, dir + ': משקל ' + (big/1e6).toFixed(1) + 'MB');
 }
