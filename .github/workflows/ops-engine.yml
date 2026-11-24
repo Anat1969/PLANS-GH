@@ -1,0 +1,29 @@
+# המערכת ברקע (ענת, 24.11.2026): מריצה את מנוע העבודה גם כשהאפליקציה סגורה.
+# קוראת את התוכניות מ-ASHDODMAP, מזהה מה צריך החלטה ומה לא קרה, מכינה תזכורות ודפי הכנה,
+# ושומרת תמונת מצב בשורה אחת: ashdod_muni / ops_server. לא כותבת לתוכניות.
+# כל שעתיים בין 06:00 ל-22:00 שעון ישראל (בחורף), וגם בלחיצה: Actions > ops-engine > Run workflow.
+name: ops-engine
+on:
+  schedule:
+    - cron: '41 4-20/2 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'להריץ גם אם הייתה הרצה מוצלחת ב-20 הדקות האחרונות'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: ops-engine
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tools/ops-engine.mjs ${{ inputs.force && '--force' || '' }}
