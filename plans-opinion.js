@@ -443,7 +443,7 @@ function secChecks(p){
     ['הנחיות מרחביות', checkList(checksSpatial(p), go('spatial'))],
     ['דרישות התב"ע והעירייה', checkList(checksMuni(p), go('muni'))],
     ['דרישות ההגשה לתוכנית הפיתוח', checkList(checksSubmission(p), hasModel ? `openLayers('${p.tik}')` : '') + (hasModel ? '' : '<p class="muted">הדרישות נבדקות במסך המודל, כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>')],
-    ['ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
+    [((window.LAYER_SETS || {})[String(p.tik)] || {}).raster ? 'בדיקת הבינוי מהמצגת' : 'ניתוח רב תשתיות', `<div id="opInfra">${hasModel && !((window.LAYER_SETS || {})[String(p.tik)] || {}).concept ? '…' : `<p class="muted">${hasModel ? 'יש מודל של התכנון הרעיוני, בלי תוכנית פיתוח.' : 'אין עדיין מודל לתוכנית.'} הניתוח ייעשה כשתגיע תוכנית הפיתוח כ-PDF עם שכבות.</p>`}</div>`]
   ];
 }
 async function fillAsync(p){
