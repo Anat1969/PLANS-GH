@@ -405,16 +405,19 @@ function create(el, model, opts){
   const sunBall = new T.Mesh(new T.SphereGeometry(7, 20, 14), new T.MeshBasicMaterial({ color:'#ffc93c', fog:false })); scene.add(sunBall);
   const pathLine = new T.Line(new T.BufferGeometry(), new T.LineBasicMaterial({ color:'#e6a700', fog:false })); scene.add(pathLine);
   let sunState = null;
+  let sunArgs = null;
   function setSun(y, m, d, hour){
     const s = sunPos(ilDate(y, m, d, hour), center[0], center[1]), R = 330, dir = a => new T.Vector3(Math.sin(a.az)*Math.cos(a.alt), Math.sin(a.alt), -Math.cos(a.az)*Math.cos(a.alt));
     const v = dir(s); sun.position.copy(v).multiplyScalar(R); sun.target.position.set(0, 0, 0); sunBall.position.copy(v).multiplyScalar(R+30);
-    const up = Math.max(0, Math.sin(s.alt)), day = s.alt > 0;
+    sunArgs = [y, m, d, hour]; const up = Math.max(0, Math.sin(s.alt)), day = s.alt > 0, lit = s.alt < 3*Math.PI/180;   // התאורה נדלקת בדמדומים, מעט לפני השקיעה
     sun.intensity = day ? .55 + 1.35*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .5 + .1*up : .12; sunBall.visible = day;
     const sky = new T.Color(day ? '#eef2f5' : '#20283a').lerp(new T.Color('#f6d9b0'), day ? Math.max(0, .5-up*2.2) : 0); scene.background = sky;
-    lampHead.emissiveIntensity = day ? 0 : 2.4; setNight(!day); skySun(v, day); scene.environment = day ? envTex : null;   // בלילה אין השתקפות שמיים: החזיתות כהות והחלונות המוארים בולטים
+    lampHead.emissiveIntensity = lit ? 2.4 : 0; setNight(lit); skySun(v, day); scene.environment = day ? envTex : null;   // בלילה אין השתקפות שמיים: החזיתות כהות והחלונות המוארים בולטים
     fill.position.set(-v.x*R, Math.max(60, v.y*R*.4), -v.z*R); fill.intensity = day ? .2 : .05;
     const pts = []; for(let h = 4; h <= 21; h += .25){ const p = sunPos(ilDate(y, m, d, h), center[0], center[1]); if(p.alt > 0) pts.push(dir(p).multiplyScalar(R+30)); }
-    pathLine.geometry.setFromPoints(pts); sunState = { alt:s.alt*180/Math.PI, az:(s.az*180/Math.PI+360)%360, day }; draw(); return sunState;
+    pathLine.geometry.setFromPoints(pts); sunState = { alt:s.alt*180/Math.PI, az:(s.az*180/Math.PI+360)%360, day, lit };
+    if(rl && rl.setTime) rl.setTime(sunState.alt);   // ההמחשה הראליסטית: אור ערב, פנסים, ויטרינות ופנסי מכוניות
+    draw(); return sunState;
   }
 
   // רוח: פסים נעים בכיוון שנבחר (הכיוון הוא הנחה, לא מדידה)
@@ -859,16 +862,22 @@ function create(el, model, opts){
     // שמיים: מעבר מכחול בזנית לאובך בהיר באופק, והילה סביב השמש. בצבעים ליניאריים, כי הם עוברים את מחשבת הצבע
     const lc = h => new T.Color(h);   // בלי מחשבת צבע: הצבע יוצא כמו שהוא
     sky = new T.Mesh(new T.SphereGeometry(2400, 32, 16), new T.ShaderMaterial({ side:T.BackSide, depthWrite:false, fog:false,
-      uniforms:{ top:{ value:lc('#5d93c9') }, mid:{ value:lc('#a9c8e2') }, hor:{ value:lc('#e6ecef') }, sunDir:{ value:new T.Vector3(0, 1, 0) }, sunCol:{ value:lc('#fff2d6') } },
+      uniforms:{ gnd:{ value:lc('#d4d9db') }, top:{ value:lc('#5d93c9') }, mid:{ value:lc('#a9c8e2') }, hor:{ value:lc('#e6ecef') }, sunDir:{ value:new T.Vector3(0, 1, 0) }, sunCol:{ value:lc('#fff2d6') } },
       vertexShader:'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.0); }',
-      fragmentShader:`uniform vec3 top, mid, hor, sunDir, sunCol; varying vec3 vD;
+      fragmentShader:`uniform vec3 gnd, top, mid, hor, sunDir, sunCol; varying vec3 vD;
         void main(){ float h = max(vD.y, 0.0); vec3 c = mix(hor, mid, smoothstep(0.0, 0.12, h)); c = mix(c, top, smoothstep(0.12, 0.6, h));
-          float s = max(dot(normalize(vD), normalize(sunDir)), 0.0); c += sunCol*(pow(s, 600.0)*6.0 + pow(s, 12.0)*.25); if(vD.y < 0.0) c = hor*0.92; gl_FragColor = vec4(c, 1.0); }` }));
+          float s = max(dot(normalize(vD), normalize(sunDir)), 0.0); c += sunCol*(pow(s, 600.0)*6.0 + pow(s, 12.0)*.25); if(vD.y < 0.0) c = mix(hor, gnd, smoothstep(0.0, -0.08, vD.y)); gl_FragColor = vec4(c, 1.0); }` }));
     sky.visible = false; scene.add(sky);
     if(lastSun) skySun(lastSun.v, lastSun.day);
   }
   let lastSun = null;
-  function skySun(v, day){ lastSun = { v:v.clone(), day }; if(sky) sky.material.uniforms.sunDir.value.copy(v);  }
+  /* שמיים לפי גובה השמש: יום, דמדומים (אופק כתום, זנית כחולה עמוקה) ולילה. הגוונים להמחשה */
+  const SKY = { day:['#5d93c9', '#a9c8e2', '#e6ecef', '#fff2d6', '#c9d3da', '#d4d9db'], dusk:['#2f4a7e', '#b08a95', '#f2a463', '#ffad5e', '#a99a99', '#34333a'], night:['#060a16', '#0f1830', '#24304a', '#000000', '#161e2e', '#0b0e14'] };   // אחרון: הקרקע מתחת לאופק
+  function skySun(v, day){ lastSun = { v:v.clone(), day }; if(!sky) return; const U = sky.material.uniforms; U.sunDir.value.copy(v);
+    const alt = Math.asin(Math.max(-1, Math.min(1, v.y)))*180/Math.PI, sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x-a)/(b-a))); return t*t*(3-2*t); };
+    const t1 = sm(12, 0, alt), t2 = sm(0, -9, alt), c = i => new T.Color(SKY.day[i]).lerp(new T.Color(SKY.dusk[i]), t1).lerp(new T.Color(SKY.night[i]), t2);
+    U.top.value.copy(c(0)); U.mid.value.copy(c(1)); U.hor.value.copy(c(2)); U.sunCol.value.copy(c(3)); U.gnd.value.copy(c(5)); if(scene.fog && renderOn) scene.fog.color.copy(c(4));
+    if(renderOn) scene.background = c(2); }
   function renderFix(){
     if(!renderOn) return;
     for(const k in groups){ const g = groups[k]; if(state !== 'design') continue;
@@ -885,10 +894,10 @@ function create(el, model, opts){
     const go = () => {
       if(renderOn && !fxBuilt) buildFx();
       if(sky) sky.visible = renderOn; sunBall.visible = !renderOn && !!(lastSun && lastSun.day); pathLine.visible = !renderOn;
-      scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null;
+      scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null; if(renderOn && lastSun) skySun(lastSun.v, lastSun.day);
       groups && Object.values(groups).forEach(g => g.traverse(x => { const m = x.material; if(m && m.userData && m.userData.leaf){ m.transparent = !renderOn; m.opacity = renderOn ? 1 : .84; m.needsUpdate = true; } }));
       if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments || x.isLine) && !x.userData.keep) x.visible = true; });
-      if(rl && rl.setOn) rl.setOn(renderOn);
+      if(rl && rl.setOn) rl.setOn(renderOn); else if(!renderOn && sunArgs) setSun(...sunArgs);
       if(renderOn && state === 'design' && !rl && window.PlanReal){ try{ buildReal2(); }catch(e){ console.warn('real', e); rl = null; } }   // המחשה ראליסטית (plans-real.js)
       if(renderOn && !lifeG && !rl) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design'; if(rl) rl.root.visible = renderOn && state === 'design';
       renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
@@ -961,8 +970,8 @@ function create(el, model, opts){
   /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
   let lifeG = null, rl = null; const realHide = new Set(), realCtx = {};
   /* המחשה ראליסטית (plans-real.js): חומרים, ויטרינות ודלתות, עצים, עמודי תאורה, אנשים בתנועה ומכוניות. נבנית פעם אחת, כשמדליקים הדמיה */
-  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)), ground, terrain:() => terrainM, renderer, sun, hemi, fill, levels:() => LV, mapG, wgs2itm, updGround });
-    rl = window.PlanReal.build(realCtx); renderFix(); draw(); }
+  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)), ground, terrain:() => terrainM, renderer, sun, hemi, fill, levels:() => LV, mapG, wgs2itm, updGround, resun:() => { if(sunArgs) setSun(...sunArgs); } });
+    rl = window.PlanReal.build(realCtx); if(sunState && rl.setTime) rl.setTime(sunState.alt); renderFix(); draw(); }
   function buildLife(){
     if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);
     const r = i => { const v = Math.sin(i*91.7)*43758.5453; return v - Math.floor(v); }, col = new T.Color(), o = new T.Object3D();

@@ -55,7 +55,7 @@ const DISC = [
 ];
 const DISC_COLOR = { arch:'#8a8478', traffic:'#48484c', walk:'#c9b96a', land:'#5c9a4a', water:'#1e73d8', power:'#e0a800', waste:'#2f7d5a', fire:'#c8202a', all:'#1a1a18' };
 /* אייקונים קטנים בקו דק, במקום טקסט. לכל אחד יש שם בריחוף */
-const ICON = { pin:'<path d="M4 2h8v12l-4-3-4 3z"/>', render:'<path d="M2 13l4-5 3 3 2-2 3 4z"/><circle cx="11" cy="4.5" r="1.6"/>', walk:'<circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/>', bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
+const ICON = { moon:'<path d="M11.5 10.5A5 5 0 0 1 6 3.2a5 5 0 1 0 5.5 7.3z"/>', pin:'<path d="M4 2h8v12l-4-3-4 3z"/>', render:'<path d="M2 13l4-5 3 3 2-2 3 4z"/><circle cx="11" cy="4.5" r="1.6"/>', walk:'<circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/>', bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
   eye:'<path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>', map:'<path d="M2 4l4-1.5 4 1.5 4-1.5v10L10 14l-4-1.5L2 14z"/><path d="M6 2.5v10M10 4v10"/>',
   play:'<path d="M5 3l8 5-8 5z"/>', stop:'<rect x="4" y="4" width="8" height="8"/>', wind:'<path d="M2 6h8a2 2 0 1 0-2-2"/><path d="M2 9.5h11a2 2 0 1 1-2 2"/><path d="M2 13h4"/>',
   facade:'<path d="M4 14V2h8v12"/><path d="M6.5 5h1M9 5h1M6.5 8h1M9 8h1M6.5 11h1M9 11h1"/>', env:'<rect x="2.5" y="2.5" width="11" height="11" stroke-dasharray="2.2 1.6"/>',
@@ -65,6 +65,8 @@ const LAYER_NAME = { site:'גבולות', build:'מבנים', road:'כבישים
 /* שלושת המצבים של כל תוכנית: מה יש, מה מותר, מה מוצע */
 const STATES = [ ['exist', 'קיים', 'מה יש היום'], ['renewal', 'התחדשות עירונית', 'מה מותר לפי התב"ע'], ['design', 'תוכנית בינוי ועיצוב', 'מה מוצע בפועל'] ];
 const SEASONS = [ ['קיץ', 6, 21], ['סתיו', 9, 23], ['חורף', 12, 21], ['אביב', 3, 21] ];
+/** שעת הערב לכל עונה: כ-20 דקות אחרי השקיעה באשדוד, בשעון ישראל (השעה הכחולה). הערכה מנוסחת SunCalc */
+const DUSK = [20.15, 19.0, 17.05, 18.2];
 /* כיוון הרוח לכל עונה: הערכה כללית לחוף הדרומי, לא נתון מדוד */
 const WIND_BY_SEASON = [ [300, 'צפון־מערב, בריזת ים'], [320, 'צפון־מערב'], [90, 'מזרח'], [270, 'מערב'] ];
 
@@ -287,10 +289,11 @@ function savedViews(){ const v = review().views || [];
     + (v.length ? `<select id="lyViews" class="ly-views" aria-label="מבטים שמורים"><option value="">מבטים (${v.length})</option>${v.map((x, i) => `<option value="${i}">${H(x.n)}</option>`).join('')}</select>` : ''); }
 function saveView(){ if(!S.api || !S.api.getCam) return; const r = review(); r.views = r.views || [];
   const n = (window.prompt('שם המבט', 'מבט ' + (r.views.length + 1)) || '').trim(); if(!n) return;
-  r.views.push(Object.assign({ n, state:S.state, render:!!S.render, at:new Date().toISOString().slice(0, 10) }, S.api.getCam())); persist(); drawTools(); }
+  r.views.push(Object.assign({ n, state:S.state, render:!!S.render, hour:S.hour, season:S.season, at:new Date().toISOString().slice(0, 10) }, S.api.getCam())); persist(); drawTools(); }
 async function goView(i){ const v = (review().views || [])[i]; if(!v || !S.api) return;
   if(v.state && v.state !== S.state){ const b = document.querySelector(`[data-state="${v.state}"]`); if(b){ b.click(); await new Promise(f => setTimeout(f, 500)); } }
   if(!!v.render !== !!S.render){ S.render = !!v.render; await S.api.setRender(S.render); }
+  if(v.season != null) S.season = v.season; if(v.hour != null) setHour(v.hour);
   S.api.setCam(v); drawTools(); sunNow(); }
 function drawTools(){
   const el = document.getElementById('lyTools'); if(!el) return;
@@ -302,8 +305,8 @@ function drawTools(){
     + (model ? `<span class="ly-grp">${iseg('view', [['bird', 'מעוף הציפור'], ['top', 'מבט על'], ['eye', 'גובה עיניים']], ['home','top','eye'].indexOf(S.view))}${savedViews()}</span>
       <span class="ly-grp">${tg('map', S.map, 'map', 'מפה', 'מפת רחובות אפורה של אשדוד')}</span>
       <span class="ly-grp">${seg('season', SEASONS.map(x => x[0]), S.season)}
-        <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
-        ${tg('play', !!S.play, S.play ? 'stop' : 'play', S.play ? 'עצירה' : 'הנעת השמש', 'מהזריחה עד השקיעה')}</span>
+        <input type="range" id="lyHour" min="5" max="22" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
+        ${tg('play', !!S.play, S.play ? 'stop' : 'play', S.play ? 'עצירה' : 'הנעת השמש', 'מהזריחה ועד הלילה')}${design ? tg('dusk', Math.abs(S.hour - DUSK[S.season]) < .01, 'moon', 'ערב', 'אחרי השקיעה, בהדמיה: פנסים, ויטרינות וחלונות מוארים') : ''}</span>
       ${design ? `<span class="ly-grp">${tg('render', S.render, 'render', 'הדמיה', 'גימור ריאליסטי: בלי שכבות טכניות, עם שמיים, אובך וצל מגע')}${S.wk ? tg('walk', S.walk, 'walk', 'הליכה', 'בגובה העיניים, על השבילים. חצים: הולכים ובוחרים פנייה') : ''}</span>` : ''}
       <span class="ly-grp">${tg('wind', S.wind, 'wind', 'רוח', 'כיוון לפי העונה. הערכה כללית')}
         ${design && S.rn ? tg('fac', S.fac, 'facade', 'חזיתות וקומות', S.fl ? 'כל קומה מתוכניות האדריכל. גובה הקומות: הנחה' : 'מגדלים לפי הקומות של התב"ע. להמחשה') + tg('env', S.env, 'env', 'מעטפת התב"ע', 'המותר מעל המוצע') : ''}
@@ -319,13 +322,13 @@ function drawTools(){
 }
 function sunNow(){ if(!S.api) return; const x = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), x[1], x[2], S.hour), el = document.getElementById('lySun');
   const w = S.wind ? ` · רוח מ${WIND_BY_SEASON[S.season][1]} (הערכה)` : '';
-  if(el) el.textContent = (r.day ? `גובה השמש ${Math.round(r.alt)}°, אזימוט ${Math.round(r.az)}°` : 'השמש מתחת לאופק: התאורה נדלקת') + w; }
+  if(el) el.textContent = (r.day ? `גובה השמש ${Math.round(r.alt)}°, אזימוט ${Math.round(r.az)}°${r.lit ? ': התאורה נדלקת' : ''}` : 'אחרי השקיעה: פנסים, ויטרינות וחלונות מוארים') + w; }
 function setHour(h){ S.hour = h; const o = document.getElementById('lyHourOut'), i = document.getElementById('lyHour');
   if(o) o.textContent = `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h%1)*60)).padStart(2,'0')}`; if(i) i.value = h; sunNow(); }
-/** הנעה: השמש עוברת מ-05:00 עד 20:00 בכ-15 שניות */
+/** הנעה: השמש עוברת מ-05:00 עד 22:00 בכ-17 שניות */
 function playSun(on){ if(S.play){ clearInterval(S.play); S.play = null; }
-  if(on){ if(S.hour >= 19.9) setHour(5); let last = performance.now(); S.play = setInterval(() => { const now = performance.now(), dt = Math.min(.5, (now-last)/1000); last = now;   // שעה בשנייה, לפי הזמן שעבר בפועל
-      if(!S.api || S.hour >= 20){ playSun(false); drawTools(); sunNow(); return; } setHour(Math.min(20, S.hour + dt)); }, 60); } }
+  if(on){ if(S.hour >= 21.9) setHour(5); let last = performance.now(); S.play = setInterval(() => { const now = performance.now(), dt = Math.min(.5, (now-last)/1000); last = now;   // שעה בשנייה, לפי הזמן שעבר בפועל
+      if(!S.api || S.hour >= 22){ playSun(false); drawTools(); sunNow(); return; } setHour(Math.min(22, S.hour + dt)); }, 60); } }
 /** שכבת הרחובות העירונית נטענת פעם אחת, רק כשצריך */
 function loadStreets(){ if(S.fc || S._fcLoading) return; S._fcLoading = true;
   fetch('geo/ashdod-streets.geojson').then(r => r.json()).then(fc => { S.fc = fc; applyApi(); }).catch(() => { S._fcLoading = false; }); }
@@ -587,6 +590,8 @@ function bind(){
     else if(d.under){ S.under = !S.under; applyApi(); drawTools(); sunNow(); }
     else if(d.map){ S.map = !S.map; S.streets = false; applyApi(); drawTools(); sunNow(); }
     else if(d.play){ playSun(!S.play); drawTools(); sunNow(); }
+    else if(d.dusk){ playSun(false); const ev = Math.abs(S.hour - DUSK[S.season]) > .01; setHour(ev ? DUSK[S.season] : 15);   // ערב: השעה הכחולה, והדמיה דולקת
+      if(ev && !S.render && S.api){ S.render = true; S.api.setRender(true).then(() => { drawTools(); sunNow(); }); } drawTools(); }
     else if(d.rights) fillRights();
     else if(d.step) go(S.d + (+d.step));
     else if(d.disc) go(+d.disc);
