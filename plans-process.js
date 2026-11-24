@@ -478,21 +478,41 @@ const LIB = [
     { t:'מודל תוכנית הפיתוח', d:'מודל תלת־ממדי ובחינה לפי תחום, עם שמש וצל.', src:'האפליקציה', go:'layers', ok:'פנימי' } ]},
   { g:'אפליקציות עירוניות', items:[
     { t:'מה נבנה סביבי: התחדשות עירונית', d:'מתחמי ההתחדשות, מודל תלת־ממדי, שמש וצל.', src:'עיריית אשדוד', url:'https://ashdod-ma-nivne.vercel.app', ok:'מסונכרן' },
-    { t:'אתר עיריית אשדוד', d:'האתר הרשמי של העירייה.', src:'עיריית אשדוד', url:'https://www.ashdod.muni.il', ok:'לא נבדק מכאן' } ]}
+    { t:'אתר עיריית אשדוד', d:'האתר הרשמי של העירייה.', src:'עיריית אשדוד', url:'https://www.ashdod.muni.il', ok:'לא נבדק מכאן' } ]},
+  { g:'מאגר הידע: אפליקציות קשורות', fold:true, items:[
+    { t:'אוגדן הנחיות להיתר', d:'הנחיות מידע להיתר לעורכי בקשה: 9 פרקים ורשימות דרישות.', src:'מאגר הידע של אדריכלית העיר', url:'https://ogdan-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'תקנות במרחב', d:'מדריך תלת־ממדי לתוספת השנייה לתקנות התכנון והבנייה.', src:'מאגר הידע של אדריכלית העיר', url:'https://takanot-merhav-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'הנחיות מרחביות, פרק ב\'', d:"ההנחיות המרחביות של אשדוד, פרק ב'.", src:'מאגר הידע של אדריכלית העיר', url:'https://hanchayit-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'מערכת הוראות תוכנית', d:'הוראות תוכנית.', src:'מאגר הידע של אדריכלית העיר', url:'https://mabatplan-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'מפת הרישוי', d:'המינהל לומד לפני שהוא מחליט.', src:'מאגר הידע של אדריכלית העיר', url:'https://minhal-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'ממסמך לתמונה', d:'ממסמך תכנוני להמחשה.', src:'מאגר הידע של אדריכלית העיר', url:'https://minhaltichnun-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'ניהול התחדשות עירונית', d:'ניהול פרויקטי פינוי־בינוי והתחדשות עירונית.', src:'מאגר הידע של אדריכלית העיר', url:'https://nihul-hitchadshut-ashdod.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'התחדשות בניינית', d:'בדיקת פוטנציאל ראשונית לפי תוכנית ההתחדשות הבניינית.', src:'מאגר הידע של אדריכלית העיר', url:'https://binyanit-ashdod.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'הרובע המיוחד', d:'תוכנית בינוי תלת־ממדית.', src:'מאגר הידע של אדריכלית העיר', url:'https://rovameyuchad-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'רובע ז\': בקשות הרחבה', d:'הגשה ומעקב של בקשות הרחבה לפי תוכנית 603-0595660.', src:'מאגר הידע של אדריכלית העיר', url:'https://rovaz-ashdod.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'שכונה 360', d:'הערכת תכנון שכונות לפי מדדי הבנייה הירוקה של ILGBC.', src:'מאגר הידע של אדריכלית העיר', url:'https://shchuna360.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'הרחובות הטובים של אשדוד', d:'מה הופך רחוב לטוב.', src:'מאגר הידע של אדריכלית העיר', url:'https://nicestreets-vercal.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'רחוב טוב במספרים', d:'ציון לכל רחוב לפי עקרונות הרחוב הטוב ו-44 מדדים.', src:'מאגר הידע של אדריכלית העיר', url:'https://rechov-numbers.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'גגות מועילים', d:'גגות מועילים.', src:'מאגר הידע של אדריכלית העיר', url:'https://gagot5-gh.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'מורשת אשדוד', d:'מפה, מסלולי סיור ותיקי תיעוד לאתרי השימור.', src:'מאגר הידע של אדריכלית העיר', url:'https://shimur-gh-fnng.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'שלוש טבעות: פלייסמייקינג', d:'אטלס פלייסמייקינג: המרחב, הקהילות, הזיכרון והעתיד.', src:'מאגר הידע של אדריכלית העיר', url:'https://placemaking-ashdod.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'קורלציות: מעבדה עירונית', d:'מצליבה נתוני לוויין, בינוי, שירותים ותכנון באשדוד.', src:'מאגר הידע של אדריכלית העיר', url:'https://korelaztiot.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'כתב העיר: שילוט עירוני', d:'בדיקת התאמה והנחיות לשילוט עירוני.', src:'מאגר הידע של אדריכלית העיר', url:'https://ktav-hair-ashdod.vercel.app', ok:'נבדק 24.11.2026' },
+    { t:'מוקד 106', d:'דשבורד מוקד 106.', src:'מאגר הידע של אדריכלית העיר', url:'https://moked106.vercel.app', ok:'נבדק 24.11.2026' } ]}
 ];
-const OK_CLS = { 'פנימי':'lib-ok', 'מסונכרן':'lib-ok', 'נבדק 02.11.2026':'lib-ok', 'לא נבדק מכאן':'lib-unk', 'טעון השלמה':'lib-miss' };
+const OK_CLS = { 'פנימי':'lib-ok', 'מסונכרן':'lib-ok', 'נבדק 02.11.2026':'lib-ok', 'נבדק 24.11.2026':'lib-ok', 'לא נבדק מכאן':'lib-unk', 'טעון השלמה':'lib-miss' };
 function renderLibrary(){
   const el = document.getElementById('libraryBody'); if(!el) return;
   el.innerHTML = `<div class="page-title">ספריית ידע תכנוני</div>
     <div class="page-subtitle">כל המקורות במקום אחד. לכל כרטיס מקור וסטטוס אימות. קישור שלא אומת מסומן, ואין כתובות מומצאות.</div>
-    ${LIB.map(g => `<h3 class="lib-g">${H(g.g)}</h3><div class="lib-grid">${g.items.map(c => {
+    ${LIB.map(g => `${g.fold?`<details class="calm-fold lib-fold"><summary class="lib-g">${H(g.g)} <span class="muted">${g.items.length}</span></summary>`:`<h3 class="lib-g">${H(g.g)}</h3>`}<div class="lib-grid">${g.items.map(c => {
       const act = c.go ? `onclick="go('${c.go}',navBtn('${c.go}'))"` : (c.url ? `onclick="window.open('${H(c.url)}','_blank','noopener')"` : '');
       return `<div class="lib-card${act?'':' lib-dis'}" ${act} ${act?'tabindex="0" role="link"':''}>
         <div class="lib-t">${H(c.t)}</div><div class="lib-d">${H(c.d)}</div>
         <div class="lib-f"><span class="pp-src">${H(c.src)}</span><span class="lib-ok ${OK_CLS[c.ok]||''}">${H(c.ok)}</span></div>
         ${c.pdf?`<a class="lib-pdf" href="${H(c.pdf)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">מסמך המקור (PDF)</a>`:''}
         ${c.url?`<div class="lib-url" dir="ltr">${H(c.url.replace(/^https?:\/\//,''))}</div>`:''}
-      </div>`; }).join('')}</div>`).join('')}`;
+      </div>`; }).join('')}</div>${g.fold?'</details>':''}`).join('')}`;
 }
 let outF = { district:'', year:'', type:'', q:'' };
 window.setOutF = function(k, v){ outF[k] = v; renderOutputs(); };
@@ -772,7 +792,7 @@ function homeZonesHTML(){
       <div class="pr-k">מה זה תוכנית בינוי ועיצוב</div>
       <p><b>תוכנית בינוי ועיצוב</b> מפרטת את העמדת הבניינים, הפיתוח והעיצוב במגרש, בהתאם לתב"ע.</p>
       <p>הבדיקה העירונית מוודאת התאמה לתב"ע, להנחיות המרחביות ולאוגדן, לפני הדיון בוועדה.</p>
-      <ol class="hz-steps">${STAGES.map((st,i)=>`<li><span class="pr-n">${['א','ב','ג','ד'][i]}</span>${H(st.title.split(': ')[1])}</li>`).join('<li class="hz-ar" aria-hidden="true">←</li>')}</ol>
+      <ol class="hz-steps">${STAGES.map((st,i)=>`<li><span class="pr-n">${['א','ב','ג','ד'][i]}</span>${H(st.title.split(': ')[1])}</li>`).join('<li class="hz-ar" aria-hidden="true">↓</li>')}</ol>
       <div class="hz-val"><span><b>לאדריכלית העיר:</b> מה דורש טיפול היום.</span><span><b>לצוות:</b> מקור אחד לכל מועד ומסמך.</span><span><b>ליזם:</b> מה להביא ומתי.</span></div>
     </div>
     ${z('proc','תהליך: שולחן העבודה','התוכניות הפעילות, המועדים והמשימות.',[['table','תוכניות פעילות',act.length],['timeline','שלבים ומועדים',due?due+' באיחור':null],['calendar','לוח שנה',null],['map','מפה',null],['contacts','רשימת קשר',ct],['notes','הערות וסיכומים',null]])}

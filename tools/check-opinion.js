@@ -9,7 +9,7 @@ srv.listen(0, async () => {
   const port = srv.address().port, b = await chromium.launch(), pg = await b.newPage();
   await pg.route('**/*', r => r.request().url().startsWith('http://localhost:' + port) ? r.continue() : r.request().url().includes('supabase.co') ? r.fulfill({ status:200, body:'[]', contentType:'application/json' }) : r.abort());
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
-  await pg.goto(`http://localhost:${port}/index.html`); await pg.waitForTimeout(5000);
+  await pg.goto(`http://localhost:${port}/index.html?nocity`); await pg.waitForTimeout(5000);
   const r = await pg.evaluate(async () => { session = { role:'architect', tiks:[], at:Date.now() };
     const p = plans.find(p => String(p.tik) === '1912'); currentProjectId = p.id; try{ openProject(p.id, true); }catch(e){} try{ ppTab('opinion'); }catch(e){}
     renderOpinionTab(p); await new Promise(f => setTimeout(f, 2500)); renderOpinionTab(p);
