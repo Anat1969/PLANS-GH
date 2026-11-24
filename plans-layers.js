@@ -8,7 +8,9 @@
    ══════════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
-const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true } };
+const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true },
+  /* raster: אין תוכנית פיתוח וקטורית. המודל מתוכנית ההעמדה שבמצגת (תמונה), מעוגן אוטומטית למגרשי התב"ע (tools/siteplan-model.py) */
+  '1887': { dir:'layers/1887', title:'הרצל - נאות ספיר: תוכנית העמדה', date:'24.11.2026', renewal:true, raster:true } };
 window.LAYER_SETS = SETS;          // מקור אחד לרשימת התוכניות שיש להן מודל (גם ל-plans-infra.js)
 /* מודלים שהופקו אוטומטית (tools/auto-model.py, ה-Action): layers/index.json. 1913 נשאר בקוד ככיול ידני.
    auto:'approx' = מיקום משוער: אין renewal.json, ולכן אין מעטפת, מצב התחדשות ובדיקת קווי בניין. הכמויות מדויקות. */
@@ -98,7 +100,42 @@ function discCount(disc){ const r = review(), ks = askKeys(disc), cu = r.custom.
   return { done: ks.filter(k => r.items[k] && r.items[k].d).length + cu.filter(c => c.d).length, total: ks.length + cu.length }; }
 
 /* ── מה נמדד בשרטוט, לכל תחום. הכול הערכה מהגאומטריה ── */
+/* תוכנית העמדה כתמונה: רק מה שנמדד ממנה, ומה שחסר בה נאמר במפורש */
+function rasterFacts(disc){
+  const m = S.meas, a = m.area, c = m.count, man = S.man || {}, cal = man.cal || {}, miss = '==אין בתמונה מידע על ',
+    ask = 'נדרשת תוכנית פיתוח (PDF עם שכבות) מהאדריכל, דרך הטופס לאדריכל';
+  switch(disc.id){
+    case 'arch': { const fit = conform(), out = fit ? fit.reduce((s, r) => s+r.out, 0) : 0, tot = fit ? fit.reduce((s, r) => s+r.area, 0) : 0;
+      return [`**${c.foot}** מבנים, קומת קרקע של כ-**${N(a.foot)}** מ"ר (מהצבע בתוכנית ההעמדה)`,
+        fit && fit.length ? (out > tot*0.02 ? `==כ-${N(out)} מ"ר מקומת הקרקע מחוץ לקווי הבניין של התב"ע== (הערכה, ${Math.round(out/tot*100)}%)` : `קומת הקרקע בתוך קווי הבניין של התב"ע (${fit.length} מגרשים, הערכה)`) : 'אין נתוני תב"ע להשוואה',
+        spacingFact(), partsFact()].filter(Boolean); }
+    case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר`, miss + 'חניה, אופניים ורמפה לחניון==', ask];
+    case 'walk': return [`ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר או דרך)`, miss + 'מפלסים, מדרגות וקירות פיתוח==', ask];
+    case 'land': return [`**${c.treeNew}** עצים מהתמונה, הערכה`, `חצרות גן ומעון: כ-**${N(a.green)}** מ"ר`, '==עץ קיים ועץ מוצע לא מובחנים בתמונה=='];
+    case 'water': return [miss + 'מים, ביוב וניקוז==', ask];
+    case 'power': return [miss + 'חשמל, תאורה וגז==', ask];
+    case 'waste': return [miss + 'חדרי אשפה ומסלול הפינוי==', ask];
+    case 'fire': return [miss + 'רחבות כיבוי ומסלולי גישה==', ask];
+    default: return [`**${c.foot}** מבנים, **${c.treeNew}** עצים, **${man.layers.length}** שכבות מהתמונה`,
+      `מקור: ${man.source}`, cal.within05 != null ? `מעוגן למגרשי התב"ע: **${Math.round(cal.within05*100)}%** מצלעות המגרשים עד חצי מטר מהקו בתמונה` : 'המודל ממוקם ברשת ישראל'];
+  }
+}
+/* מרחקים בין מבנים (model.spacing) וחלקי בניין מהמצגת (model.parts) */
+function spacingFact(){
+  const sp = (S.model.spacing||[]).filter(x => x.need), bad = sp.filter(x => !x.ok), t = sp.filter(x => x.need === 18).sort((a, b) => a.d - b.d)[0];
+  if(!sp.length) return '';
+  return bad.length ? `==${bad.map(x => `${x.a}-${x.b} ${x.d} מ' (נדרש ${x.need})`).join(', ')}== (הערכה)`
+    : `מרחקים בין מבנים תואמים להוראות${t ? `: בין מגדלים לפחות **${t.d}** מ' (נדרש 18)` : ''}, הערכה`;
+}
+function partsFact(){
+  const p = S.model.parts||[], rn = S.rn, over = rn ? p.filter(x => { const L = rn.lots.find(l => l.lot === x.lot); return L && L.floors && x.floors > L.floors; }) : [];
+  if(!p.length) return 'גובה הבניינים אינו בתמונה: החזיתות עולות לפי הקומות של התב"ע, להמחשה';
+  const ids = [...new Set(over.map(x => x.id))];
+  return ids.length ? `==${ids.join(', ')}: ${over[0].floors} קומות במצגת, ${rn.lots.find(l => l.lot === over[0].lot).floors} בטבלה 5== (לבירור: עד 2 קומות טכניות מותרות)`
+    : `**${[...new Set(p.map(x => x.id))].length}** בניינים בגובה מהמצגת, בתוך מספר הקומות בתב"ע`;
+}
 function facts(disc){
+  if(S.man && S.man.raster) return rasterFacts(disc);
   const m = S.meas, a = m.area, c = m.count, l = m.len, man = S.man || {}, g = (man.layers||[]).find(x => x.id==='green');
   const pct = g && g.areaIn && man.siteArea ? Math.round(g.areaIn/man.siteArea*100) : null;
   switch(disc.id){
@@ -158,6 +195,7 @@ function shell(){
   <div class="ly-head">
     <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
     ${set.auto === 'approx' ? `<p class="ly-approx">מיקום משוער: הכמויות מדויקות, המיקום לא נבדק מול התב"ע</p>` : ''}
+    ${set.raster ? `<p class="ly-approx">מתוכנית העמדה כתמונה: מבנים, עצים וריצוף הם הערכה. חסרה תוכנית פיתוח עם שכבות</p>` : ''}
     ${plan() ? `<nav class="ly-links" aria-label="שלבי התוכנית">${stageChips()}<button data-card="opinion" title="כרטיס התוכנית בפורמט של חוות הדעת לוועדה">חוות דעת</button></nav>` : ''}
     <div class="ly-states" id="lyStates" role="tablist" aria-label="מצב התוכנית"></div>
   </div>
@@ -294,10 +332,10 @@ function drawStatePanel(el){
   const lg = k => `<button class="ly-lg${S.off.has(k)?' off':''}" data-kind="${k}"><i style="background:${K[k].color}"></i><span>${H(K[k].label)}<small>${H(K[k].desc)}</small></span><em>${H(k==='exBuild' ? String(rn.demolish.length) : kindMeasure(k))}</em></button>`;
   el.innerHTML = ex ? `
     <div class="ly-who">קיים · מפת המדידה ומפת הרקע העירונית</div><h2 class="ly-h">מה יש היום במתחם</h2>
-    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה, <b>${m.count.treeOld}</b> עצים קיימים</p>
-    ${fold('exfacts', 'מה יש בשטח', 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
-      <li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
-      <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li></ul>`)}
+    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה${m.count.treeOld != null ? `, <b>${m.count.treeOld}</b> עצים קיימים` : ''}</p>
+    ${fold('exfacts', 'מה יש בשטח', S.man.raster ? 2 : 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
+      ${S.man.raster ? `<li><mark class="ly-warn">אין מפת מדידה: עצים ותשתית קיימים לא ידועים</mark></li>` : `<li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
+      <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li>`}</ul>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(lg).join('')}</div><p class="ly-src">${H(rn.sources.context)}.</p>`)}` : `
     <div class="ly-who">התחדשות עירונית · ${H(rn.plan)}</div><h2 class="ly-h">מה מותר ב${H(rn.title)}</h2>
     <p class="ly-lead"><b>${N(rn.summary.units)}</b> דירות, עד <b>${rn.summary.floorsMax}</b> קומות ו-<b>${rn.summary.heightMax}</b> מ'</p>
@@ -484,6 +522,7 @@ const CSS = `
 .ly-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-6px 0 6px}
 .ly-title{font:400 14px var(--sans);color:var(--ink-soft);margin:0;white-space:nowrap}
 .ly-approx{margin:0;font-size:12.5px;color:#8a5a00;background:#fff3d6;padding:2px 8px;white-space:nowrap}
+@media (max-width:700px){.ly-approx{white-space:normal}}
 .ly-title b{color:var(--ink);font-weight:600}
 .ly-nav{display:flex;gap:3px;flex:none}
 .ly-steprow{display:flex;gap:6px;align-items:stretch;margin-bottom:6px}

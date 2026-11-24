@@ -400,12 +400,15 @@ function create(el, model, opts){
     const mats = { res:facadeTex('#e9e3d6', '#55595e', ['#5f7f9c', '#9fc0d8'], false), pub:facadeTex('#c9b9a2', '#4a4640', ['#547186', '#a5c2d2'], true) };
     const slabM = M.std({ color:'#f1eee7', roughness:.6 }), railM = new T.MeshStandardMaterial({ color:'#bfe1ee', transparent:true, opacity:.38, roughness:.05, metalness:.6, envMapIntensity:1.3, side:T.DoubleSide });
     const roofM = M.std({ color:'#c9c5bb' }), slabs = [], rails = [], bay = 3.6;
-    model.foot.forEach(f => {
-      let r = ring2(f); const cx = r.reduce((s2, p) => s2+p[0], 0)/r.length, cy = r.reduce((s2, p) => s2+p[1], 0)/r.length, pc = parcels.find(p => pip([cx, cy], p.r)), lot = pc && lots[pc.lot];
-      if(!lot || !lot.floors) return;
+    /* parts (תוכנית העמדה מתמונה, tools/siteplan-model.py): מגדל ואגף לכל בניין, עם מספר הקומות והגובה מהמצגת. בלי parts: המבנה מוקטן לשטח הקומה בתב"ע */
+    const items = model.parts && model.parts.length ? model.parts.map(p => ({ f:p.c, part:p })) : model.foot.map(f => ({ f }));
+    items.forEach(({ f, part }) => {
+      let r = ring2(f); const cx = r.reduce((s2, p) => s2+p[0], 0)/r.length, cy = r.reduce((s2, p) => s2+p[1], 0)/r.length, pc = parcels.find(p => pip([cx, cy], p.r)),
+        lot = part ? Object.assign({}, lots[part.lot] || {}, { cat: part.kind === 'public' ? 'public' : 'residential' }) : pc && lots[pc.lot];
+      if(!part && (!lot || !lot.floors)) return;
       let A = 0; for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length]; A += a[0]*b[1]-b[0]*a[1]; } if(A < 0) r = r.slice().reverse(); A = Math.abs(A)/2;
-      const k = lot.plate ? Math.min(1, Math.sqrt(lot.plate/A)) : 1; r = r.map(p => [cx+(p[0]-cx)*k, cy+(p[1]-cy)*k]);
-      const fh = (lot.height || lot.floors*3.3)/lot.floors, y0 = 4, n = lot.floors - 1, y1 = y0 + n*fh, pos = [], uv = [];
+      const k = !part && lot.plate ? Math.min(1, Math.sqrt(lot.plate/A)) : 1; r = r.map(p => [cx+(p[0]-cx)*k, cy+(p[1]-cy)*k]);
+      const y0 = 4, n = part ? Math.max(1, part.floors - 1) : lot.floors - 1, fh = part ? (part.top - y0)/n : (lot.height || lot.floors*3.3)/lot.floors, y1 = y0 + n*fh, pos = [], uv = [];
       let u = 0;
       for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length], len = Math.hypot(b[0]-a[0], b[1]-a[1]), nb = Math.max(1, Math.round(len/bay)), u1 = u + nb;
         pos.push(a[0], y0, -a[1], b[0], y0, -b[1], b[0], y1, -b[1], a[0], y0, -a[1], b[0], y1, -b[1], a[0], y1, -a[1]); uv.push(u, 0, u1, 0, u1, n, u, 0, u1, n, u, n); u = u1;

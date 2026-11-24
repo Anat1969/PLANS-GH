@@ -20,7 +20,10 @@ for(const dir of sets){
   const man = JSON.parse(fs.readFileSync(path.join(root, dir, 'manifest.json'), 'utf8')), ids = man.layers.map(l => l.id);
   ok(man.layers.every(l => fs.existsSync(path.join(root, dir, l.file))), dir + ': כל ' + ids.length + ' קובצי השכבות קיימים');
   const miss = [...used].filter(id => !ids.includes(id));
-  ok(!miss.length, dir + ': כל שכבה שדרישה מפנה אליה קיימת' + (miss.length ? ' (חסר: ' + miss.join(', ') + ')' : ''));
+  if(man.raster){ // תוכנית העמדה מתמונה: מה שאין בתמונה חייב להיות רשום כחסר, כדי שהמסך יאמר זאת
+    const undeclared = miss.filter(id => !(man.missing||[]).includes(id));
+    ok(!undeclared.length, dir + ': תמונה. ' + miss.length + ' שכבות שאין בתמונה רשומות כחסרות' + (undeclared.length ? ' (לא רשום: ' + undeclared.join(', ') + ')' : ''));
+  } else ok(!miss.length, dir + ': כל שכבה שדרישה מפנה אליה קיימת' + (miss.length ? ' (חסר: ' + miss.join(', ') + ')' : ''));
   ok(!man.unassigned.length, dir + ': אין שכבות שרטוט לא משויכות');
   const m = JSON.parse(fs.readFileSync(path.join(root, dir, 'model.json'), 'utf8')), ms = P.measure(m);
   const unknown = [...Object.keys(m.surf), ...Object.keys(m.lines), ...Object.keys(m.obj)].filter(k => !P.KIND[k]);
@@ -28,15 +31,22 @@ for(const dir of sets){
   const [lat, lng] = P.itm2wgs(m.e0, m.n0), back = P.wgs2itm(lat, lng);
   ok(lat > 31.74 && lat < 31.85 && lng > 34.6 && lng < 34.72, dir + ': המודל ממוקם באשדוד (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')');
   ok(Math.hypot(back[0]-m.e0, back[1]-m.n0) < 0.05, dir + ': המרה לרשת ישראל ובחזרה מדויקת עד 5 ס"מ');
-  ok(ms.count.treeNew > 0 && ms.count.fire > 0 && ms.area.paving > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), רחבות כיבוי (' + ms.count.fire + ') וריצוף (' + ms.area.paving + ' מ"ר)');
+  if(man.raster) ok(ms.count.treeNew > 0 && ms.count.foot > 0 && ms.area.paving > 0 && (m.parts||[]).length > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), מבנים (' + ms.count.foot + '), חלקי בניין (' + (m.parts||[]).length + ') וריצוף (' + ms.area.paving + ' מ"ר)');
+  else ok(ms.count.treeNew > 0 && ms.count.fire > 0 && ms.area.paving > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), רחבות כיבוי (' + ms.count.fire + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   const rf = path.join(root, dir, 'renewal.json');
   if(fs.existsSync(rf)){ // התב"ע והשרטוט באותו מקום: קו הגבול שבשרטוט יושב על צלעות מגרשי התב"ע
     const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), loc = c => { const [E, N] = P.wgs2itm(c[1], c[0]); return [E-m.e0, N-m.n0]; };
     const segs = []; rn.parcels.forEach(p => { const c = p.c.map(loc); c.forEach((a, i) => { const b = c[(i+1)%c.length]; segs.push([a[0], a[1], b[0], b[1]]); }); });
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
-    ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
-    ok(rn.lots.every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
+    if(man.raster){ const c = man.cal || {}; ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
+    else ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
+    ok(rn.lots.filter(l => l.floors > 0).every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
+  }
+  if(m.parts && fs.existsSync(rf)){ // חלקי בניין מהמצגת מול התב"ע: מספר הקומות והגובה. חריגה היא ממצא לחוות הדעת, לא תקלה
+    const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors > L.floors; });
+    ok(m.parts.every(p => p.src && p.floors > 0 && p.top > 4), dir + ': לכל חלק בניין יש מקור, קומות וגובה (' + m.parts.length + ' חלקים)');
+    console.log('  ממצא: ' + (over.length ? over.map(p => 'בניין ' + p.id + ' ' + p.floors + ' קומות, בתב"ע ' + rn.lots.find(l => l.lot === p.lot).floors).join('; ') : 'כל החלקים בתוך מספר הקומות של התב"ע'));
   }
   const ff = path.join(root, dir, 'floors.json');
   if(fs.existsSync(ff) && fs.existsSync(rf)){ // קומות מתוכניות האדריכל (tools/extract-floors.py): כל בניין בתוך המגרש שלו, ולא מעל הגובה של התב"ע
