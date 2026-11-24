@@ -8620,7 +8620,7 @@ function setMuniCheck(deptId, idx, field, val){
   if(!store[k]) store[k] = _blankCheck();
   store[k][field]=val;
   store[k].updatedAt=todayStr();
-  store[k].updatedBy = projectRole==='city' ? 'אדריכלית העיר' : 'אדריכל היזם';
+  store[k].updatedBy = actorName();
   if(muniInProject){ savePlans(); const el=document.getElementById('panel-muni'); if(el&&currentProjectId!=null) renderProjectMuni(pj()); }
   else { saveMuni(); renderMuniDepartments(); }
 }
@@ -9687,9 +9687,15 @@ function recentActions(limit){
   return all.slice(0, limit||10);
 }
 /** רישום פעולה בהיסטוריה (לא נמחק בעדכון) */
-function logAction(p, type, detail){
+/** מי ביצע: לפי מי שמחובר, לא לפי מצב התצוגה בדף התוכנית (ענת, 24.11.2026: פעולות שלה נרשמו כ"אדריכל היזם") */
+function actorName(){
+  if(typeof session!=='undefined' && session){ if(session.role==='developer') return 'אדריכל היזם'; if(session.role==='manager') return 'הנהלה'; if(session.role==='architect') return 'אדריכלית העיר'; }
+  return projectRole==='city'?'אדריכלית העיר':'אדריכל היזם';
+}
+function logAction(p, type, detail, extra){
   if(!Array.isArray(p.actionLog)) p.actionLog=[];
-  p.actionLog.push({ type, detail:detail||'', by: projectRole==='city'?'אדריכלית העיר':'אדריכל היזם', at: todayStr(), result:'' });
+  const n=new Date(), time=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  p.actionLog.push(Object.assign({ type, detail:detail||'', by: actorName(), at: todayStr(), time, result:'' }, extra||{}));
   p.updatedAt = todayStr();
   savePlans();
   refreshAll(); // "פעולות אחרונות" + "השלב הבא" + מדדים מתעדכנים מיד
@@ -13010,7 +13016,7 @@ function aiSyncContext() {
 <script src="plans-contacts.js?v=1124k"></script>
 <script src="plans-import.js?v=1124o"></script>
 <script src="plans-city.js?v=1124k"></script>
-<script src="plans-ops-core.js?v=1124a"></script>
-<script src="plans-now.js?v=1124a"></script>
+<script src="plans-ops-core.js?v=1124b"></script>
+<script src="plans-now.js?v=1124b"></script>
 </body>
 </html>

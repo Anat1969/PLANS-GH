@@ -73,7 +73,7 @@ const opsDone = (p, k) => (p.opsDone && p.opsDone[k]) || null;
 
 /* ══════════ ציון עדיפות ══════════
    שמונה גורמים, כל אחד שקוף (נשמר ב-why.score כדי שענת תראה למה פריט עלה ראשון). */
-const IMPACT = { meet_due:9, date_conflict:6, no_next:7, no_status:4, form_waiting:6, reminder:6, summary:5, intent:3, completions:7, no_contact:5, prep:6, stale:4, upcoming:2 };
+const IMPACT = { meet_implied:5, meet_due:9, date_conflict:6, no_next:7, no_status:4, form_waiting:6, reminder:6, summary:5, intent:3, completions:7, no_contact:5, prep:6, stale:4, upcoming:2 };
 function score(it, today){
   const f = {};
   f.urgency  = it.due ? Math.max(0, Math.min(10, 10 - days(today, it.due))) : 2;   // מועד שחלף או קרוב
@@ -102,7 +102,24 @@ function planItems(p, ctx){
 
   // 1. מועד שחלף ולא סומן: החלטה. רק המועד האחרון שחלף; הקודמים נכנסים להקשר, כדי לא להציף.
   // אומדן אוטומטי שחלף אינו פגישה שהייתה צריכה להתקיים: הוא לא נשאל, ומטופל בגלאי סדר המועדים
-  const due = ms.filter(x => x.s.st === 'due' && !(p._est && p._est[x.m.key])).sort((a, b) => a.s.d.localeCompare(b.s.d));
+  // מועד שחלף לפני אבן דרך שכבר התקיימה או שנקבע לה מועד: כנראה התקיים (הערכה). לא שואלים עליו כהחלטה נפרדת,
+  // אלא מבקשים אישור אחד לכולם. אחרת כל סימון מעלה את המועד הקודם, ונקבעים מועדים חלופיים בסדר הפוך (1912, 24.11.2026).
+  const dueAll = ms.filter(x => x.s.st === 'due' && !(p._est && p._est[x.m.key]));
+  const lastSet = ms.reduce((k, x, i) => (x.s.st === 'held' || x.s.st === 'planned') ? i : k, -1);
+  const implied = dueAll.filter(x => ms.indexOf(x) < lastSet);
+  const due = dueAll.filter(x => ms.indexOf(x) > lastSet).sort((a, b) => a.s.d.localeCompare(b.s.d));
+  if(implied.length){
+    const later = ms[lastSet];
+    add({ key:`meet_implied:${tik}:${implied.map(x => x.m.key + '@' + x.s.d).join(',')}`, kind:'meet_implied', tier:'approve', level:3, minutes:1,
+      meetKeys: implied.map(x => x.m.key),
+      title:`לאשר ש${implied.map(x => x.m.label).join(' ו')} ${implied.length > 1 ? 'התקיימו' : 'התקיים'}`,
+      why:`${later.m.label} ${later.s.st === 'held' ? 'התקיים ב-' : 'נקבע ל-'}${fmt(later.s.d)}, ולכן ${implied.map(x => x.m.label + ' (' + fmt(x.s.d) + ')').join(' ו')} כנראה ${implied.length > 1 ? 'התקיימו' : 'התקיים'}. זו הערכה, ולכן נדרש אישורך.`,
+      prepared:'סימון "התקיים" לכל אחד, עם המועד שבתיק.',
+      rec:'לאשר. אם אחד מהם לא התקיים, לפתוח את התוכנית ולסמן אותו בנפרד.',
+      after:'הסימון יירשם ביומן התוכנית ובהחלטות, עם המקור "אושר מתוך איפה אנחנו עומדים".',
+      options:[{ id:'heldAll', label: implied.length > 1 ? 'אישור: התקיימו' : 'אישור: התקיים', primary:1 }, { id:'open', label:'לסימון בנפרד' }],
+      link:{ tik, tab:'process' }, src:'הערכה: אבן דרך מאוחרת יותר כבר נקבעה' });
+  }
   if(due.length){
     const last = due[due.length - 1], earlier = due.slice(0, -1);
     add({ key:`meet_due:${tik}:${last.m.key}:${last.s.d}`, kind:'meet_due', tier:'decide', level:4, due:last.s.d, blocks:true, deferCost:3, minutes:2,
@@ -257,8 +274,8 @@ function crossItems(plans, ctx){
 /** מה כבר נעשה: מיומן הפעולות של כל התוכניות ומהרצות השרת */
 function doneItems(plans, ctx, n){
   const all = [];
-  plans.forEach(p => (p.actionLog || []).forEach(a => { if(isD(a.at) && days(a.at, ctx.today) <= 14) all.push({ tik:String(p.tik), plan:planName(p), at:d10(a.at), text:a.detail || a.type, by:a.by || '', sys:/^\[מערכת\]/.test(a.detail||'') }); }));
-  return all.sort((a, b) => b.at.localeCompare(a.at)).slice(0, n || 12);
+  plans.forEach(p => (p.actionLog || []).forEach(a => { if(isD(a.at) && days(a.at, ctx.today) <= 14) all.push({ tik:String(p.tik), plan:planName(p), at:d10(a.at), time:a.time || '', text:String(a.detail || a.type).replace(/^\[מערכת\]\s*/, ''), by:a.by || '', src:a.src || '', sys:/^\[מערכת\]/.test(a.detail||'') || a.by === 'המערכת' }); }));
+  return all.sort((a, b) => (b.at + b.time).localeCompare(a.at + a.time)).slice(0, n || 20);
 }
 
 /* ══════════ הסיפור של כל תוכנית: שבעה חלקים ══════════ */
@@ -407,6 +424,7 @@ function chainFor(it, opt){
   if(it.kind === 'reminder') return ['נרשם "נפתחה טיוטה" ביומן', 'תזכורת נוספת תוכן אם אין תשובה', 'עדכון דף המעקב'];
   if(it.kind === 'summary') return ['נרשם ביומן', 'ההתחייבויות נכנסות למעקב', 'עדכון דף המעקב'];
   if(it.kind === 'intent') return ['המטרה נשמרת בתיק ובזיכרון', 'מופיעה בכל דף הכנה ובבדיקת התאמה'];
+  if(it.kind === 'meet_implied') return ['הסימון נרשם ביומן התוכנית ובהחלטות', 'עדכון דף המעקב'];
   if(it.kind === 'no_status') return ['הסטטוס נרשם ביומן', 'התוכנית נכנסת למסכים המתאימים'];
   return ['עדכון דף המעקב'];
 }
