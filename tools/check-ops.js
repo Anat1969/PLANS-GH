@@ -52,6 +52,10 @@ const cf = p => people[String(p.tik)] || [];
   ok(r4.items.find(i => i.key === md.key).tier === 'waiting', 'האצלה: עובר ל"ממתינים לאחרים"');
   const r5 = O.compute(fx(), { today:TODAY, contactsFor:cf, user:{ paused:{ reminder:true } } });
   ok(!r5.items.some(i => i.kind === 'reminder' || i.kind === 'form_waiting'), 'אוטומציה מושהית: לא מייצרת פריטים');
+  // מועד קודם שחלף כשכבר נקבע מועד מאוחר יותר: אישור אחד, ולא שאלה חוזרת (1912, 24.11.2026)
+  const imp = O.compute([{ id:9, tik:'9009', status:'בטיפול', forumArchitect:'2026-03-01', forumConsultants:'2026-06-01', datesPlan:{ committeePrep:'2026-12-07' } }], { today:TODAY, contactsFor:() => [{ name:'x', email:'x@x' }] });
+  const ii = imp.items.find(i => i.kind === 'meet_implied');
+  ok(ii && ii.meetKeys.length === 2 && ii.tier === 'approve' && !imp.items.some(i => i.kind === 'meet_due'), 'מועדים קודמים שחלפו לפני שלב שכבר נקבע: אישור אחד לשניהם, בלי שאלה נפרדת');
   const calm = O.compute([fx()[3]], { today:TODAY });
   ok(calm.items.length === 0 && calm.focus.length === 0 && /אין החלטה/.test(calm.morning.head), 'אין פעולה שמחייבת: נאמר במפורש, בלי משימות מלאכותיות');
   const ps = O.parseSummary('הוחלט לאשר את החזית. האדריכל יגיש חתכים עד 10.12.2026. סוכם על מועד ועדה.');
@@ -134,9 +138,17 @@ srv.listen(0, async () => {
           summary:r.items.some(i => i.kind === 'summary' && i.tik === '9001'), est:p.datesPlan.committeePrep, dec:(p.decisions || []).length, mem:(NowPage._user().memory || []).length };
       }, k);
       ok(after.outcome === 'held' && !after.still, 'החלטה "התקיים": נרשמה בתיק, והפריט ירד');
+      const docu = await pg.evaluate(() => { const p = plans.find(x => String(x.tik) === '9001'); const L = p.actionLog, mtg = L.filter(a => a.type === 'meeting').slice(-1)[0], sys = L.filter(a => a.by === 'המערכת').slice(-1)[0], d = p.decisions.slice(-1)[0];
+        NowPage._compute(); document.getElementById('nwMode')?.remove(); go('now', navBtn('now'));
+        const done = document.querySelector('.nw-done'); return { by:mtg.by, src:mtg.src, time:!!mtg.time, sysBy:sys && sys.by, dChoice:d.choice, dBy:d.by, dQ:d.question, journal:(NowPage._user().journal || []).length,
+          doneOpen:done.open, doneTxt:done.innerText, morning:document.querySelector('.nw-morning').innerText }; });
+      ok(docu.by === 'אדריכלית העיר' && docu.src === 'איפה אנחנו עומדים' && docu.time, 'תיעוד: הפעולה ביומן התוכנית בשם אדריכלית העיר, עם שעה ומקור');
+      ok(docu.sysBy === 'המערכת', 'תיעוד: פעולת ההמשך האוטומטית נרשמת בשם "המערכת"');
+      ok(docu.dChoice === 'התקיים' && docu.dBy === 'אדריכלית העיר' && /האם התקיים/.test(docu.dQ) && docu.journal >= 1, 'תיעוד: ההחלטה נשמרת עם השאלה, הבחירה ומי החליט, וגם ביומן העבודה');
+      ok(docu.doneOpen && /פורום יועצים התקיים/.test(docu.doneTxt) && /אדריכלית העיר/.test(docu.doneTxt) && /היום תועדו/.test(docu.morning), 'תיעוד גלוי: "מה כבר נעשה" נפתח עם הפעולה, ותמונת הבוקר מונה את מה שתועד היום');
       ok(/פורום יועצים התקיים/.test(after.log) && after.dec === 1 && after.mem >= 1, 'תגובת שרשרת: יומן, החלטה בתיק וזיכרון');
       ok(after.summary, 'תגובת שרשרת: סיכום לצוות מוכן לאישור');
-      ok(after.est > '2026-11-24' && /\[מערכת\] אומדן הכנה לוועדה/.test(after.log), `תגובת שרשרת: אומדן ההכנה לוועדה עודכן ל-${after.est}, ומסומן כאומדן`);
+      ok(after.est > '2026-11-24' && /אומדן הכנה לוועדה עודכן/.test(after.log), `תגובת שרשרת: אומדן ההכנה לוועדה עודכן ל-${after.est}, ומסומן כאומדן`);
       // ניווט ישיר וחזרה צהובה
       await pg.evaluate(() => { const it = NowPage._compute().items.find(i => i.kind === 'reminder'); NowPage.go(it.key); }); await pg.waitForTimeout(500);
       const nb = await pg.evaluate(() => { const b = document.getElementById('opsBack'); return { page:document.querySelector('.page.active').id, shown:b && !b.hidden, bg:b && getComputedStyle(b).backgroundColor }; });

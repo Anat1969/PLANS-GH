@@ -54,7 +54,7 @@ const DISC = [
 ];
 const DISC_COLOR = { arch:'#8a8478', traffic:'#48484c', walk:'#c9b96a', land:'#5c9a4a', water:'#1e73d8', power:'#e0a800', waste:'#2f7d5a', fire:'#c8202a', all:'#1a1a18' };
 /* אייקונים קטנים בקו דק, במקום טקסט. לכל אחד יש שם בריחוף */
-const ICON = { bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
+const ICON = { render:'<path d="M2 13l4-5 3 3 2-2 3 4z"/><circle cx="11" cy="4.5" r="1.6"/>', walk:'<circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5l-2 4 2.5 1.5L8 14M6.5 9L4.5 11.5M9 5.5l2.5 2 1.5-.5"/>', bird:'<path d="M2 11l6-3 6 3-6 3z"/><path d="M2 11V6l6-3 6 3v5"/>', top:'<rect x="3" y="3" width="10" height="10"/><circle cx="8" cy="8" r="1.3"/>',
   eye:'<path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>', map:'<path d="M2 4l4-1.5 4 1.5 4-1.5v10L10 14l-4-1.5L2 14z"/><path d="M6 2.5v10M10 4v10"/>',
   play:'<path d="M5 3l8 5-8 5z"/>', stop:'<rect x="4" y="4" width="8" height="8"/>', wind:'<path d="M2 6h8a2 2 0 1 0-2-2"/><path d="M2 9.5h11a2 2 0 1 1-2 2"/><path d="M2 13h4"/>',
   facade:'<path d="M4 14V2h8v12"/><path d="M6.5 5h1M9 5h1M6.5 8h1M9 8h1M6.5 11h1M9 11h1"/>', env:'<rect x="2.5" y="2.5" width="11" height="11" stroke-dasharray="2.2 1.6"/>',
@@ -223,6 +223,8 @@ async function open(tik){
       S.rn = SETS[tik].renewal ? await fetch(dir+'/renewal.json').then(r => r.json()).catch(() => null) : null; S.fit = null;
       S.fl = await fetch(dir+'/floors.json').then(r => r.ok ? r.json() : null).catch(() => null); S.cut = 0;   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.flMain = S.fl; S.flAlt = S.fl && S.fl.alternative ? await fetch(dir+'/'+S.fl.alternative).then(r => r.ok ? r.json() : null).catch(() => null) : null; S.useAlt = false;   // חלופה להשוואה (1909: רעיון המצגת מול נספח הבינוי)
+      S.wk = await fetch(dir+'/walk.json').then(r => r.ok ? r.json() : null).catch(() => null); S.walk = false; S.render = false;   // מסלולי הליכה (tools/extract-walk.py)
+      S.lv = await fetch(dir+'/levels.json').then(r => r.ok ? r.json() : null).catch(() => null);   // מפלסים, רמפות ונגישות (tools/extract-levels.py)   // תוכניות הקומה של האדריכל (tools/extract-floors.py)
       S.concept = S.model.concept ? await fetch(dir+'/concept.json').then(r => r.json()).then(c => ({ median:(c.georef||{}).median, cancelled:c.cancelled||[], towerLots:(c.towers||[]).map(x => x.lot), notes:c.notes||{} })).catch(() => ({})) : null;
       S.state = S.rn ? 'exist' : 'design'; }
     catch(e){ body().innerHTML = '<p class="ly-empty">המודל לא נטען. בדקי את החיבור ונסי שוב.</p>'; return; }
@@ -273,6 +275,7 @@ function drawTools(){
       <span class="ly-grp">${seg('season', SEASONS.map(x => x[0]), S.season)}
         <input type="range" id="lyHour" min="5" max="20" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
         ${tg('play', !!S.play, S.play ? 'stop' : 'play', S.play ? 'עצירה' : 'הנעת השמש', 'מהזריחה עד השקיעה')}</span>
+      ${design ? `<span class="ly-grp">${tg('render', S.render, 'render', 'הדמיה', 'גימור ריאליסטי: בלי שכבות טכניות, עם שמיים, אובך וצל מגע')}${S.wk ? tg('walk', S.walk, 'walk', 'הליכה', 'בגובה העיניים, על השבילים. חצים: הולכים ובוחרים פנייה') : ''}</span>` : ''}
       <span class="ly-grp">${tg('wind', S.wind, 'wind', 'רוח', 'כיוון לפי העונה. הערכה כללית')}
         ${design && S.rn ? tg('fac', S.fac, 'facade', 'חזיתות וקומות', S.fl ? 'כל קומה מתוכניות האדריכל. גובה הקומות: הנחה' : 'מגדלים לפי הקומות של התב"ע. להמחשה') + tg('env', S.env, 'env', 'מעטפת התב"ע', 'המותר מעל המוצע') : ''}
         ${S.rn && S.state!=='exist' ? tg('under', S.under, 'under', 'תת־קרקע', 'קומות המרתף והחניון') : ''}
@@ -297,15 +300,62 @@ function loadStreets(){ if(S.fc || S._fcLoading) return; S._fcLoading = true;
   fetch('geo/ashdod-streets.geojson').then(r => r.json()).then(fc => { S.fc = fc; applyApi(); }).catch(() => { S._fcLoading = false; }); }
 function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setMap(S.map && !S.streets); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
   S.api.setFacade(S.fac && S.state==='design' && !!S.rn); if(S.fl) S.api.setCut(S.fac ? S.cut : 0); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
+/* ── הליכה: קונסולה במסך ומפה קטנה. ענת: "בלי לאבד אוריינטציה, בלי שיהיה קשה לנווט עם העכבר" ── */
+function walkToggle(on){
+  if(!S.api || S.mode !== 'model') return;
+  if(on && !S.api.walkStart()) return; if(!on) S.api.walkStop();
+  S.walk = on; if(on) S.render = true;
+  const st = document.getElementById('lyStage'); let hud = document.getElementById('lyWalk');
+  if(!on){ if(hud) hud.remove(); drawTools(); return; }
+  if(!hud){ hud = document.createElement('div'); hud.id = 'lyWalk'; hud.className = 'ly-walk'; st.appendChild(hud); }
+  const b = (cmd, label, path, title) => `<button data-wcmd="${cmd}" title="${H(title)}" aria-label="${H(title)}"><svg viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${path}</svg>${label ? `<small>${H(label)}</small>` : ''}</button>`;
+  hud.innerHTML = `<canvas class="ly-mini" id="lyMini" width="220" height="220" title="לחיצה על המפה: הולכים לשם"></canvas>
+    <div class="ly-wpad">
+      <div class="ly-winfo" id="lyWinfo">על השביל</div>
+      <div class="ly-wkeys">
+        ${b('right', 'ימינה', '<path d="M6 3l5 5-5 5"/>', 'פנייה ימינה בצומת, או מבט ימינה (חץ ימינה)')}
+        <span>${b('fwd', 'קדימה', '<path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/>', 'הליכה קדימה, כל עוד לוחצים (חץ למעלה)')}${b('back', 'אחורה', '<path d="M4 6a4 4 0 1 1 1 5"/><path d="M4 2.5V6h3.5"/>', 'הסתובבות לאחור (חץ למטה)')}</span>
+        ${b('left', 'שמאלה', '<path d="M10 3L5 8l5 5"/>', 'פנייה שמאלה בצומת, או מבט שמאלה (חץ שמאלה)')}
+      </div>
+      <div class="ly-wkeys">${b('go', 'עד הצומת', '<path d="M5 3l8 5-8 5z"/>', 'הליכה רציפה עד הצומת הבא (רווח)')}${b('stop', 'עצירה', '<rect x="4" y="4" width="8" height="8"/>', 'עצירה (Esc)')}</div>
+      <p class="ly-whelp">גרירה: הסתכלות סביב · לחיצה על הקרקע או על המפה: הולכים לשם</p>
+    </div>`;
+  const fwd = hud.querySelector('[data-wcmd="fwd"]');
+  fwd.onpointerdown = ev => { ev.preventDefault(); S.api && S.api.walkCmd('fwd'); }; fwd.onpointerup = fwd.onpointerleave = () => S.api && S.api.walkCmd('fwdUp');
+  const mini = document.getElementById('lyMini'); miniBase();
+  mini.onclick = ev => { const r = mini.getBoundingClientRect(), m = S._mini; if(!m) return; const x = m.x0 + (ev.clientX - r.left)*m.k, y = m.y1 - (ev.clientY - r.top)*m.k; S.api && S.api.walkTo(x, y); };
+  drawTools();
+}
+/** רקע המפה הקטנה: שטח ההליכה, הבניינים והשבילים. נבנה פעם אחת */
+function miniBase(){
+  const wk = S.wk, c = document.createElement('canvas'), N = 220; c.width = c.height = N; const g = c.getContext('2d');
+  const x0 = wk.x0, y0 = wk.y0, x1 = wk.x0 + wk.nx*wk.res, y1 = wk.y0 + wk.ny*wk.res, k = Math.max(x1-x0, y1-y0)/N, X = x => (x - x0)/k, Y = y => (y1 - y)/k;
+  g.fillStyle = '#f4f3ef'; g.fillRect(0, 0, N, N);
+  let i = 0, v = 0; g.fillStyle = '#d9d4c7'; for(const run of wk.mask){ if(v){ for(let j = i; j < i + run; j++){ const cx = j % wk.nx, cy = Math.floor(j / wk.nx); g.fillRect(X(x0 + cx*wk.res), Y(y0 + (cy+1)*wk.res), wk.res/k + .4, wk.res/k + .4); } } i += run; v ^= 1; }
+  g.fillStyle = 'rgba(70,70,70,.85)'; (S.model.foot||[]).forEach(f => { g.beginPath(); for(let q = 0; q < f.length; q += 2) g[q ? 'lineTo' : 'moveTo'](X(f[q]/10), Y(f[q+1]/10)); g.closePath(); g.fill(); });
+  g.strokeStyle = 'rgba(17,153,142,.55)'; g.lineWidth = 1; wk.edges.forEach(e => { g.beginPath(); for(let q = 0; q < e.pts.length; q += 2) g[q ? 'lineTo' : 'moveTo'](X(e.pts[q]/10), Y(e.pts[q+1]/10)); g.stroke(); });
+  S._mini = { c, x0, y1, k: k*N/220, X, Y };
+}
+let _wl = 0;
+function walkHud(w){
+  const now = performance.now(); if(w.moving && now - _wl < 90) return; _wl = now;   // בעצירה תמיד מעדכנים, כדי שהמיקום האחרון יוצג
+  const mini = document.getElementById('lyMini'), m = S._mini; if(!mini || !m) return; const g = mini.getContext('2d');
+  g.drawImage(m.c, 0, 0); const x = m.X(w.x), y = m.Y(w.y), a = -w.yaw;
+  g.fillStyle = 'rgba(17,153,142,.22)'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 26, a - .55, a + .55); g.closePath(); g.fill();      // שדה הראייה
+  g.fillStyle = '#11998e'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.stroke();
+  const inf = document.getElementById('lyWinfo'); if(inf) inf.innerHTML = `<b>${H(w.info)}</b>${w.junction ? ' · צומת: ← → לבחירה' : ''}`;
+}
 async function setMode(mode){
   S.mode = mode; const view = document.getElementById('lyView'); if(!view) return;
+  if(S.walk){ S.walk = false; const h = document.getElementById('lyWalk'); if(h) h.remove(); }
   if(S.api){ S.api.dispose(); S.api = null; }
   view.innerHTML = ''; document.getElementById('lyNorth').style.display = mode==='model' ? '' : 'none';
   if(mode==='model'){
     try{ await PM().loadThree();
       S.api = PM().create(view, S.model, { capture: !!window._lyCapture, onMapError: () => { S.streets = true; applyApi(); drawTools(); sunNow(); },   // המפה לא נטענה: עוברים לרחובות העירייה שבאפליקציה
-        onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; } });
-      if(S.rn) S.api.setRenewal(S.rn); if(S.fl) S.api.setBuildings(S.fl); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
+        onCamera: a => { const n = document.getElementById('lyNorth'); if(n) n.firstElementChild.style.transform = `rotate(${a}rad)`; }, onWalk: walkHud });
+      if(S.wk) S.api.setWalkData(S.wk);
+      if(S.lv) S.api.setLevels(S.lv); if(S.rn) S.api.setRenewal(S.rn); if(S.fl) S.api.setBuildings(S.fl); applyApi(); S.api.view(S.view); S.off.forEach(k => S.api.setKind(k, false));
     }catch(e){ console.warn('model', e); view.innerHTML = '<p class="ly-empty">המודל התלת־ממדי לא נטען בדפדפן הזה. אפשר לעבור ל"שרטוט".</p>'; }
   } else {
     view.innerHTML = '<div class="ly-world" id="lyWorld">' + S.man.layers.map(l => `<div class="ly-sheet" data-id="${l.id}"><img src="${SETS[S.tik].dir}/${l.file}" alt="${H(l.name)}" draggable="false" decoding="async"><span class="ly-tag">${H(l.name)}</span></div>`).join('') + '</div>';
@@ -412,6 +462,7 @@ function drawPanel(){
     ${fold('concept', 'הקונספט של היועץ', r.concept[disc.id] ? 'נרשם' : '', `<div class="ly-note"><textarea data-concept="${disc.id}" data-voice="k:${disc.id}" rows="2" placeholder="מה היועץ מסביר על התכנון…" ${ed?'':'readonly'}>${H(r.concept[disc.id]||'')}</textarea>${micBtn('k:'+disc.id)}</div>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(k => `<button class="ly-lg${S.off.has(k.id)?' off':''}" data-kind="${k.id}" title="${H(k.desc)}"><i style="background:${k.color}"></i><span>${H(k.label)}<small>${H(k.desc)}</small></span><em>${H(kindMeasure(k.id))}</em></button>`).join('')}</div>`)}
     ${infraFold(disc, r, ed)}
+    ${levelsFold(disc, ed)}
     ${fold('checks', 'מה בודקים', discCount(disc).done + '/' + discCount(disc).total, `<ol class="ly-items">${qs}${cust}</ol>
     ${ed ? `<div class="ly-add"><input id="lyNew" data-voice="new" type="text" placeholder="הנחיה נוספת בתחום…" aria-label="הנחיה נוספת">${micBtn('new')}<button class="ly-b" data-act="add">הוספה</button></div>` : ''}`)}
 
@@ -420,6 +471,15 @@ function drawPanel(){
   el.querySelectorAll('textarea').forEach(grow);
 }
 /** ניתוח ורתימות (plans-infra.js): ממצאים מול מה שנמדד, הנחיה לייעול, וסימון לכל רתימה */
+/** מפלסים: הרמפות לחניון (תנועה) והפרשי הגובה בכניסות (נגישות), מ-levels.json. כל ערך עם מקור, וההערכות מסומנות */
+function levelsFold(disc, ed){
+  const lv = S.lv; if(!lv || !['traffic', 'walk', 'all'].includes(disc.id)) return '';
+  const rows = [];
+  if(disc.id !== 'walk') (lv.ramps||[]).forEach((r, i) => rows.push(`<li>רמפה לחניון: <b>${r.len}</b> מ', שיפוע <b>${Math.round(r.slope*100)}%</b>, עומק בסוף כ-<b>${r.depth}</b> מ' (הערכה)${r.under ? ', ונכנסת מתחת לבניין' : ''} <button class="ly-b" data-goramp="${i}">להראות</button></li>`));
+  if(disc.id !== 'traffic') (lv.checks||[]).forEach((c, i) => rows.push(`<li>${H(c.text)}${ed ? ` <button class="ly-b" data-addlv="${i}">הוספה להנחיות</button>` : ''}</li>`));
+  if(!rows.length) return '';
+  return fold('levels', 'מפלסים ונגישות', rows.length, `<ul class="ly-facts">${rows.join('')}</ul><p class="ly-src">רומים: ${H(lv.src)}. ${H(lv.assume)}</p>`);
+}
 function infraFold(disc, r, ed){
   const PI = window.PlanInfra; if(!PI || !S.meas || S.model.concept) return '';   // תכנון רעיוני: אין עדיין תוכנית פיתוח לנתח
   /* מודל מתמונה: ממצא שתלוי בשכבה שחסרה במקור (מים), או בריצוף (שבתמונה הוא "כל השאר"), לא מוצג. בשאר המקור הוא הערכה מהתמונה */
@@ -485,7 +545,7 @@ function bind(){
   el.onclick = e => {
     const b = e.target.closest('button, input[type=checkbox]'); if(!b) return; const d = b.dataset;
     if(d.card){ window.openPlanCard(d.card); return; }
-    if(d.state){ S.state = d.state; stopRec(); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } drawTools(); applyDisc(); drawPanel(); }   // המבט נשאר זהה בין המצבים
+    if(d.state){ S.state = d.state; stopRec(); if(S.state !== 'design'){ if(S.walk) walkToggle(false); if(S.render && S.api) S.api.setRender(false); } else if(S.render && S.api) S.api.setRender(true); if(S.state!=='design' && S.mode!=='model'){ setMode('model').then(drawPanel); return; } drawTools(); applyDisc(); drawPanel(); }   // המבט נשאר זהה בין המצבים
     else if(d.env){ S.env = !S.env; applyApi(); drawTools(); sunNow(); }
     else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
     else if(d.alt){ S.useAlt = !S.useAlt; S.fl = S.useAlt ? S.flAlt : S.flMain; S.cut = 0; S.fac = true; setMode(S.mode).then(() => { drawPanel(); sunNow(); }); }   // נספח הבינוי מול חלופת המצגת: המודל נבנה מחדש באותו מבט
@@ -498,11 +558,16 @@ function bind(){
     else if(d.mode){ setMode(d.mode==='0' ? 'model' : 'draw'); }
     else if(d.view){ S.view = ['home','top','eye'][+d.view]; if(S.api) S.api.view(S.view); drawTools(); sunNow(); }
     else if(d.season){ S.season = +d.season; applyApi(); drawTools(); sunNow(); }
+    else if(d.render){ S.render = !S.render; if(S.api) S.api.setRender(S.render).then(() => { drawTools(); sunNow(); }); drawTools(); }
+    else if(d.walk){ walkToggle(!S.walk); }
+    else if(d.wcmd){ if(S.api) S.api.walkCmd(d.wcmd); }
     else if(d.wind){ S.wind = !S.wind; applyApi(); drawTools(); sunNow(); }
     else if(d.kind){ if(S.off.has(d.kind)) S.off.delete(d.kind); else S.off.add(d.kind); if(S.api) S.api.setKind(d.kind, !S.off.has(d.kind)); b.classList.toggle('off', S.off.has(d.kind)); }
     else if(d.mic) mic(d.mic);
     else if(d.act==='copy') copyText();
     else if(d.act==='add'){ const inp = document.getElementById('lyNew'), v = inp.value.trim(); if(!v) return inp.focus(); review().custom.push({ t:DISC[S.d].id, n:v, d:false, at:today() }); persist(); drawPanel(); drawSteps(); }
+    else if(d.goramp != null){ if(S.mode !== 'model'){ setMode('model').then(() => S.api && S.api.viewRamp(+d.goramp)); } else if(S.api) S.api.viewRamp(+d.goramp); }
+    else if(d.addlv){ const c = ((S.lv||{}).checks||[])[+d.addlv]; if(!c) return; review().custom.push({ t:'walk', n:c.text, d:false, at:today(), src:'מפלסים' }); persist(); drawPanel(); drawSteps(); }
     else if(d.addg){ const f = (S._fs||[])[+d.addg]; if(!f) return; review().custom.push({ t:DISC[S.d].id==='all' ? f.disc : DISC[S.d].id, n:f.guide, d:false, at:today(), src:'ניתוח רב תשתיות' }); persist(); drawPanel(); drawSteps(); }
     else if(d.synst){ const [id, k] = d.synst.split('|'), r = review(); r.synergy = r.synergy || {}; r.synergy[id] = r.synergy[id]===k ? '' : k; persist(); drawPanel(); }
     else if(d.del){ review().custom.splice(+d.del.split('.')[1], 1); persist(); drawPanel(); drawSteps(); }
@@ -647,6 +712,20 @@ const CSS = `
 .ly-tools{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;font-size:11px;color:var(--ink-mute);opacity:.92}
 
 .ly-grp{display:inline-flex;align-items:center;gap:4px}
+.ly-walk{position:absolute;inset-inline-end:8px;bottom:8px;display:flex;gap:8px;align-items:flex-end;pointer-events:none}
+.ly-walk>*{pointer-events:auto}
+.ly-mini{width:180px;height:180px;background:#f4f3ef;box-shadow:0 2px 10px rgba(0,0,0,.25);cursor:crosshair}
+.ly-wpad{background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(0,0,0,.2);padding:8px;display:flex;flex-direction:column;gap:6px;align-items:center;max-width:240px}
+.ly-winfo{font-size:12.5px;color:var(--ink-soft);text-align:center} .ly-winfo b{color:var(--ink)}
+.ly-wkeys{display:flex;gap:4px;align-items:center} .ly-wkeys>span{display:flex;flex-direction:column;gap:4px}
+.ly-wkeys button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:5px 6px !important;border:0 !important;background:#eeede8 !important;color:var(--ink) !important;cursor:pointer;border-radius:0 !important}
+.ly-wkeys button:active,.ly-wkeys button:hover{background:var(--ink) !important;color:#fff !important}
+.ly-wkeys small{font-size:10.5px}
+.ly-whelp{margin:0;font-size:10.5px;color:var(--ink-mute);text-align:center;line-height:1.35}
+.pm-canvas.pm-walk{cursor:crosshair}
+.pm-canvas.pm-render{filter:saturate(1.14) contrast(1.07) brightness(.98)}
+.pm-render-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(20,24,28,.30) 100%)}
+@media (max-width:760px){.ly-mini{width:120px;height:120px}.ly-whelp{display:none}}
 .ly-ib{display:inline-flex !important;align-items:center;justify-content:center;width:24px;height:22px;padding:0 !important}
 .ly-ib svg{display:block}
 .ly-grp b{color:var(--ink-soft);font-size:10.5px;font-weight:600}
