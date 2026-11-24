@@ -60,6 +60,17 @@ const KINDS = [
  ,{ id:'tech', topic:'power', label:'חדר טכני ואוורור', color:'#5fb8a8', desc:'אוורור החניון וחדר טכני בקומת הקרקע. מוצג על גג קומת הקרקע.' }
  ,{ id:'wasteLift', topic:'waste', label:'מעלית אשפה', color:'#2f7d5a', desc:'פיר האשפה של כל מגדל, מהסימן בתוכנית ההעמדה.' }
  ,{ id:'spot', topic:'level', label:'רומים', color:'#0b6b3a', desc:'מפלס הכניסה (שחור) ורומי הפיתוח (ירוק), במטרים מעל פני הים.' }
+ /* תכנון רעיוני: תוכנית המתחם ומפת המדידה (tools/concept-model.py, ענת 24.11.2026) */
+ ,{ id:'sport', topic:'shade', label:'מגרש ספורט', color:'#86b6de', desc:'מגרש כדורסל או ספורט, מתוכנית הפיתוח של המתחם.' },
+ { id:'yard', topic:'shade', label:'חצר גן ילדים', color:'#c9c27a', desc:'החצר המגודרת של גן הילדים, מתוכנית הפיתוח.' },
+ { id:'easement', topic:'walk', label:'זיקת הנאה למעבר', color:'#b8d43a', desc:'מעבר ציבורי להולכי רגל או לרכב בתוך המגרש, מתשריט התב"ע. הקווקוו הוא הסימון בתשריט.' },
+ { id:'radius', topic:'site', label:'רדיוס מגבלות בנייה', color:'#d0202a', desc:'אזורי המגן של קידוח מי השתייה. בתוכם אסורים מגורים, מסחר ומבני ציבור.' },
+ { id:'appBuild', topic:'build', label:'הבינוי המאושר בשאר המתחם', color:'#dcd9d1', desc:'הבניינים של תוכנית הפיתוח בשאר המתחם, בגובה המרבי של המגרש בטבלה 5. הקשר, הערכה.' },
+ { id:'exTree', topic:'exist', label:'עץ קיים', color:'#6f8f5a', desc:'ממפת המדידה, לפי הסימון "ע". קוטר הצמרת הנחה: 5 מ\'.' },
+ { id:'exSurvey', topic:'exist', label:'מפת המדידה', color:'#8c8c8c', desc:'כל הקווים של מפת המדידה: אבני שפה, גדרות, קירות, מבנים ומדרגות.' },
+ { id:'exBench', topic:'exist', label:'ספסל קיים', color:'#9a7b55', desc:'ממפת המדידה.' },
+ { id:'exBin', topic:'exist', label:'אשפטון קיים', color:'#2f7d5a', desc:'ממפת המדידה.' },
+ { id:'exSign', topic:'exist', label:'תמרור, רמזור ושלט', color:'#c0392b', desc:'ממפת המדידה.' }
  ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
  { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
  { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
@@ -69,7 +80,7 @@ const KINDS = [
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
 const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
-const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp'], renewal:['rnParcel','rnMass','rnEnvelope'] };
+const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
 /* ── רשת ישראל החדשה ↔ WGS84 ── */
@@ -274,6 +285,11 @@ function create(el, model, opts){
   surf('firemark', .10, M.std({ color:KIND.firemark.color, transparent:true, opacity:.75 }));
   surf('plaza', .06, M.std({ color:KIND.plaza.color, map:TX.paving, vertexColors:true, roughness:.9 }));
   surf('bikeRoom', 4.03, M.std({ color:KIND.bikeRoom.color })); surf('tech', 4.03, M.std({ color:KIND.tech.color }));
+  surf('sport', .062, M.std({ color:'#ffffff', map:TX.rubber, vertexColors:true, roughness:.8 }), 1); surf('yard', .058, M.std({ color:'#ffffff', map:TX.paving, vertexColors:true }), 1);
+  // הבינוי המאושר בשאר המתחם (תכנון רעיוני): נפח בהיר בגובה המרבי של המגרש
+  if(model.appBuild && model.appBuild.length){
+    model.appBuild.forEach(b => { const eg = extrudeGeo(T, [ring2(b[1])], 0, b[0]); add('appBuild', new T.Mesh(eg, M.std({ color:KIND.appBuild.color, roughness:.85, transparent:true, opacity:.92 })), { cast:true, solid:true });
+      groups.appBuild.add(new T.LineSegments(new T.EdgesGeometry(eg, 35), outlineM)); }); }
   if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
     groups.wall.add(new T.LineSegments(new T.EdgesGeometry(wg, 35), outlineM)); }
   if(S.pergola){ const rs = S.pergola.map(p => ring2(p[1]));
@@ -287,7 +303,7 @@ function create(el, model, opts){
   const rib = (kind, y0, h, mat, o) => { if(L[kind]) add(kind, new T.Mesh(ribbonGeo(T, L[kind], y0, h), mat), o); };
   const lin = (kind, y, color) => { if(L[kind]) add(kind, new T.LineSegments(lineGeo(T, L[kind], y), new T.LineBasicMaterial({ color }))); };
   rib('plot', 0, .3, new T.MeshBasicMaterial({ color:KIND.plot.color, transparent:true, opacity:.55, side:T.DoubleSide, depthWrite:false }), { noReceive:true });
-  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color); lin('bldline', .15, KIND.bldline.color); lin('front', .17, KIND.front.color);
+  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color); lin('bldline', .15, KIND.bldline.color); lin('front', .17, KIND.front.color); lin('easement', .09, KIND.easement.color); lin('radius', .2, KIND.radius.color); lin('exSurvey', .015, KIND.exSurvey.color);
   rib('curb', 0, .15, M.std({ color:KIND.curb.color, side:T.DoubleSide })); lin('paint', .03, '#ffffff'); lin('cross', .05, '#ffffff'); lin('parking', .05, '#f1f1f1');
   rib('lowwall', 0, .9, M.std({ color:KIND.lowwall.color, side:T.DoubleSide }), { cast:true, solid:true });
   rib('fence', 0, 1.2, M.std({ color:KIND.fence.color, side:T.DoubleSide, transparent:true, opacity:.45 }), { solid:true });
@@ -312,7 +328,7 @@ function create(el, model, opts){
     inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2]); d.position.set(t[0], trunkH(t)+r*.55, -t[1]); d.scale.set(r, r*.78, r); d.rotation.y = rnd(i)*6; });
     inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2])*.62, a = rnd(i+9)*6.28; d.position.set(t[0]+Math.cos(a)*r*.7, trunkH(t)+r*1.5, -t[1]+Math.sin(a)*r*.7); d.scale.set(r, r*.8, r); });
   }
-  trees('treeNew', O.treeNew, KIND.treeNew.color); trees('treeOld', O.treeOld, KIND.treeOld.color);
+  trees('treeNew', O.treeNew, KIND.treeNew.color); trees('treeOld', O.treeOld, KIND.treeOld.color); trees('exTree', O.exTree, KIND.exTree.color);
   (O.treeSurvey||[]).forEach(([hex, list]) => inst('treeSurvey', new T.RingGeometry(.55, .95, 20), new T.MeshBasicMaterial({ color:hex, side:T.DoubleSide }), list, (d, t) => { d.position.set(t[0], .2, -t[1]); d.rotation.x = -Math.PI/2; }, { cast:false, noReceive:true }));
   const lampHead = new T.MeshStandardMaterial({ color:'#fff6cf', emissive:'#ffd66b', emissiveIntensity:0 });
   inst('lamp', new T.CylinderGeometry(.07, .1, 7, 8), M.std({ color:'#5f6368', metalness:.5, roughness:.5 }), O.lamp, (d, t) => d.position.set(t[0], 3.5, -t[1]));
@@ -324,6 +340,9 @@ function create(el, model, opts){
   inst('bench', new T.BoxGeometry(1, .42, .4), M.std({ color:'#8d8a84' }), O.bench, (d, b) => { d.position.set(b[0], .21, -b[1]); d.rotation.y = b[4]; d.scale.set(Math.max(.4, b[2]*.82), 1, 1); });
   box('bin', O.bin, 1.25, M.std({ color:KIND.bin.color }), 0, .9); box('cabinet', O.cabinet, 1.4, M.std({ color:KIND.cabinet.color }));
   box('trafo', O.trafo, 2.6, M.std({ color:KIND.trafo.color }));
+  box('exBench', O.exBench, .45, M.std({ color:KIND.exBench.color, map:TX.wood })); box('exBin', O.exBin, 1.1, M.std({ color:KIND.exBin.color }));
+  inst('exSign', new T.CylinderGeometry(.04, .04, 2.6, 6), M.std({ color:'#7d8288', metalness:.5 }), O.exSign, (d, t) => d.position.set(t[0], 1.3, -t[1]));
+  inst('exSign', new T.CylinderGeometry(.35, .35, .05, 16), M.std({ color:KIND.exSign.color }), O.exSign, (d, t) => { d.position.set(t[0], 2.45, -t[1]); d.rotation.x = Math.PI/2; });
   inst('cover', new T.CylinderGeometry(1, 1, .03, 18), M.std({ color:KIND.cover.color, metalness:.4 }), O.cover, (d, t) => { d.position.set(t[0], .12, -t[1]); d.scale.set(Math.max(.3, t[2]), 1, Math.max(.3, t[2])); }, { cast:false });
   // כבאית בכל רחבת כיבוי
   (O.fire||[]).forEach(b => {
@@ -380,7 +399,7 @@ function create(el, model, opts){
   function applyActive(){
     for(const k in groups){ const g = groups[k];
       if(state !== 'design'){ solidOn(g, (STATE_KINDS[state].includes(k) && !kindOff.has(k)) || (k==='under' && underOn && state==='renewal')); continue; }
-      if(k==='exBuild' || k==='rnParcel' || k==='rnMass'){ g.visible = false; continue; }
+      if(k==='rnParcel' || k==='rnMass' || (KIND[k] && KIND[k].topic==='exist')){ g.visible = false; continue; }   // מפת המדידה רק במצב "קיים"
       if(k==='rnEnvelope'){ solidOn(g, envOn); continue; }
       if(k==='under'){ solidOn(g, underOn); continue; }
       if(k==='facade'){ solidOn(g, facOn && !kindOff.has(k)); continue; }

@@ -36,6 +36,11 @@ for(const dir of sets){
   if(man.raster) ok(ms.count.treeNew > 0 && ms.count.foot > 0 && ms.area.paving > 0 && (m.parts||[]).length > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), מבנים (' + ms.count.foot + '), חלקי בניין (' + (m.parts||[]).length + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   else if(concept){ ok(m.concept && m.lines.plot.length && m.lines.lots.length >= 2 && m.lines.bldline.length && m.foot.length, dir + ': במודל הרעיוני יש קו כחול, ' + m.lines.lots.length + ' מגרשים, קווי בניין ו-' + m.foot.length + ' מבנים בקומת הקרקע');
     const g = concept.georef; ok(g.median < 0.5 && g.plotMedian < 0.5, dir + ': התשריט מעוגן לחלקות הגוש ב-GIS העירוני (סטייה חציונית ' + g.median + " מ', הקו הכחול " + g.plotMedian + " מ')");
+    if(concept.dev){ const d = concept.dev, need = ['asphalt', 'green', 'paving', 'play'];
+      ok(d.georef.median < 0.5, dir + ': תוכנית הפיתוח (תמונה, עמ\' ' + d.page + ') מעוגנת לתאי השטח (סטייה חציונית ' + d.georef.median + " מ')");
+      ok(need.every(k => (m.surf[k]||[]).length) && (m.obj.treeNew||[]).length > 20 && (m.obj.treeSurvey||[]).length === 3, dir + ': מתוכנית הפיתוח: כבישים, גינון, ריצוף, משחק, ' + (m.obj.treeNew||[]).length + ' עצים ושלושת סימוני העצים'); }
+    if(concept.survey){ const sv = concept.survey;
+      ok(['exTree', 'cover', 'lamp'].every(k => sv[k] > 0) && (m.lines.exSurvey||[]).length > 1000, dir + ': ממפת המדידה: ' + Object.entries(sv).map(([k, v]) => v + ' ' + P.KIND[k].label).join(', ')); }
     const dA = Math.abs(concept.planArea.drawn/1000 - concept.planArea.stated)/concept.planArea.stated; ok(dA < 0.06, dir + ': שטח הקו הכחול ' + concept.planArea.drawn + ' מ"ר מול ' + concept.planArea.stated + ' דונם בתשריט (' + (dA*100).toFixed(1) + '%)'); }
   else ok(ms.count.treeNew > 0 && ms.count.fire > 0 && ms.area.paving > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), רחבות כיבוי (' + ms.count.fire + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   const rf = path.join(root, dir, 'renewal.json');
