@@ -444,7 +444,7 @@ function create(el, model, opts){
   }
   function setActive(set){ active = set ? new Set(set) : null; applyActive(); }
   function setKind(k, on){ if(on) kindOff.delete(k); else kindOff.add(k); applyActive(); }
-  function setState(st){ state = st; applyActive(); }
+  function setState(st){ state = st; applyActive(); if(rl) rl.root.visible = renderOn && state === 'design'; if(lifeG) lifeG.visible = renderOn && state === 'design'; }
   function setEnvelope(on){ envOn = !!on; applyActive(); }
 
   /* התחדשות עירונית (נפחים לפי הזכויות) ומצב קיים. הנתונים ב-WGS84, ומומרים לרשת ישראל */
@@ -869,7 +869,7 @@ function create(el, model, opts){
   function renderFix(){
     if(!renderOn) return;
     for(const k in groups){ const g = groups[k]; if(state !== 'design') continue;
-      if(RENDER_HIDE.has(k)){ g.visible = false; continue; }
+      if(RENDER_HIDE.has(k) || (rl && realHide.has(k))){ g.visible = false; continue; }
       if(KIND[k] && KIND[k].topic === 'exist' || k === 'rnParcel' || k === 'rnMass' || k === 'under') continue;
       if(k === 'facade' && !facOn) continue;
       if(!kindOff.has(k)) g.visible = true;
@@ -885,7 +885,8 @@ function create(el, model, opts){
       scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null;
       groups && Object.values(groups).forEach(g => g.traverse(x => { const m = x.material; if(m && m.userData && m.userData.leaf){ m.transparent = !renderOn; m.opacity = renderOn ? 1 : .84; m.needsUpdate = true; } }));
       if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments) && !x.userData.keep) x.visible = true; });
-      if(renderOn && !lifeG) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design';
+      if(renderOn && state === 'design' && !rl && window.PlanReal){ try{ buildReal2(); }catch(e){ console.warn('real', e); rl = null; } }   // המחשה ראליסטית (plans-real.js)
+      if(renderOn && !lifeG && !rl) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design'; if(rl) rl.root.visible = renderOn && state === 'design';
       renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
       applyActive(); draw(); };
     go(); return Promise.resolve();
@@ -948,13 +949,16 @@ function create(el, model, opts){
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
       trail = new T.Group(); const rib = new T.Mesh(g, new T.MeshBasicMaterial({ color:'#19b3a5', transparent:true, opacity:.42, depthWrite:false, side:T.DoubleSide, fog:false })); rib.renderOrder = 4; rib.userData.keep = true; trail.add(rib);
       (WD.stops||[]).forEach((st, i) => { const q = G.N[st.n], h = hAt(q[0], q[1]);
-        const pole = new T.Mesh(new T.CylinderGeometry(.06, .06, 3, 8), new T.MeshBasicMaterial({ color:'#11998e' })); pole.position.set(q[0], h + 1.5, -q[1]); trail.add(pole);
+        const pole = new T.Mesh(new T.CylinderGeometry(.04, .04, 2.5, 8), new T.MeshBasicMaterial({ color:'#11998e' })); pole.position.set(q[0], h + 1.25, -q[1]); trail.add(pole);
         const c = document.createElement('canvas'); c.width = 512; c.height = 84; const x = c.getContext('2d'); x.fillStyle = '#11998e'; x.fillRect(0, 0, 512, 84); x.fillStyle = '#fff'; x.font = '600 36px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
-        x.fillText(`${i+1}. ${st.name}`, 256, 44); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:true, fog:false })); sp.scale.set(5.2, .85, 1); sp.position.set(q[0], h + 3.4, -q[1]); sp.userData.keep = true; trail.add(sp); });
+        x.fillText(`${i+1}. ${st.name}`, 256, 44); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:true, fog:false })); sp.scale.set(2.6, .43, 1); sp.position.set(q[0], h + 2.75, -q[1]); sp.userData.keep = true; trail.add(sp); });
       scene.add(trail); }
     if(trail) trail.visible = !!on; draw(); }
   /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
-  let lifeG = null;
+  let lifeG = null, rl = null; const realHide = new Set(), realCtx = {};
+  /* המחשה ראליסטית (plans-real.js): חומרים, ויטרינות ודלתות, עצים, עמודי תאורה, אנשים בתנועה ומכוניות. נבנית פעם אחת, כשמדליקים הדמיה */
+  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)) });
+    rl = window.PlanReal.build(realCtx); renderFix(); draw(); }
   function buildLife(){
     if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);
     const r = i => { const v = Math.sin(i*91.7)*43758.5453; return v - Math.floor(v); }, col = new T.Color(), o = new T.Object3D();
@@ -1068,10 +1072,11 @@ function create(el, model, opts){
 
   // ציור לפי צורך
   let raf = 0, last = 0, dead = false;
-  function frame(t){ raf = 0; if(dead) return; const raw = (t-last)/1000 || 0, dt = Math.min(.1, raw); last = t; stepWind(dt); const walking = stepWalk(Math.min(.3, raw)), moving = W ? false : ctl.update();   // הליכה לפי הזמן שעבר באמת, גם במחשב איטי
+  function frame(t){ raf = 0; if(dead) return; const raw = (t-last)/1000 || 0, dt = Math.min(.1, raw); last = t; stepWind(dt); const walking = stepWalk(Math.min(.3, raw)), moving = W ? false : ctl.update(), lifeOn = !!(rl && rl.root.visible && realCtx.stepLife);
+    if(lifeOn) realCtx.stepLife(Math.min(.25, raw), cam.position.x, -cam.position.z, !!W);   // הליכה לפי הזמן שעבר באמת, גם במחשב איטי
     renderer.render(scene, cam);
     if(opts && opts.onCamera) opts.onCamera(W ? -W.yawNow - Math.PI/2 : Math.atan2(cam.position.x-ctl.target.x, cam.position.z-ctl.target.z));
-    if(windDir != null || moving || walking) loop(); }
+    if(windDir != null || moving || walking || lifeOn) loop(); }
   function loop(){ if(!raf && !dead) raf = requestAnimationFrame(frame); }
   function draw(){ loop(); }
   ctl.addEventListener('change', draw);
