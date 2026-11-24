@@ -283,7 +283,8 @@ function create(el, model, opts){
   }
   function setMap(on){ mapOn = !!on; if(mapOn && !mapBuilt) loadMap(); updGround(); }
   const shadowCatch = new T.Mesh(new T.PlaneGeometry(1400, 1400), new T.ShadowMaterial({ opacity:.34, depthWrite:false })); shadowCatch.rotation.x = -Math.PI/2; shadowCatch.position.y = .135; shadowCatch.receiveShadow = true; shadowCatch.renderOrder = 3; scene.add(shadowCatch);
-  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; shadowCatch.visible = !underOn; if(terrainM) terrainM.visible = !underOn; draw(); }
+  function updGround(){ mapG.visible = mapOn && !underOn && !ground.userData.render;   // בהדמיה אין מפת רקע: הרחובות נבנים כאספלט (plans-real.js)
+    streetG.visible = streetsOn && !underOn && !ground.userData.render; ground.visible = !underOn; shadowCatch.visible = !underOn; if(terrainM) terrainM.visible = !underOn; draw(); }
 
   // משטחים
   const outlineM = new T.LineBasicMaterial({ color:'#2a2a28', transparent:true, opacity:.5 });
@@ -540,7 +541,7 @@ function create(el, model, opts){
     const glassM = new T.MeshStandardMaterial({ color:'#2c4252', roughness:.04, metalness:.88, envMapIntensity:1.7, side:T.DoubleSide });
     const cwM = new T.MeshStandardMaterial({ color:'#3c5466', roughness:.05, metalness:.8, envMapIntensity:1.6, side:T.DoubleSide });
     const frameM = M.std({ color:'#34373c', roughness:.45, metalness:.5, envMapIntensity:.6 });
-    const railM = new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.32, roughness:.04, metalness:.5, envMapIntensity:1.4, side:T.DoubleSide, depthWrite:false });
+    const railM = new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.5, roughness:.04, metalness:.5, envMapIntensity:1.4, side:T.DoubleSide, depthWrite:false });
     const wallM = M.std({ vertexColors:true, map:clad, roughness:.78, envMapIntensity:.35 }), slabM = M.std({ color:'#fbfaf6', roughness:.6, envMapIntensity:.4 });
     const roofM = M.std({ color:sc('#a29d92'), map:gravel, roughness:1 }), handM = new T.LineBasicMaterial({ color:'#2e3135' });
     const litM = new T.MeshBasicMaterial({ vertexColors:true, side:T.DoubleSide });
@@ -603,6 +604,7 @@ function create(el, model, opts){
           if(dc < 2.6){ if(equip.length < 14) equip.push([x, ty, yy]); } else if(dc > 4.2 && !realPv.length) pv.push([x, ty, yy]); } }
       const ms = { W:new T.Mesh(geo(W), wallM), G:new T.Mesh(geo(G), glassM), CW:new T.Mesh(geo(CW), cwM), F:new T.Mesh(geo(F), frameM), S:new T.Mesh(geo(S), slabM), R:new T.Mesh(geo(R), railM),
         Hd:new T.LineSegments(geo(Hd), handM), L:new T.Mesh(geo(L), litM), roof:new T.Group() };
+      ms.Hd.userData.keep = true;   // מעקה המרפסת נשאר גם בהדמיה: זה בטיחות, לא קו טכני
       ms.roof.add(new T.Mesh(geo(roof), wallM), new T.Mesh(geo(roofTop), roofM));
       for(const kk of ['W', 'G', 'CW', 'F', 'S', 'roof']) add('facade', ms[kk], { cast:true, solid:true }); add('facade', ms.R, { solid:true, noReceive:true }); add('facade', ms.Hd); add('facade', ms.L);
       ms.L.visible = nightOn; nightObjs.push(ms.L);
@@ -959,7 +961,7 @@ function create(el, model, opts){
   /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
   let lifeG = null, rl = null; const realHide = new Set(), realCtx = {};
   /* המחשה ראליסטית (plans-real.js): חומרים, ויטרינות ודלתות, עצים, עמודי תאורה, אנשים בתנועה ומכוניות. נבנית פעם אחת, כשמדליקים הדמיה */
-  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)), ground, terrain:() => terrainM, renderer, sun, hemi, fill, levels:() => LV });
+  function buildReal2(){ Object.assign(realCtx, { T, scene, model, groups, hAt, graph, walkData:() => WD, hide:ks => ks.forEach(k => realHide.add(k)), ground, terrain:() => terrainM, renderer, sun, hemi, fill, levels:() => LV, mapG, wgs2itm, updGround });
     rl = window.PlanReal.build(realCtx); renderFix(); draw(); }
   function buildLife(){
     if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);
@@ -1085,7 +1087,9 @@ function create(el, model, opts){
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
   if(window._pmDebug) window._pm = { cam, ctl, draw, groups, walkTo, walkCmd, get W(){ return W; } };       // בדיקה בלבד
-  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
+  const getCam = () => ({ p:cam.position.toArray().map(v => +v.toFixed(2)), t:ctl.target.toArray().map(v => +v.toFixed(2)) });
+  function setCam(v){ if(W) walkStop(); cam.position.fromArray(v.p); ctl.target.fromArray(v.t); ctl.update(); draw(); }
+  return { getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
     dispose(){ dead = true; walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
