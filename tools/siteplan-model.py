@@ -558,7 +558,7 @@ def main():
     layers = [dict(id=i, name=nm, file=i + '.webp', ink=layer(i, m), cad=[]) for i, nm, m in L]
     man = dict(tik=a.tik, title=a.title, source=a.src_name or os.path.basename(a.img), scale=None, w=W//2, h=Hh//2, mPerPx=RES*2,
                cadTotal=len(layers), unassigned=[], siteArea=int((site > 0).sum()*RES*RES), layers=layers, raster=True, cal=cal,
-               findings=SPEC.get('findings', []), missingWhy=SPEC.get('missingWhy', {}), parking=SPEC.get('parking'),
+               findings=SPEC.get('findings', []), missingWhy=SPEC.get('missingWhy', {}), parking=SPEC.get('parking'), runoff=SPEC.get('runoff'),
                missing=SPEC.get('missing', ['water']),   # מה שאין בשקפים: נאמר במסך ונדרש מהאדריכל
                elements=dict(entries=len(el['entry']), lamps=len(el['lamp']), yellowInside=yellowInside, fire=len(el['fire']), firePartial=(EL.get('fire') or {}).get('partial', ''),
                              ramps=len(rampP), wasteLifts=len(el['wasteLift']), spots=len(el['spot']), bikeRoom=int((bikeR > 0).sum()*RES*RES), tech=int((techM > 0).sum()*RES*RES),

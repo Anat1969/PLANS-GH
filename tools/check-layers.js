@@ -54,6 +54,9 @@ for(const dir of sets){
     const segs = []; rn.parcels.forEach(p => { const c = p.c.map(loc); c.forEach((a, i) => { const b = c[(i+1)%c.length]; segs.push([a[0], a[1], b[0], b[1]]); }); });
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
+    if(man.treeStatus){ const t = man.treeStatus, sum = Object.values(t.counts).reduce((x, y) => x + y, 0), sv = (m.obj.treeSurvey||[]).reduce((x, g) => x + g[1].length, 0);
+      ok(sum === t.total && sv === t.total && t.legend.every(g => g.why) && t.cal.median < .5, dir + ': סקר העצים מהנספח: ' + t.total + ' עצים (' + t.legend.map(g => t.counts[g.id] + ' ' + g.label).join(', ') + "), לכל צבע נימוק, עיגון " + t.cal.median + " מ'");
+      if(t.basement) ok(t.basement.rings >= 1 && t.basement.area > 1000 && (m.lines.bline||[]).length === t.basement.rings, dir + ': קו המרתף מתוכנית המרתף: ' + t.basement.rings + ' טבעות, ' + t.basement.area + ' מ"ר, חלל ' + t.basement.holes + ' מ"ר'); }
     if(man.vector){ const v = man.vector.cal; ok(v.within05 >= .9 && v.gridRotDiff < .1, dir + ': ' + man.vector.pdf + ' מעוגן לתב"ע (סטייה חציונית ' + v.median + " מ', " + Math.round(v.within05*100) + '% עד חצי מטר, הסיבוב זהה לרשת הגיליון עד ' + v.gridRotDiff + '°)'); }
     if(man.raster){ const c = man.cal || {}, dr = c.drawn;
       if(dr) ok(dr.share >= 0.7 && dr.within05 >= 0.8 && dr.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round(dr.share*100) + '% מהצלעות מצוירות בתמונה; מהן ' + Math.round(dr.within05*100) + '% עד חצי מטר מהקו, ' + Math.round(dr.within1*100) + '% עד מטר)');

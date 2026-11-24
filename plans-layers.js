@@ -114,16 +114,16 @@ function rasterFacts(disc){
         spacingFact(), partsFact()].filter(Boolean); }
     case 'traffic': return [`מיסעה לפי מגרשי הדרך בתב"ע: כ-**${N(a.asphalt)}** מ"ר${l.curb ? `, אבני שפה **${N(l.curb)}** מ'` : ''}${l.paint ? `, סימון **${N(l.paint)}** מ'` : ''}${l.cross ? `, **${S.model.lines.cross.length}** קווי מעברי חצייה` : ''}`,
       `${a.bike ? `שביל אופניים כ-**${N(a.bike)}** מ"ר` : 'אין שביל אופניים'}${a.brt ? `, נתיב תחבורה ציבורית בהרצל כ-**${N(a.brt)}** מ"ר` : ''}. חדרי אופניים ועגלות: כ-**${N(a.bikeRoom)}** מ"ר`,
-      `**${e.ramps||0}** רמפות לחניון${e.under ? `, קו המרתף כ-**${N(e.under)}** מ"ר (הערכה, משקף המרתף)` : ''}`,
+      `**${e.ramps||0}** רמפות לחניון${(man.treeStatus||{}).basement ? `, המרתף כ-**${N(man.treeStatus.basement.area)}** מ"ר, סביב חצר חלחול של כ-**${N(man.treeStatus.basement.holes)}** מ"ר (מתוכנית המרתף בנספח העצים)` : e.under ? `, קו המרתף כ-**${N(e.under)}** מ"ר (הערכה, משקף המרתף)` : ''}`,
       man.parking ? `מאזן החניה: **${N(man.parking.proposed)}** מוצעות מול **${N(man.parking.required)}** בתקן (${man.parking.disabled} נכים), אופניים **${N(man.parking.bicycle)}**, אופנועים **${man.parking.motorcycle}**. לפי ${man.parking.unitsAssumed} יח"ד` : v ? '==מקומות החניה במרתפים (J-2) לא נספרו==' : none('מקומות החניה, שבילי אופניים ופריקה וטעינה')].filter(Boolean);
     case 'walk': return [v ? `ריצוף: כ-**${N(a.paving)}** מ"ר (הבטון הצבעוני מהשרטוט, השאר הערכה מתוכנית ההעמדה)` : `ריצוף: כ-**${N(a.paving)}** מ"ר (כל מה שאינו מבנה, חצר, רחבה או דרך)`,
       `**${c.spot||0}** רומים${l.contour ? `, קווי גובה **${N(l.contour)}** מ'` : ''}${l.stairs ? `, מדרגות **${N(l.stairs)}** מ'` : ''}`, l.easement ? `זיקת הנאה למעבר הציבור: **${N(l.easement)}** מ' של גבולות` : none('מדרגות, קירות פיתוח ושיפועי הנגישות')];
     case 'land': return [`**${c.treeNew}** עצים מוצעים${c.treeOld ? `, **${c.treeOld}** קיימים לשימור` : ''}${sv ? `, ו-**${sv}** סימוני סקר העצים` : ''}`,
       `גינון: כ-**${N(a.green)}** מ"ר${a.play ? `, משחק כ-**${N(a.play)}** מ"ר` : ''}${a.fountain ? `, אלמנט מים כ-**${N(a.fountain)}** מ"ר` : ''}${a.plaza ? `, רחבות שהייה כ-**${N(a.plaza)}** מ"ר` : ''}`,
-      v ? 'צבע סימון הסקר לפי מקרא הסקר: לשימור, להעתקה או לכריתה' : '==עץ לשימור, להעתקה או לכריתה לא מסומן=='];
+      treeFact(man) || (v ? 'צבע סימון הסקר לפי מקרא הסקר: לשימור, להעתקה או לכריתה' : '==עץ לשימור, להעתקה או לכריתה לא מסומן=='), treeConflict(man)].filter(Boolean);
     case 'water': return l.drain || l.waterNew ? [l.drain ? `ניקוז מי גשם: **${N(l.drain)}** מ' צינורות ו-**${c.manhole||0}** שוחות עם רום מכסה ותחתית (חוברת העיצוב, עמ' 15)` : '',
       l.waterNew || l.sewerNew ? `מים: **${N(l.waterNew)}** מ' מוצע ו-**${N(l.water)}** מ' קיים, **${c.meter||0}** מדי מים. ביוב: **${N(l.sewerNew)}** מ' מוצע ו-**${N(l.sewer)}** מ' קיים (עמ' 16)` : '',
-      `**${c.cover||0}** שוחות קיימות ממפת המדידה. מיקום שוחה מוצעת: קצה הצינור הקרוב לתווית (הערכה)`].filter(Boolean) : [none('מים, ביוב וניקוז'), ask];
+      `**${c.cover||0}** שוחות קיימות ממפת המדידה. מיקום שוחה מוצעת: קצה הצינור הקרוב לתווית (הערכה)`, runoffFact(man)].filter(Boolean) : [none('מים, ביוב וניקוז'), ask];
     case 'power': return !(c.trafo || c.gasCab || c.cabinet || c.exPole) ? [`**${c.lamp||0}** סימנים צהובים לאורך הדרכים, כנראה עמודי תאורה (הערכה)`, `חדר טכני ואוורור: כ-**${N(a.tech)}** מ"ר`, none('חדר טרנספורמציה, ארונות וקווי חשמל')] : [`**${c.trafo||0}** חדרי שנאים${c.gasCab ? `, **${c.gasCab}** נקודות גז` : ''}${c.cabinet ? `, **${c.cabinet}** ארונות קיימים` : ''}${c.exPole ? `, **${c.exPole}** עמודים קיימים ממפת המדידה` : ''}`,
       `**${c.lamp||0}** סימנים צהובים לאורך הדרכים, כנראה עמודי תאורה מוצעים (הערכה, מהמצגת)`, `חדר טכני ואוורור: כ-**${N(a.tech)}** מ"ר`, c.trafo ? '==אין בשקפים קווי חשמל ותקשורת==' : none('חדר טרנספורמציה, ארונות וקווי חשמל')];
     case 'waste': return !(c.wasteInlet || c.wasteLift || c.bin) ? [none('חדר אשפה, דחסנית ומסלול משאית הפינוי'), ask] : [`**${c.wasteInlet||0}** פתחי פינוי פניאומטי, **${c.wasteLift||0}** מעליות אשפה${c.bin ? `, **${c.bin}** נקודות אשפה בפיתוח` : ''}`, v ? 'המערכת הפניאומטית במרתף: חוברת העיצוב, עמ\' 21' : none('חדר אשפה, דחסנית ומסלול משאית הפינוי')];
@@ -134,6 +134,14 @@ function rasterFacts(disc){
       cal.within05 != null ? `תוכנית ההעמדה מהמצגת: **${Math.round(cal.within05*100)}%** מצלעות המגרשים עד חצי מטר` : 'המודל ממוקם ברשת ישראל'];
   }
 }
+/* סקר העצים מנספח העצים הבוגרים (tools/annex-trees.py), וניהול הנגר מנספח הניקוז */
+function treeFact(man){ const t = man.treeStatus; if(!t) return '';
+  return `סקר העצים (נספח העצים הבוגרים): **${t.total}** עצים: ${t.legend.map(g => `**${t.counts[g.id]}** ${g.label}`).join(', ')}${t.inBasement && t.inBasement.cut ? `. ${t.inBasement.cut} מהעצים לכריתה בתוך קו המרתף` : ''}`; }
+function treeConflict(man){ const t = man.treeStatus; if(!t || !t.conflicts) return '';
+  const n = (t.conflicts.basement||0) + (t.conflicts.building||0);
+  return n ? `==${n} ${n === 1 ? 'עץ' : 'עצים'} לשימור בתוך תחום הבנייה== (הערכה, לפי העיגון)` : 'כל העצים לשימור מחוץ למרתף ולבניינים (הערכה)'; }
+function runoffFact(man){ const r = man.runoff; if(!r) return '';
+  return `ניהול נגר (נספח, עמ' ${r.page}): יעד **${N(r.target)}** מ"ק (${Math.round(r.share*100)}% מ-${N(r.volume)}), שטח חלחול **${N(r.infArea)}** מ"ר${S.meas.area.green ? ` מול כ-**${N(S.meas.area.green)}** מ"ר גינון במודל (הערכה)` : ''}. מוצא לרחוב הרצל`; }
 /* מרחקים בין מבנים (model.spacing) וחלקי בניין מהמצגת (model.parts) */
 function spacingFact(){
   const sp = (S.model.spacing||[]).filter(x => x.need), bad = sp.filter(x => !x.ok), t = sp.filter(x => x.need === 18).sort((a, b) => a.d - b.d)[0];
@@ -438,12 +446,12 @@ function drawStatePanel(el){
   const lg = k => `<button class="ly-lg${S.off.has(k)?' off':''}" data-kind="${k}"><i style="background:${K[k].color}"></i><span>${H(K[k].label)}<small>${H(K[k].desc)}</small></span><em>${H(k==='exBuild' ? String(rn.demolish.length) : kindMeasure(k))}</em></button>`;
   el.innerHTML = ex ? `
     <div class="ly-who">קיים · מפת המדידה ומפת הרקע העירונית</div><h2 class="ly-h">מה יש היום במתחם</h2>
-    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה${S.model.concept ? `, <b>${m.count.exTree||0}</b> עצים קיימים` : m.count.treeOld != null ? `, <b>${m.count.treeOld}</b> עצים קיימים` : ''}</p>
+    <p class="ly-lead"><b>${rn.demolish.length}</b> מבנים להריסה${S.model.concept ? `, <b>${m.count.exTree||0}</b> עצים קיימים` : (S.man.treeStatus || {}).total ? `, <b>${S.man.treeStatus.total}</b> עצים בסקר: ${S.man.treeStatus.legend.map(g => `<b>${S.man.treeStatus.counts[g.id]}</b> ${g.label}`).join(', ')}` : m.count.treeOld != null ? `, <b>${m.count.treeOld}</b> עצים קיימים` : ''}</p>
     ${S.model.concept ? fold('exfacts', 'מה יש בשטח: מפת המדידה', 4, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה (מפת הרקע העירונית). 4 קומות לפי מפת המדידה</li>
       <li><b>${m.count.exTree||0}</b> עצים, <b>${m.count.cover||0}</b> שוחות, <b>${m.count.lamp||0}</b> עמודים, <b>${m.count.cabinet||0}</b> ארונות</li>
       <li><b>${m.count.exBench||0}</b> ספסלים, <b>${m.count.exBin||0}</b> אשפטונים, <b>${m.count.exSign||0}</b> תמרורים ורמזורים</li>
       <li>כל קווי המדידה: <b>${N(m.len.exSurvey)}</b> מ' (אבני שפה, גדרות, קירות ומבנים)</li></ul>`) : fold('exfacts', 'מה יש בשטח', S.man.raster ? 2 : 3, `<ul class="ly-facts"><li><b>${rn.demolish.length}</b> מבנים קיימים להריסה. הגובה סמלי, לא נמדד</li>
-      ${S.man.raster && !(S.model.lines || {}).exSurvey ? `<li><mark class="ly-warn">אין מפת מדידה: עצים ותשתית קיימים לא ידועים</mark></li>` : S.man.raster ? `<li><b>${m.count.exTree||0}</b> עצים קיימים ממפת המדידה, <b>${m.count.treeOld||0}</b> לשימור, <b>${(S.model.obj.treeSurvey||[]).reduce((s2, x) => s2 + x[1].length, 0)}</b> סימוני סקר</li><li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover||0}</b> שוחות, <b>${m.count.exPole||0}</b> עמודים</li>` : `<li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
+      ${S.man.raster && !(S.model.lines || {}).exSurvey ? `<li><mark class="ly-warn">אין מפת מדידה: עצים ותשתית קיימים לא ידועים</mark></li>` : S.man.raster ? `<li><b>${m.count.exTree||0}</b> עצים קיימים ממפת המדידה, <b>${m.count.treeOld||0}</b> לשימור, <b>${(S.model.obj.treeSurvey||[]).reduce((s2, x) => s2 + x[1].length, 0)}</b> סימוני סקר${(S.man.treeStatus||{}).source ? ` (נספח העצים הבוגרים: הטבעת בצבע הסטטוס, ${S.man.treeStatus.legend.map(g => g.label).join(', ')})` : ''}</li><li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover||0}</b> שוחות, <b>${m.count.exPole||0}</b> עמודים</li>` : `<li><b>${m.count.treeOld}</b> עצים קיימים ו-<b>${m.count.treeSurvey}</b> סימוני סקר</li>
       <li>תשתית קיימת: מים <b>${N(m.len.water)}</b> מ', ביוב <b>${N(m.len.sewer)}</b> מ', <b>${m.count.cover}</b> שוחות</li>`}</ul>`)}
     ${fold('legend', 'מקרא', kinds.length, `<div class="ly-legend">${kinds.map(lg).join('')}</div><p class="ly-src">${H(rn.sources.context)}.</p>`)}` : `
     <div class="ly-who">התחדשות עירונית · ${H(rn.plan)}</div><h2 class="ly-h">מה מותר ב${H(rn.title)}</h2>
