@@ -13,6 +13,8 @@ const KINDS = [
  { id:'plot', topic:'site', label:'הקו הכחול', color:'#1f5fd0', desc:'גבול התוכנית, כסרט כחול נמוך.' },
  { id:'lots', topic:'site', label:'גבולות מגרשים', color:'#6f8fd8', desc:'חלוקת המגרשים בתוך התוכנית.' },
  { id:'bline', topic:'site', label:'קו מרתף ודיפון', color:'#e08a1e', desc:'תחום החפירה מתחת לקרקע. קובע איפה אפשר לנטוע עץ באדמה עמוקה.' },
+ { id:'bldline', topic:'site', label:'קו בניין', color:'#b01e1e', desc:'קו הבניין מעל הקרקע, מתשריט התב"ע המוצעת.' },
+ { id:'front', topic:'build', label:'חזית מסחרית', color:'#84338a', desc:'החזית המסחרית שהתשריט מחייב. בקומת המסד היא זיגוג.' },
  { id:'wall', topic:'build', label:'קירות קומת הקרקע', color:'#e8e4da', desc:'הקירות והעמודים מתוכנית האדריכל, בגובה 4 מ\'.' },
  { id:'glass', topic:'build', label:'זיגוג וחזית מסחרית', color:'#8fc7dc', desc:'קירות המסך והחלונות: איפה הבניין פתוח לרחוב.' },
  { id:'door', topic:'build', label:'דלתות וכניסות', color:'#8a5a2b', desc:'פתחי הכניסה בקומת הקרקע.' },
@@ -275,7 +277,7 @@ function create(el, model, opts){
   const rib = (kind, y0, h, mat, o) => { if(L[kind]) add(kind, new T.Mesh(ribbonGeo(T, L[kind], y0, h), mat), o); };
   const lin = (kind, y, color) => { if(L[kind]) add(kind, new T.LineSegments(lineGeo(T, L[kind], y), new T.LineBasicMaterial({ color }))); };
   rib('plot', 0, .3, new T.MeshBasicMaterial({ color:KIND.plot.color, transparent:true, opacity:.55, side:T.DoubleSide, depthWrite:false }), { noReceive:true });
-  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color);
+  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color); lin('bldline', .15, KIND.bldline.color); lin('front', .17, KIND.front.color);
   rib('curb', 0, .15, M.std({ color:KIND.curb.color, side:T.DoubleSide })); lin('paint', .03, '#ffffff'); lin('cross', .05, '#ffffff'); lin('parking', .05, '#f1f1f1');
   rib('lowwall', 0, .9, M.std({ color:KIND.lowwall.color, side:T.DoubleSide }), { cast:true, solid:true });
   rib('fence', 0, 1.2, M.std({ color:KIND.fence.color, side:T.DoubleSide, transparent:true, opacity:.45 }), { solid:true });
@@ -536,10 +538,13 @@ function create(el, model, opts){
       const ac = inst('facade', new T.BoxGeometry(1.1, .95, 1.1), M.std({ color:'#d6d6d2', roughness:.6, metalness:.2 }), equip, (d, q) => d.position.set(q[0], q[1] + .5, -q[2]));
       const pvm = inst('facade', new T.BoxGeometry(1.0, .05, 1.7), new T.MeshStandardMaterial({ color:sc('#1f2d4a'), roughness:.3, metalness:.3, envMapIntensity:.5 }), pv, (d, q) => { d.position.set(q[0], q[1] + .55, -q[2]); d.rotation.set(-.26, 0, 0); });
       const pvr = inst('facade', new T.BoxGeometry(1, .05, 1), new T.MeshStandardMaterial({ color:sc('#1f2d4a'), roughness:.3, metalness:.3, envMapIntensity:.5 }), realPv, (d, q) => { d.position.set(q[0], q[1] + .45, -q[2]); d.rotation.set(0, q[5], 0); d.rotateX(-.26); d.scale.set(q[3], 1, q[4]*.96); });
-      ms.equip = [ac, pvm, pvr].filter(Boolean);
+      // פס אנכי לכל גובה המגדל (תכנון רעיוני: "fins" ב-floors.json, מההדמיה). מוסתר בחתך, כמו הגג
+      const fins = b.fins && b.fins.length ? inst('facade', new T.BoxGeometry(1, 1, 1), M.std({ color:sc(b.finColor || '#8a6a4a'), roughness:.55, envMapIntensity:.5 }), b.fins,
+        (d, q) => { d.position.set(q[0], (4.0 + ty + 1.2)/2, -q[1]); d.rotation.set(0, q[2], 0); d.scale.set(q[3], ty + 1.2 - 4.0, q[4]); }) : null;
+      ms.equip = [ac, pvm, pvr, fins].filter(Boolean);
       // שם הבניין מעל הגג
       const c = document.createElement('canvas'); c.width = 512; c.height = 96; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 512, 96); x.fillStyle = '#1a1a18'; x.font = '600 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
-      x.fillText(`בניין ${b.id} · ${b.floors.length} קומות`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(30, 5.6, 1);
+      x.fillText(b.label || `בניין ${b.id} · ${b.floors.length} קומות`, 256, 50); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(30, 5.6, 1);
       sp.position.set(last.r.reduce((s2, q) => s2+q[0], 0)/last.r.length, ty + 12, -last.r.reduce((s2, q) => s2+q[1], 0)/last.r.length); add('facade', sp);
       return { b, ms, ends, sp, plan };
     });

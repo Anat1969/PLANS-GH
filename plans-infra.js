@@ -199,7 +199,8 @@ async function cityScan(){
   try{ await window.LAYER_SETS_READY; }catch(e){}
   const sets = window.LAYER_SETS || {}, PM = window.PlanModel, all = plansAll();
   const hasPlanDoc = p => { try{ return typeof window.planMaterials === 'function' && window.planMaterials(p).some(x => x.cat === 'plan'); }catch(e){ return false; } };
-  const done = all.filter(p => sets[String(p.tik)]), rest = all.filter(p => !sets[String(p.tik)]);
+  const dev = p => sets[String(p.tik)] && !sets[String(p.tik)].concept;   // מודל של תכנון רעיוני (1909) אינו תוכנית פיתוח: לא נכנס לניתוח העירוני
+  const done = all.filter(dev), rest = all.filter(p => !dev(p));
   const vec = rest.filter(p => (p.documents || []).some(d => d && d.layers)), rest2 = rest.filter(p => !vec.includes(p));
   const ready = rest2.filter(hasPlanDoc), none = rest2.filter(p => !ready.includes(p));
   const results = [];
