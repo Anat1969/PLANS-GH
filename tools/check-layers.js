@@ -36,6 +36,16 @@ for(const dir of sets){
   if(man.raster) ok(ms.count.treeNew > 0 && ms.count.foot > 0 && ms.area.paving > 0 && (m.parts||[]).length > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), מבנים (' + ms.count.foot + '), חלקי בניין (' + (m.parts||[]).length + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   else if(concept){ ok(m.concept && m.lines.plot.length && m.lines.lots.length >= 2 && m.lines.bldline.length && m.foot.length, dir + ': במודל הרעיוני יש קו כחול, ' + m.lines.lots.length + ' מגרשים, קווי בניין ו-' + m.foot.length + ' מבנים בקומת הקרקע');
     const g = concept.georef; ok(g.median < 0.5 && g.plotMedian < 0.5, dir + ': התשריט מעוגן לחלקות הגוש ב-GIS העירוני (סטייה חציונית ' + g.median + " מ', הקו הכחול " + g.plotMedian + " מ')");
+    if(concept.dev){ const d = concept.dev, need = ['asphalt', 'green', 'paving', 'play'];
+      ok(d.georef.median < 0.5, dir + ': תוכנית הפיתוח (תמונה, עמ\' ' + d.page + ') מעוגנת לתאי השטח (סטייה חציונית ' + d.georef.median + " מ')");
+      ok(need.every(k => (m.surf[k]||[]).length) && (m.obj.treeNew||[]).length > 20 && (m.obj.treeSurvey||[]).length === 3, dir + ': מתוכנית הפיתוח: כבישים, גינון, ריצוף, משחק, ' + (m.obj.treeNew||[]).length + ' עצים ושלושת סימוני העצים'); }
+    const fdx = fs.existsSync(path.join(root, dir, 'floors.json')) ? JSON.parse(fs.readFileSync(path.join(root, dir, 'floors.json'), 'utf8')) : null, t5f = path.join(root, 'data', 'table5', concept.tik + '.json');
+    if(fdx && fdx.annex && fs.existsSync(t5f)){ const t5 = JSON.parse(fs.readFileSync(t5f, 'utf8')), tw = fdx.buildings.filter(b => !String(b.id).startsWith('ציבור'));   // נספח הבינוי מול טבלה 5 של אותה תב"ע
+      const bad = tw.filter(b => { const r = t5.rows.find(x => x.lot === String(b.lot) && x.use === 'מגורים'); return !r || r.floorsAbove !== b.total || b.top > r.height; });
+      ok(tw.length && !bad.length, dir + ': נספח הבינוי: ' + tw.length + ' מגדלים, מספר הקומות והגובה תואמים לטבלה 5 (' + t5.taba + ')' + (bad.length ? ' (לא תואם: ' + bad.map(b => b.lot).join(', ') + ')' : ''));
+      ok(fs.existsSync(path.join(root, dir, fdx.alternative || '-')), dir + ': חלופת המצגת נשמרה להשוואה (' + fdx.alternative + ')'); }
+    if(concept.survey){ const sv = concept.survey;
+      ok(['exTree', 'cover', 'lamp'].every(k => sv[k] > 0) && (m.lines.exSurvey||[]).length > 1000, dir + ': ממפת המדידה: ' + Object.entries(sv).map(([k, v]) => v + ' ' + P.KIND[k].label).join(', ')); }
     const dA = Math.abs(concept.planArea.drawn/1000 - concept.planArea.stated)/concept.planArea.stated; ok(dA < 0.06, dir + ': שטח הקו הכחול ' + concept.planArea.drawn + ' מ"ר מול ' + concept.planArea.stated + ' דונם בתשריט (' + (dA*100).toFixed(1) + '%)'); }
   else ok(ms.count.treeNew > 0 && ms.count.fire > 0 && ms.area.paving > 0, dir + ': במודל יש עצים (' + ms.count.treeNew + '), רחבות כיבוי (' + ms.count.fire + ') וריצוף (' + ms.area.paving + ' מ"ר)');
   const rf = path.join(root, dir, 'renewal.json');
@@ -45,7 +55,9 @@ for(const dir of sets){
     const dseg = (p, s) => { const vx = s[2]-s[0], vy = s[3]-s[1], l = vx*vx+vy*vy || 1e-9; let t = ((p[0]-s[0])*vx+(p[1]-s[1])*vy)/l; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0]-s[0]-t*vx, p[1]-s[1]-t*vy); };
     const ds = []; (m.lines.plot||[]).forEach(f => { for(let i = 0; i < f.length; i += 2){ const p = [f[i]/10, f[i+1]/10]; ds.push(Math.min(...segs.map(g => dseg(p, g)))); } }); ds.sort((a, b) => a-b);
     if(man.vector){ const v = man.vector.cal; ok(v.within05 >= .9 && v.gridRotDiff < .1, dir + ': ' + man.vector.pdf + ' מעוגן לתב"ע (סטייה חציונית ' + v.median + " מ', " + Math.round(v.within05*100) + '% עד חצי מטר, הסיבוב זהה לרשת הגיליון עד ' + v.gridRotDiff + '°)'); }
-    if(man.raster){ const c = man.cal || {}; ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
+    if(man.raster){ const c = man.cal || {}, dr = c.drawn;
+      if(dr) ok(dr.share >= 0.7 && dr.within05 >= 0.8 && dr.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round(dr.share*100) + '% מהצלעות מצוירות בתמונה; מהן ' + Math.round(dr.within05*100) + '% עד חצי מטר מהקו, ' + Math.round(dr.within1*100) + '% עד מטר)');
+      else ok(c.within05 >= 0.8 && c.within1 >= 0.9, dir + ': התמונה מעוגנת למגרשי התב"ע (' + Math.round((c.within05||0)*100) + '% מהצלעות עד חצי מטר מהקו בתמונה, ' + Math.round((c.within1||0)*100) + '% עד מטר)'); }
     else if(concept) ok(ds.length > 20 && ds[ds.length >> 1] < 1.5, dir + ': הקו הכחול של התב"ע המוצעת קרוב למגרשי התב"ע המאושרת (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ'. מגרשי \"מה נבנה סביבי\" פחות מדויקים מה-GIS)");
     else ok(ds.length > 20 && ds[ds.length >> 1] < 0.5, dir + ': השרטוט מכויל למגרשי התב"ע (סטייה חציונית ' + (ds[ds.length >> 1]||0).toFixed(2) + " מ')");
     ok(rn.lots.filter(l => l.floors > 0).every(l => rn.massing.some(x => x.lot===l.lot)) && rn.massing.every(x => P.ZONES[x.cat]) && rn.parcels.every(x => P.ZONES[x.cat]), dir + ': לכל מגרש בתב"ע יש נפח וייעוד מהמקרא');
@@ -56,7 +68,7 @@ for(const dir of sets){
     const gap = TOP.filter(t => !has(t) && !(man.missing||[]).includes(t)), both = TOP.filter(t => has(t) && (man.missing||[]).includes(t));
     ok(!gap.length && !both.length, dir + ': מלאי השכבות: ' + TOP.filter(has).length + ' מתוך ' + TOP.length + ' עם תוכן, חסר במקור: ' + ((man.missing||[]).join(', ') || 'אין')
       + (gap.length ? ' (בלי תוכן ולא רשום: ' + gap.join(', ') + ')' : '') + (both.length ? ' (רשום כחסר אבל יש תוכן: ' + both.join(', ') + ')' : ''));
-    ok(man.layers.every(l => l.ink > 0), dir + ': לכל שכבת שרטוט יש תוכן (' + man.layers.map(l => l.id).join(', ') + ')');
+    ok(man.layers.every(l => l.ink > 0 || (man.missing||[]).includes(l.id)), dir + ': לכל שכבת שרטוט יש תוכן, חוץ ממה שרשום כחסר במקור (' + man.layers.filter(l => l.ink > 0).map(l => l.id).join(', ') + ')');
   }
   if(m.parts && fs.existsSync(rf)){ // חלקי בניין מהמצגת מול התב"ע: מספר הקומות והגובה. חריגה היא ממצא לחוות הדעת, לא תקלה
     const rn = JSON.parse(fs.readFileSync(rf, 'utf8')), over = m.parts.filter(p => { const L = rn.lots.find(l => l.lot === p.lot); return L && L.floors && p.floors - (p.techFloors || 0) > L.floors; });
@@ -81,6 +93,34 @@ for(const dir of sets){
     else ok(!high.length, dir + ': אף בניין לא גבוה מהגובה המרבי בתב"ע' + (high.length ? ' (' + high.join(', ') + ')' : ''));
     ok(fd.buildings.filter(b => b.fit.median != null).every(b => b.fit.median < 0.6), dir + ': עיגון הקומות לקווי המגרש (סטייה חציונית ' + fd.buildings.filter(b => b.fit.median != null).map(b => b.id + ' ' + b.fit.median).join(', ') + " מ')");
     ok(fs.statSync(ff).size < 1.5e6, dir + ': floors.json ' + (fs.statSync(ff).size/1e3).toFixed(0) + 'KB');
+  }
+  const lf = path.join(root, dir, 'levels.json');
+  if(fs.existsSync(lf)){ // מפלסים (tools/extract-levels.py): רמפות בשיפוע סביר, פני קרקע בטווח סביר, ולכל רום ובדיקה יש מקור
+    const lv = JSON.parse(fs.readFileSync(lf, 'utf8')), hs = lv.h.map(v => v/100), mn = Math.min(...hs), mx = Math.max(...hs);
+    ok(lv.h.length === lv.nx*lv.ny, dir + ': רשת פני הקרקע שלמה (' + lv.nx + '×' + lv.ny + ')');
+    ok(mx - mn < 6, dir + ': פני הקרקע בטווח של ' + (mx-mn).toFixed(2) + " מ' (סביר לאתר עירוני)");
+    ok(lv.spots.every(s => s.src && Number.isFinite(s.z) && s.at && s.at.length === 2), dir + ': לכל רום (' + lv.spots.length + ') יש מקום, גובה ומקור');
+    const rs = lv.ramps || [];
+    ok(rs.every(r => r.slope > 0 && r.slope <= .2 && r.len > 5 && r.tris.length >= 6 && r.wall.length && r.depth > 0), dir + ': ' + rs.length + ' רמפות לחניון, שיפוע עד 20%, עם רצפה וקירות');
+    ok(rs.every(r => Math.abs(r.depth - (3.5*r.slope/2 + Math.max(0, r.len-5.5)*r.slope)) < .05), dir + ': עומק כל רמפה תואם לאורך ולשיפוע');
+    ok((lv.checks||[]).every(c => /1:12/.test(c.text) && c.at), dir + ': ' + (lv.checks||[]).length + ' בדיקות כניסה מנוסחות עם הכלל (1:12) ומקום');
+    // הקרקע במקום כל רום: הרשת עוברת דרך הרומים שמחוץ לבניינים (עד 25 ס"מ), ובתוך בניין במפלס 0.00 שלו
+    const hAt = (x, y) => { const i = Math.round((x-lv.x0)/lv.res), j = Math.round((y-lv.y0)/lv.res); return lv.h[Math.max(0, Math.min(lv.ny-1, j))*lv.nx + Math.max(0, Math.min(lv.nx-1, i))]/100 + lv.datum; };
+    const bad = lv.spots.filter(s => s.kind !== 'ffl' && Math.abs(hAt(s.at[0], s.at[1]) - s.z) > .25);
+    ok(bad.length <= Math.ceil(lv.spots.length*.15), dir + ': פני הקרקע עוברים דרך הרומים (' + bad.length + ' חריגים מעל 25 ס"מ, מותר 15%)');
+  }
+  const wf = path.join(root, dir, 'walk.json');
+  if(fs.existsSync(wf)){ // מסלולי הליכה (tools/extract-walk.py): רשת שלמה, שבילים מחוברים, ואזורים עם שם
+    const wk = JSON.parse(fs.readFileSync(wf, 'utf8')), n = wk.nodes.length, tot = wk.edges.reduce((a, e) => a + e.len, 0);
+    ok(wk.mask.reduce((a, b) => a + b, 0) === wk.nx*wk.ny, dir + ': מסכת שטח ההליכה שלמה (' + wk.nx + '×' + wk.ny + ')');
+    ok(wk.edges.every(e => e.a < n && e.b < n && e.pts.length >= 4), dir + ': כל קטע שביל מחבר שני צמתים קיימים (' + wk.edges.length + ' קטעים)');
+    // הרכיב המחובר הגדול: רוב אורך השבילים, כדי שאפשר יהיה ללכת מסביב ופנימה בלי להיתקע
+    const par = [...Array(n).keys()], f = x => par[x] === x ? x : (par[x] = f(par[x])); wk.edges.forEach(e => { par[f(e.a)] = f(e.b); });
+    const comp = {}; wk.edges.forEach(e => { const r = f(e.a); comp[r] = (comp[r] || 0) + e.len; }); const big2 = Math.max(...Object.values(comp));
+    ok(big2/tot > .5, dir + ': ' + Math.round(big2/tot*100) + '% מאורך השבילים (' + Math.round(tot) + " מ') ברשת אחת מחוברת");
+    ok((wk.stops||[]).length >= 2 && wk.stops.every(t => t.n < n && t.name), dir + ': סיור מודרך עם ' + (wk.stops||[]).length + ' תחנות על הרשת');
+    ok((wk.people||[]).length > 20 && (wk.cars||[]).every(c => c.length === 5), dir + ': אנשים (' + (wk.people||[]).length + ') ומכוניות (' + (wk.cars||[]).length + ') להדמיה');
+    ok(wk.zones.some(z => z.kind === 'in'), dir + ': יש אזורי בניין ל"איפה אני" (' + wk.zones.filter(z => z.kind === 'in').map(z => z.name).join(', ') + ')');
   }
   const big = fs.statSync(path.join(root, dir, 'model.json')).size + man.layers.reduce((s, l) => s + fs.statSync(path.join(root, dir, l.file)).size, 0);
   ok(big < 7e6, dir + ': משקל ' + (big/1e6).toFixed(1) + 'MB');

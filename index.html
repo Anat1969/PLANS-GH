@@ -2117,7 +2117,7 @@ tbody tr{transition:background .12s}
 /* צופי תמונות: המחוות שייכות לצופה, לא לגלילת הדף */
 .dv-stage,#hvCanvas,.viewer-stage{touch-action:none}
 </style>
-<link rel="stylesheet" href="anat-layer.css?v=1124k">
+<link rel="stylesheet" href="anat-layer.css?v=1124p">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2965,7 +2965,7 @@ const PERSIST_FIELDS = ['district','planNum','change','submitter','location','pu
   'committeeDate','projectName','projectDescription','planningData','opinion','stage','review','documents','timeline','communications',
   'fileNumber','meta','plots','parking','access','aspects','datesPlan','summary','gantt','graphics','render','renders','guideChecks','areaImgs','devPlanImg','table5','muniChecks','spatialChecks','projMuni','docsLib','projectData','devTeam','actionLog','updatedAt','visuals','harmonica','committeeReady','forumLog','_seeded','_userEdited','locks','devCode','tableNotes','notes','_deleted','infra',
   'forumDecision','consultants','consultantsPlanApproved','consultantsSignDate','signDate','_ganttDoneMig2','_forumsHistDone','forumSched',
-  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm','mmDept','_mmDone','t5lots','todoDone','tabaChecks','tabaSugNo'];
+  'proc','reviewGrid','meet','_est','openDateIssue','layerReview','archForm','mmDept','_mmDone','t5lots','todoDone','tabaChecks','tabaSugNo','opsDone','intent','decisions'];
 function loadPlans() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) { saved = null; }
@@ -8620,7 +8620,7 @@ function setMuniCheck(deptId, idx, field, val){
   if(!store[k]) store[k] = _blankCheck();
   store[k][field]=val;
   store[k].updatedAt=todayStr();
-  store[k].updatedBy = projectRole==='city' ? 'אדריכלית העיר' : 'אדריכל היזם';
+  store[k].updatedBy = actorName();
   if(muniInProject){ savePlans(); const el=document.getElementById('panel-muni'); if(el&&currentProjectId!=null) renderProjectMuni(pj()); }
   else { saveMuni(); renderMuniDepartments(); }
 }
@@ -9687,9 +9687,15 @@ function recentActions(limit){
   return all.slice(0, limit||10);
 }
 /** רישום פעולה בהיסטוריה (לא נמחק בעדכון) */
-function logAction(p, type, detail){
+/** מי ביצע: לפי מי שמחובר, לא לפי מצב התצוגה בדף התוכנית (ענת, 24.11.2026: פעולות שלה נרשמו כ"אדריכל היזם") */
+function actorName(){
+  if(typeof session!=='undefined' && session){ if(session.role==='developer') return 'אדריכל היזם'; if(session.role==='manager') return 'הנהלה'; if(session.role==='architect') return 'אדריכלית העיר'; }
+  return projectRole==='city'?'אדריכלית העיר':'אדריכל היזם';
+}
+function logAction(p, type, detail, extra){
   if(!Array.isArray(p.actionLog)) p.actionLog=[];
-  p.actionLog.push({ type, detail:detail||'', by: projectRole==='city'?'אדריכלית העיר':'אדריכל היזם', at: todayStr(), result:'' });
+  const n=new Date(), time=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  p.actionLog.push(Object.assign({ type, detail:detail||'', by: actorName(), at: todayStr(), time, result:'' }, extra||{}));
   p.updatedAt = todayStr();
   savePlans();
   refreshAll(); // "פעולות אחרונות" + "השלב הבא" + מדדים מתעדכנים מיד
@@ -13002,13 +13008,15 @@ function aiSyncContext() {
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js?v=1124c"></script>
-<script src="plans-model.js?v=1124z"></script>
-<script src="plans-layers.js?v=1124z"></script>
-<script src="plans-opinion.js?v=1124z"></script>
+<script src="plans-model.js?v=1125x1"></script>
+<script src="plans-layers.js?v=1125x1"></script>
+<script src="plans-opinion.js?v=1125x1"></script>
 <script src="plans-view.js?v=1123g"></script>
-<script src="plans-infra.js?v=1124z"></script>
+<script src="plans-infra.js?v=1125x1"></script>
 <script src="plans-contacts.js?v=1124k"></script>
-<script src="plans-import.js?v=1124o"></script>
-<script src="plans-city.js?v=1124k"></script>
+<script src="plans-import.js?v=1125a"></script>
+<script src="plans-city.js?v=1124p"></script>
+<script src="plans-ops-core.js?v=1124b"></script>
+<script src="plans-now.js?v=1124b"></script>
 </body>
 </html>

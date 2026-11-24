@@ -472,13 +472,14 @@ async function fillAsync(p){
   try{ const el = document.getElementById('opInfra'), set = (window.LAYER_SETS || {})[String(p.tik)]; if(!el || !set || set.concept || !window.PlanInfra || !window.PlanModel) return;
     if(set.raster){   // מודל מתוכנית העמדה כתמונה: בדיקות הבינוי שאפשר למדוד ממנו (קומות מול טבלה 5, מרחקים), ובלי ניתוח תשתיות
       const m = await fetch(set.dir + '/model.json').then(r => r.json()), rn = await fetch(set.dir + '/renewal.json').then(r => r.json()).catch(() => null), it = [];
-      const byB = {}; (m.parts || []).forEach(x => { if(!byB[x.id] || x.floors > byB[x.id].floors) byB[x.id] = x; });
+      const byB = {}; (m.parts || []).filter(x => x.kind === 'tower' || x.kind === 'mid').forEach(x => { if(!byB[x.id] || x.floors > byB[x.id].floors) byB[x.id] = x; });   // אגף ומבנה ציבור אינם נמדדים מול הקומות של המגרש
       Object.values(byB).forEach(x => { const L = rn && rn.lots.find(l => l.lot === x.lot); if(!L || !L.floors) return; const nf = x.floors - (x.techFloors || 0), over = nf > L.floors;
         it.push({ t:`בניין ${x.id}, מגרש ${x.lot}: מספר קומות`, sub:`${nf} במצגת${x.techFloors ? ` ועוד ${x.techFloors} טכנית (מותרות עד 2)` : ''}, ${L.floors} בטבלה 5`, st: over ? 'na' : 'yes',
           note: over ? 'לבירור: ההוראות מתירות עד 2 קומות טכניות מעבר לטבלה (הוראות טבלה 5, סעיף ד). לבקש מהאדריכל לסמן איזו קומה טכנית' : '' }); });
-      (m.spacing || []).filter(x => x.need).forEach(x => it.push({ t:`מרחק ${x.a} - ${x.b}`, sub:`כ-${x.d} מ', נדרש ${x.need} מ' (הערכה מהתמונה)`, st: x.ok ? 'yes' : 'no', note: x.ok ? '' : `להגדיל את המרחק ל-${x.need} מ' לפחות` }));
+      (m.spacing || []).filter(x => x.need && (!x.ok || x.d < x.need + 2)).forEach(x => it.push({ t:`מרחק ${x.a} - ${x.b}`, sub:`כ-${x.d} מ', נדרש ${x.need} מ' (הערכה מהתמונה)`, st: x.ok ? 'yes' : 'no', note: x.ok ? '' : `להגדיל את המרחק ל-${x.need} מ' לפחות` }));
       try{ const man = await fetch(set.dir + '/manifest.json').then(r => r.json());   // ממצאי פיתוח שנמדדו מהתמונה (רחבות כיבוי, עצים): בלי מה שתלוי בשכבה חסרה או בריצוף
-        window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }).filter(f => f.ok === false && !(man.missing||[]).includes(f.disc) && !/ריצוף/.test(f.title))
+        (man.findings || []).forEach(f => it.push({ t:f.t, sub:f.sub, st:f.st || 'na', note:f.note || '' }));   // ממצאים מהמצגת, עם מקור (data/siteplan/<תיק>.json)
+        window.PlanInfra.analyze({ meas:window.PlanModel.measure(m), model:m, rn }).filter(f => f.ok === false && !(man.missing||[]).includes(f.disc) && !/ריצוף/.test(f.title) && !(/ניקוז/.test(f.title) && !(m.lines || {}).drain))
           .forEach(f => it.push({ t:f.title, sub:String(f.fact || '').replace(/\*\*/g, '') + ' (הערכה מהתמונה)', st:'no', note:f.guide })); }catch(e){}
       el.innerHTML = checkList(it, `openLayers('${p.tik}')`) + '<p class="muted">מתוכנית ההעמדה שבמצגת (תמונה), הערכה. אין בה מים, ביוב וניקוז, ולכן אין ניתוח רב תשתיות מלא עד שיגיע PDF עם שכבות.</p>'; return; }
     const had = !!INFRA_CACHE[p.tik], fs = await infraFindings(p);

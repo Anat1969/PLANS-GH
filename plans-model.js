@@ -64,9 +64,23 @@ const KINDS = [
  ,{ id:'fountain', topic:'shade', label:'אלמנט מים', color:'#5fa8c8', desc:'בריכת מים או מזרקה בפארק, מתוכנית הנוף.' }
  ,{ id:'firepath', topic:'fire', label:'מסלול הכבאית', color:'#e23b3b', desc:'רצועת התנועה של רכב הכיבוי, מתוכנית הבטיחות.' }
  ,{ id:'contour', topic:'level', label:'קווי גובה', color:'#8c7a5a', desc:'קווי הגובה של הפיתוח, מתוכנית הנוף.' }
- ,{ id:'easement', topic:'site', label:'זיקת הנאה', color:'#c03a8a', desc:'תחום זיקת ההנאה למעבר הציבור, מהשרטוט.' }
  ,{ id:'manhole', topic:'water', label:'שוחות מי גשם', color:'#1e5fa8', desc:'שוחה עם רום מכסה ורום תחתית, מחוברת העיצוב.' }
  ,{ id:'wasteInlet', topic:'waste', label:'פתח פינוי פניאומטי', color:'#7a4a8a', desc:'פתח ההשלכה של מערכת האשפה הפניאומטית.' }
+ /* תכנון רעיוני: תוכנית המתחם ומפת המדידה (tools/concept-model.py, ענת 24.11.2026) */
+ ,{ id:'sport', topic:'shade', label:'מגרש ספורט', color:'#86b6de', desc:'מגרש כדורסל או ספורט, מתוכנית הפיתוח של המתחם.' },
+ { id:'yard', topic:'shade', label:'חצר גן ילדים', color:'#c9c27a', desc:'החצר המגודרת של גן הילדים, מתוכנית הפיתוח.' },
+ { id:'easement', topic:'walk', label:'זיקת הנאה למעבר', color:'#b8d43a', desc:'מעבר ציבורי להולכי רגל או לרכב בתוך המגרש, מתשריט התב"ע. הקווקוו הוא הסימון בתשריט.' },
+ { id:'radius', topic:'site', label:'רדיוס מגבלות בנייה', color:'#d0202a', desc:'אזורי המגן של קידוח מי השתייה. בתוכם אסורים מגורים, מסחר ומבני ציבור.' },
+ { id:'appBuild', topic:'build', label:'הבינוי המאושר בשאר המתחם', color:'#dcd9d1', desc:'הבניינים של תוכנית הפיתוח בשאר המתחם, בגובה המרבי של המגרש בטבלה 5. הקשר, הערכה.' },
+ { id:'useShop', topic:'build', label:'מסחר בקומת הקרקע', color:'#b9cdf2', desc:'השימוש בקומת הקרקע, מנספח הבינוי.' },
+ { id:'useLobby', topic:'build', label:'לובי', color:'#f6c6d6', desc:'הכניסה למגדל, מנספח הבינוי.' },
+ { id:'usePublic', topic:'build', label:'מבני ציבור', color:'#eba996', desc:'גני ילדים ומעון, מנספח הבינוי.' },
+ { id:'useClub', topic:'build', label:'מועדון דיירים', color:'#f1f2b0', desc:'שטח ציבורי לדיירים, מנספח הבינוי.' },
+ { id:'exTree', topic:'exist', label:'עץ קיים', color:'#6f8f5a', desc:'ממפת המדידה, לפי הסימון "ע". קוטר הצמרת הנחה: 5 מ\'.' },
+ { id:'exSurvey', topic:'exist', label:'מפת המדידה', color:'#8c8c8c', desc:'כל הקווים של מפת המדידה: אבני שפה, גדרות, קירות, מבנים ומדרגות.' },
+ { id:'exBench', topic:'exist', label:'ספסל קיים', color:'#9a7b55', desc:'ממפת המדידה.' },
+ { id:'exBin', topic:'exist', label:'אשפטון קיים', color:'#2f7d5a', desc:'ממפת המדידה.' },
+ { id:'exSign', topic:'exist', label:'תמרור, רמזור ושלט', color:'#c0392b', desc:'ממפת המדידה.' }
  ,{ id:'exBuild', topic:'exist', label:'מבנה קיים להריסה', color:'#6a6a6a', desc:'מתאר ממפת הרקע העירונית. הגובה סמלי: 13 מ\'.' },
  { id:'rnParcel', topic:'renewal', label:'מגרשים לפי ייעוד', color:'#e0884a', desc:'תאי השטח מהתשריט, בצבע הייעוד.' },
  { id:'rnMass', topic:'renewal', label:'נפח לפי הזכויות', color:'#e8b93c', desc:'נפח לדוגמה מטבלה 5, מחולק לקומות. הערכה, לא תכנון הבינוי.' },
@@ -76,7 +90,7 @@ const KINDS = [
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
 const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
-const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp'], renewal:['rnParcel','rnMass','rnEnvelope'] };
+const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
 /* ── רשת ישראל החדשה ↔ WGS84 ── */
@@ -189,6 +203,7 @@ function measure(m){
 
 function create(el, model, opts){
   const T = window.THREE, TX = textures(T), groups = {}, center = itm2wgs(model.e0, model.n0);
+  let LV = null, terrainM = null, LVr = [];     // מפלסים: מוגדרים לפני כל בנייה, כי add() מרים לפי הקרקע
   const renderer = new T.WebGLRenderer({ antialias:true, preserveDrawingBuffer:!!(opts && opts.capture) });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = .94; el.appendChild(renderer.domElement); renderer.domElement.className = 'pm-canvas';
@@ -213,10 +228,12 @@ function create(el, model, opts){
   const ghost = M.std({ color:'#dedcd6', transparent:true, opacity:.5 });
   const add = (kind, obj, o) => { const g = groups[kind] || (groups[kind] = Object.assign(new T.Group(), { name:kind })); if(!g.parent) scene.add(g);
     obj.traverse(x => { if(x.isMesh){ x.castShadow = !!(o && o.cast); x.receiveShadow = !(o && o.noReceive); x.userData.mat = x.material; x.userData.solid = !!(o && o.solid); } if(x.isLineSegments) x.userData.mat = x.material; });
-    g.add(obj); return obj; };
+    g.add(obj); if(LV) lift(obj, kind); return obj; };
+  const addG = (...a) => add(...a);
 
   // קרקע ומפה
   const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), M.std({ color:'#cfcabd' })); ground.rotation.x = -Math.PI/2; ground.position.y = -0.06; ground.receiveShadow = true; scene.add(ground);
+  ground.material.depthWrite = false; ground.renderOrder = -2;      // הקרקע מצוירת ראשונה ובלי עומק: רמפה שיורדת מתחת לה נראית
   // הקשר עירוני: רחובות אשדוד עם שמות, משכבת הרחובות של העירייה. בלי שירות חיצוני ובלי מפתח
   const streetG = new T.Group(); streetG.visible = false; scene.add(streetG); let streetsBuilt = false, streetsOn = false;
   function setStreets(fc, on){
@@ -260,7 +277,7 @@ function create(el, model, opts){
   }
   function setMap(on){ mapOn = !!on; if(mapOn && !mapBuilt) loadMap(); updGround(); }
   const shadowCatch = new T.Mesh(new T.PlaneGeometry(1400, 1400), new T.ShadowMaterial({ opacity:.34, depthWrite:false })); shadowCatch.rotation.x = -Math.PI/2; shadowCatch.position.y = .135; shadowCatch.receiveShadow = true; shadowCatch.renderOrder = 3; scene.add(shadowCatch);
-  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; shadowCatch.visible = !underOn; draw(); }
+  function updGround(){ mapG.visible = mapOn && !underOn; streetG.visible = streetsOn && !underOn; ground.visible = !underOn; shadowCatch.visible = !underOn; if(terrainM) terrainM.visible = !underOn; draw(); }
 
   // משטחים
   const outlineM = new T.LineBasicMaterial({ color:'#2a2a28', transparent:true, opacity:.5 });
@@ -282,7 +299,13 @@ function create(el, model, opts){
   surf('fountain', .09, M.std({ color:KIND.fountain.color, roughness:.1, metalness:.2 })); surf('firepath', .11, M.std({ color:KIND.firepath.color, transparent:true, opacity:.35 }));
   surf('plaza', .06, M.std({ color:KIND.plaza.color, map:TX.paving, vertexColors:true, roughness:.9 }));
   surf('bikeRoom', 4.03, M.std({ color:KIND.bikeRoom.color })); surf('tech', 4.03, M.std({ color:KIND.tech.color }));
-  if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
+  ['useShop', 'useLobby', 'usePublic', 'useClub'].forEach((k, i) => surf(k, .11 + i*.004, M.std({ color:'#ffffff', vertexColors:true, roughness:.7 }), 1));   // רצפת קומת הקרקע לפי השימוש
+  surf('sport', .062, M.std({ color:'#ffffff', map:TX.rubber, vertexColors:true, roughness:.8 }), 1); surf('yard', .058, M.std({ color:'#ffffff', map:TX.paving, vertexColors:true }), 1);
+  // הבינוי המאושר בשאר המתחם (תכנון רעיוני): נפח בהיר בגובה המרבי של המגרש
+  if(model.appBuild && model.appBuild.length){
+    model.appBuild.forEach(b => { const eg = extrudeGeo(T, [ring2(b[1])], 0, b[0]); add('appBuild', new T.Mesh(eg, M.std({ color:KIND.appBuild.color, roughness:.85, transparent:true, opacity:.92 })), { cast:true, solid:true });
+      groups.appBuild.add(new T.LineSegments(new T.EdgesGeometry(eg, 35), outlineM)); }); }
+  if(S.wall){ const wg = extrudeGeo(T, S.wall.map(p => ring2(p[1])), 0, model.wallH || 4); add('wall', new T.Mesh(wg, M.std({ color:KIND.wall.color, roughness:.8 })), { cast:true, solid:true });
     groups.wall.add(new T.LineSegments(new T.EdgesGeometry(wg, 35), outlineM)); }
   if(S.pergola){ const rs = S.pergola.map(p => ring2(p[1]));
     add('pergola', new T.Mesh(extrudeGeo(T, rs, 2.8, .16), M.std({ color:KIND.pergola.color, map:TX.wood, transparent:true, opacity:.9, side:T.DoubleSide })), { cast:true, solid:true });
@@ -295,18 +318,18 @@ function create(el, model, opts){
   const rib = (kind, y0, h, mat, o) => { if(L[kind]) add(kind, new T.Mesh(ribbonGeo(T, L[kind], y0, h), mat), o); };
   const lin = (kind, y, color) => { if(L[kind]) add(kind, new T.LineSegments(lineGeo(T, L[kind], y), new T.LineBasicMaterial({ color }))); };
   rib('plot', 0, .3, new T.MeshBasicMaterial({ color:KIND.plot.color, transparent:true, opacity:.55, side:T.DoubleSide, depthWrite:false }), { noReceive:true });
-  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color); lin('bldline', .15, KIND.bldline.color); lin('front', .17, KIND.front.color);
+  lin('plot', .32, KIND.plot.color); lin('lots', .13, KIND.lots.color); lin('bline', .14, KIND.bline.color); lin('bldline', .15, KIND.bldline.color); lin('front', .17, KIND.front.color); lin('easement', .09, KIND.easement.color); lin('radius', .2, KIND.radius.color); lin('exSurvey', .015, KIND.exSurvey.color);
   rib('curb', 0, .15, M.std({ color:KIND.curb.color, side:T.DoubleSide })); lin('paint', .03, '#ffffff'); lin('cross', .05, '#ffffff'); lin('parking', .05, '#f1f1f1');
   rib('lowwall', 0, .9, M.std({ color:KIND.lowwall.color, side:T.DoubleSide }), { cast:true, solid:true });
   rib('fence', 0, 1.2, M.std({ color:KIND.fence.color, side:T.DoubleSide, transparent:true, opacity:.45 }), { solid:true });
   lin('stairs', .12, KIND.stairs.color); lin('gardenedge', .11, KIND.gardenedge.color);
-  rib('glass', 0, 3.7, M.std({ color:KIND.glass.color, side:T.DoubleSide, transparent:true, opacity:.5, roughness:.15, metalness:.2 }), { solid:true });
+  rib('glass', 0, model.glassH || 3.7, M.std({ color:KIND.glass.color, side:T.DoubleSide, transparent:true, opacity:.5, roughness:.15, metalness:.2 }), { solid:true });
   rib('door', 0, 2.2, M.std({ color:KIND.door.color, side:T.DoubleSide }), { solid:true });
   rib('water', .1, .22, new T.MeshBasicMaterial({ color:KIND.water.color, side:T.DoubleSide }), { noReceive:true });
   rib('sewer', .1, .22, new T.MeshBasicMaterial({ color:KIND.sewer.color, side:T.DoubleSide }), { noReceive:true });
   rib('drain', .1, .22, new T.MeshBasicMaterial({ color:KIND.drain.color, side:T.DoubleSide }), { noReceive:true });
   rib('gas', .1, .22, new T.MeshBasicMaterial({ color:KIND.gas.color, side:T.DoubleSide }), { noReceive:true });
-  lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color); lin('contour', .14, KIND.contour.color); lin('easement', .16, KIND.easement.color);
+  lin('fireroute', .16, KIND.fireroute.color);  lin('phase', .2, KIND.phase.color); lin('contour', .14, KIND.contour.color);
 
   // אובייקטים
   const O = model.obj, dummy = new T.Object3D();
@@ -316,11 +339,14 @@ function create(el, model, opts){
   function trees(kind, list, leaf){
     const trunkH = t => 2.0 + Math.min(3.2, t[2]*0.45);
     inst(kind, new T.CylinderGeometry(.12, .2, 1, 7), M.std({ color:'#6b4a2e' }), list, (d, t) => { const h = trunkH(t); d.position.set(t[0], h/2, -t[1]); d.scale.set(1+t[2]*.12, h, 1+t[2]*.12); });
-    const leafM = M.std({ color:leaf, roughness:1, flatShading:true, transparent:true, opacity:.84 }), ico = new T.IcosahedronGeometry(1, 1);
-    inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2]); d.position.set(t[0], trunkH(t)+r*.55, -t[1]); d.scale.set(r, r*.78, r); d.rotation.y = rnd(i)*6; });
-    inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2])*.62, a = rnd(i+9)*6.28; d.position.set(t[0]+Math.cos(a)*r*.7, trunkH(t)+r*1.5, -t[1]+Math.sin(a)*r*.7); d.scale.set(r, r*.8, r); });
+    const leafM = M.std({ color:'#ffffff', roughness:1, transparent:true, opacity:.84 }), ico = new T.IcosahedronGeometry(1, 2);   // צמרת עגולה ורכה, לא מחודדת leafM.userData.leaf = true;
+    const base = new T.Color(leaf), tint = (m, seed) => { if(!m) return; const c = new T.Color(); for(let i = 0; i < m.count; i++){ const v = rnd(i*7+seed); c.copy(base).offsetHSL((v-.5)*.05, (v-.5)*.12, (rnd(i*3+seed)-.5)*.12); m.setColorAt(i, c); } m.instanceColor.needsUpdate = true; };
+    // צמרת משלושה גושים בגוונים שונים: כל עץ שונה מעט מהשכן שלו
+    tint(inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2]); d.position.set(t[0], trunkH(t)+r*.55, -t[1]); d.scale.set(r, r*.78, r); d.rotation.y = rnd(i)*6; }), 1);
+    tint(inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2])*.62, a = rnd(i+9)*6.28; d.position.set(t[0]+Math.cos(a)*r*.7, trunkH(t)+r*1.5, -t[1]+Math.sin(a)*r*.7); d.scale.set(r, r*.8, r); }), 2);
+    tint(inst(kind, ico, leafM, list, (d, t, i) => { const r = Math.max(1.1, t[2])*.55, a = rnd(i+19)*6.28 + 2.4; d.position.set(t[0]+Math.cos(a)*r*.9, trunkH(t)+r*1.1, -t[1]+Math.sin(a)*r*.9); d.scale.set(r, r*.75, r); d.rotation.y = rnd(i+4)*6; }), 3);
   }
-  trees('treeNew', O.treeNew, KIND.treeNew.color); trees('treeOld', O.treeOld, KIND.treeOld.color);
+  trees('treeNew', O.treeNew, KIND.treeNew.color); trees('treeOld', O.treeOld, KIND.treeOld.color); trees('exTree', O.exTree, KIND.exTree.color);
   (O.treeSurvey||[]).forEach(([hex, list]) => inst('treeSurvey', new T.RingGeometry(.55, .95, 20), new T.MeshBasicMaterial({ color:hex, side:T.DoubleSide }), list, (d, t) => { d.position.set(t[0], .2, -t[1]); d.rotation.x = -Math.PI/2; }, { cast:false, noReceive:true }));
   const lampHead = new T.MeshStandardMaterial({ color:'#fff6cf', emissive:'#ffd66b', emissiveIntensity:0 });
   inst('lamp', new T.CylinderGeometry(.07, .1, 7, 8), M.std({ color:'#5f6368', metalness:.5, roughness:.5 }), O.lamp, (d, t) => d.position.set(t[0], 3.5, -t[1]));
@@ -332,6 +358,9 @@ function create(el, model, opts){
   inst('bench', new T.BoxGeometry(1, .42, .4), M.std({ color:'#8d8a84' }), O.bench, (d, b) => { d.position.set(b[0], .21, -b[1]); d.rotation.y = b[4]; d.scale.set(Math.max(.4, b[2]*.82), 1, 1); });
   box('bin', O.bin, 1.25, M.std({ color:KIND.bin.color }), 0, .9); box('cabinet', O.cabinet, 1.4, M.std({ color:KIND.cabinet.color }));
   box('trafo', O.trafo, 2.6, M.std({ color:KIND.trafo.color }));
+  box('exBench', O.exBench, .45, M.std({ color:KIND.exBench.color, map:TX.wood })); box('exBin', O.exBin, 1.1, M.std({ color:KIND.exBin.color }));
+  inst('exSign', new T.CylinderGeometry(.04, .04, 2.6, 6), M.std({ color:'#7d8288', metalness:.5 }), O.exSign, (d, t) => d.position.set(t[0], 1.3, -t[1]));
+  inst('exSign', new T.CylinderGeometry(.35, .35, .05, 16), M.std({ color:KIND.exSign.color }), O.exSign, (d, t) => { d.position.set(t[0], 2.45, -t[1]); d.rotation.x = Math.PI/2; });
   inst('cover', new T.CylinderGeometry(1, 1, .03, 18), M.std({ color:KIND.cover.color, metalness:.4 }), O.cover, (d, t) => { d.position.set(t[0], .12, -t[1]); d.scale.set(Math.max(.3, t[2]), 1, Math.max(.3, t[2])); }, { cast:false });
   // כבאית בכל רחבת כיבוי
   (O.fire||[]).forEach(b => {
@@ -369,7 +398,7 @@ function create(el, model, opts){
     const up = Math.max(0, Math.sin(s.alt)), day = s.alt > 0;
     sun.intensity = day ? .55 + 1.35*Math.min(1, up*2.2) : 0; hemi.intensity = day ? .5 + .1*up : .12; sunBall.visible = day;
     const sky = new T.Color(day ? '#eef2f5' : '#20283a').lerp(new T.Color('#f6d9b0'), day ? Math.max(0, .5-up*2.2) : 0); scene.background = sky;
-    lampHead.emissiveIntensity = day ? 0 : 2.4; setNight(!day); scene.environment = day ? envTex : null;   // בלילה אין השתקפות שמיים: החזיתות כהות והחלונות המוארים בולטים
+    lampHead.emissiveIntensity = day ? 0 : 2.4; setNight(!day); skySun(v, day); scene.environment = day ? envTex : null;   // בלילה אין השתקפות שמיים: החזיתות כהות והחלונות המוארים בולטים
     fill.position.set(-v.x*R, Math.max(60, v.y*R*.4), -v.z*R); fill.intensity = day ? .2 : .05;
     const pts = []; for(let h = 4; h <= 21; h += .25){ const p = sunPos(ilDate(y, m, d, h), center[0], center[1]); if(p.alt > 0) pts.push(dir(p).multiplyScalar(R+30)); }
     pathLine.geometry.setFromPoints(pts); sunState = { alt:s.alt*180/Math.PI, az:(s.az*180/Math.PI+360)%360, day }; draw(); return sunState;
@@ -390,16 +419,16 @@ function create(el, model, opts){
   function applyActive(){
     for(const k in groups){ const g = groups[k];
       if(state !== 'design'){ solidOn(g, (STATE_KINDS[state].includes(k) && !kindOff.has(k)) || (k==='under' && underOn && state==='renewal')); continue; }
-      if(k==='exBuild' || k==='rnParcel' || k==='rnMass'){ g.visible = false; continue; }
+      if(k==='rnParcel' || k==='rnMass' || (KIND[k] && KIND[k].topic==='exist')){ g.visible = false; continue; }   // מפת המדידה רק במצב "קיים"
       if(k==='rnEnvelope'){ solidOn(g, envOn); continue; }
       if(k==='under'){ solidOn(g, underOn); continue; }
       if(k==='facade'){ solidOn(g, facOn && !kindOff.has(k)); continue; }
       const on = !kindOff.has(k) && (!active || active.has(KIND[k].topic));
-      const off = kindOff.has(k), ctx = ['asphalt','paving','green','wall','brt','bike'].includes(k);
+      const off = kindOff.has(k), ctx = ['asphalt','paving','green','wall','brt','bike','ramp'].includes(k);
       g.visible = on || (!off && ctx);
       g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = on ? x.userData.mat : ghost; x.castShadow = on && x.userData.solid; } });
     }
-    draw();
+    renderFix(); draw();
   }
   function setActive(set){ active = set ? new Set(set) : null; applyActive(); }
   function setKind(k, on){ if(on) kindOff.delete(k); else kindOff.add(k); applyActive(); }
@@ -584,20 +613,22 @@ function create(el, model, opts){
      על הגג: ריצוף וערוגות מוגבהות עם עצים קטנים, להמחשה ("גג דיירים משותף" במצגת). מבנה בלי מגדל: גג חצץ. */
   function buildPodium(){
     const pods = fd.podium || []; if(!pods.length) return;
+    const add = (k, o, opt) => { o.userData.liftMode = 'vertex'; return addG(k, o, opt); };   // כמה קומות קרקע במפלסים שונים באותה רשת: כל קודקוד בגובה שלו
     const S = { pos:[], col:[], uv:[] }, Pv = { pos:[], col:[], uv:[] }, Gr = { pos:[], col:[], uv:[] }, Pl = { pos:[], col:[], uv:[] }, Rv = { pos:[], col:[], uv:[] }, Rl = { pos:[], col:[], uv:[] }, Hd = [], shrubs = [];
     const quad = (A, ax, ay, bx, by, y0, y1, u0 = 0, u1 = 0) => { A.pos.push(ax, y0, -ay, bx, y0, -by, bx, y1, -by, ax, y0, -ay, bx, y1, -by, ax, y1, -ay); A.uv.push(u0, y0, u1, y0, u1, y1, u0, y0, u1, y1, u0, y1); };
     const cap = (A, r, y) => { let tris; try{ tris = T.ShapeUtils.triangulateShape(r.map(p => new T.Vector2(p[0], p[1])), []); }catch(e){ return; } for(const t of tris) for(const i of [t[0], t[2], t[1]]){ A.pos.push(r[i][0], y, -r[i][1]); A.uv.push(r[i][0], r[i][1]); } };
     const ring = (A, r, y0, y1) => { let u = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]); quad(A, a[0], a[1], b[0], b[1], y0, y1, u, u+L); u += L; }); };
     const rnd = i => { const x = Math.sin(i*127.1)*43758.5453; return x - Math.floor(x); };
     pods.forEach((pd, j) => {
-      pd.roof.forEach(f => { const r = ring2(f); cap(S, r, 4.0); cap(pd.kind === 'garden' ? Pv : Rv, r, 4.52); });
-      const e = ring2(pd.edge); ring(S, e, 3.55, 4.52);                                  // פס החזית של המסד: קורה לבנה מעל העמודים
-      if(pd.kind === 'garden'){ ring(Rl, e, 4.52, 5.62); e.forEach((a, i) => { const b = e[(i+1)%e.length]; Hd.push(a[0], 5.62, -a[1], b[0], 5.62, -b[1]); });
-        (pd.green||[]).forEach((g, gi) => { const r = ring2(g); cap(Gr, r, 4.98); ring(Pl, r, 4.52, 4.98);
+      const z = (pd.top || 4.52) - 4.52;                                                  // גובה המסד: 4.5 מ' כברירת מחדל, או מהחתך (1909: 6.4 מ')
+      pd.roof.forEach(f => { const r = ring2(f); cap(S, r, 4.0+z); cap(pd.kind === 'garden' ? Pv : Rv, r, 4.52+z); });
+      const e = ring2(pd.edge); ring(S, e, 3.55+z, 4.52+z);                                  // פס החזית של המסד: קורה לבנה מעל העמודים
+      if(pd.kind === 'garden'){ ring(Rl, e, 4.52+z, 5.62+z); e.forEach((a, i) => { const b = e[(i+1)%e.length]; Hd.push(a[0], 5.62+z, -a[1], b[0], 5.62+z, -b[1]); });
+        (pd.green||[]).forEach((g, gi) => { const r = ring2(g); cap(Gr, r, 4.98+z); ring(Pl, r, 4.52+z, 4.98+z);
           const xs = r.map(q => q[0]), ys = r.map(q => q[1]);
           for(let i = 0; i < 40; i++){ const x = Math.min(...xs) + rnd(j*97+gi*13+i)*(Math.max(...xs)-Math.min(...xs)), y = Math.min(...ys) + rnd(j*31+gi*7+i+.5)*(Math.max(...ys)-Math.min(...ys));
             let c = false; for(let a = 0, b = r.length-1; a < r.length; b = a++){ const p = r[a], q = r[b]; if((p[1] > y) !== (q[1] > y) && x < (q[0]-p[0])*(y-p[1])/(q[1]-p[1])+p[0]) c = !c; }
-            if(c && shrubs.every(s => Math.hypot(s[0]-x, s[1]-y) > 2.6)) shrubs.push([x, y, .7 + rnd(i+gi)*.9]); } }); }
+            if(c && shrubs.every(s => Math.hypot(s[0]-x, s[1]-y) > 2.6)) shrubs.push([x, y, .7 + rnd(i+gi)*.9, z]); } }); }
     });
     const g = A => { const q = new T.BufferGeometry(); q.setAttribute('position', new T.Float32BufferAttribute(A.pos, 3)); if(A.uv.length) q.setAttribute('uv', new T.Float32BufferAttribute(A.uv, 2)); q.computeVertexNormals(); return q; };
     add('facade', new T.Mesh(g(S), M.std({ color:'#fbfaf6', roughness:.6 })), { cast:true, solid:true });
@@ -607,7 +638,7 @@ function create(el, model, opts){
     add('facade', new T.Mesh(g(Pl), M.std({ color:sc('#bdb3a0'), roughness:.8 })), { cast:true, solid:true });
     add('facade', new T.Mesh(g(Rl), new T.MeshStandardMaterial({ color:'#cfe6ef', transparent:true, opacity:.32, roughness:.04, metalness:.5, side:T.DoubleSide, depthWrite:false })), { noReceive:true });
     { const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute(Hd, 3)); add('facade', new T.LineSegments(lg, new T.LineBasicMaterial({ color:'#2e3135' }))); }
-    inst('facade', new T.IcosahedronGeometry(1, 1), M.std({ color:sc('#4f7f3a'), roughness:.95 }), shrubs, (d, q) => { d.position.set(q[0], 4.98 + q[2]*.8, -q[1]); d.scale.set(q[2], q[2]*.85, q[2]); });
+    inst('facade', new T.IcosahedronGeometry(1, 1), M.std({ color:sc('#4f7f3a'), roughness:.95 }), shrubs, (d, q) => { d.position.set(q[0], 4.98 + (q[3]||0) + q[2]*.8, -q[1]); d.scale.set(q[2], q[2]*.85, q[2]); });
   }
   /** לילה: חלונות מוארים (כמחצית, בגוונים חמים), כמו בתמונה של העיר בערב */
   function setNight(on){ nightOn = on; nightObjs.forEach(o => o.visible = on); }
@@ -677,8 +708,117 @@ function create(el, model, opts){
     applyActive();
   }
 
+  /* ── מפלסים (layers/<תיק>/levels.json, tools/extract-levels.py, ענת 24.11.2026) ──
+     פני הקרקע לפי הרומים: כל משטח, קו ועצם עולים לגובה הקרקע במקומם. בניין עולה כגוש אחד, במפלס 0.00 שלו.
+     רמפה לחניון: רצפה שיורדת מהפתח בשיפוע שבתוכנית, קירות תמך ומעקה, ובסוף פתח למרתף תחת תקרה. */
+  const inRing = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+  const RIGID = new Set(['facade', 'rnMass', 'rnEnvelope', 'exBuild', 'under']);
+  function hAt(x, y){ if(!LV) return 0; const i = Math.max(0, Math.min(LV.nx-1.001, (x-LV.x0)/LV.res)), j = Math.max(0, Math.min(LV.ny-1.001, (y-LV.y0)/LV.res)), i0 = Math.floor(i), j0 = Math.floor(j), fi = i-i0, fj = j-j0, h = LV.h, n = LV.nx;
+    return ((h[j0*n+i0]*(1-fi) + h[j0*n+i0+1]*fi)*(1-fj) + (h[(j0+1)*n+i0]*(1-fi) + h[(j0+1)*n+i0+1]*fi)*fj)/100; }
+  const _v = new T.Vector3(), _m = new T.Matrix4(), _p = new T.Vector3(), _q = new T.Quaternion(), _s = new T.Vector3();
+  function lift(obj, kind){
+    obj.traverse(o => {
+      if(o.userData.lifted) return; o.userData.lifted = true; if(o.userData.noLift) return;
+      o.updateMatrixWorld(true);
+      if(o.isSprite){ o.getWorldPosition(_v); o.position.y += hAt(_v.x, -_v.z); return; }
+      if(o.isInstancedMesh){ for(let i = 0; i < o.count; i++){ o.getMatrixAt(i, _m); _m.decompose(_p, _q, _s); _p.y += hAt(_p.x, -_p.z); _m.compose(_p, _q, _s); o.setMatrixAt(i, _m); } o.instanceMatrix.needsUpdate = true; return; }
+      if(!(o.isMesh || o.isLine || o.isLineSegments) || !o.geometry || !o.geometry.attributes.position) return;
+      const rigid = RIGID.has(kind) && o.userData.liftMode !== 'vertex';
+      if(rigid){ o.geometry.computeBoundingBox(); o.geometry.boundingBox.getCenter(_v).applyMatrix4(o.matrixWorld); o.position.y += hAt(_v.x, -_v.z); return; }
+      const pa = o.geometry.attributes.position, mw = o.matrixWorld;
+      for(let i = 0; i < pa.count; i++){ _v.fromBufferAttribute(pa, i).applyMatrix4(mw); pa.setY(i, pa.getY(i) + hAt(_v.x, -_v.z)); }
+      if(o.isLineSegments && LVr.length) for(let i = 0; i + 1 < pa.count; i += 2){ _v.fromBufferAttribute(pa, i).add(_p.fromBufferAttribute(pa, i+1)).multiplyScalar(.5);   // קו שחוצה רמפה מוסתר: הוא היה מרחף מעל החפירה
+        if(LVr.some(r => inRing(_v.x, -_v.z, r))){ pa.setXYZ(i+1, pa.getX(i), pa.getY(i), pa.getZ(i)); } }
+      pa.needsUpdate = true; o.geometry.computeBoundingSphere(); o.geometry.computeBoundingBox(); });
+  }
+  function setLevels(lv){
+    if(!lv || LV) return; LV = lv;
+    const sc = h => new T.Color(h).convertSRGBToLinear(), r2 = f => ring2(f), inP = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]) c = !c; } return c; };
+    const ramps = (lv.ramps||[]).map(r => ({ ...r, ring:r2(r.poly), e0:[r.e0[0]/10, r.e0[1]/10] }));
+    LVr = ramps.map(r => r.ring);
+    { let mn = 0; for(const v of lv.h) mn = Math.min(mn, v/100); shadowCatch.position.y = mn - .15; }   // קולט הצל מתחת לקרקע הנמוכה
+    // 1. כל מה שכבר נבנה עולה לגובה הקרקע
+    for(const k in groups) groups[k].children.slice().forEach(o => lift(o, k));
+    const nearRing = (x, y, r, d) => r.some((a, i) => { const b = r[(i+1)%r.length], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((x-a[0])*vx+(y-a[1])*vy)/l)); return Math.hypot(x-a[0]-t*vx, y-a[1]-t*vy) < d; });
+    // 2. בסיס קרקע: רשת לפי הרומים, עם חור ברמפות ושוליים שיורדים לרקע
+    { const pos = [], n = lv.nx, H = (i, j) => lv.h[j*n+i]/100 - .03, X = i => lv.x0 + i*lv.res, Y = j => lv.y0 + j*lv.res;
+      for(let j = 0; j < lv.ny-1; j++) for(let i = 0; i < n-1; i++){
+        const cx = X(i) + lv.res/2, cy = Y(j) + lv.res/2; if(ramps.some(r => inP(cx, cy, r.ring) || nearRing(cx, cy, r.ring, 1.6))) continue;   // ליד רמפה: השוליים שלה סוגרים
+        pos.push(X(i), H(i, j), -Y(j), X(i+1), H(i+1, j), -Y(j), X(i+1), H(i+1, j+1), -Y(j+1), X(i), H(i, j), -Y(j), X(i+1), H(i+1, j+1), -Y(j+1), X(i), H(i, j+1), -Y(j+1)); }
+      const edge = (a, b) => pos.push(a[0], a[1], -a[2], b[0], b[1], -b[2], b[0], -.06, -b[2], a[0], a[1], -a[2], b[0], -.06, -b[2], a[0], -.06, -a[2]);
+      for(let i = 0; i < n-1; i++){ edge([X(i), H(i, 0), Y(0)], [X(i+1), H(i+1, 0), Y(0)]); edge([X(i), H(i, lv.ny-1), Y(lv.ny-1)], [X(i+1), H(i+1, lv.ny-1), Y(lv.ny-1)]); }
+      for(let j = 0; j < lv.ny-1; j++){ edge([X(0), H(0, j), Y(j)], [X(0), H(0, j+1), Y(j+1)]); edge([X(n-1), H(n-1, j), Y(j)], [X(n-1), H(n-1, j+1), Y(j+1)]); }
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+      terrainM = new T.Mesh(g, M.std({ color:'#cfcabd', roughness:1 })); terrainM.receiveShadow = true; scene.add(terrainM); }
+    // 3. רמפות לחניון
+    const rampSurf = groups.ramp; if(rampSurf) rampSurf.children.forEach(o => { if(o.isMesh) o.visible = false; });   // המשטח השטוח של השרטוט מוחלף ברמפה עצמה
+    const floorM = M.std({ color:sc('#5d5e62'), map:TX.asphalt, roughness:.95 }), wallM = M.std({ color:sc('#bdb7ac'), roughness:.9 }), capM = M.std({ color:sc('#d7d1c4'), roughness:.8 });
+    const darkM = new T.MeshBasicMaterial({ color:'#16171a', side:T.DoubleSide }), paintM = new T.LineBasicMaterial({ color:'#f4f1e6' }), railM = new T.LineBasicMaterial({ color:'#3a3d42' });
+    ramps.forEach(r => {
+      const g0 = hAt(r.e0[0], r.e0[1]), sOf = (x, y) => Math.max(0, Math.min(r.len, (x-r.e0[0])*r.u[0] + (y-r.e0[1])*r.u[1]));
+      const drop = s => s <= 2 ? 0 : s <= 5.5 ? (s-2)*r.slope/2 : 3.5*r.slope/2 + (s-5.5)*r.slope, fy = (x, y) => g0 - drop(sOf(x, y));
+      const F = [], W = [], C = [], K = [], Rl = [], Pt = [];
+      const Ap = []; for(let i = 0; i < (r.apron||[]).length; i += 6){ const p = [0, 2, 4].map(k => [r.apron[i+k]/10, r.apron[i+k+1]/10]); for(const q of [p[0], p[2], p[1]]) Ap.push(q[0], hAt(q[0], q[1]) - .015, -q[1]); }
+      for(let i = 0; i < r.tris.length; i += 6){ const p = [[r.tris[i], r.tris[i+1]], [r.tris[i+2], r.tris[i+3]], [r.tris[i+4], r.tris[i+5]]].map(q => [q[0]/10, q[1]/10]);
+        for(const q of [p[0], p[2], p[1]]) F.push(q[0], fy(q[0], q[1]) + .02, -q[1]); }
+      // קירות תמך: מהרצפה עד פני הקרקע, ומעליהם מעקה בטון של מטר, רק איפה שהרמפה עמוקה
+      r.wall.forEach(w => { for(let i = 0; i + 3 < w.length; i += 2){ const ax = w[i]/10, ay = w[i+1]/10, bx = w[i+2]/10, by = w[i+3]/10;
+        const fa = fy(ax, ay), fb = fy(bx, by), ga = hAt(ax, ay), gb = hAt(bx, by), deep = g0 - Math.min(fa, fb) > .25, sa = sOf(ax, ay), cov = sa >= r.cover;
+        W.push(ax, fa, -ay, bx, fb, -by, bx, gb, -by, ax, fa, -ay, bx, gb, -by, ax, ga, -ay);
+        if(deep && !cov){ W.push(ax, ga, -ay, bx, gb, -by, bx, gb + 1, -by, ax, ga, -ay, bx, gb + 1, -by, ax, ga + 1, -ay); Rl.push(ax, ga + 1.02, -ay, bx, gb + 1.02, -by); } } });
+      // תקרה מעל הקטע העמוק, ופתח כהה אל המרתף בסוף
+      for(let i = 0; i < r.cover_tris.length; i += 6){ const p = [[r.cover_tris[i], r.cover_tris[i+1]], [r.cover_tris[i+2], r.cover_tris[i+3]], [r.cover_tris[i+4], r.cover_tris[i+5]]].map(q => [q[0]/10, q[1]/10]);
+        for(const q of [p[0], p[2], p[1]]) C.push(q[0], hAt(q[0], q[1]) + .04, -q[1]); for(const q of [p[0], p[1], p[2]]) C.push(q[0], hAt(q[0], q[1]) - .4, -q[1]); }
+      { const f = r.far.map(v => v/10), fa = fy(f[0], f[1]), fb = fy(f[2], f[3]);
+        K.push(f[0], fa, -f[1], f[2], fb, -f[3], f[2], hAt(f[2], f[3]) - .4, -f[3], f[0], fa, -f[1], f[2], hAt(f[2], f[3]) - .4, -f[3], f[0], hAt(f[0], f[1]) - .4, -f[1]); }
+      // חצים לבנים על הרצפה, בכיוון הירידה
+      [.35, .7].forEach(t => { const s = r.len*t, cx = r.e0[0] + r.u[0]*s, cy = r.e0[1] + r.u[1]*s, nx = -r.u[1], ny = r.u[0], tip = [cx + r.u[0]*1.2, cy + r.u[1]*1.2];
+        for(const sd of [-1, 1]){ const b = [cx + nx*sd*.9, cy + ny*sd*.9]; Pt.push(b[0], fy(b[0], b[1]) + .05, -b[1], tip[0], fy(tip[0], tip[1]) + .05, -tip[1]); }
+        const tail = [cx - r.u[0]*1.6, cy - r.u[1]*1.6]; Pt.push(tail[0], fy(tail[0], tail[1]) + .05, -tail[1], tip[0], fy(tip[0], tip[1]) + .05, -tip[1]); });
+      const geo = (a, line) => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(a, 3)); if(!line){ const uv = []; for(let i = 0; i < a.length; i += 3) uv.push(a[i], a[i+2]); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals(); } return g; };
+      const mk = (o, opt) => { o.userData.lifted = true; return add('ramp', o, opt); };
+      if(Ap.length) mk(new T.Mesh(geo(Ap), M.std({ color:sc('#d8d2c2'), map:TX.paving, roughness:.9 })), { solid:true });
+      mk(new T.Mesh(geo(F), floorM), { solid:true }); mk(new T.Mesh(geo(W), wallM), { cast:true, solid:true }); if(C.length) mk(new T.Mesh(geo(C), capM), { cast:true, solid:true });
+      mk(new T.Mesh(geo(K), darkM)); mk(new T.LineSegments(geo(Pt, true), paintM)); if(Rl.length) mk(new T.LineSegments(geo(Rl, true), railM));
+      // שלט: שיפוע ועומק
+      const c = document.createElement('canvas'); c.width = 600; c.height = 92; const x = c.getContext('2d'); x.fillStyle = 'rgba(255,255,255,.94)'; x.fillRect(0, 0, 600, 92);
+      x.fillStyle = '#1a1a18'; x.font = '600 38px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+      x.fillText(`רמפה לחניון · ${Math.round(r.slope*100)}% · עומק ${r.depth.toFixed(1)} מ'`, 300, 48);
+      const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false })); sp.scale.set(9, 1.4, 1);
+      const m0 = [r.e0[0] - r.u[0]*2, r.e0[1] - r.u[1]*2]; sp.position.set(m0[0], g0 + 3.2, -m0[1]); mk(sp, {});   // השלט בפתח הרמפה, מעל המדרכה
+    });
+    // 4. מדרגות בפיתוח: גרם לפי קווי השלח, מהקרקע הנמוכה לגבוהה. רום כל שלח לפי פני הקרקע בשני הקצוות
+    { const stM = M.std({ color:sc('#cfc6b4'), roughness:.85 }), A = [];
+      (lv.flights||[]).forEach(f => { const a = [f.a[0]/10, f.a[1]/10], b = [f.b[0]/10, f.b[1]/10], za = hAt(...a), zb = hAt(...b), up = zb >= za, lo = up ? a : b, hi = up ? b : a, z0 = Math.min(za, zb), z1 = Math.max(za, zb, z0 + .15*f.n);
+        const ux = hi[0]-lo[0], uy = hi[1]-lo[1], L = Math.hypot(ux, uy) || 1, nx = -uy/L*f.w/2, ny = ux/L*f.w/2, rise = (z1-z0)/f.n;
+        for(let k = 0; k < f.n; k++){ const t0 = k/f.n, t1 = (k+1)/f.n, p0 = [lo[0]+ux*t0, lo[1]+uy*t0], p1 = [lo[0]+ux*t1, lo[1]+uy*t1], y = z0 + rise*(k+1);
+          const r = [[p0[0]-nx, p0[1]-ny], [p1[0]-nx, p1[1]-ny], [p1[0]+nx, p1[1]+ny], [p0[0]+nx, p0[1]+ny]];
+          [[0, 1, 2], [0, 2, 3]].forEach(t => t.forEach(i => A.push(r[i][0], y, -r[i][1])));
+          r.forEach((q, i) => { const w = r[(i+1)%4]; A.push(q[0], z0, -q[1], w[0], z0, -w[1], w[0], y, -w[1], q[0], z0, -q[1], w[0], y, -w[1], q[0], y, -q[1]); }); } });
+      if(A.length){ const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A, 3)); g.computeVertexNormals(); const o = new T.Mesh(g, stM); o.userData.lifted = true; add('stairs', o, { cast:true, solid:true }); } }
+    // 5. כניסה בלי חיבור: עמוד אדום בגובה ההפרש ליד הכניסה, ושלט. מה שחסר בתוכנית נראה במקום
+    (lv.checks||[]).filter(c => !c.link && c.at && Math.abs(c.dz) >= .15).forEach(c => { const x = c.at[0], y = c.at[1], top = hAt(x, y), bot = top - Math.abs(c.dz);
+      const post = new T.Mesh(new T.CylinderGeometry(.12, .12, Math.abs(c.dz) + .02, 12), new T.MeshBasicMaterial({ color:'#c8202a' })); post.position.set(x, (top+bot)/2, -y); post.userData.lifted = true; add('spot', post);
+      const ring = new T.Mesh(new T.RingGeometry(.9, 1.15, 32), new T.MeshBasicMaterial({ color:'#c8202a', side:T.DoubleSide, transparent:true, opacity:.85, depthWrite:false })); ring.rotation.x = -Math.PI/2; ring.position.set(x, top + .06, -y); ring.userData.lifted = true; add('spot', ring);
+      const cv = document.createElement('canvas'); cv.width = 520; cv.height = 92; const q = cv.getContext('2d'); q.fillStyle = 'rgba(255,255,255,.95)'; q.fillRect(0, 0, 520, 92); q.fillStyle = '#c8202a'; q.fillRect(0, 0, 10, 92);
+      q.fillStyle = '#1a1a18'; q.font = '600 34px sans-serif'; q.textAlign = 'center'; q.textBaseline = 'middle'; q.direction = 'rtl'; q.fillText(`הפרש ${Math.abs(c.dz).toFixed(2)} מ' · אין חיבור בפיתוח`, 265, 48);
+      const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(cv), depthTest:false })); sp.scale.set(8, 1.42, 1); sp.position.set(x, top + 2.6, -y); sp.userData.lifted = true; add('spot', sp, {}); });
+    // 6. רומים שנקראו מהמצגת (רומים מתוכנית ההעמדה כבר מוצגים מהמודל)
+    (lv.spots||[]).filter(t => !/model\.json/.test(t.src||'')).forEach(t => { const c = document.createElement('canvas'); c.width = 170; c.height = 44; const x = c.getContext('2d');
+      x.fillStyle = 'rgba(255,255,255,.9)'; x.fillRect(0, 0, 170, 44); x.fillStyle = t.kind === 'ffl' ? '#1a1a18' : '#0b6b3a'; x.font = 'bold 26px IBM Plex Sans, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText((t.kind === 'ffl' ? '±0.00=' : '') + t.z.toFixed(2), 85, 24); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:false }));
+      sp.scale.set(t.kind === 'ffl' ? 5.4 : 4.4, 1.2, 1); sp.position.set(t.at[0], (t.z - lv.datum) + (t.kind === 'ffl' ? 5.4 : 1.6), -t.at[1]); sp.userData.lifted = true; add('spot', sp, {}); });
+    applyActive(); updGround();
+  }
+
   // מצלמה
   const [bx0, by0, bx1, by1] = model.bbox;
+  /** מבט אל רמפה: מעל המדרכה שמול הפתח, אל תוך הירידה */
+  function viewRamp(i){ if(!LV || !LV.ramps || !LV.ramps.length) return; const r = LV.ramps[((i|0) % LV.ramps.length + LV.ramps.length) % LV.ramps.length], e = [r.e0[0]/10, r.e0[1]/10], g = hAt(e[0], e[1]);
+    const m = [e[0] + r.u[0]*r.len*.5, e[1] + r.u[1]*r.len*.5], side = [-r.u[1], r.u[0]], D = Math.max(16, r.len*.8);
+    // מהצד, מלמעלה: רואים את כל הירידה ואת השיפוע. בוחרים את הצד שאין בו בניין קרוב
+    const free = sd => { const p = [m[0] + side[0]*sd*D*.6, m[1] + side[1]*sd*D*.6]; return !(model.foot||[]).some(f => inRing(p[0], p[1], ring2(f))); }, sd = free(1) ? 1 : -1;
+    cam.position.set(m[0] + side[0]*sd*D*.75 - r.u[0]*D*.35, g + D*.7, -(m[1] + side[1]*sd*D*.75 - r.u[1]*D*.35)); ctl.target.set(m[0], g - r.depth*.5, -m[1]); ctl.update(); draw(); }
   function view(name){
     const R = Math.max(bx1-bx0, by1-by0);
     if(name==='top'){ cam.position.set(0, R*1.7, 0.01); ctl.target.set(0, 0, 0); }
@@ -694,20 +834,241 @@ function create(el, model, opts){
     ctl.update(); draw();
   }
 
+  /* ── הדמיה (ענת, 24.11.2026: "גימור ראליסטי למבנים ולסביבה, כמו הדמיה של יזם ללקוח") ──
+     מסתירה את כל השכבות הטכניות (קו כחול, סימוני כיבוי, צנרת, שלטים וקווי מתאר), מציגה את כל התחומים בצבע,
+     ומוסיפה שמיים ואובך, ופילטר צבע (רוויה, ניגודיות ווינייטה) ב-CSS. צל מגע (SAO) ועיבוד תמונה נוסו: הילות שחורות ושטיפה לבנה בכרטיסי מסך חלשים, ולכן הוסרו. */
+  let renderOn = false, fxBuilt = false, sky = null; const composer = null;
+  const RENDER_HIDE = new Set(['plot', 'lots', 'bline', 'fireroute', 'firemark', 'fire', 'treeSurvey', 'water', 'sewer', 'drain', 'gas', 'cover', 'cabinet', 'spot', 'rnEnvelope', 'stairs', 'parking', 'mass', 'bldline', 'phase', 'radius', 'easement', 'exSurvey']);
+  function buildFx(){
+    fxBuilt = true;
+    // שמיים: מעבר מכחול בזנית לאובך בהיר באופק, והילה סביב השמש. בצבעים ליניאריים, כי הם עוברים את מחשבת הצבע
+    const lc = h => new T.Color(h);   // בלי מחשבת צבע: הצבע יוצא כמו שהוא
+    sky = new T.Mesh(new T.SphereGeometry(2400, 32, 16), new T.ShaderMaterial({ side:T.BackSide, depthWrite:false, fog:false,
+      uniforms:{ top:{ value:lc('#5d93c9') }, mid:{ value:lc('#a9c8e2') }, hor:{ value:lc('#e6ecef') }, sunDir:{ value:new T.Vector3(0, 1, 0) }, sunCol:{ value:lc('#fff2d6') } },
+      vertexShader:'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.0); }',
+      fragmentShader:`uniform vec3 top, mid, hor, sunDir, sunCol; varying vec3 vD;
+        void main(){ float h = max(vD.y, 0.0); vec3 c = mix(hor, mid, smoothstep(0.0, 0.12, h)); c = mix(c, top, smoothstep(0.12, 0.6, h));
+          float s = max(dot(normalize(vD), normalize(sunDir)), 0.0); c += sunCol*(pow(s, 600.0)*6.0 + pow(s, 12.0)*.25); if(vD.y < 0.0) c = hor*0.92; gl_FragColor = vec4(c, 1.0); }` }));
+    sky.visible = false; scene.add(sky);
+    if(lastSun) skySun(lastSun.v, lastSun.day);
+  }
+  let lastSun = null;
+  function skySun(v, day){ lastSun = { v:v.clone(), day }; if(sky) sky.material.uniforms.sunDir.value.copy(v);  }
+  function renderFix(){
+    if(!renderOn) return;
+    for(const k in groups){ const g = groups[k]; if(state !== 'design') continue;
+      if(RENDER_HIDE.has(k)){ g.visible = false; continue; }
+      if(KIND[k] && KIND[k].topic === 'exist' || k === 'rnParcel' || k === 'rnMass' || k === 'under') continue;
+      if(k === 'facade' && !facOn) continue;
+      if(!kindOff.has(k)) g.visible = true;
+      g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = !!x.userData.solid; } }); }
+    // שלטים וקווי מתאר נעלמים: נשאר רק מה שנבנה
+    scene.traverse(x => { if(x.isSprite && x !== sunBall && !x.userData.keep) x.visible = false; if(x.isLineSegments && (x.material === outlineM || x.userData.rim)) x.visible = false; });
+  }
+  function setRender(on){
+    renderOn = !!on;
+    const go = () => {
+      if(renderOn && !fxBuilt) buildFx();
+      if(sky) sky.visible = renderOn; sunBall.visible = !renderOn && !!(lastSun && lastSun.day); pathLine.visible = !renderOn;
+      scene.fog = renderOn ? new T.Fog('#c9d3da', 700, 2600) : null;
+      groups && Object.values(groups).forEach(g => g.traverse(x => { const m = x.material; if(m && m.userData && m.userData.leaf){ m.transparent = !renderOn; m.opacity = renderOn ? 1 : .84; m.needsUpdate = true; } }));
+      if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments) && !x.userData.keep) x.visible = true; });
+      if(renderOn && !lifeG) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design';
+      renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
+      applyActive(); draw(); };
+    go(); return Promise.resolve();
+  }
+
+  /* ── הליכה בגובה העיניים (walk.json, tools/extract-walk.py) ──
+     הולכים על רשת השבילים: ↑ הולכים, ↓ מסתובבים, ← → בוחרים פנייה בצומת (או מסובבים את המבט), רווח: הליכה ועצירה בצומת הבא.
+     גרירה: הסתכלות סביב, והמבט חוזר לכיוון ההליכה. לחיצה על הקרקע או על המפה הקטנה: הולכים לשם לבד, במסלול הקצר. */
+  let WD = null, W = null, WG = null;   // רשת ההליכה, מצב ההולך, והגרף
+  function setWalkData(d){ WD = d; WG = null; }
+  function graph(){
+    if(WG || !WD) return WG; const N = WD.nodes.map(n => [n[0]/10, n[1]/10]);
+    const E = WD.edges.map((e, i) => { const p = []; for(let k = 0; k < e.pts.length; k += 2) p.push([e.pts[k]/10, e.pts[k+1]/10]); const c = [0]; for(let k = 1; k < p.length; k++) c.push(c[k-1] + Math.hypot(p[k][0]-p[k-1][0], p[k][1]-p[k-1][1]));
+      // הקצה הקרוב לצומת a הוא תחילת הקו
+      if(Math.hypot(p[0][0]-N[e.a][0], p[0][1]-N[e.a][1]) > Math.hypot(p[p.length-1][0]-N[e.a][0], p[p.length-1][1]-N[e.a][1])){ p.reverse(); const L = c[c.length-1]; c.reverse(); for(let k = 0; k < c.length; k++) c[k] = L - c[k]; }
+      return { i, a:e.a, b:e.b, p, c, L:c[c.length-1] || .01 }; });
+    const adj = N.map(() => []); E.forEach(e => { adj[e.a].push({ e:e.i, dir:1 }); adj[e.b].push({ e:e.i, dir:-1 }); });
+    return WG = { N, E, adj };
+  }
+  const at = (e, s) => { s = Math.max(0, Math.min(e.L, s)); let k = 1; while(k < e.c.length-1 && e.c[k] < s) k++; const t = (s - e.c[k-1])/((e.c[k]-e.c[k-1]) || 1); return [e.p[k-1][0] + (e.p[k][0]-e.p[k-1][0])*t, e.p[k-1][1] + (e.p[k][1]-e.p[k-1][1])*t]; };
+  function nearest(x, y){ const G = graph(); let best = null;
+    G.E.forEach(e => { for(let k = 1; k < e.p.length; k++){ const a = e.p[k-1], b = e.p[k], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((x-a[0])*vx+(y-a[1])*vy)/l)), d = Math.hypot(x-a[0]-t*vx, y-a[1]-t*vy);
+      if(!best || d < best.d) best = { e:e.i, s:e.c[k-1] + t*Math.sqrt(l), d }; } }); return best; }
+  const angOf = (e, dir, s) => { const a = at(e, s), b = at(e, s + dir*2.5); return Math.atan2(b[1]-a[1], b[0]-a[0]); };
+  const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+  // היציאות מצומת: בלי הקטע שהגענו ממנו. לכל יציאה זווית יחסית לכיוון ההליכה
+  function exits(node, fromE, heading){ const G = graph();
+    return G.adj[node].filter(o => o.e !== fromE || G.adj[node].length === 1).map(o => { const e = G.E[o.e], s0 = o.dir > 0 ? 0 : e.L; return { ...o, s0, rel:wrap(angOf(e, o.dir, s0) - heading) }; }).sort((p, q) => q.rel - p.rel); }
+  const walkM = { arrow:null, sel:null };
+  let arrows = null, arrowNode = -1, keyH = null, ptr = null;
+  function walkStart(){
+    if(!WD) return false; const G = graph(); if(!G.E.length) return false;
+    const st0 = (WD.stops||[])[0], sp = st0 ? G.N[st0.n] : null, n = sp ? nearest(sp[0], sp[1]) : nearest(ctl.target.x, -ctl.target.z), e = G.E[n.e], dir = 1;   // מתחילים בכניסה מהרחוב
+    W = { e:n.e, s:n.s, dir, yawNow:angOf(e, dir, n.s), yaw:angOf(e, dir, n.s), look:0, pitch:-.04, h:hAt(...at(e, n.s)) + 1.65, fwd:false, auto:false, route:null, pref:0, stopAt:-1, info:'' };
+    ctl.enabled = false; cam.fov = 62; cam.near = .15; cam.updateProjectionMatrix(); showTrail(true);
+    if(!arrows){ arrows = new T.Group(); scene.add(arrows); walkM.arrow = new T.MeshBasicMaterial({ color:'#ffffff', transparent:true, opacity:.85, depthWrite:false, side:T.DoubleSide }); walkM.sel = new T.MeshBasicMaterial({ color:'#11998e', transparent:true, opacity:.95, depthWrite:false, side:T.DoubleSide }); }
+    keyH = ev => { if(!W || /INPUT|TEXTAREA|SELECT/.test((ev.target||{}).tagName||'')) return; const k = ev.key, down = ev.type === 'keydown';
+      if(['ArrowUp', 'w', 'W'].includes(k)){ W.fwd = down; if(down) W.route = null; }
+      else if(down && ['ArrowDown', 's', 'S'].includes(k)) walkCmd('back');
+      else if(down && ['ArrowLeft', 'a', 'A'].includes(k)) walkCmd('left');
+      else if(down && ['ArrowRight', 'd', 'D'].includes(k)) walkCmd('right');
+      else if(down && k === ' ') walkCmd('go');
+      else if(down && k === 'Escape') walkCmd('stop');
+      else return; ev.preventDefault(); draw(); };
+    window.addEventListener('keydown', keyH); window.addEventListener('keyup', keyH);
+    const dom = renderer.domElement;
+    ptr = { down:ev => { ptr.p = [ev.clientX, ev.clientY, ev.clientX, ev.clientY]; dom.setPointerCapture(ev.pointerId); },
+      move:ev => { if(!ptr.p || !W) return; const dx = ev.clientX - ptr.p[2], dy = ev.clientY - ptr.p[3]; ptr.p[2] = ev.clientX; ptr.p[3] = ev.clientY;
+        W.look -= dx*.0045; W.pitch = Math.max(-1.1, Math.min(.9, W.pitch - dy*.0035)); draw(); },
+      up:ev => { if(!ptr.p) return; const moved = Math.hypot(ev.clientX - ptr.p[0], ev.clientY - ptr.p[1]); ptr.p = null; if(moved < 6) pick(ev); } };
+    dom.addEventListener('pointerdown', ptr.down); dom.addEventListener('pointermove', ptr.move); dom.addEventListener('pointerup', ptr.up);
+    dom.classList.add('pm-walk'); setRender(true); draw(); return true;
+  }
+  /* המסלולים על הקרקע: רצועה בהירה בטורקיז לאורך כל השבילים, ועמוד עם שם בכל תחנה של הסיור. רק בזמן ההליכה */
+  let trail = null;
+  function showTrail(on){
+    if(on && !trail && WD){ const G = graph(), pos = [], w = .28;
+      G.E.forEach(e => { for(let k = 1; k < e.p.length; k++){ const a = e.p[k-1], b = e.p[k], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = -(b[1]-a[1])/L*w, ny = (b[0]-a[0])/L*w, ha = hAt(a[0], a[1]) + .05, hb = hAt(b[0], b[1]) + .05;
+        pos.push(a[0]+nx, ha, -(a[1]+ny), b[0]+nx, hb, -(b[1]+ny), b[0]-nx, hb, -(b[1]-ny), a[0]+nx, ha, -(a[1]+ny), b[0]-nx, hb, -(b[1]-ny), a[0]-nx, ha, -(a[1]-ny)); } });
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+      trail = new T.Group(); const rib = new T.Mesh(g, new T.MeshBasicMaterial({ color:'#19b3a5', transparent:true, opacity:.42, depthWrite:false, side:T.DoubleSide, fog:false })); rib.renderOrder = 4; rib.userData.keep = true; trail.add(rib);
+      (WD.stops||[]).forEach((st, i) => { const q = G.N[st.n], h = hAt(q[0], q[1]);
+        const pole = new T.Mesh(new T.CylinderGeometry(.06, .06, 3, 8), new T.MeshBasicMaterial({ color:'#11998e' })); pole.position.set(q[0], h + 1.5, -q[1]); trail.add(pole);
+        const c = document.createElement('canvas'); c.width = 512; c.height = 84; const x = c.getContext('2d'); x.fillStyle = '#11998e'; x.fillRect(0, 0, 512, 84); x.fillStyle = '#fff'; x.font = '600 36px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+        x.fillText(`${i+1}. ${st.name}`, 256, 44); const sp = new T.Sprite(new T.SpriteMaterial({ map:new T.CanvasTexture(c), depthTest:true, fog:false })); sp.scale.set(5.2, .85, 1); sp.position.set(q[0], h + 3.4, -q[1]); sp.userData.keep = true; trail.add(sp); });
+      scene.add(trail); }
+    if(trail) trail.visible = !!on; draw(); }
+  /* אנשים ומכוניות להדמיה (walk.json: על השבילים, בנתיב שליד אבן השפה ובחניות). להמחשה בלבד, לא מהשרטוט */
+  let lifeG = null;
+  function buildLife(){
+    if(!WD || !(WD.people || WD.cars)) return; lifeG = new T.Group(); scene.add(lifeG);
+    const r = i => { const v = Math.sin(i*91.7)*43758.5453; return v - Math.floor(v); }, col = new T.Color(), o = new T.Object3D();
+    const mesh = (geo, mat, n, fill) => { const m = new T.InstancedMesh(geo, mat, n); for(let i = 0; i < n; i++){ fill(o, i, col); o.updateMatrix(); m.setMatrixAt(i, o.matrix); m.setColorAt(i, col); } m.instanceMatrix.needsUpdate = true; if(m.instanceColor) m.instanceColor.needsUpdate = true; m.castShadow = true; m.receiveShadow = true; lifeG.add(m); return m; };
+    const P = WD.people || [], TOP = ['#2f4a6d', '#b8483b', '#e8e2d4', '#3e6b4a', '#d9a441', '#6b5b8e', '#f2f2ee', '#262626', '#8a5a44', '#4f8fbf'], LEG = ['#1e2633', '#3b3b3f', '#5a4a3a', '#2b3d5a', '#c9c2b3'], SKIN = ['#f1c9a5', '#d9a77f', '#a8714f', '#6e4a34', '#e8b896'];
+    const pm = M.std({ color:'#ffffff', roughness:.85 });
+    const place = (o2, p, i, y, k) => { const s = .92 + r(p[3])*.16, x = p[0]/10, z = p[1]/10, h = hAt(x, z); o2.position.set(x, h + y*s, -z); o2.rotation.set(0, p[2] + Math.PI/2, 0); o2.scale.setScalar(s*(k||1)); };
+    if(P.length){
+      mesh(new T.BoxGeometry(.32, .84, .2), pm, P.length, (o2, i, c) => { place(o2, P[i], i, .42); c.set(LEG[Math.floor(r(P[i][3]+1)*LEG.length)]).convertSRGBToLinear(); });
+      mesh(new T.CylinderGeometry(.19, .16, .64, 10), pm, P.length, (o2, i, c) => { place(o2, P[i], i, 1.16); c.set(TOP[Math.floor(r(P[i][3]+2)*TOP.length)]).convertSRGBToLinear(); });
+      mesh(new T.SphereGeometry(.115, 12, 10), pm, P.length, (o2, i, c) => { place(o2, P[i], i, 1.6); c.set(SKIN[Math.floor(r(P[i][3]+3)*SKIN.length)]).convertSRGBToLinear(); }); }
+    const C = WD.cars || [], CAR = ['#f4f4f2', '#c9ccd1', '#1d1f22', '#5c6168', '#26365a', '#9b2b2b', '#e8e6df', '#3d4a3f'];
+    if(C.length){ const cm = M.std({ color:'#ffffff', roughness:.35, metalness:.55, envMapIntensity:1 }), gm = new T.MeshStandardMaterial({ color:'#1b232b', roughness:.08, metalness:.8, envMapIntensity:1.3 }), wm = M.std({ color:'#1a1a1a', roughness:.9 });
+      const cp = (o2, c, y, fwd) => { const x = c[0]/10, z = c[1]/10, h = hAt(x, z); o2.position.set(x + Math.cos(c[2])*(fwd||0), h + y, -(z + Math.sin(c[2])*(fwd||0))); o2.rotation.set(0, c[2] + Math.PI/2, 0); o2.scale.set(1, 1, 1); };
+      mesh(new T.BoxGeometry(1.8, .66, 4.35), cm, C.length, (o2, i, c) => { cp(o2, C[i], .6); c.set(CAR[Math.floor(r(C[i][3])*CAR.length)]).convertSRGBToLinear(); });
+      mesh(new T.BoxGeometry(1.6, .52, 2.2), gm, C.length, (o2, i, c) => { cp(o2, C[i], 1.18, -.25); c.set('#ffffff'); });
+      const W4 = []; C.forEach(c => [[-.82, 1.35], [.82, 1.35], [-.82, -1.35], [.82, -1.35]].forEach(q => W4.push([c, q])));
+      mesh(new T.CylinderGeometry(.33, .33, .24, 14), wm, W4.length, (o2, i, c) => { const [car, q] = W4[i], x = car[0]/10, z = car[1]/10, h = hAt(x, z), a = car[2];
+        const ux = Math.cos(a), uy = Math.sin(a), sx = -uy, sy = ux; o2.position.set(x + ux*q[1] + sx*q[0], h + .33, -(z + uy*q[1] + sy*q[0])); o2.rotation.set(0, a + Math.PI/2, Math.PI/2); o2.scale.set(1, 1, 1); c.set('#ffffff'); }); }
+    lifeG.visible = renderOn;
+  }
+  function walkStop(){ if(!W) return; W = null; if(arrows) arrows.clear(); arrowNode = -1;
+    window.removeEventListener('keydown', keyH); window.removeEventListener('keyup', keyH);
+    const dom = renderer.domElement; if(ptr){ dom.removeEventListener('pointerdown', ptr.down); dom.removeEventListener('pointermove', ptr.move); dom.removeEventListener('pointerup', ptr.up); }
+    dom.classList.remove('pm-walk'); showTrail(false); ctl.enabled = true; cam.fov = 38; cam.near = .5; cam.updateProjectionMatrix(); view('home'); }
+  /** פקודה מהמקלדת או מהכפתורים */
+  function walkCmd(c){ if(!W) return; const G = graph(), e = G.E[W.e];
+    if(c === 'tour'){ if(W.tour){ W.tour = null; W.route = null; draw(); return; } const st = WD.stops||[]; if(!st.length) return;
+      // מתחילים מהתחנה הקרובה, וממשיכים לפי הסדר
+      const p0 = at(e, W.s); let i0 = 0, bd = 1e9; st.forEach((q, i) => { const d = Math.hypot(G.N[q.n][0]-p0[0], G.N[q.n][1]-p0[1]); if(d < bd){ bd = d; i0 = i; } });
+      const stops = st.slice(i0).concat(st.slice(0, i0)), q = G.N[stops[0].n]; walkTo(q[0], q[1]); W.tour = { stops, i:0, wait:3.2 }; draw(); return; }
+    if(c !== 'tour' && W.tour && c !== 'fwdUp'){ W.tour = null; }
+    if(c === 'fwd'){ W.fwd = true; W.route = null; } else if(c === 'fwdUp') W.fwd = false;
+    else if(c === 'stop'){ W.fwd = false; W.auto = false; W.route = null; }
+    else if(c === 'go'){ W.auto = !W.auto; W.route = null; W.stopAt = -1; }
+    else if(c === 'back'){ W.dir = -W.dir; W.yaw = wrap(W.yaw + Math.PI); W.look = 0; W.route = null; W.pref = 0; }
+    else if(c === 'left' || c === 'right'){
+      const node = W.dir > 0 ? e.b : e.a, rem = W.dir > 0 ? e.L - W.s : W.s, ex = node >= 0 && rem < 9 ? exits(node, W.e, W.yaw) : [];
+      if(ex.length > 1){ W.pref = c === 'left' ? 1 : -1; arrowNode = -1; }                // בצומת: בוחרים יציאה, והחץ שלה נצבע
+      else W.look += (c === 'left' ? 1 : -1)*Math.PI/5; }                             // באמצע שביל: מסובבים את המבט
+    draw(); }
+  /** הליכה אוטומטית לנקודה: המסלול הקצר ברשת (דייקסטרה) */
+  function walkTo(x, y){ if(!W) return; const G = graph(), t = nearest(x, y); if(!t || t.d > 25) return false;
+    const e0 = G.E[W.e], dist = new Map(), prev = new Map(), q = [];
+    const push = (n, d, p) => { if(dist.has(n) && dist.get(n) <= d) return; dist.set(n, d); prev.set(n, p); q.push([d, n]); };
+    push(e0.a, W.s, null); push(e0.b, e0.L - W.s, null);
+    while(q.length){ q.sort((p, r) => p[0]-r[0]); const [d, n] = q.shift(); if(d > dist.get(n)) continue; G.adj[n].forEach(o => { const e = G.E[o.e], m = o.dir > 0 ? e.b : e.a; push(m, d + e.L, { n, e:o.e, dir:o.dir }); }); }
+    const et = G.E[t.e], ca = (dist.get(et.a) ?? 1e9) + t.s, cb = (dist.get(et.b) ?? 1e9) + et.L - t.s;
+    if(t.e === W.e && Math.abs(t.s - W.s) < Math.min(ca, cb)){ W.route = { steps:[], end:{ e:t.e, s:t.s } }; W.dir = t.s >= W.s ? 1 : -1; }
+    else { let n = ca <= cb ? et.a : et.b; if(!Number.isFinite(dist.get(n))) return false; const steps = [];
+      while(prev.get(n)){ const p = prev.get(n); steps.unshift({ e:p.e, dir:p.dir }); n = p.n; }
+      W.dir = n === e0.b ? 1 : -1; steps.push({ e:t.e, dir:ca <= cb ? 1 : -1 }); W.route = { steps, end:{ e:t.e, s:t.s } }; }
+    W.fwd = false; W.auto = false; W.look = 0; W.tour = null; draw(); return true; }
+  const ray = new T.Raycaster();
+  function pick(ev){ const r = renderer.domElement.getBoundingClientRect(); ray.setFromCamera({ x:(ev.clientX-r.left)/r.width*2-1, y:-(ev.clientY-r.top)/r.height*2+1 }, cam);
+    const ha = arrows ? ray.intersectObjects(arrows.children, false)[0] : null;
+    if(ha){ W.pref = ha.object.userData.rel; W.auto = true; arrowNode = -1; draw(); return; }
+    const hits = ray.intersectObjects(scene.children, true).filter(h => h.object.visible && h.object.isMesh && h.object !== sky && h.distance < 400);
+    if(hits[0]) walkTo(hits[0].point.x, -hits[0].point.z); }
+  function chooseExit(node){ const G = graph(), ex = exits(node, W.e, angOf(G.E[W.e], W.dir, W.dir > 0 ? G.E[W.e].L : 0));
+    if(!ex.length) return null; if(ex.length === 1) return ex[0];
+    if(W.pref > 0) return ex[0]; if(W.pref < 0) return ex[ex.length-1];               // הכי שמאלה / הכי ימינה
+    return ex.slice().sort((p, q) => Math.abs(p.rel) - Math.abs(q.rel))[0]; }          // בלי בחירה: הכי ישר
+  function stepWalk(dt){
+    if(!W) return false; const G = graph(); let e = G.E[W.e], moved = false;
+    const go = W.fwd || W.auto || W.route;
+    if(go){ let d = (W.route ? 1.9 : 1.5)*dt; moved = true;
+      for(let guard = 0; guard < 6 && d > 0; guard++){
+        if(W.route && W.route.steps.length === 0 && W.e === W.route.end.e){ const r = W.route.end.s - W.s; if(Math.abs(r) <= d){ W.s = W.route.end.s; W.route = null; d = 0; break; } W.dir = r > 0 ? 1 : -1; }
+        const rem = W.dir > 0 ? e.L - W.s : W.s;
+        if(d < rem){ W.s += W.dir*d; d = 0; break; }
+        W.s = W.dir > 0 ? e.L : 0; d -= rem; const node = W.dir > 0 ? e.b : e.a;
+        let nx = null;
+        if(W.route && W.route.steps.length){ const st = W.route.steps.shift(); nx = { e:st.e, dir:st.dir, s0:st.dir > 0 ? 0 : G.E[st.e].L }; if(G.E[st.e].a !== node && G.E[st.e].b !== node) nx = null; }
+        if(!nx){ const ex = exits(node, W.e, W.yaw);
+          if(!ex.length){ W.fwd = W.auto = false; W.route = null; break; }                // סוף השביל
+          if(ex.length > 1 && W.auto && !W.pref && !W.route){ W.auto = false; break; }     // הליכה ברווח נעצרת בצומת, כדי לבחור
+          nx = chooseExit(node); W.pref = 0; }
+        W.e = nx.e; W.dir = nx.dir; W.s = nx.s0; e = G.E[W.e]; arrowNode = -1; } }
+    // המצלמה: על השביל, בגובה העיניים מעל הקרקע, ומביטה קדימה לאורך השביל
+    const p = at(e, W.s), target = angOf(e, W.dir, W.s);
+    if(go) W.yaw = wrap(W.yaw + wrap(target - W.yaw)*Math.min(1, dt*4));
+    if(go) W.look *= Math.exp(-dt*1.6);
+    W.yawNow = W.yaw + W.look;
+    const hNow = hAt(p[0], p[1]) + 1.65; W.h += (hNow - W.h)*Math.min(1, dt*6);
+    cam.position.set(p[0], W.h, -p[1]);
+    const cp = Math.cos(W.pitch); cam.lookAt(p[0] + Math.cos(W.yawNow)*cp*10, W.h + Math.sin(W.pitch)*10, -(p[1] + Math.sin(W.yawNow)*cp*10));
+    // חצים בצומת הקרוב: לכל יציאה חץ על הקרקע, והנבחרת בטורקיז
+    const node = W.dir > 0 ? e.b : e.a, rem = W.dir > 0 ? e.L - W.s : W.s;
+    if(arrows){ const ex = rem < 14 ? exits(node, W.e, angOf(e, W.dir, W.dir > 0 ? e.L : 0)) : [];
+      const key = ex.length > 1 ? node*10 + (W.pref + 1) : -1;
+      if(key !== arrowNode){ arrowNode = key; arrows.clear();
+        if(ex.length > 1){ const sel = chooseExit(node), shape = new T.Shape([[0, -.35], [1.3, -.35], [1.3, -.75], [2.3, 0], [1.3, .75], [1.3, .35], [0, .35]].map(q => new T.Vector2(q[0], q[1]))), geo = new T.ShapeGeometry(shape);
+          ex.forEach(o => { const E2 = G.E[o.e], a = at(E2, o.s0), b = at(E2, o.s0 + o.dir*3.2), ang = Math.atan2(b[1]-a[1], b[0]-a[0]), m = new T.Mesh(geo, sel && sel.e === o.e ? walkM.sel : walkM.arrow);
+            m.rotation.set(-Math.PI/2, 0, ang); m.position.set(a[0] + Math.cos(ang)*1.2, hAt(a[0], a[1]) + .06, -(a[1] + Math.sin(ang)*1.2)); m.userData.rel = o.rel > .35 ? 1 : o.rel < -.35 ? -1 : 0; m.renderOrder = 5; arrows.add(m); }); } } }
+    // איפה אני: בתוך בניין, בגינה, או ליד הבניין הקרוב
+    let info = ''; for(const z of WD.zones||[]){ if(!z._r) z._r = ring2(z.poly); if(inRing(p[0], p[1], z._r)){ info = z.kind === 'in' ? 'בתוך ' + z.name : 'ב' + z.name; break; } }
+    if(!info){ let bd = 14; (WD.zones||[]).filter(z => z.kind === 'in').forEach(z => { const r = z._r || (z._r = ring2(z.poly));
+      r.forEach((a, i) => { const q = r[(i+1)%r.length], vx = q[0]-a[0], vy = q[1]-a[1], l = vx*vx+vy*vy || 1e-9, t = Math.max(0, Math.min(1, ((p[0]-a[0])*vx+(p[1]-a[1])*vy)/l)), dd = Math.hypot(p[0]-a[0]-t*vx, p[1]-a[1]-t*vy);
+        if(dd < bd){ bd = dd; info = 'ליד ' + z.name; } }); }); }
+    if(!info) info = 'על השביל';
+    // סיור מודרך: בכל תחנה עוצרים, מסתכלים סביב לאט, וממשיכים לתחנה הבאה
+    let tourOn = false;
+    if(W.tour){ tourOn = true; const T2 = W.tour;
+      if(!W.route && !W.fwd){ T2.wait -= dt; W.look += dt*.45;
+        if(T2.wait <= 0){ T2.i++; if(T2.i >= T2.stops.length){ W.tour = null; } else { const q = G.N[T2.stops[T2.i].n]; walkTo(q[0], q[1]); W.tour = T2; T2.wait = 3.2; } } } }
+    const tinfo = W.tour ? `תחנה ${W.tour.i + 1} מתוך ${W.tour.stops.length}: ${W.tour.stops[W.tour.i].name}` : '';
+    if(opts && opts.onWalk) opts.onWalk({ x:p[0], y:p[1], yaw:W.yawNow, info, tour:tinfo, moving:!!go || tourOn, junction:!W.tour && rem < 14 && exits(node, W.e, W.yaw).length > 1 });
+    return go || tourOn || Math.abs(W.look) > .002 || Math.abs(hNow - W.h) > .01;
+  }
+
   // ציור לפי צורך
   let raf = 0, last = 0, dead = false;
-  function frame(t){ raf = 0; if(dead) return; const dt = Math.min(.1, (t-last)/1000 || 0); last = t; stepWind(dt); const moving = ctl.update(); renderer.render(scene, cam);
-    if(opts && opts.onCamera) opts.onCamera(Math.atan2(cam.position.x-ctl.target.x, cam.position.z-ctl.target.z));
-    if(windDir != null || moving) loop(); }
+  function frame(t){ raf = 0; if(dead) return; const raw = (t-last)/1000 || 0, dt = Math.min(.1, raw); last = t; stepWind(dt); const walking = stepWalk(Math.min(.3, raw)), moving = W ? false : ctl.update();   // הליכה לפי הזמן שעבר באמת, גם במחשב איטי
+    renderer.render(scene, cam);
+    if(opts && opts.onCamera) opts.onCamera(W ? -W.yawNow - Math.PI/2 : Math.atan2(cam.position.x-ctl.target.x, cam.position.z-ctl.target.z));
+    if(windDir != null || moving || walking) loop(); }
   function loop(){ if(!raf && !dead) raf = requestAnimationFrame(frame); }
   function draw(){ loop(); }
   ctl.addEventListener('change', draw);
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
-  if(window._pmDebug) window._pm = { cam, ctl, draw, groups };       // בדיקה בלבד
-  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, view, resize, center, groups,
+  if(window._pmDebug) window._pm = { cam, ctl, draw, groups, walkTo, walkCmd, get W(){ return W; } };       // בדיקה בלבד
+  return { setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
-    dispose(){ dead = true; cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
+    dispose(){ dead = true; walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 
 /** טעינת הספרייה התלת־ממדית רק כשצריך */
