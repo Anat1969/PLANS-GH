@@ -11,6 +11,7 @@
 const SETS = { '1913': { dir:'layers/1913', title:'אחד העם / הרצל: תוכנית פיתוח', date:'18.11.2026', renewal:true },
   /* raster: אין תוכנית פיתוח וקטורית. המודל מתוכנית ההעמדה שבמצגת (תמונה), מעוגן אוטומטית למגרשי התב"ע (tools/siteplan-model.py) */
   '1887': { dir:'layers/1887', title:'הרצל - נאות ספיר: תוכנית העמדה', date:'24.11.2026', renewal:true, raster:true },
+  '1911': { dir:'layers/1911', title:'מתחם הרב מימון, רובע ב\': תוכנית העמדה', date:'24.11.2026', renewal:true, raster:true },
   /* תכנון רעיוני: מתשריט התב"ע המוצעת שבמצגת ומההדמיות (tools/concept-model.py, ענת 24.11.2026). אין עדיין תוכנית פיתוח */
   '1909': { dir:'layers/1909', title:'מתחם צפוני, האיצטדיון: תכנון רעיוני', date:'06.07.2026', renewal:true, concept:true } };
 window.LAYER_SETS = SETS;          // מקור אחד לרשימת התוכניות שיש להן מודל (גם ל-plans-infra.js)
