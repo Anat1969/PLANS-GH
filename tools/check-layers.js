@@ -101,6 +101,17 @@ for(const dir of sets){
     const bad = lv.spots.filter(s => s.kind !== 'ffl' && Math.abs(hAt(s.at[0], s.at[1]) - s.z) > .25);
     ok(bad.length <= Math.ceil(lv.spots.length*.15), dir + ': פני הקרקע עוברים דרך הרומים (' + bad.length + ' חריגים מעל 25 ס"מ, מותר 15%)');
   }
+  const wf = path.join(root, dir, 'walk.json');
+  if(fs.existsSync(wf)){ // מסלולי הליכה (tools/extract-walk.py): רשת שלמה, שבילים מחוברים, ואזורים עם שם
+    const wk = JSON.parse(fs.readFileSync(wf, 'utf8')), n = wk.nodes.length, tot = wk.edges.reduce((a, e) => a + e.len, 0);
+    ok(wk.mask.reduce((a, b) => a + b, 0) === wk.nx*wk.ny, dir + ': מסכת שטח ההליכה שלמה (' + wk.nx + '×' + wk.ny + ')');
+    ok(wk.edges.every(e => e.a < n && e.b < n && e.pts.length >= 4), dir + ': כל קטע שביל מחבר שני צמתים קיימים (' + wk.edges.length + ' קטעים)');
+    // הרכיב המחובר הגדול: רוב אורך השבילים, כדי שאפשר יהיה ללכת מסביב ופנימה בלי להיתקע
+    const par = [...Array(n).keys()], f = x => par[x] === x ? x : (par[x] = f(par[x])); wk.edges.forEach(e => { par[f(e.a)] = f(e.b); });
+    const comp = {}; wk.edges.forEach(e => { const r = f(e.a); comp[r] = (comp[r] || 0) + e.len; }); const big2 = Math.max(...Object.values(comp));
+    ok(big2/tot > .5, dir + ': ' + Math.round(big2/tot*100) + '% מאורך השבילים (' + Math.round(tot) + " מ') ברשת אחת מחוברת");
+    ok(wk.zones.some(z => z.kind === 'in'), dir + ': יש אזורי בניין ל"איפה אני" (' + wk.zones.filter(z => z.kind === 'in').map(z => z.name).join(', ') + ')');
+  }
   const big = fs.statSync(path.join(root, dir, 'model.json')).size + man.layers.reduce((s, l) => s + fs.statSync(path.join(root, dir, l.file)).size, 0);
   ok(big < 7e6, dir + ': משקל ' + (big/1e6).toFixed(1) + 'MB');
 }
