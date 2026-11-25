@@ -81,7 +81,7 @@ srv.listen(0, async () => {
     ok(pv.illusVisibleWhenOff === 0, 'כיבוי ההמחשה מסתיר את כל רכיבי ההמחשה');
     // הגאומטריה של המצב התכנוני היא אותה גאומטריה של המודל האדריכלי (אותו מתאר ואותם גבהים)
     const bb = await pg.evaluate(() => window._lyState().api.planMassCheck());
-    ok(bb && bb.maxDiff < 0.05, `המצב התכנוני על אותה גאומטריה: סטייה מרבית בתיבות התוחמות ${bb ? bb.maxDiff.toFixed(3) : '-'} מ' (${bb ? bb.n : 0} בניינים)`);
+    ok(bb && bb.maxDiff < 0.05, `המצב התכנוני על אותה גאומטריה: סטייה מרבית בגובה הקומות ${bb ? bb.maxDiff.toFixed(3) : '-'} מ' (${bb ? bb.n : 0} קומות)`);
   }
   ok(errs.length === 0, 'בלי שגיאות בדף' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   const file = path.join(root, 'data/urban-standard', `perf-${tik}.json`), prev = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};

@@ -1,0 +1,90 @@
+{
+ "before": {
+  "tik": "1887",
+  "date": "2026-11-25",
+  "loadMs": 2081,
+  "env": "Chromium headless, swiftshader, 1440x900",
+  "modes": {
+   "design": {
+    "calls": 154,
+    "triangles": 408830,
+    "geometries": 334,
+    "textures": 79,
+    "programs": 61,
+    "fps": 1.3,
+    "heapMB": 59
+   },
+   "render": {
+    "calls": 94,
+    "triangles": 461660,
+    "geometries": 335,
+    "textures": 86,
+    "programs": 61,
+    "fps": 1.1,
+    "heapMB": 70
+   },
+   "render-night": {
+    "calls": 98,
+    "triangles": 464260,
+    "geometries": 339,
+    "textures": 93,
+    "programs": 79,
+    "fps": 1.1,
+    "heapMB": 74
+   }
+  }
+ },
+ "after": {
+  "tik": "1887",
+  "date": "2026-11-25",
+  "loadMs": 1914,
+  "env": "Chromium headless, swiftshader, 1440x900",
+  "modes": {
+   "planning": {
+    "calls": 155,
+    "triangles": 354166,
+    "geometries": 513,
+    "textures": 79,
+    "programs": 63,
+    "fps": 1.4,
+    "heapMB": 56
+   },
+   "architectural": {
+    "calls": 154,
+    "triangles": 408830,
+    "geometries": 581,
+    "textures": 79,
+    "programs": 63,
+    "fps": 1.4,
+    "heapMB": 56
+   },
+   "experiential": {
+    "calls": 94,
+    "triangles": 461660,
+    "geometries": 582,
+    "textures": 86,
+    "programs": 63,
+    "fps": 1.3,
+    "heapMB": 81
+   },
+   "experiential-night": {
+    "calls": 98,
+    "triangles": 464260,
+    "geometries": 586,
+    "textures": 93,
+    "programs": 81,
+    "fps": 1.7,
+    "heapMB": 73
+   },
+   "experiential-no-illus": {
+    "calls": 90,
+    "triangles": 390176,
+    "geometries": 591,
+    "textures": 100,
+    "programs": 82,
+    "fps": 1.3,
+    "heapMB": 76
+   }
+  }
+ }
+}

@@ -46,6 +46,12 @@
 7. **`window.urbanStandard()`** טוען את התקן פעם אחת ותמיד נפתר (null אם לא נטען), כדי שדף לא ייתקע. ממצא: שרת בדיקה בלי MIME של `.mjs` תקע את דף הכניסה.
 8. **בדיקות:** `node tools/check-standard.mjs` (צבעים מול המקרא, צבעים שמורים, תיעוד מעודכן). `node tests/map-parity.cjs ../PLANS-GH` ב-HITCHADSHUT: אותה פעולה, אותה תוצאה בשלושת המנועים (38 בדיקות).
 9. **בלי פריסה לייצור ובלי שינוי במסד** בעבודה על התקן, בלי אישור של ענת (הנחיית התאום, סעיף 9). ההצעה למסד: `docs/urban-twin/data-schema.md`.
+10. **היקף (ענת, 25.11.2026):** התקן וההמחשה חלים על כל התוכניות ב-ASHDODMAP ועל פרויקטים אדריכליים ב-CULTURA. אפליקציה חדשה מייבאת את `standard/urban-standard.mjs`.
+11. **שלושה מצבי עבודה במודל** (`setWork`: תכנוני, אדריכלי, חווייתי), על אותה גאומטריה. תכנוני: ייעוד מבא"ת על הקרקע ושימוש בכל קומה מ-`floors.json` (`buildPlanMass`). המעבר שומר מצלמה ובחירה, ולא נוגע במודל ובמדידות (`sourceHash`). הבורר החליף את כפתור "הדמיה".
+12. **מקור לכל שכבה** (`provOf`, `PROVENANCE`): מאומת, מתוך התוכנית, מחושב או המחשה. מקרא מקור בפינת המודל, ולחיצה על רכיב מציגה מקור ורמה (`pickInfo`). מודל מתמונה או מתכנון רעיוני: "מחושב". שכבה חדשה בלי מקור מכשילה את הבדיקה.
+13. **מתג "המחשה"** (`setIllus`): אנשים, מכוניות, עצים מפורטים, ויטרינות וחזית בלי תוכניות קומה. ב-1913 זה כ-60% מהמשולשים, ולכן הוא גם מצב לתצוגה במחשב חלש.
+14. **בדיקה:** `node tools/check-work-modes.cjs <תיק> [--before] [--shots <תיקייה>]`: ביצועים ל-`data/urban-standard/perf-<תיק>.json`, אי־שינוי, מצלמה, מקור וכיבוי. מבט העיניים הוא מצלמת ההליכה בתחנה הראשונה. `walkJump(x, y)` מקבל קואורדינטות, לא מספר תחנה.
+15. **סנכרון המודלים בין האפליקציות:** `data/renewal-twin.json` (נפחים וקו כחול של כל תוכנית התחדשות, מ-`city_twin`) ו-`data/building-twin.json` (כל תוכניות הבינוי, גאומטריה ומקורה, והמודל המפורט). הבנייה: `python3 -I tools/urban-standard/building-twin.py <ashdod_plans.json> data/building-twin.json` (ההוראות בראש הסקריפט), ואחריה `node scripts/urban-standard/sync.mjs ../PLANS-GH` ב-HITCHADSHUT. מקום רק כרובע ומספרי מגרשים: בשדה המיקום יש לפעמים שם של יזם.
 
 ## A&I logo button
 The top bar holds only the app name (links home), content navigation, and ONE logo button "אד' ענת שטיבלמן A&I" (`<ai-menu>` from https://appofapp-gh.vercel.app/ai-menu.js). Every editing and development action (העתקת קישור, שיחת הפיתוח, פרויקט המחקר, התקנת האפליקציה, edit mode, add, delete) lives only inside it, never as loose buttons. Standard: https://github.com/Anat1969/AppOfApp-GH/blob/main/docs/ai-menu-standard.md
