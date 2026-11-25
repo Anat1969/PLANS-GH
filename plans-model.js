@@ -96,6 +96,8 @@ const KINDS = [
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
 const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
+// צבעי הייעוד מהתקן המשותף: משבצות המקרא של מבא"ת, כפי שנקראו מהתשריטים (data/urban-standard/legend-harvest.json)
+if(typeof window !== 'undefined' && window.urbanStandard) window.urbanStandard().then(S => { if(S) Object.keys(ZONES).forEach(k => { ZONES[k][1] = S.landUseColor(k); }); });
 const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign','exPole','hydrant'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
@@ -216,6 +218,8 @@ function create(el, model, opts){
   const scene = new T.Scene(); scene.background = new T.Color('#eef2f5');
   const cam = new T.PerspectiveCamera(38, 1, 0.5, 3000);
   const ctl = new T.OrbitControls(cam, renderer.domElement); ctl.maxPolarAngle = Math.PI/2 - 0.02; ctl.minDistance = 4; ctl.maxDistance = 900; ctl.enableDamping = true; ctl.dampingFactor = 0.12;
+  // חוזה האינטראקציה המשותף (standard/urban-standard.mjs): שמאלי הזזה, ימני סיבוב והטיה, גלגלת סביב הסמן, מקלדת כשהמודל בפוקוס
+  let stdUI = null; if(window.urbanStandard) window.urbanStandard().then(S => { if(dead || !S) return; stdUI = S.applyOrbit(ctl, cam, renderer.domElement, T, { eyeLevel:true, changed:() => draw(), reset:() => view('home'), enabled:() => !W }); });
   const hemi = new T.HemisphereLight('#ffffff', '#a9a498', 0.5); scene.add(hemi);
   const fill = new T.DirectionalLight('#cfe0ff', .38); fill.position.set(-200, 120, 200); scene.add(fill);   // אור מילוי קריר מהצד שמול השמש: חזית בצל לא נראית שטוחה
   const sun = new T.DirectionalLight('#fff4e0', 1.0); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
@@ -461,14 +465,16 @@ function create(el, model, opts){
 
   // תצוגה: שכבות פעילות, רפאים לשאר
   let active = null, state = 'design', envOn = false; const kindOff = new Set();
+  let work = 'architectural', illusOn = true, planMassG = null;   // מצבי העבודה: מוגדרים כאן, כי applyActive רץ כבר בבנייה (TDZ)
   const solidOn = (g, v) => { g.visible = v; g.traverse(x => { if(x.isMesh && x.userData.mat){ x.material = x.userData.mat; x.castShadow = v && x.userData.solid; } }); };
   function applyActive(){
     for(const k in groups){ const g = groups[k];
       if(state !== 'design'){ solidOn(g, (STATE_KINDS[state].includes(k) && !kindOff.has(k)) || (k==='under' && underOn && state==='renewal')); continue; }
+      if(work === 'planning' && (k==='rnParcel' || (k==='rnMass' && !planMassG))){ solidOn(g, !kindOff.has(k)); continue; }   // מצב תכנוני: ייעודי הקרקע של התב"ע על הקרקע (ובלי מודל קומות, נפחי התב"ע)
       if(k==='rnParcel' || k==='rnMass' || (KIND[k] && KIND[k].topic==='exist')){ g.visible = false; continue; }   // מפת המדידה רק במצב "קיים"
       if(k==='rnEnvelope'){ solidOn(g, envOn); continue; }
       if(k==='under'){ solidOn(g, underOn); continue; }
-      if(k==='facade'){ solidOn(g, facOn && !kindOff.has(k)); continue; }
+      if(k==='facade'){ solidOn(g, facOn && work !== 'planning' && !kindOff.has(k) && (illusOn || !!fd)); continue; }   // חזית בלי תוכניות קומה היא המחשה: נכבית עם ההמחשה
       const on = !kindOff.has(k) && (!active || active.has(KIND[k].topic));
       const off = kindOff.has(k), ctx = ['asphalt','paving','green','wall','brt','bike','ramp'].includes(k);
       g.visible = on || (!off && ctx);
@@ -478,7 +484,7 @@ function create(el, model, opts){
   }
   function setActive(set){ active = set ? new Set(set) : null; applyActive(); }
   function setKind(k, on){ if(on) kindOff.delete(k); else kindOff.add(k); applyActive(); }
-  function setState(st){ state = st; applyActive(); updCtx(); if(rl) rl.root.visible = renderOn && state === 'design'; if(lifeG) lifeG.visible = renderOn && state === 'design'; }
+  function setState(st){ state = st; if(planMassG) planMassG.visible = work === 'planning' && state === 'design'; applyActive(); updCtx(); if(rl) rl.root.visible = renderOn && state === 'design' && illusOn; if(lifeG) lifeG.visible = renderOn && state === 'design' && illusOn; }
   function setEnvelope(on){ envOn = !!on; applyActive(); }
 
   /* התחדשות עירונית (נפחים לפי הזכויות) ומצב קיים. הנתונים ב-WGS84, ומומרים לרשת ישראל */
@@ -911,7 +917,7 @@ function create(el, model, opts){
   function renderFix(){
     if(!renderOn) return;
     for(const k in groups){ const g = groups[k]; if(state !== 'design') continue;
-      if(RENDER_HIDE.has(k) || (rl && realHide.has(k))){ g.visible = false; continue; }
+      if(RENDER_HIDE.has(k) || (rl && illusOn && realHide.has(k))){ g.visible = false; continue; }
       if(KIND[k] && KIND[k].topic === 'exist' || k === 'rnParcel' || k === 'rnMass' || k === 'under') continue;
       if(k === 'facade' && !facOn) continue;
       if(!kindOff.has(k)) g.visible = true;
@@ -929,7 +935,7 @@ function create(el, model, opts){
       if(!renderOn) scene.traverse(x => { if((x.isSprite || x.isLineSegments || x.isLine) && !x.userData.keep) x.visible = true; });
       if(rl && rl.setOn) rl.setOn(renderOn); else if(!renderOn && sunArgs) setSun(...sunArgs);
       if(renderOn && state === 'design' && !rl && window.PlanReal){ try{ buildReal2(); }catch(e){ console.warn('real', e); rl = null; } }   // המחשה ראליסטית (plans-real.js)
-      if(renderOn && !lifeG && !rl) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design'; if(rl) rl.root.visible = renderOn && state === 'design';
+      if(renderOn && !lifeG && !rl) buildLife(); if(lifeG) lifeG.visible = renderOn && state === 'design' && illusOn; if(rl) rl.root.visible = renderOn && state === 'design' && illusOn;
       renderer.domElement.classList.toggle('pm-render', renderOn); el.classList.toggle('pm-render-wrap', renderOn);   // פילטר צבע ווינייטה ב-CSS
       applyActive(); draw(); };
     go(); return Promise.resolve();
@@ -1129,12 +1135,66 @@ function create(el, model, opts){
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
   if(window._pmDebug) window._pm = { cam, ctl, draw, groups, walkTo, walkCmd, get W(){ return W; } };       // בדיקה בלבד
-  const getCam = () => ({ p:cam.position.toArray().map(v => +v.toFixed(2)), t:ctl.target.toArray().map(v => +v.toFixed(2)) });
+  // בהליכה המטרה של OrbitControls לא מתעדכנת: המטרה נלקחת מכיוון המבט, 20 מ' קדימה (מבט שמור מתוך הליכה)
+  const getCam = () => { const t = W ? cam.position.clone().add(cam.getWorldDirection(new T.Vector3()).multiplyScalar(20)) : ctl.target;
+    return { p:cam.position.toArray().map(v => +v.toFixed(2)), t:t.toArray().map(v => +v.toFixed(2)) }; };
   function setCam(v){ if(W) walkStop(); cam.position.fromArray(v.p); ctl.target.fromArray(v.t); ctl.update(); draw(); }
   loadCtx();
-  return { walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
+
+  /* ── מצבי עבודה (הנחיית ההמחשה העירונית, 25.11.2026) ──
+     תכנוני: ייעוד הקרקע (מבא"ת) על הקרקע, והשימוש בכל קומה על אותה גאומטריה (floors.json). בלי חזיתות ובלי הדמיה.
+     אדריכלי: חזיתות, פתחים, מרפסות וקומת הקרקע, בלי חומרים מצולמים. חווייתי: חומרים, אור, עצים, אנשים ותנועה.
+     המעבר לא נוגע במודל, במדידות, במצלמה או בבחירה. ההמחשה (אנשים, מכוניות, עצים מפורטים, ויטרינות) שכבה נפרדת שנכבית. */
+  const pmSlabs = [];
+  const USE_CAT = { res:'residential', work:'employment', public:'public', commerce:'commerce', shop:'commerce' };
+  function buildPlanMass(){
+    if(planMassG || !fd) return; planMassG = new T.Group(); planMassG.name = 'planMass'; planMassG.visible = false; scene.add(planMassG);
+    const US = window.UrbanStandard, colOf = u => US ? US.landUseColor(USE_CAT[u] || 'residential') : (ZONES[USE_CAT[u]] || ZONES.residential)[1], mats = {}, edgeM = new T.LineBasicMaterial({ color:'#2b2b2b', transparent:true, opacity:.5 });
+    fd.buildings.forEach(b => b.floors.forEach(f => { const pl = fd.plans[f.plan]; if(!pl || !pl.env) return; const r = ring2(pl.env), h = Math.max(.2, f.h - .06);
+      const g = new T.ExtrudeGeometry(new T.Shape(r.map(q => new T.Vector2(q[0], q[1]))), { depth:h, bevelEnabled:false }); g.rotateX(-Math.PI/2); g.translate(0, f.y, 0);
+      const m = new T.Mesh(g, mats[f.use] || (mats[f.use] = new T.MeshStandardMaterial({ color:sc(colOf(f.use)), roughness:.85 }))); m.castShadow = m.receiveShadow = true; m.userData.prov = 'plan'; m.userData.use = f.use; planMassG.add(m);
+      planMassG.add(new T.LineSegments(new T.EdgesGeometry(g, 25), edgeM)); pmSlabs.push({ b:b.id, y0:f.y, y1:f.y + h, fy:f.y, fh:f.h }); })); }
+  function setWork(mode){
+    work = ['planning', 'architectural', 'experiential'].includes(mode) ? mode : 'architectural';
+    if(work === 'planning') buildPlanMass();
+    if(planMassG) planMassG.visible = work === 'planning' && state === 'design';
+    facOn = work !== 'planning' && facOn; if(work !== 'planning' && !facOn) setFacade(true);
+    return setRender(work === 'experiential');
+  }
+  function setIllus(on){ illusOn = !!on; if(rl) rl.root.visible = renderOn && state === 'design' && illusOn; if(lifeG) lifeG.visible = renderOn && state === 'design' && illusOn; applyActive(); }
+  /** מקור לכל שכבה (PROVENANCE בתקן): verified מאומת (מדידה), plan מתוך התוכנית, computed מחושב או הערכה, illustration המחשה */
+  function provOf(k){
+    if(k === 'exBuild' || k === 'appBuild' || k === 'rnMass' || k === 'rnEnvelope' || k === 'under') return 'computed';
+    if(k === 'treeSurvey' || (KIND[k] && KIND[k].topic === 'exist')) return 'verified';
+    if(k === 'mass') return 'illustration';
+    if(k === 'facade') return fd ? 'plan' : 'illustration';
+    if(k === 'rnParcel') return 'plan';
+    if(KIND[k]) return opts && opts.estimate ? 'computed' : 'plan';
+    return null; }
+  const LEVEL_OF = k => k === 'facade' ? 2 : !KIND[k] ? 1 : ['site', 'renewal'].includes(KIND[k].topic) ? 1 : KIND[k].topic === 'build' ? 2 : 3;
+  function provenance(){ const out = { tagged:0, untagged:[], byProv:{}, illusVisibleWhenOff:0, work, illus:illusOn };
+    for(const k in groups){ const p = provOf(k); if(!p){ out.untagged.push(k); continue; } out.tagged++; (out.byProv[p] = out.byProv[p] || []).push(k);
+      if(!illusOn && p === 'illustration' && groups[k].visible) out.illusVisibleWhenOff++; }
+    if(!illusOn){ if(rl && rl.root.visible) out.illusVisibleWhenOff++; if(lifeG && lifeG.visible) out.illusVisibleWhenOff++; }
+    return out; }
+  /** המצב התכנוני על אותה גאומטריה: כל קומה ב-floors.json היא פרוסה אחת, באותו גובה */
+  function planMassCheck(){ if(!fd) return null; buildPlanMass(); let n = 0, maxDiff = 0; fd.buildings.forEach(b => b.floors.forEach(f => { n++; const s = pmSlabs.find(x => x.b === b.id && x.fy === f.y && x.fh === f.h); maxDiff = Math.max(maxDiff, s ? Math.abs(s.y0 - f.y) : 99); })); return { n, maxDiff, slabs:pmSlabs.length }; }
+  /** גיבוב של נתוני המקור והמדידות: חייב להיות זהה בכל מצב תצוגה */
+  function sourceHash(){ const str = JSON.stringify(model) + JSON.stringify(measure(model)) + JSON.stringify(fd || null); let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(16); }
+  /** מידע בבחירה: איזו שכבה, מאיזה מקור, ובאיזו רמת ייצוג */
+  const pickRay = new T.Raycaster();
+  function pickInfo(cx, cy){ const r = renderer.domElement.getBoundingClientRect(); pickRay.setFromCamera({ x:(cx-r.left)/r.width*2-1, y:-(cy-r.top)/r.height*2+1 }, cam);
+    const hit = pickRay.intersectObjects(scene.children, true).find(h => h.object.visible && h.object.isMesh && h.object !== sky);
+    if(!hit) return null; let o = hit.object, k = null, ill = false; while(o){ if(rl && o === rl.root) ill = true; if(lifeG && o === lifeG) ill = true; if(o.name && (groups[o.name] || o.name === 'planMass')){ k = o.name; break; } o = o.parent; }
+    if(ill) return { kind:'illus', label:'המחשה', prov:'illustration', level:4 };
+    if(!k) return null;
+    return { kind:k, label:k === 'planMass' ? 'שימוש בקומה' : KIND[k] ? KIND[k].label : k, prov:k === 'planMass' ? 'plan' : provOf(k), level:k === 'planMass' ? 1 : LEVEL_OF(k), use:hit.object.userData.use || null }; }
+  renderer.domElement.addEventListener('click', e => { if(W || !opts || !opts.onPick || (stdUI && !stdUI.guard.isClick(e))) return; opts.onPick(pickInfo(e.clientX, e.clientY)); });
+  /** מדדי ציור לבדיקת ביצועים (tools/check-work-modes.cjs): קריאות ציור, משולשים, גאומטריות ומרקמים בפריים האחרון */
+  function stats(){ const i = renderer.info; return { calls:i.render.calls, triangles:i.render.triangles, geometries:i.memory.geometries, textures:i.memory.textures, programs:(i.programs||[]).length }; }
+  return { stats, groundAt:(x, y) => hAt(x, y), setWork, setIllus, provenance, planMassCheck, sourceHash, pickInfo, get work(){ return work; }, get illus(){ return illusOn; }, walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
-    dispose(){ dead = true; walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
+    dispose(){ dead = true; if(stdUI) stdUI.unbind(); walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 
 /** טעינת הספרייה התלת־ממדית רק כשצריך */

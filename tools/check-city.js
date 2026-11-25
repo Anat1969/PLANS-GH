@@ -10,7 +10,7 @@ const D = JSON.parse(fs.readFileSync(path.join(root, 'data/city.json'), 'utf8'))
 let bad = 0, n = 0; Object.values(D.taba).forEach(t => t.f.forEach(f => { n++; if(!(f.top > f.base) || f.r.some(([x, y]) => x < 34.55 || x > 34.75 || y < 31.70 || y > 31.88)) bad++; }));
 ok(n > 0 && !bad, `${n} נפחים ב-${Object.keys(D.taba).length} תב"עות, כולם באשדוד ועם גובה`);
 const GRAY = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN4+O7NfwAJRwPg3+d5DwAAAABJRU5ErkJggg==', 'base64');
-const srv = http.createServer((q, r) => { const f = path.join(root, decodeURIComponent(q.url.split('?')[0])); fs.readFile(f, (e, d) => { if(e){ r.statusCode = 404; return r.end(); } r.setHeader('Content-Type', /\.html$/.test(f) ? 'text/html' : /\.js$/.test(f) ? 'text/javascript' : /\.css$/.test(f) ? 'text/css' : 'application/json'); r.end(d); }); });
+const srv = http.createServer((q, r) => { const f = path.join(root, decodeURIComponent(q.url.split('?')[0])); fs.readFile(f, (e, d) => { if(e){ r.statusCode = 404; return r.end(); } r.setHeader('Content-Type', /\.html$/.test(f) ? 'text/html' : /\.m?js$/.test(f) ? 'text/javascript' : /\.css$/.test(f) ? 'text/css' : 'application/json'); r.end(d); }); });
 srv.listen(0, async () => {
   const port = srv.address().port, b = await chromium.launch({ args:['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   for(const vp of [{ width:1440, height:900, tag:'1440' }, { width:390, height:844, tag:'390' }]){

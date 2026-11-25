@@ -13000,23 +13000,27 @@ function aiSyncContext() {
   items();
 })();
 </script>
+<!-- תקן התאום העירוני (standard/urban-standard.mjs): קודי ייעוד, מטריצת ייצוג וחוזה האינטראקציה, משותף עם "מה נבנה סביבי" -->
+<script>/* טעינה אחת, ותמיד נפתרת: אם הקובץ לא נטען, הערך null והאפליקציה עובדת בלי התקן (לא נתקעת) */
+window.urbanStandard = () => window.__usP || (window.__usP = Promise.race([import('./standard/urban-standard.mjs?v=110').then(S => (window.UrbanStandard = S)), new Promise(r => setTimeout(r, 6000, null))]).catch(e => { console.warn('urban-standard', e); return null; }));
+window.urbanStandard();</script>
 <script src="plans-geo.js"></script>
 <script src="plans-safe.js?v=1123g"></script>
 <script src="plans-plus.js?v=1124c"></script>
-<script src="plans-process.js?v=1124k"></script>
+<script src="plans-process.js?v=1125u1"></script>
 <script src="mail-index.js"></script>
 <script src="plans-materials.js"></script>
 <script src="plans-calm.js"></script>
 <script src="plans-axis.js?v=1124c"></script>
-<script src="plans-model.js?v=1125i1"></script>
+<script src="plans-model.js?v=1126w1"></script>
 <script src="plans-real.js?v=1125h1"></script>
-<script src="plans-layers.js?v=1125i1"></script>
+<script src="plans-layers.js?v=1126w1"></script>
 <script src="plans-opinion.js?v=1125b"></script>
 <script src="plans-view.js?v=1123g"></script>
 <script src="plans-infra.js?v=1125x1"></script>
 <script src="plans-contacts.js?v=1124k"></script>
 <script src="plans-import.js?v=1125a"></script>
-<script src="plans-city.js?v=1125a"></script>
+<script src="plans-city.js?v=1126w1"></script>
 <script src="plans-team.js?v=1125a"></script>
 <script src="plans-ops-core.js?v=1124b"></script>
 <script src="plans-now.js?v=1124b"></script>
