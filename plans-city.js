@@ -128,6 +128,11 @@ function build(el, D, BLD, CM, RT, S){
       T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []).forEach(t => t.forEach(ix => { const q = r[ix]; rnBG.p.push(q[0], top, -q[1]); rnBG.n.push(0, 1, 0); }));
       rnFoot.push(r); rnCount++; });
     rnFoot.forEach(r => { foot.push(r); fbox.push(boxOf(r)); }); }
+  // הקו הכחול של כל תוכנית התחדשות (23, גם בלי נפחים), בגובה הקרקע: התמונה העירונית המלאה, ממודל העיר המשותף
+  if(RT && RT.boundaries && RT.boundaries.length){ const [o0, o1] = RT.origin, k = RT.scale, pos = [];
+    RT.boundaries.forEach(([, , flat]) => { for(let i = 0; i + 3 < flat.length; i += 2){ const a = xy([o0 + flat[i]*k, o1 + flat[i+1]*k]), b = xy([o0 + flat[i+2]*k, o1 + flat[i+3]*k]); pos.push(a[0], 1.2, -a[1], b[0], 1.2, -b[1]); } });
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+    scene.add(new T.LineSegments(g, new T.LineBasicMaterial({ color:(S && S.BLUE_LINE) || '#1D4ED8', transparent:true, opacity:.75 }))); }
   const BG = (S && S.NEUTRAL_BG) || { fill:'#cfcdc7', opacity:.55 };
   let rnMesh = null;
   if(rnBG.p.length){ const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(rnBG.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(rnBG.n, 3));
@@ -325,13 +330,13 @@ async function open(){
     const [, R, D, BLD, CM, RT, S] = await Promise.all([window.PlanModel.loadThree(),
       fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
       fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null),
-      fetch('data/renewal-twin.json?v=1125').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null]);
+      fetch('data/renewal-twin.json?v=1126').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null]);
     RENDERS = (R && R.renders) || {};
     st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S);
     if(S){ const lg = ov.querySelector('#cityLegend'); lg.querySelectorAll('i[data-k]').forEach(i => { i.style.background = S.landUseColor(i.dataset.k); }); }
   }catch(e){ console.warn('city', e); ov.querySelector('#citySub').textContent = 'ההדמיה לא נטענה. אפשר להיכנס למערכת.'; return; }
   const it = st.items, nv = it.filter(x => x.fs.length).length, nm = it.filter(x => x.model).length;
-  ov.querySelector('#citySub').textContent = `${it.length} תוכניות על המפה: ${nm} עם מודל, ${nv} עם נפח לפי התב"ע. ${st.renewal.shown ? `ברקע ${st.renewal.plans} תוכניות התחדשות באפור. ` : ''}מעבר עם העכבר על תוכנית: מתמקדים. לחיצה: נכנסים.`;
+  ov.querySelector('#citySub').textContent = `${it.length} תוכניות על המפה: ${nm} עם מודל, ${nv} עם נפח לפי התב"ע. ${st.renewal.shown ? `ברקע ${st.renewal.plans} תוכניות התחדשות: נפחים באפור וקו כחול. ` : ''}מעבר עם העכבר על תוכנית: מתמקדים. לחיצה: נכנסים.`;
   // מהתוכנית האחרונה לראשונה (מספר התוכנית בסדר יורד), מעבר אחד ועצירה בסוף
   const num = x => +String(x.p.planNum || x.p.tik).replace(/\D/g, '') || 0;
   const order = it.slice().sort((a, b) => num(b) - num(a));

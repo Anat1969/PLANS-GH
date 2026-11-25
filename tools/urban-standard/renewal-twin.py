@@ -26,8 +26,20 @@ for f in m['massing']['features']:
         for x, y in ring[:-1] if ring[0] == ring[-1] else ring:
             flat += [round((x - LNG0) * 1e6), round((y - LAT0) * 1e6)]
         feats.append([ix[p.get('plan_number') or ''], p.get('stage') or '', p.get('cat') or '', round(p.get('base') or 0, 1), round(p.get('top') or 0, 1), flat])
+# the blue line of every renewal plan, also one without volumes (603-1510577: lots only): [plan index, stage, ring]
+bnd = []
+for f in m['boundaries']['features']:
+    p, g = f['properties'], f['geometry']
+    pn = p.get('plan_number') or ''
+    if pn not in ix:
+        ix[pn] = len(plans); plans.append(pn)
+    for poly in (g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]):
+        flat = []
+        for x, y in poly[0]:
+            flat += [round((x - LNG0) * 1e6), round((y - LAT0) * 1e6)]
+        bnd.append([ix[pn], p.get('stage') or '', flat])
 info = {pl['plan_number']: {'title': pl.get('title'), 'stage': pl.get('stage'), 'status': pl.get('status')} for pl in m['plans']}
 json.dump({'source': 'ASHDODMAP city_twin (מה נבנה סביבי), קריאה בלבד', 'city_twin_updated_at': row.get('updated_at'),
            'built_at': m.get('built_at'), 'origin': [LNG0, LAT0], 'scale': 1e-6, 'plans': plans,
-           'info': {k: info.get(k) for k in plans}, 'features': feats}, open(out, 'w'), ensure_ascii=False, separators=(',', ':'))
-print(f'{len(feats)} volumes from {len(plans)} plans -> {out}')
+           'info': {k: info.get(k) for k in plans}, 'features': feats, 'boundaries': bnd}, open(out, 'w'), ensure_ascii=False, separators=(',', ':'))
+print(f'{len(feats)} volumes, {len(bnd)} boundaries, {len(plans)} plans -> {out}')
