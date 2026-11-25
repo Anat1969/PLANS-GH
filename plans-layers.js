@@ -670,6 +670,7 @@ window.layersLinkHTML = function(p){
   return `<div class="mat-row"><div class="mat-k">מודל התוכנית</div><div class="mat-items"><button class="mat-doc" onclick="openLayers('${H(p.tik)}')">מודל תלת־ממדי ובחינה לפי תחום</button></div></div>`;
 };
 window.layerSets = SETS;
+window._lyState = () => S;   // לבדיקות בדפדפן בלבד (tools/check-work-modes.cjs)
 function hashTik(){ const h = (location.hash||'').slice(1); return h==='layers' ? '' : h.startsWith('layers=') ? h.slice(7) : null; }
 function boot(){
   if(typeof plans==='undefined' || typeof window.go!=='function' || !document.querySelector('.page') || !window.PlanModel) return setTimeout(boot, 60);

@@ -1,0 +1,37 @@
+{
+ "before": {
+  "tik": "1913",
+  "date": "2026-11-25",
+  "loadMs": 2000,
+  "env": "Chromium headless, swiftshader, 1440x900",
+  "modes": {
+   "design": {
+    "calls": 194,
+    "triangles": 403650,
+    "geometries": 193,
+    "textures": 25,
+    "programs": 33,
+    "fps": 0.9,
+    "heapMB": 57
+   },
+   "render": {
+    "calls": 139,
+    "triangles": 895178,
+    "geometries": 238,
+    "textures": 36,
+    "programs": 59,
+    "fps": 0.5,
+    "heapMB": 93
+   },
+   "render-night": {
+    "calls": 144,
+    "triangles": 899070,
+    "geometries": 243,
+    "textures": 37,
+    "programs": 77,
+    "fps": 0.5,
+    "heapMB": 121
+   }
+  }
+ }
+}
