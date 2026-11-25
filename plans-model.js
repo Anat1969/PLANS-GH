@@ -1133,12 +1133,14 @@ function create(el, model, opts){
   function resize(){ const r = el.getBoundingClientRect(); if(r.width < 10) return; renderer.setSize(r.width, r.height, false); cam.aspect = r.width/r.height; cam.updateProjectionMatrix(); draw(); }
   resize(); view('home');
   if(window._pmDebug) window._pm = { cam, ctl, draw, groups, walkTo, walkCmd, get W(){ return W; } };       // בדיקה בלבד
-  const getCam = () => ({ p:cam.position.toArray().map(v => +v.toFixed(2)), t:ctl.target.toArray().map(v => +v.toFixed(2)) });
+  // בהליכה המטרה של OrbitControls לא מתעדכנת: המטרה נלקחת מכיוון המבט, 20 מ' קדימה (מבט שמור מתוך הליכה)
+  const getCam = () => { const t = W ? cam.position.clone().add(cam.getWorldDirection(new T.Vector3()).multiplyScalar(20)) : ctl.target;
+    return { p:cam.position.toArray().map(v => +v.toFixed(2)), t:t.toArray().map(v => +v.toFixed(2)) }; };
   function setCam(v){ if(W) walkStop(); cam.position.fromArray(v.p); ctl.target.fromArray(v.t); ctl.update(); draw(); }
   loadCtx();
   /** מדדי ציור לבדיקת ביצועים (tools/check-work-modes.cjs): קריאות ציור, משולשים, גאומטריות ומרקמים בפריים האחרון */
   function stats(){ const i = renderer.info; return { calls:i.render.calls, triangles:i.render.triangles, geometries:i.memory.geometries, textures:i.memory.textures, programs:(i.programs||[]).length }; }
-  return { stats, walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
+  return { stats, groundAt:(x, y) => hAt(x, y), walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
     dispose(){ dead = true; if(stdUI) stdUI.unbind(); walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
