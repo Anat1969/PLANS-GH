@@ -562,6 +562,7 @@ function refreshOpinion(p){
   const ds = [...document.querySelectorAll('#opinionDoc details.op-fold')]; if(open.length === ds.length) ds.forEach((d, i) => { d.open = open[i]; });
 }
 /* דף הבית: ליד כל תוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם */
+window.planPeople = people; window.planCompletions = completions; window.planCompletionsText = completionsText; window.planTodoDone = isDone;   // plans-team.js: צוות, דוח הערות
 window.planOpenCompletions = async p => { const G = await completions(p); return G.flatMap(g => g[1]).filter(x => !isDone(p, x)).length; };
 /* טבלת התוכניות: ליד מספר התוכנית, בתוכנית בטיפול, כמה השלמות פתוחות יש לה ליזם (מחוות הדעת) */
 function badgeRows(){

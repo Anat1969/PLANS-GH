@@ -64,6 +64,8 @@ const ic = n => `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" str
 const LAYER_NAME = { site:'גבולות', build:'מבנים', road:'כבישים', park:'חניה', bike:'אופניים', walk:'ריצוף והולכי רגל', level:'קירות וגדרות', green:'גינון', trees:'עצים', shade:'הצללה ושהייה', water:'מים וניקוז', power:'חשמל ותאורה', waste:'אשפה', fire:'כיבוי אש', anno:'טקסט', exist:'קיים', renewal:'התחדשות עירונית' };
 /* שלושת המצבים של כל תוכנית: מה יש, מה מותר, מה מוצע */
 const STATES = [ ['exist', 'קיים', 'מה יש היום'], ['renewal', 'התחדשות עירונית', 'מה מותר לפי התב"ע'], ['design', 'תוכנית בינוי ועיצוב', 'מה מוצע בפועל'] ];
+/** הקשר עירוני (ענת, 25.11.2026): מבנים קיימים מה-GIS העירוני (ברירת המחדל), מפה אפורה או לוויין. המבנים מוצגים בכל שלושת המצבים */
+const BGS = [['bld', 'מבנים'], ['map', 'מפה'], ['sat', 'לוויין']];
 const SEASONS = [ ['קיץ', 6, 21], ['סתיו', 9, 23], ['חורף', 12, 21], ['אביב', 3, 21] ];
 /** שעת הערב לכל עונה: כ-20 דקות אחרי השקיעה באשדוד, בשעון ישראל (השעה הכחולה). הערכה מנוסחת SunCalc */
 const DUSK = [20.15, 19.0, 17.05, 18.2];
@@ -81,7 +83,7 @@ const N = n => Number(n||0).toLocaleString('he-IL');
 const say = m => { try{ if(typeof toast==='function') toast(m); }catch(e){} };
 const PM = () => window.PlanModel;
 
-const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:true, streets:false, fc:null, wind:false, fac:true, under:false, play:null, view:'home',
+const S = { tik:null, man:null, model:null, meas:null, api:null, rn:null, state:'design', env:false, d:0, mode:'model', season:0, hour:15, floors:0, map:'bld', streets:false, fc:null, wind:false, fac:true, under:false, play:null, view:'home',
   off:new Set(), gap:0, zoom:1, px:0, py:0, rx:58, rz:-28, rec:null, recObj:null, open:new Set() };
 
 /* ── נתונים: נשמרים על התוכנית ── */
@@ -255,7 +257,8 @@ function shell(){
   if(S.api){ S.api.dispose(); S.api = null; }
   body().innerHTML = `
   <div class="ly-head">
-    <h1 class="ly-title">תיק <b>${H(S.tik)}</b> · ${H(set.title)}</h1>
+    <h1 class="ly-title ly-big">${H(window.projName && plan() ? window.projName(plan()) : 'תב/' + S.tik)}</h1>
+    <p class="ly-subt">תיק ${H(S.tik)} · ${H(set.title)}</p>
     ${set.auto === 'approx' ? `<p class="ly-approx">מיקום משוער: הכמויות מדויקות, המיקום לא נבדק מול התב"ע</p>` : ''}
     ${S.man && S.man.vector ? `<p class="ly-approx ly-src2">פיתוח: ${H(S.man.vector.pdf)} וקטורי, מעוגן לתב"ע. גבהים מהמצגת, ניקוז מחוברת העיצוב</p>` : set.raster ? `<p class="ly-approx">מתוכנית העמדה כתמונה: מבנים, עצים וריצוף הם הערכה. חסרה תוכנית פיתוח עם שכבות</p>` : ''}
     ${plan() ? `<nav class="ly-links" aria-label="שלבי התוכנית">${stageChips()}<button data-card="opinion" title="כרטיס התוכנית בפורמט של חוות הדעת לוועדה">חוות דעת</button></nav>` : ''}
@@ -303,7 +306,7 @@ function drawTools(){
   const hh = Math.floor(S.hour), mm = Math.round((S.hour%1)*60), design = S.state==='design', model = S.mode==='model';
   el.innerHTML = (design ? `<span class="ly-grp">${iseg('mode', [['model', 'מודל תלת־ממדי'], ['draw', 'השרטוט המקורי']], model?0:1)}</span>` : '')
     + (model ? `<span class="ly-grp">${iseg('view', [['bird', 'מעוף הציפור'], ['top', 'מבט על'], ['eye', 'גובה עיניים']], ['home','top','eye'].indexOf(S.view))}${savedViews()}</span>
-      <span class="ly-grp">${tg('map', S.map, 'map', 'מפה', 'מפת רחובות אפורה של אשדוד')}</span>
+      <span class="ly-grp" title="הקשר עירוני: המבנים הקיימים מוצגים תמיד">${seg('bg', BGS.map(x => x[1]), Math.max(0, BGS.findIndex(x => x[0] === (S.streets ? 'bld' : S.map))))}</span>
       <span class="ly-grp">${seg('season', SEASONS.map(x => x[0]), S.season)}
         <input type="range" id="lyHour" min="5" max="22" step="0.25" value="${S.hour}" aria-label="שעה"><output id="lyHourOut">${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</output>
         ${tg('play', !!S.play, S.play ? 'stop' : 'play', S.play ? 'עצירה' : 'הנעת השמש', 'מהזריחה ועד הלילה')}${design ? tg('dusk', Math.abs(S.hour - DUSK[S.season]) < .01, 'moon', 'ערב', 'אחרי השקיעה, בהדמיה: פנסים, ויטרינות וחלונות מוארים') : ''}</span>
@@ -318,7 +321,7 @@ function drawTools(){
     : `<span class="ly-grp"><b>הפרדה</b><input type="range" id="lyGap" min="0" max="110" value="${S.gap}"></span>`);
   const vs = document.getElementById('lyViews'); if(vs) vs.onchange = () => { if(vs.value !== '') goView(+vs.value); };
   const tb = document.getElementById('lyTour'); if(tb){ tb.hidden = !(S.wk && model); tb.classList.toggle('on', !!S.walk); tb.lastElementChild.textContent = S.walk ? 'יציאה מהטיול' : 'טיול בפרויקט'; }
-  const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.streets ? 'רחובות: עיריית אשדוד' : S.map ? 'מפה: Esri, © OpenStreetMap' : '';
+  const cr = document.getElementById('lyCredit'); if(cr) cr.textContent = !model ? '' : S.streets ? 'רחובות: עיריית אשדוד' : S.map === 'map' ? 'מפה: Esri, © OpenStreetMap. מבנים: GIS עיריית אשדוד, גובה סמלי' : S.map === 'sat' ? 'לוויין: Esri, Maxar. מבנים: GIS עיריית אשדוד, גובה סמלי' : 'מבנים קיימים: GIS עיריית אשדוד, גובה סמלי לפי שטח';
 }
 function sunNow(){ if(!S.api) return; const x = SEASONS[S.season], r = S.api.setSun(new Date().getFullYear(), x[1], x[2], S.hour), el = document.getElementById('lySun');
   const w = S.wind ? ` · רוח מ${WIND_BY_SEASON[S.season][1]} (הערכה)` : '';
@@ -332,7 +335,7 @@ function playSun(on){ if(S.play){ clearInterval(S.play); S.play = null; }
 /** שכבת הרחובות העירונית נטענת פעם אחת, רק כשצריך */
 function loadStreets(){ if(S.fc || S._fcLoading) return; S._fcLoading = true;
   fetch('geo/ashdod-streets.geojson').then(r => r.json()).then(fc => { S.fc = fc; applyApi(); }).catch(() => { S._fcLoading = false; }); }
-function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setMap(S.map && !S.streets); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
+function applyApi(){ if(!S.api) return; if(S.streets && !S.fc) loadStreets(); S.api.setStreets(S.fc, S.streets); S.api.setMap(S.streets ? false : S.map); S.api.setWind(S.wind ? WIND_BY_SEASON[S.season][0] : null);
   S.api.setFacade(S.fac && S.state==='design' && !!S.rn); if(S.fl) S.api.setCut(S.fac ? S.cut : 0); S.api.setEnvelope(S.env); S.api.setUnder(S.under && S.state!=='exist'); S.api.setFloors(S.rn ? 0 : S.floors); }
 /* ── הליכה: קונסולה במסך ומפה קטנה. ענת: "בלי לאבד אוריינטציה, בלי שיהיה קשה לנווט עם העכבר" ── */
 function walkToggle(on){
@@ -352,14 +355,22 @@ function walkToggle(on){
         ${b('left', 'שמאלה', '<path d="M10 3L5 8l5 5"/>', 'פנייה שמאלה בצומת, או מבט שמאלה (חץ שמאלה)')}
       </div>
       <div class="ly-wkeys">${(S.wk.stops||[]).length ? b('tour', 'סיור מודרך', '<path d="M3 13V3l5 3 5-3v10l-5-3z"/>', 'סיור לבד בכל התחנות: הכניסה, הבניינים והגינות. לחיצה נוספת עוצרת') : ''}${b('go', 'עד הצומת', '<path d="M5 3l8 5-8 5z"/>', 'הליכה רציפה עד הצומת הבא (רווח)')}${b('stop', 'עצירה', '<rect x="4" y="4" width="8" height="8"/>', 'עצירה (Esc)')}</div>
-      <p class="ly-whelp">גרירה: הסתכלות סביב · לחיצה על הקרקע או על המפה: הולכים לשם</p>
+      ${(S.wk.stops||[]).length ? `<div class="ly-wjump" title="קפיצה לתחנה">${S.wk.stops.map((st, i) => `<button data-wjump="${i}" title="קפיצה: ${H(st.name)}">${i+1}</button>`).join('')}</div>` : ''}
+      <p class="ly-whelp">גרירה: הסתכלות סביב · לחיצה על המפה: הולכים לשם · על מספר: קופצים</p>
     </div>`;
   const fwd = hud.querySelector('[data-wcmd="fwd"]');
   fwd.onpointerdown = ev => { ev.preventDefault(); S.api && S.api.walkCmd('fwd'); }; fwd.onpointerup = fwd.onpointerleave = () => S.api && S.api.walkCmd('fwdUp');
   const mini = document.getElementById('lyMini'); miniBase();
-  mini.onclick = ev => { const r = mini.getBoundingClientRect(), m = S._mini; if(!m) return; const x = m.x0 + (ev.clientX - r.left)*m.k, y = m.y1 - (ev.clientY - r.top)*m.k; S.api && S.api.walkTo(x, y); };
+  mini.onclick = ev => { const r = mini.getBoundingClientRect(), m = S._mini; if(!m) return; const sc = mini.width/r.width, px = (ev.clientX - r.left)*sc, py = (ev.clientY - r.top)*sc;
+    const hit = (S.wk.stops||[]).findIndex(st => { const q = S.wk.nodes[st.n]; return Math.hypot(m.X(q[0]/10) - px, m.Y(q[1]/10) - py) < 10; });   // על מספר תחנה: קפיצה
+    if(hit >= 0){ jumpStop(hit); return; }
+    const x = m.x0 + (ev.clientX - r.left)*m.k, y = m.y1 - (ev.clientY - r.top)*m.k; S.api && S.api.walkTo(x, y); };
+  hud.querySelectorAll('[data-wjump]').forEach(b => b.onclick = () => jumpStop(+b.dataset.wjump));
   drawTools();
 }
+/** קפיצה לתחנה, בלי הליכה (ענת, 25.11.2026: "לקפוץ מנקודה לנקודה") */
+function jumpStop(i){ const st = (S.wk.stops||[])[i]; if(!st || !S.api || !S.api.walkJump) return; const q = S.wk.nodes[st.n]; S.api.walkJump(q[0]/10, q[1]/10);
+  document.querySelectorAll('[data-wjump]').forEach(b => b.classList.toggle('on', +b.dataset.wjump === i)); }
 /** רקע המפה הקטנה: שטח ההליכה, הבניינים והשבילים. נבנה פעם אחת */
 function miniBase(){
   const wk = S.wk, c = document.createElement('canvas'), N = 220; c.width = c.height = N; const g = c.getContext('2d');
@@ -377,8 +388,8 @@ function walkHud(w){
   const now = performance.now(); if(w.moving && now - _wl < 90) return; _wl = now;   // בעצירה תמיד מעדכנים, כדי שהמיקום האחרון יוצג
   const mini = document.getElementById('lyMini'), m = S._mini; if(!mini || !m) return; const g = mini.getContext('2d');
   g.drawImage(m.c, 0, 0); const x = m.X(w.x), y = m.Y(w.y), a = -w.yaw;
-  g.fillStyle = 'rgba(17,153,142,.22)'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 26, a - .55, a + .55); g.closePath(); g.fill();      // שדה הראייה
-  g.fillStyle = '#11998e'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.stroke();
+  g.fillStyle = 'rgba(214,40,40,.22)'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 26, a - .55, a + .55); g.closePath(); g.fill();      // שדה הראייה
+  g.fillStyle = '#d62828'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); g.stroke();       // המיקום באדום: בולט בתנועה (ענת, 25.11.2026)
   const inf = document.getElementById('lyWinfo'); if(inf) inf.innerHTML = w.tour ? `<b>${H(w.tour)}</b>` : `<b>${H(w.info)}</b>${w.junction ? ' · צומת: ← → לבחירה' : ''}`;
   const tb = document.querySelector('[data-wcmd="tour"]'); if(tb) tb.classList.toggle('on', !!w.tour);
 }
@@ -588,7 +599,7 @@ function bind(){
     else if(d.fac){ S.fac = !S.fac; applyApi(); drawTools(); sunNow(); }
     else if(d.alt){ S.useAlt = !S.useAlt; S.fl = S.useAlt ? S.flAlt : S.flMain; S.cut = 0; S.fac = true; setMode(S.mode).then(() => { drawPanel(); sunNow(); }); }   // נספח הבינוי מול חלופת המצגת: המודל נבנה מחדש באותו מבט
     else if(d.under){ S.under = !S.under; applyApi(); drawTools(); sunNow(); }
-    else if(d.map){ S.map = !S.map; S.streets = false; applyApi(); drawTools(); sunNow(); }
+    else if(d.bg != null){ S.map = BGS[+d.bg][0]; S.streets = false; applyApi(); drawTools(); sunNow(); }
     else if(d.play){ playSun(!S.play); drawTools(); sunNow(); }
     else if(d.dusk){ playSun(false); const ev = Math.abs(S.hour - DUSK[S.season]) > .01; setHour(ev ? DUSK[S.season] : 15);   // ערב: השעה הכחולה, והדמיה דולקת
       if(ev && !S.render && S.api){ S.render = true; S.api.setRender(true).then(() => { drawTools(); sunNow(); }); } drawTools(); }
@@ -772,6 +783,19 @@ const CSS = `
 .pm-canvas.pm-walk{cursor:crosshair}
 .ly-tour{position:absolute;inset-inline-start:8px;bottom:24px;display:flex;align-items:center;gap:7px;padding:9px 14px !important;border:0 !important;background:#11998e !important;color:#fff !important;font:600 14px var(--sans) !important;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25);border-radius:0 !important;z-index:3}
 .ly-tour:hover{background:#0c7d74 !important} .ly-tour.on{background:var(--ink) !important}
+.ly-tour{padding:4px 9px !important;font:600 12px var(--sans) !important;box-shadow:none !important;background:rgba(17,153,142,.88) !important;bottom:20px}
+.ly-tour svg{width:14px;height:14px}
+.ly-north{width:26px;height:26px;box-shadow:none;background:rgba(255,255,255,.75)} .ly-north i::before{top:2px;margin-left:-4px;border-width:4px;border-bottom-width:9px} .ly-north b{font-size:8px}
+.ly-over{padding:1px 6px;background:rgba(255,255,255,.7)} .ly-over b{font-size:12px}
+.ly-wpad{box-shadow:none;background:rgba(255,255,255,.82);padding:5px;gap:4px}
+.ly-wkeys button{min-width:42px;padding:2px 4px !important;background:transparent !important}
+.ly-wkeys button svg{width:15px;height:15px} .ly-wkeys small{font-size:9.5px}
+.ly-mini{box-shadow:none;width:160px;height:160px}
+.ly-wjump{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
+.ly-wjump button{width:20px;height:20px;padding:0 !important;border:0 !important;border-radius:50% !important;background:#11998e !important;color:#fff !important;font:600 11px var(--sans) !important;cursor:pointer}
+.ly-wjump button.on,.ly-wjump button:hover{background:#d62828 !important}
+.ly-title.ly-big{font:700 26px/1.2 var(--sans);margin:0;color:var(--ink)} .ly-subt{margin:0;font-size:12px;color:var(--ink-mute)}
+.ly-tip{position:fixed;z-index:9999;background:#1d1d1b;color:#fff;font:400 12px/1.3 var(--sans);padding:3px 7px;pointer-events:none;max-width:260px;white-space:normal}
 .ly-wkeys button.on{background:#11998e !important;color:#fff !important}
 .pm-canvas.pm-render{filter:saturate(1.14) contrast(1.07) brightness(.98)}
 .pm-render-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(20,24,28,.30) 100%)}
