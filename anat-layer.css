@@ -525,3 +525,11 @@ body.city-open{overflow:hidden}
 .cy-purpose{color:#444;font-size:12.5px}
 .cy-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .cy-info{max-width:340px}
+/* דף הכניסה: שלושה מצבים ושם התוכנית (25.11.2026) */
+#cityIntro{background:#dcdbd6}
+.cy-modes{display:inline-flex;gap:0;margin-inline-end:6px}
+.cy-modes button{font:inherit;font-size:13px;padding:6px 12px;border:0;background:#ffffffcc;cursor:pointer;border-radius:0}
+.cy-modes button.on{background:#111;color:#fff;font-weight:600}
+.cy-name{font-size:17px;font-weight:700;line-height:1.25}
+.cy-ghost{border:0;background:#ffffffcc}
+.cy-card:hover{outline:2px solid #11998e}

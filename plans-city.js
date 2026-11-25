@@ -35,7 +35,7 @@ function collect(D){
     let fs = [], scope = '';
     if(t){ const L = lotList(p); fs = t.f.filter(f => L.includes(+f.lot)); scope = fs.length ? 'lots' : 'taba'; if(!fs.length) fs = t.f; }
     const parcel = !fs.length && geo && geo.geo ? geo.geo : null;
-    if(!fs.length && !geo) return;
+    if(!fs.length && !geo && !renderOf(p)) return;            // תוכנית בלי מיקום אבל עם הדמיה: בקרוסלה, בלי נפח (ענת, 25.11.2026)
     items.push({ p, fs, scope, parcel, geo, taba:t ? t.n : '', sum:t && t.sum || null, render:renderOf(p) });
     fs.forEach(f => used.add(f));
   });
@@ -43,7 +43,7 @@ function collect(D){
 }
 
 /* ── הסצנה ── */
-function build(el, D){
+function build(el, D, BLD, CM){
   const T = window.THREE, items = collect(D);
   const pts = []; items.forEach(it => { it.fs.forEach(f => f.r.forEach(q => pts.push(q))); if(!it.fs.length && it.geo) pts.push([it.geo.lng, it.geo.lat]); });
   const lng0 = pts.reduce((s, q) => s + q[0], 0)/pts.length, lat0 = pts.reduce((s, q) => s + q[1], 0)/pts.length;
@@ -86,7 +86,7 @@ function build(el, D){
       g.rotateX(-Math.PI/2); g.translate(0, f.base, 0);
       // מרקם החלונות: UV בצדדים לפי מטרים (קומה 3.2 מ', מפתח 4 מ')
       const m = new T.Mesh(g, matFor(f.cat, f.k)); m.castShadow = true; m.receiveShadow = true; scene.add(m);
-      const e = new T.LineSegments(new T.EdgesGeometry(g, 30), edgeM); scene.add(e);
+      const e = new T.LineSegments(new T.EdgesGeometry(g, 30), edgeM); e.userData.f = m; scene.add(e);
       drawn.set(f, m); ms.push(m);
     });
     if(it.parcel){ (it.parcel.type === 'MultiPolygon' ? it.parcel.coordinates : [it.parcel.coordinates]).forEach(poly => {
@@ -96,6 +96,40 @@ function build(el, D){
     const c = centerOf(it, xy); it.c = c; it.h = it.fs.reduce((a, f) => Math.max(a, f.top), 0);
     meshesOf.set(it, ms);
   });
+  /* מבנים קיימים (geo/bld/all.json, ה-GIS העירוני). גובה סמלי לפי שטח. מה שבתוך נפחי התוכניות מוצג רק במצב "קיים" */
+  const PM = window.PlanModel, foot = [];
+  items.forEach(it => it.fs.forEach(f => foot.push(f.r.map(xy))));
+  const modelOf = {}, modelG = new T.Group(); scene.add(modelG);
+  if(CM && CM.models) items.forEach(it => { const bl = CM.models[String(it.p.tik)]; if(!bl || !bl.length || modelOf[it.p.tik]) return; modelOf[it.p.tik] = true; it.model = true;
+    const mat = [new T.MeshStandardMaterial({ color:sc('#efeae0'), roughness:.8 }), new T.MeshStandardMaterial({ color:sc('#efeae0'), roughness:.7, map:winTex, emissive:new T.Color(0xffc27a), emissiveMap:winNight, emissiveIntensity:0 })];
+    mats['model' + it.p.tik] = mat;
+    bl.forEach(b => b.s.forEach(([r, y0, y1]) => { const pts = r.map(xy); foot.push(pts);
+      const g = new T.ExtrudeGeometry(new T.Shape(pts.map(q => new T.Vector2(q[0], q[1]))), { depth:Math.max(.5, y1 - y0), bevelEnabled:false }); g.rotateX(-Math.PI/2); g.translate(0, y0, 0);
+      const m = new T.Mesh(g, mat); m.castShadow = m.receiveShadow = true; modelG.add(m); modelG.add(new T.LineSegments(new T.EdgesGeometry(g, 30), edgeM)); })); });
+  const inPoly = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1]) + a[0]) c = !c; } return c; };
+  const fbox = foot.map(r => { const X = r.map(q => q[0]), Y = r.map(q => q[1]); return [Math.min(...X) - 12, Math.min(...Y) - 12, Math.max(...X) + 12, Math.max(...Y) + 12]; });
+  const exOut = { p:[], n:[] }, exIn = { p:[], n:[] };
+  if(BLD && BLD.tiles && PM && PM.itm2wgs){ const TL = BLD.tile;
+    for(const k in BLD.tiles){ const [tx, ty] = k.split('_').map(Number);
+      for(const [cat, h, flat] of BLD.tiles[k]){ const r = []; for(let i = 0; i < flat.length; i += 2){ const w = PM.itm2wgs(tx*TL + flat[i]/10, ty*TL + flat[i+1]/10); r.push(xy([w[1], w[0]])); }
+        let mx = 0, my = 0; r.forEach(q => { mx += q[0]; my += q[1]; }); mx /= r.length; my /= r.length;
+        const hit = fbox.some((b, i) => mx > b[0] && mx < b[2] && my > b[1] && my < b[3] && near(mx, my, foot[i]));
+        const A = hit ? exIn : exOut; let ar = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ar += a[0]*b[1] - b[0]*a[1]; }); if(ar < 0) r.reverse();
+        r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = (b[1]-a[1])/L, ny = -(b[0]-a[0])/L;
+          A.p.push(a[0], 0, -a[1], b[0], 0, -b[1], b[0], h, -b[1], a[0], 0, -a[1], b[0], h, -b[1], a[0], h, -a[1]); for(let q = 0; q < 6; q++) A.n.push(nx, 0, -ny); });
+        T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []).forEach(t => t.forEach(ix => { const q = r[ix]; A.p.push(q[0], h, -q[1]); A.n.push(0, 1, 0); })); } } }
+  function near(x, y, r){ if(inPoly(x, y, r)) return true; for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx + vy*vy || 1, t = Math.max(0, Math.min(1, ((x-a[0])*vx + (y-a[1])*vy)/l)); if(Math.hypot(x - a[0] - t*vx, y - a[1] - t*vy) < 8) return true; } return false; }
+  const exM = new T.MeshStandardMaterial({ color:sc('#cfccc4'), roughness:.95 });
+  const exMesh = A => { if(!A.p.length) return null; const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(A.n, 3)); const m = new T.Mesh(g, exM); m.castShadow = m.receiveShadow = true; scene.add(m); return m; };
+  exMesh(exOut); const exInM = exMesh(exIn);
+  const exCount = (exOut.p.length + exIn.p.length) ? true : false;
+  /** שלושה מצבים: קיים (המבנים הקיימים בלבד), תכנון (נפחי התב"ע), בינוי (המודלים של תוכניות הבינוי, ונפח התב"ע לשאר) */
+  let mode = 'build';
+  function setMode(m){ mode = m; if(exInM) exInM.visible = m === 'exist';
+    const withModel = new Set(); items.forEach(it => { if(it.model) (meshesOf.get(it) || []).forEach(x => withModel.add(x)); });
+    meshesOf.forEach(ms => ms.forEach(x => { x.visible = m === 'plan' || (m === 'build' && !withModel.has(x)); }));
+    scene.children.forEach(o => { if(o.isLineSegments && o.userData.f) o.visible = o.userData.f.visible; });
+    modelG.visible = m === 'build'; }
   // סמן לתוכנית שנבחרה
   const ring = new T.Mesh(new T.RingGeometry(1, 1.035, 96), new T.MeshBasicMaterial({ color:0x111111, side:T.DoubleSide, transparent:true, opacity:.85 })); ring.rotation.x = -Math.PI/2; ring.position.y = 1; ring.visible = false; scene.add(ring);
 
@@ -103,9 +137,9 @@ function build(el, D){
   cam.position.set(cx + span*.2, span*.27, -cy + span*.36); ctl.target.set(cx, 0, -cy); ctl.update();
 
   /* שמש: ערך t רץ. כל יום מתקדם חודש */
-  let t0 = performance.now(), paused = false, pauseAt = 0, lastLabel = '';
+  let t0 = performance.now() - (11 - H0)/(H1 - H0)*DAY_S*1000, paused = false, pauseAt = 0, lastLabel = '';   // מתחילים ב-11:00 ביוני: העיר נראית מיד (ענת, 25.11.2026)
   const clock = () => { const s = ((paused ? pauseAt : performance.now()) - t0)/1000, day = Math.floor(s/DAY_S), f = (s % DAY_S)/DAY_S;
-    const month = (11 + day) % 12, hour = H0 + f*(H1 - H0); return { month, hour }; };
+    const month = (5 + day) % 12, hour = H0 + f*(H1 - H0); return { month, hour }; };
   const sky = { night:sc('#0e1a2b'), dusk:sc('#e6a676'), day:sc('#e4e9ec') };
   function setSun(){
     const { month, hour } = clock(), y = new Date().getFullYear(), d = window.PlanModel.ilDate(y, month + 1, 21, hour);
@@ -159,7 +193,8 @@ function build(el, D){
   }
   let thumbR = null;
   items.forEach(it => { it.span = spanOf(it, xy); });
-  return { items, focus, home, thumb,
+  setMode('build');
+  return { items, focus, home, thumb, setMode, get mode(){ return mode; }, exists:exCount,
     pause(on){ if(on && !paused){ paused = true; pauseAt = performance.now(); } else if(!on && paused){ t0 += performance.now() - pauseAt; paused = false; } return paused; },
     get paused(){ return paused; }, setAuto(on){ ctl.autoRotate = on; },
     dispose(){ dead = true; cancelAnimationFrame(raf); window.removeEventListener('resize', resize); ctl.dispose(); renderer.dispose(); if(thumbR) thumbR.dispose(); renderer.domElement.remove(); } };
@@ -247,7 +282,7 @@ function stLabel(p){ const s = String(p.status || ''); return /הושלם/.test(
 function card(it, i){
   const p = it.p, img = it.render || it.thumb || '';
   return `<button class="cy-card" data-i="${i}" title="${H(p.planNum)}">
-    <span class="cy-img">${img ? `<img src="${H(img)}" alt="" loading="lazy">` : ''}${it.render ? '<em>הדמיה</em>' : '<em>נפח לפי התב"ע</em>'}</span>
+    <span class="cy-img">${img ? `<img src="${H(img)}" alt="" loading="lazy">` : ''}${it.render ? '<em>הדמיה</em>' : it.model ? '<em>מודל</em>' : '<em>נפח לפי התב"ע</em>'}</span>
     <span class="cy-t"><b>${H(p.planNum)}</b> <small>${H(stLabel(p))}</small></span>
     <span class="cy-d">${H([p.district, p.location].filter(Boolean).join(', '))}</span></button>`;
 }
@@ -256,34 +291,46 @@ async function open(){
   const ov = document.createElement('div'); ov.id = 'cityIntro'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'תוכניות הבינוי של אשדוד');
   ov.innerHTML = `<div class="cy-scene" id="cityScene"></div>
     <header class="cy-top"><div><h1>תוכניות הבינוי של אשדוד</h1><p id="citySub">טוען את העיר…</p></div>
-      <div class="cy-acts"><span id="cityClock" class="cy-clock"></span><button class="cy-ghost" id="cityPause">עצירה</button><button class="cy-ghost" id="cityHome">כל העיר</button><button class="cy-ghost" id="cityShare">שיתוף</button><button class="cy-go" id="cityEnter">כניסה למערכת</button></div></header>
-    <div class="cy-legend">${[['residential','מגורים'],['mixed','מגורים ומסחר'],['commerce','מסחר'],['public','מבני ציבור']].map(([k, l]) => `<span><i style="background:${COL[k]}"></i>${l}</span>`).join('')}<span><i class="cy-flat"></i>מגרש בלי נפח</span><small>הנפחים לפי טבלה 5 והתשריט של כל תב"ע. הערכה, לא תוכנית הבינוי.</small></div>
+      <div class="cy-acts"><span class="cy-modes" id="cityModes" role="tablist" aria-label="מצב">${MODES.map(([k, l, t]) => `<button data-mode="${k}" title="${H(t)}" class="${k === 'build' ? 'on' : ''}">${l}</button>`).join('')}</span>
+        <span id="cityClock" class="cy-clock"></span><button class="cy-ghost" id="cityPause" title="עצירת השמש">עצירה</button><button class="cy-ghost" id="cityHome" title="חזרה למבט על כל העיר">כל העיר</button><button class="cy-ghost" id="cityShare" title="העתקת הקישור לדף">שיתוף</button><button class="cy-go" id="cityEnter">כניסה למערכת</button></div></header>
+    <div class="cy-legend" id="cityLegend">${[['residential','מגורים'],['mixed','מגורים ומסחר'],['commerce','מסחר'],['public','מבני ציבור']].map(([k, l]) => `<span><i style="background:${COL[k]}"></i>${l}</span>`).join('')}<span><i style="background:#efeae0;outline:1px solid #bbb"></i>תוכנית בינוי (מהמודל)</span><span><i style="background:#cfccc4"></i>מבנה קיים (GIS עירוני)</span><span><i class="cy-flat"></i>מגרש בלי נפח</span><small>נפחי התב"ע לפי טבלה 5 והתשריט: הערכה. גובה המבנים הקיימים סמלי, לפי השטח.</small></div>
     <div class="cy-strip" id="cityStrip"><div class="cy-track" id="cityTrack"></div></div>`;
   document.body.appendChild(ov); document.body.classList.add('city-open');
   ov.querySelector('#cityEnter').onclick = close;
   try{
-    await window.PlanModel.loadThree();
-    try{ RENDERS = (await (await fetch('data/renders.json?v=1124p')).json()).renders || {}; }catch(e){ RENDERS = {}; }
-    const D = await (await fetch('data/city.json?v=1124p')).json();
-    st = build(ov.querySelector('#cityScene'), D);
+    const [, R, D, BLD, CM] = await Promise.all([window.PlanModel.loadThree(),
+      fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
+      fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null)]);
+    RENDERS = (R && R.renders) || {};
+    st = build(ov.querySelector('#cityScene'), D, BLD, CM);
   }catch(e){ console.warn('city', e); ov.querySelector('#citySub').textContent = 'ההדמיה לא נטענה. אפשר להיכנס למערכת.'; return; }
-  const it = st.items, nv = it.filter(x => x.fs.length).length;
-  ov.querySelector('#citySub').textContent = `${it.length} תוכניות על המפה, ${nv} עם נפחים. השמש עוברת מבוקר ללילה, ומחורף לקיץ.`;
-  it.forEach(x => { if(!x.render) x.thumb = st.thumb(x); });
-  const order = it.slice().sort((a, b) => (stLabel(a.p) === 'בטיפול' ? 0 : 1) - (stLabel(b.p) === 'בטיפול' ? 0 : 1) || String(a.p.planNum).localeCompare(String(b.p.planNum), 'he', { numeric:true }));
+  const it = st.items, nv = it.filter(x => x.fs.length).length, nm = it.filter(x => x.model).length;
+  ov.querySelector('#citySub').textContent = `${it.length} תוכניות על המפה: ${nm} עם מודל, ${nv} עם נפח לפי התב"ע. מעבר עם העכבר על תוכנית: מתמקדים. לחיצה: נכנסים.`;
+  // מהתוכנית האחרונה לראשונה (מספר התוכנית בסדר יורד), מעבר אחד ועצירה בסוף
+  const num = x => +String(x.p.planNum || x.p.tik).replace(/\D/g, '') || 0;
+  const order = it.slice().sort((a, b) => num(b) - num(a));
   const track = ov.querySelector('#cityTrack'), strip = ov.querySelector('#cityStrip');
-  track.innerHTML = order.map(x => card(x, it.indexOf(x))).join('') + order.map(x => card(x, it.indexOf(x))).join('');   // פעמיים, לגלילה רציפה
+  track.innerHTML = order.map(x => card(x, it.indexOf(x))).join('');
+  // תמונות הנפחים נוצרות ברקע, אחת בכל פעם, כדי שהדף לא ייתקע (ענת, 25.11.2026: "להימנע מהשהות על מסך לא ברור")
+  const todo = order.filter(x => !x.render), idle = f => window.requestIdleCallback ? requestIdleCallback(f, { timeout:250 }) : setTimeout(f, 60);   // גם כשהסצנה עמוסה
+  const nextThumb = () => { if(!st || !todo.length) return; const x = todo.shift(); try{ x.thumb = st.thumb(x); }catch(e){ x.thumb = ''; }
+    const c = track.querySelector(`.cy-card[data-i="${it.indexOf(x)}"] .cy-img`); if(c && x.thumb && !c.querySelector('img')) c.insertAdjacentHTML('afterbegin', `<img src="${x.thumb}" alt="">`); idle(nextThumb); };
+  setTimeout(() => idle(nextThumb), 400);
   let sel = -1, hover = false, pos = 0, last = performance.now();
-  const pick = i => { sel = i; st.focus(it[i]); st.setAuto(true); track.querySelectorAll('.cy-card').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
+  const pick = i => { if(sel === i) return; sel = i; st.focus(it[i]); st.setAuto(true); track.querySelectorAll('.cy-card').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
     const p = it[i].p; let b = ov.querySelector('.cy-info'); if(!b){ b = document.createElement('div'); b.className = 'cy-info'; ov.appendChild(b); }
-    b.innerHTML = `<div><b>${H(p.planNum)}</b> <small>${H(stLabel(p))}</small></div><div>${H([p.district, p.location].filter(Boolean).join(', '))}</div>
-      <p class="cy-say">${H(sentence(it[i]) || (it[i].fs.length ? '' : 'בלי נפח במקור. מוצג המגרש בלבד.'))}</p><p class="cy-say cy-purpose"></p>
+    b.innerHTML = `<div class="cy-name">${H(window.projName ? window.projName(p) : p.planNum)}</div><div><small>${H(stLabel(p))}${it[i].model ? ' · יש מודל' : ''}</small></div>
+      <p class="cy-say">${H(sentence(it[i]) || (it[i].model ? 'במצב "בינוי" מוצג המודל של תוכנית הבינוי.' : it[i].fs.length ? '' : !it[i].c ? 'אין עדיין מיקום על המפה.' : 'בלי נפח במקור. מוצג המגרש בלבד.'))}</p><p class="cy-say cy-purpose"></p>
       ${it[i].render && RENDERS[pnum(p)] ? '<small class="muted">ההדמיה: מתוך חומרי התוכנית שהוגשו לעירייה.</small>' : ''}
-      <div class="cy-row"><button class="cy-go" data-enter="${p.id}">כניסה לתוכנית</button><button class="cy-ghost" data-share="${i}">שיתוף התוכנית</button></div>`;
+      <div class="cy-row"><button class="cy-go" data-enter="${p.id}">${it[i].model ? 'כניסה למודל' : 'כניסה לתוכנית'}</button><button class="cy-ghost" data-share="${i}">שיתוף התוכנית</button></div>`;
     try{ history.replaceState(null, '', '#city=' + pnum(p)); }catch(e){}
+    if(window.planStreetName) window.planStreetName(p).then(ch => { const q = b.querySelector('.cy-name'); if(ch && q && sel === i) q.textContent = window.projName(p); });
     purposeOf(p).then(t => { const q = b.querySelector('.cy-purpose'); if(q && sel === i && t) q.textContent = 'מטרת התב"ע: ' + t; }); };
-  track.onclick = e => { const c = e.target.closest('.cy-card'); if(c) pick(+c.dataset.i); };
-  ov.addEventListener('click', e => { const sh = e.target.closest('[data-share]'); if(sh){ share(it[+sh.dataset.share], sh); return; } const b = e.target.closest('[data-enter]'); if(!b) return; const id = +b.dataset.enter; close(); setTimeout(() => { try{ openProject(id); }catch(err){} }, 60); });
+  const enter = id => { close(); setTimeout(() => { try{ openProject(id); }catch(err){} }, 60); };   // תוכנית עם מודל נפתחת במודל: תוכנית בינוי, כל השכבות
+  track.addEventListener('mouseover', e => { const c = e.target.closest('.cy-card'); if(c) pick(+c.dataset.i); });
+  track.onclick = e => { const c = e.target.closest('.cy-card'); if(c) enter(it[+c.dataset.i].p.id); };
+  ov.addEventListener('click', e => { const sh = e.target.closest('[data-share]'); if(sh){ share(it[+sh.dataset.share], sh); return; } const b = e.target.closest('[data-enter]'); if(b) enter(+b.dataset.enter); });
+  ov.querySelector('#cityModes').onclick = e => { const b = e.target.closest('[data-mode]'); if(!b) return; st.setMode(b.dataset.mode); ov.querySelectorAll('#cityModes button').forEach(x => x.classList.toggle('on', x === b)); };
   strip.onmouseenter = () => { hover = true; }; strip.onmouseleave = () => { hover = false; last = performance.now(); };
   strip.addEventListener('wheel', e => { pos += e.deltaY || e.deltaX; e.preventDefault(); }, { passive:false });
   ov.querySelector('#cityPause').onclick = e => { const p = st.pause(!st.paused); e.target.textContent = p ? 'המשך' : 'עצירה'; };
@@ -292,10 +339,11 @@ async function open(){
   ov.querySelector('#cityHome').onclick = () => { try{ history.replaceState(null, '', '#city'); }catch(e){} sel = -1; st.home(); ov.querySelector('.cy-info')?.remove(); track.querySelectorAll('.cy-card.on').forEach(c => c.classList.remove('on')); };
   const roll = now => { if(!document.getElementById('cityIntro')) return; requestAnimationFrame(roll);
     const dt = now - last; last = now; if(!hover && !st.paused) pos += dt*.03;
-    const half = track.scrollWidth/2; if(half > 0){ pos = ((pos % half) + half) % half; track.style.transform = `translateX(${-pos}px)`; } };
+    const max = Math.max(0, track.scrollWidth - strip.clientWidth); pos = Math.max(0, Math.min(max, pos)); track.style.transform = `translateX(${-pos}px)`; };   // בלי לולאה: נעצרת בתוכנית הראשונה
   requestAnimationFrame(roll);
   document.addEventListener('keydown', esc);
 }
+const MODES = [['exist', 'קיים', 'המבנים הקיימים בעיר, מה-GIS העירוני. גובה סמלי'], ['plan', 'תכנון', 'הנפחים לפי התב"ע: טבלה 5 והתשריט. הערכה'], ['build', 'בינוי', 'תוכניות הבינוי: המודל כשיש, ונפח התב"ע לשאר']];
 function esc(e){ if(e.key === 'Escape') close(); }
 function close(){
   const ov = document.getElementById('cityIntro'); if(!ov) return;

@@ -262,8 +262,9 @@ function create(el, model, opts){
   }
   /* מפת רקע אפורה: Esri World Topo Map, בלי מפתח. כל אריח מומר לגווני אפור, כדי שהצבע יישאר לתוכנית עצמה */
   const mapG = new T.Group(); mapG.visible = false; scene.add(mapG); let mapBuilt = false, mapOn = false, mapFail = 0;
-  function loadMap(){
-    mapBuilt = true; const z = 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 300;
+  const satG = new T.Group(); satG.visible = false; scene.add(satG); let satBuilt = false, satOn = false;   // לוויין: Esri World Imagery, בצבע
+  function loadMap(sat){
+    const G0 = sat ? satG : mapG; if(sat) satBuilt = true; else mapBuilt = true; const z = sat ? 19 : 18, n = 2**z, [x0, y0, x1, y1] = model.bbox, pad = 300;
     const sw = itm2wgs(model.e0+x0-pad, model.n0+y0-pad), ne = itm2wgs(model.e0+x1+pad, model.n0+y1+pad);
     const tx = lon => Math.floor((lon+180)/360*n), ty = lat => Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
     const lonOf = x => x/n*360-180, latOf = y => Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI;
@@ -272,18 +273,47 @@ function create(el, model, opts){
       const a = loc(latOf(Y), lonOf(X)), b = loc(latOf(Y), lonOf(X+1)), c = loc(latOf(Y+1), lonOf(X+1)), d = loc(latOf(Y+1), lonOf(X));
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([a[0],0,-a[1], d[0],0,-d[1], c[0],0,-c[1], a[0],0,-a[1], c[0],0,-c[1], b[0],0,-b[1]], 3));
       g.setAttribute('uv', new T.Float32BufferAttribute([0,1, 0,0, 1,0, 0,1, 1,0, 1,1], 2));
-      const mat = new T.MeshBasicMaterial({ color:'#ffffff', side:T.DoubleSide, transparent:true, opacity:0, depthWrite:false }), mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mesh.renderOrder = -1; mapG.add(mesh);
+      const mat = new T.MeshBasicMaterial({ color:'#ffffff', side:T.DoubleSide, transparent:true, opacity:0, depthWrite:false }), mesh = new T.Mesh(g, mat); mesh.position.y = -0.03; mesh.renderOrder = -1; G0.add(mesh);
       const im = new Image(); im.crossOrigin = 'anonymous';
       im.onload = () => { const cv = document.createElement('canvas'); cv.width = im.naturalWidth || 256; cv.height = im.naturalHeight || 256; const x = cv.getContext('2d');
-        if('filter' in x) x.filter = 'grayscale(1)'; x.drawImage(im, 0, 0);
+        if('filter' in x && !sat) x.filter = 'grayscale(1)'; x.drawImage(im, 0, 0);
         const t = new T.CanvasTexture(cv); t.encoding = T.sRGBEncoding; t.anisotropy = 8; mat.map = t; mat.opacity = 1; mat.needsUpdate = true; draw(); };
       im.onerror = () => { mapFail++; if(mapFail === 3 && opts && opts.onMapError) opts.onMapError(); };
-      im.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${Y}/${X}`;
+      im.src = `https://server.arcgisonline.com/ArcGIS/rest/services/${sat ? 'World_Imagery' : 'World_Topo_Map'}/MapServer/tile/${z}/${Y}/${X}`;
     }
   }
-  function setMap(on){ mapOn = !!on; if(mapOn && !mapBuilt) loadMap(); updGround(); }
+  /** רקע: 'map' מפה אפורה, 'sat' לוויין, אחרת בלי (המבנים הקיימים תמיד מוצגים). true נשאר מפה, לתאימות */
+  function setMap(on){ mapOn = on === true || on === 'map'; satOn = on === 'sat'; if(mapOn && !mapBuilt) loadMap(false); if(satOn && !satBuilt) loadMap(true); updGround(); }
+
+  /* הקשר עירוני: המבנים הקיימים מה-GIS העירוני (geo/bld, tools/city-buildings.py), עד 480 מ' מהמרכז. הגובה סמלי, לפי השטח.
+     מבנה שמרכזו בתוך מגרשי התוכנית (הקו הכחול) מוצג רק במצב "קיים": אלה המבנים שנהרסים */
+  const ctxG = new T.Group(); scene.add(ctxG); let ctxIn = null, ctxBuilt = false;
+  async function loadCtx(){ if(ctxBuilt) return; ctxBuilt = true;
+    try{ const ix = await (await fetch('geo/bld/all.json?v=1125')).json(), TL = ix.tile, R = 480, E = model.e0, Nn = model.n0;
+      const keys = Object.keys(ix.tiles).filter(k => { const [tx, ty] = k.split('_').map(Number), cx = tx*TL + TL/2 - E, cy = ty*TL + TL/2 - Nn; return Math.abs(cx) < R + TL && Math.abs(cy) < R + TL; });
+      const rings = ((model.lines && model.lines.plot) || []).map(f => { const r = []; for(let i = 0; i < f.length; i += 2) r.push([f[i]/10, f[i+1]/10]); return r; })
+        .filter(r => { let A = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; A += a[0]*b[1] - b[0]*a[1]; }); return Math.abs(A)/2 > 50; });
+      const inside = (x, y) => rings.some(r => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1]) + a[0]) c = !c; } return c; });
+      const acc = [{ p:[], n:[], c:[] }, { p:[], n:[], c:[] }], COLS = [[.86, .85, .82], [.93, .86, .72], [.80, .80, .78]], roofK = .9;
+      for(const k of keys){ const arr = ix.tiles[k];
+        const [tx, ty] = k.split('_').map(Number), ox = tx*TL - E, oy = ty*TL - Nn;
+        for(const [cat, h, flat] of arr){ const r = []; for(let i = 0; i < flat.length; i += 2) r.push([ox + flat[i]/10, oy + flat[i+1]/10]);
+          let mx = 0, my = 0; r.forEach(q => { mx += q[0]; my += q[1]; }); mx /= r.length; my /= r.length; if(Math.hypot(mx, my) > R) continue;
+          const A = acc[inside(mx, my) ? 1 : 0], col = COLS[cat] || COLS[0];
+          let ar = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ar += a[0]*b[1] - b[0]*a[1]; }); if(ar < 0) r.reverse();
+          r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = (b[1]-a[1])/L, ny = -(b[0]-a[0])/L;
+            A.p.push(a[0], 0, -a[1], b[0], 0, -b[1], b[0], h, -b[1], a[0], 0, -a[1], b[0], h, -b[1], a[0], h, -a[1]);
+            for(let q = 0; q < 6; q++){ A.n.push(nx, 0, -ny); A.c.push(col[0], col[1], col[2]); } });
+          const tri = T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []);
+          tri.forEach(t => t.forEach(ix2 => { const q = r[ix2]; A.p.push(q[0], h, -q[1]); A.n.push(0, 1, 0); A.c.push(col[0]*roofK, col[1]*roofK, col[2]*roofK); })); } }
+      const mk = A => { if(!A.p.length) return null; const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(A.n, 3));
+        const c = new T.Float32BufferAttribute(A.c, 3); for(let i = 0; i < c.count; i++){ const cc = new T.Color(c.getX(i), c.getY(i), c.getZ(i)).convertSRGBToLinear(); c.setXYZ(i, cc.r, cc.g, cc.b); } g.setAttribute('color', c);
+        const m = new T.Mesh(g, new T.MeshStandardMaterial({ vertexColors:true, roughness:.92 })); m.castShadow = m.receiveShadow = true; m.userData.ctx = true; ctxG.add(m); return m; };
+      mk(acc[0]); ctxIn = mk(acc[1]); updCtx(); }catch(e){ console.warn('ctx', e); } }
+  function updCtx(){ if(ctxIn) ctxIn.visible = state === 'exist'; ctxG.visible = !underOn; draw(); }
   const shadowCatch = new T.Mesh(new T.PlaneGeometry(1400, 1400), new T.ShadowMaterial({ opacity:.34, depthWrite:false })); shadowCatch.rotation.x = -Math.PI/2; shadowCatch.position.y = .135; shadowCatch.receiveShadow = true; shadowCatch.renderOrder = 3; scene.add(shadowCatch);
   function updGround(){ mapG.visible = mapOn && !underOn && !ground.userData.render;   // בהדמיה אין מפת רקע: הרחובות נבנים כאספלט (plans-real.js)
+    satG.visible = satOn && !underOn && !ground.userData.render; if(ctxG) ctxG.visible = !underOn;
     streetG.visible = streetsOn && !underOn && !ground.userData.render; ground.visible = !underOn; shadowCatch.visible = !underOn; if(terrainM) terrainM.visible = !underOn; draw(); }
 
   // משטחים
@@ -448,7 +478,7 @@ function create(el, model, opts){
   }
   function setActive(set){ active = set ? new Set(set) : null; applyActive(); }
   function setKind(k, on){ if(on) kindOff.delete(k); else kindOff.add(k); applyActive(); }
-  function setState(st){ state = st; applyActive(); if(rl) rl.root.visible = renderOn && state === 'design'; if(lifeG) lifeG.visible = renderOn && state === 'design'; }
+  function setState(st){ state = st; applyActive(); updCtx(); if(rl) rl.root.visible = renderOn && state === 'design'; if(lifeG) lifeG.visible = renderOn && state === 'design'; }
   function setEnvelope(on){ envOn = !!on; applyActive(); }
 
   /* התחדשות עירונית (נפחים לפי הזכויות) ומצב קיים. הנתונים ב-WGS84, ומומרים לרשת ישראל */
@@ -1013,6 +1043,9 @@ function create(el, model, opts){
       if(ex.length > 1){ W.pref = c === 'left' ? 1 : -1; arrowNode = -1; }                // בצומת: בוחרים יציאה, והחץ שלה נצבע
       else W.look += (c === 'left' ? 1 : -1)*Math.PI/5; }                             // באמצע שביל: מסובבים את המבט
     draw(); }
+  /** קפיצה: מעבר מיידי לנקודה על הרשת, בלי הליכה (תחנה במפה הקטנה) */
+  function walkJump(x, y){ if(!W) return false; const G = graph(), t = nearest(x, y); if(!t) return false;
+    W.e = t.e; W.s = t.s; W.route = null; W.tour = null; W.fwd = false; W.auto = false; W.look = 0; draw(); return true; }
   /** הליכה אוטומטית לנקודה: המסלול הקצר ברשת (דייקסטרה) */
   function walkTo(x, y){ if(!W) return; const G = graph(), t = nearest(x, y); if(!t || t.d > 25) return false;
     const e0 = G.E[W.e], dist = new Map(), prev = new Map(), q = [];
@@ -1098,7 +1131,8 @@ function create(el, model, opts){
   if(window._pmDebug) window._pm = { cam, ctl, draw, groups, walkTo, walkCmd, get W(){ return W; } };       // בדיקה בלבד
   const getCam = () => ({ p:cam.position.toArray().map(v => +v.toFixed(2)), t:ctl.target.toArray().map(v => +v.toFixed(2)) });
   function setCam(v){ if(W) walkStop(); cam.position.fromArray(v.p); ctl.target.fromArray(v.t); ctl.update(); draw(); }
-  return { getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
+  loadCtx();
+  return { walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
     dispose(){ dead = true; walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
