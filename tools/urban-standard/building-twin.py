@@ -48,7 +48,9 @@ for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
     seen.add(num)
     tik, digits = str(r.get('tik')), re.sub(r'\D', '', num)
     rec = {'plan_number': num, 'tik': tik, 'taba': (r.get('change') or '').strip() or None, 'status': status(r.get('status')),
-           'place': ', '.join(x for x in [r.get('district'), r.get('location')] if x) or None, 'lots': lot_list(r.get('location'))}
+           'lots': lot_list(r.get('location'))}
+    # מקום: רובע ומספרי מגרשים בלבד. שדה המיקום בתיק כולל לפעמים שם של יזם או חברה ("רותם פלדות - תדהר"), ולכן הטקסט שלו לא יוצא
+    rec['place'] = ', '.join(x for x in [r.get('district'), ('מגרש ' + ', '.join(map(str, rec['lots']))) if rec['lots'] else None] if x) or None
     m = models.get(tik)
     if m:   # the detailed model: footprint = the lowest block of each building
         polys = [[b['s'][0][0]] for b in m if b.get('s')]
