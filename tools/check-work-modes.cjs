@@ -39,19 +39,10 @@ srv.listen(0, async () => {
   // ...ומבט אל הבניין הקרוב (מרכז המתאר בקומת הקרקע, floors.json), בגובה 10 מ'
   const fl = (() => { try{ return JSON.parse(fs.readFileSync(path.join(root, 'layers', tik, 'floors.json'), 'utf8')); }catch(e){ return null; } })();
   const cents = fl ? fl.buildings.map(b => { const e = fl.plans[b.floors[0].plan].env; let x = 0, y = 0; for(let i = 0; i < e.length; i += 2){ x += e[i]; y += e[i+1]; } return [x/(e.length/2)/10, y/(e.length/2)/10]; }) : [];
-  // מבט עיניים של הולך רגל: נקודה על רשת השבילים עד 40 מ' מהתחנה הראשונה ("הכניסה מהרחוב"), רחוקה מצמרות העצים,
-  // 1.65 מ' מעל פני הקרקע (המפלסים של המודל), ומבט אל הבניין הקרוב. אותה נקודה לכל המצבים
-  const md = (() => { try{ return JSON.parse(fs.readFileSync(path.join(root, 'layers', tik, 'model.json'), 'utf8')); }catch(e){ return null; } })();
-  const trees = md ? ['treeNew', 'treeOld'].flatMap(k => (md.obj[k] || []).map(t => [t[0], t[1], (t[2] || 4) / 2])).concat((md.obj.treeSurvey || []).flatMap(g => g[1].map(t => [t[0], t[1], 2]))) : [];
-  let eye = null;
-  if(wk && wk.stops && wk.stops.length){ const N0 = wk.nodes[wk.stops[0].n], x0 = N0[0]/10, y0 = N0[1]/10; let best = null;
-    wk.edges.forEach(e => { for(let k = 0; k < e.pts.length; k += 2){ const x = e.pts[k]/10, y = e.pts[k+1]/10; if(Math.hypot(x-x0, y-y0) > 40) continue;
-      const clear = Math.min(30, ...trees.map(t => Math.hypot(t[0]-x, t[1]-y) - t[2]));
-      const c = cents.length ? cents.slice().sort((a, b) => Math.hypot(a[0]-x, a[1]-y) - Math.hypot(b[0]-x, b[1]-y))[0] : [0, 0];
-      const score = Math.min(clear, 6) - Math.abs(Math.hypot(c[0]-x, c[1]-y) - 35)/10;   // רחוק מעצים, וכ-35 מ' מהבניין: חזית שלמה בפריים
-      if(!best || score > best.score) best = { x, y, c, score }; } });
-    if(best){ const g = await pg.evaluate(([x, y]) => window._lyState().api.groundAt(x, y), [best.x, best.y]);
-      eye = { p:[+best.x.toFixed(2), +(g + 1.65).toFixed(2), +(-best.y).toFixed(2)], t:[+best.c[0].toFixed(2), +(g + 9).toFixed(2), +(-best.c[1]).toFixed(2)] }; } }
+  // מבט עיניים של הולך רגל: המצלמה של מצב ההליכה בתחנה הראשונה ("הכניסה מהרחוב"), 1.65 מ' מעל פני הקרקע, מבט לאורך המדרכה.
+  // אותה מצלמה לכל המצבים. (walkJump מקבל קואורדינטות ולא מספר תחנה: walkStart כבר מתחיל בתחנה הראשונה)
+  let eye = await pg.evaluate(async () => { const api = window._lyState().api; if(!api.walkStart()) return null;
+    await new Promise(r => setTimeout(r, 4000)); const c = api.getCam(); api.walkStop(); return c && Number.isFinite(c.p[0]) ? c : null; });
   if(!eye) eye = await pg.evaluate(() => { const S = window._lyState(); S.api.view('eye'); return S.api.getCam(); });
   await pg.evaluate(c => window._lyState().api.setCam(c), eye); eye = await pg.evaluate(() => window._lyState().api.getCam());
   console.log("מצלמה:", JSON.stringify(eye));

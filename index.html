@@ -13002,7 +13002,7 @@ function aiSyncContext() {
 </script>
 <!-- תקן התאום העירוני (standard/urban-standard.mjs): קודי ייעוד, מטריצת ייצוג וחוזה האינטראקציה, משותף עם "מה נבנה סביבי" -->
 <script>/* טעינה אחת, ותמיד נפתרת: אם הקובץ לא נטען, הערך null והאפליקציה עובדת בלי התקן (לא נתקעת) */
-window.urbanStandard = () => window.__usP || (window.__usP = Promise.race([import('./standard/urban-standard.mjs?v=101').then(S => (window.UrbanStandard = S)), new Promise(r => setTimeout(r, 6000, null))]).catch(e => { console.warn('urban-standard', e); return null; }));
+window.urbanStandard = () => window.__usP || (window.__usP = Promise.race([import('./standard/urban-standard.mjs?v=110').then(S => (window.UrbanStandard = S)), new Promise(r => setTimeout(r, 6000, null))]).catch(e => { console.warn('urban-standard', e); return null; }));
 window.urbanStandard();</script>
 <script src="plans-geo.js"></script>
 <script src="plans-safe.js?v=1123g"></script>

@@ -219,7 +219,7 @@ function create(el, model, opts){
   const cam = new T.PerspectiveCamera(38, 1, 0.5, 3000);
   const ctl = new T.OrbitControls(cam, renderer.domElement); ctl.maxPolarAngle = Math.PI/2 - 0.02; ctl.minDistance = 4; ctl.maxDistance = 900; ctl.enableDamping = true; ctl.dampingFactor = 0.12;
   // חוזה האינטראקציה המשותף (standard/urban-standard.mjs): שמאלי הזזה, ימני סיבוב והטיה, גלגלת סביב הסמן, מקלדת כשהמודל בפוקוס
-  let stdUI = null; if(window.urbanStandard) window.urbanStandard().then(S => { if(dead || !S) return; stdUI = S.applyOrbit(ctl, cam, renderer.domElement, T, { changed:() => draw(), reset:() => view('home'), enabled:() => !W }); });
+  let stdUI = null; if(window.urbanStandard) window.urbanStandard().then(S => { if(dead || !S) return; stdUI = S.applyOrbit(ctl, cam, renderer.domElement, T, { eyeLevel:true, changed:() => draw(), reset:() => view('home'), enabled:() => !W }); });
   const hemi = new T.HemisphereLight('#ffffff', '#a9a498', 0.5); scene.add(hemi);
   const fill = new T.DirectionalLight('#cfe0ff', .38); fill.position.set(-200, 120, 200); scene.add(fill);   // אור מילוי קריר מהצד שמול השמש: חזית בצל לא נראית שטוחה
   const sun = new T.DirectionalLight('#fff4e0', 1.0); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
