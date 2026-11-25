@@ -44,6 +44,11 @@ srv.listen(0, async () => {
   let eye = await pg.evaluate(async () => { const api = window._lyState().api; if(!api.walkStart()) return null;
     await new Promise(r => setTimeout(r, 4000)); const c = api.getCam(); api.walkStop(); return c && Number.isFinite(c.p[0]) ? c : null; });
   if(!eye) eye = await pg.evaluate(() => { const S = window._lyState(); S.api.view('eye'); return S.api.getCam(); });
+  // מבט שני מאותה נקודה: אל הבניין הקרוב (חזית וקומת קרקע). רק לצילום, בלי בדיקת מצלמה
+  const near = eye && cents.length ? cents.slice().sort((a, b) => Math.hypot(a[0]-eye.p[0], a[1]+eye.p[2]) - Math.hypot(b[0]-eye.p[0], b[1]+eye.p[2]))[0] : null;
+  // נסיגה של 25 מ' לאחור מהבניין, לצד השני של הרחוב, כדי שהחזית וקומת הקרקע ייכנסו לפריים
+  const face = near ? (() => { const dx = eye.p[0] - near[0], dy = -eye.p[2] - near[1], d = Math.hypot(dx, dy) || 1, x = eye.p[0] + dx/d*25, y = -eye.p[2] + dy/d*25;
+    return { p:[+x.toFixed(2), eye.p[1], +(-y).toFixed(2)], t:[+near[0].toFixed(2), +(eye.p[1] + 12).toFixed(2), +(-near[1]).toFixed(2)] }; })() : null;
   await pg.evaluate(c => window._lyState().api.setCam(c), eye); eye = await pg.evaluate(() => window._lyState().api.getCam());
   console.log("מצלמה:", JSON.stringify(eye));
   const setCam = () => pg.evaluate(c => window._lyState().api.setCam(c), eye);
@@ -64,6 +69,7 @@ srv.listen(0, async () => {
       await setCam(); await settle(1500);
       const cam = await pg.evaluate(() => window._lyState().api.getCam());
       res.modes[name] = await sample(); await snap(name);
+      if(face && shots){ await pg.evaluate(c => window._lyState().api.setCam(c), face); await settle(1200); await snap(name + '-facade'); await setCam(); }
       const g = await pg.evaluate(() => window._lyState().api.sourceHash());
       ok(g === g0, `${name}: המודל והמדידות זהים (${g})`);
       ok(JSON.stringify(cam) === JSON.stringify(eye), `${name}: המצלמה נשמרה`);
