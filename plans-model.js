@@ -96,6 +96,8 @@ const KINDS = [
 ];
 /* מקרא הייעודים של התב"ע: אותם צבעים בכל התוכניות */
 const ZONES = { residential:['מגורים', '#e8b93c'], mixed:['מגורים ומסחר', '#e0884a'], commerce:['מסחר', '#b6529c'], public:['מבני ציבור', '#a5673f'], open:['שטח פתוח', '#6fae5d'], road:['דרכים', '#a8a8a8'] };
+// צבעי הייעוד מהתקן המשותף: משבצות המקרא של מבא"ת, כפי שנקראו מהתשריטים (data/urban-standard/legend-harvest.json)
+if(typeof window !== 'undefined' && window.urbanStandard) window.urbanStandard().then(S => { if(S) Object.keys(ZONES).forEach(k => { ZONES[k][1] = S.landUseColor(k); }); });
 const STATE_KINDS = { exist:['exBuild','treeOld','treeSurvey','water','sewer','cover','cabinet','lamp','exTree','exSurvey','exBench','exBin','exSign','exPole','hydrant'], renewal:['rnParcel','rnMass','rnEnvelope'] };
 const KIND = Object.fromEntries(KINDS.map(k => [k.id, k]));
 
@@ -216,6 +218,8 @@ function create(el, model, opts){
   const scene = new T.Scene(); scene.background = new T.Color('#eef2f5');
   const cam = new T.PerspectiveCamera(38, 1, 0.5, 3000);
   const ctl = new T.OrbitControls(cam, renderer.domElement); ctl.maxPolarAngle = Math.PI/2 - 0.02; ctl.minDistance = 4; ctl.maxDistance = 900; ctl.enableDamping = true; ctl.dampingFactor = 0.12;
+  // חוזה האינטראקציה המשותף (standard/urban-standard.mjs): שמאלי הזזה, ימני סיבוב והטיה, גלגלת סביב הסמן, מקלדת כשהמודל בפוקוס
+  let stdUI = null; if(window.urbanStandard) window.urbanStandard().then(S => { if(dead || !S) return; stdUI = S.applyOrbit(ctl, cam, renderer.domElement, T, { changed:() => draw(), reset:() => view('home'), enabled:() => !W }); });
   const hemi = new T.HemisphereLight('#ffffff', '#a9a498', 0.5); scene.add(hemi);
   const fill = new T.DirectionalLight('#cfe0ff', .38); fill.position.set(-200, 120, 200); scene.add(fill);   // אור מילוי קריר מהצד שמול השמש: חזית בצל לא נראית שטוחה
   const sun = new T.DirectionalLight('#fff4e0', 1.0); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
@@ -1134,7 +1138,7 @@ function create(el, model, opts){
   loadCtx();
   return { walkJump, getCam, setCam, setActive, setKind, setSun, setFloors, setWind, setState, setEnvelope, setRenewal, setFacade, setBuildings, setCut, setUnder, setLevels, viewRamp, setRender, setWalkData, walkStart, walkStop, walkCmd, walkTo, view, resize, center, groups,
     setStreets, setMap,
-    dispose(){ dead = true; walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
+    dispose(){ dead = true; if(stdUI) stdUI.unbind(); walkStop(); cancelAnimationFrame(raf); ctl.dispose(); renderer.dispose(); renderer.domElement.remove(); } };
 }
 
 /** טעינת הספרייה התלת־ממדית רק כשצריך */

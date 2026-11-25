@@ -706,6 +706,8 @@ function patchMapPlus(){
       return setTimeout(window.initMap, 200);
     }
     _init();
+    // חוזה האינטראקציה המשותף (standard/urban-standard.mjs): גלגלת, מקלדת וסף לחיצה זהים לכל המפות
+    if(window.urbanStandard && typeof gisMap !== "undefined" && gisMap && !gisMap._std) window.urbanStandard().then(S => { if(S && !gisMap._std) gisMap._std = S.applyLeaflet(gisMap, L); });
     try{
       // בסיס עם רחובות
       gisMap.eachLayer(l => { if(l._url && /World_Topo_Map|light_nolabels|light_only_labels/.test(l._url)) gisMap.removeLayer(l); });
