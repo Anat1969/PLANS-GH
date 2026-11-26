@@ -51,7 +51,7 @@ function collect(D, BT){
 }
 
 /* ── הסצנה ── */
-function build(el, D, BLD, CM, RT, S, BT){
+function build(el, D, BLD, CM, RT, S, BT, TV){
   const T = window.THREE, items = collect(D, BT);
   const pts = []; items.forEach(it => { it.fs.forEach(f => f.r.forEach(q => pts.push(q))); if(!it.fs.length && it.geo) pts.push([it.geo.lng, it.geo.lat]); });
   const lng0 = pts.reduce((s, q) => s + q[0], 0)/pts.length, lat0 = pts.reduce((s, q) => s + q[1], 0)/pts.length;
@@ -120,51 +120,92 @@ function build(el, D, BLD, CM, RT, S, BT){
   const inPoly = (x, y, r) => { let c = false; for(let i = 0, j = r.length-1; i < r.length; j = i++){ const a = r[i], b = r[j]; if((a[1] > y) !== (b[1] > y) && x < (b[0]-a[0])*(y-a[1])/(b[1]-a[1]) + a[0]) c = !c; } return c; };
   const boxOf = r => { const X = r.map(q => q[0]), Y = r.map(q => q[1]); return [Math.min(...X) - 12, Math.min(...Y) - 12, Math.max(...X) + 12, Math.max(...Y) + 12]; };
   const fbox = foot.map(boxOf);
-  /* רקע: כל נפחי ההתחדשות העירונית מהמודל המשותף (data/renewal-twin.json, city_twin של "מה נבנה סביבי"), באפור ניטרלי.
-     נפח שמרכזו בתוך תוכנית בינוי או מודל שלה לא מצויר: המודל המפורט מחליף אותו, והיתרה נשארת (בלי חפיפה) */
-  const rnBG = { p:[], n:[] }; let rnCount = 0, rnSkip = 0;
-  if(RT && RT.features){ const [o0, o1] = RT.origin, k = RT.scale, rnFoot = [];
-    RT.features.forEach(([pi, stage, cat, base, top, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push(xy([o0 + flat[i]*k, o1 + flat[i+1]*k]));
+  /* כל נפחי התב"עות: ההתחדשות העירונית מהמודל המשותף (data/renewal-twin.json, city_twin של "מה נבנה סביבי"),
+     ותב"עות מאושרות בלי מודל שם (data/taba-volumes.json: המרינה 112/101/02/3, רובע ז' 603-0595660).
+     נפח שמרכזו בתוך תוכנית בינוי או מודל שלה לא מצויר: המודל המפורט מחליף אותו, והיתרה נשארת (בלי חפיפה).
+     שלוש רשתות: מאושר, בתכנון ומבני ציבור. הצבע לפי המצב (setMode): היום שקוף, מתוכנן לפי הייעוד, אחרי המחשה */
+  const RN = { A:mkBuf(), P:mkBuf(), U:mkBuf() }; let rnCount = 0, rnSkip = 0;
+  function mkBuf(){ return { p:[], n:[], c:[], uv:[] }; }
+  [RT, TV].forEach(R => { if(!R || !R.features) return; const [o0, o1] = R.origin, k = R.scale, rnFoot = [];
+    R.features.forEach(([pi, stage, cat, base, top, flat]) => { const r = []; for(let i = 0; i < flat.length; i += 2) r.push(xy([o0 + flat[i]*k, o1 + flat[i+1]*k]));
       if(r.length < 3 || top - base < .5) return;
       let mx = 0, my = 0; r.forEach(q => { mx += q[0]; my += q[1]; }); mx /= r.length; my /= r.length;
       if(fbox.some((b, i) => mx > b[0] && mx < b[2] && my > b[1] && my < b[3] && inPoly(mx, my, foot[i]))){ rnSkip++; return; }
+      const B = cat === 'public' ? RN.U : stage === 'planning' ? RN.P : RN.A, col = sc(COL[cat] || (S && S.NEUTRAL) || '#d9d8d4');
       let ar = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ar += a[0]*b[1] - b[0]*a[1]; }); if(ar < 0) r.reverse();
+      let run = 0;
       r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = (b[1]-a[1])/L, ny = -(b[0]-a[0])/L;
-        rnBG.p.push(a[0], base, -a[1], b[0], base, -b[1], b[0], top, -b[1], a[0], base, -a[1], b[0], top, -b[1], a[0], top, -a[1]); for(let q = 0; q < 6; q++) rnBG.n.push(nx, 0, -ny); });
-      T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []).forEach(t => t.forEach(ix => { const q = r[ix]; rnBG.p.push(q[0], top, -q[1]); rnBG.n.push(0, 1, 0); }));
+        B.p.push(a[0], base, -a[1], b[0], base, -b[1], b[0], top, -b[1], a[0], base, -a[1], b[0], top, -b[1], a[0], top, -a[1]); for(let q = 0; q < 6; q++){ B.n.push(nx, 0, -ny); B.c.push(col.r, col.g, col.b); }
+        B.uv.push(run, base, run + L, base, run + L, top, run, base, run + L, top, run, top); run += L; });   // UV במטרים, כמו ExtrudeGeometry
+      T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []).forEach(t => t.forEach(ix => { const q = r[ix]; B.p.push(q[0], top, -q[1]); B.n.push(0, 1, 0); B.c.push(col.r, col.g, col.b); B.uv.push(0, 0); }));
       rnFoot.push(r); rnCount++; });
-    rnFoot.forEach(r => { foot.push(r); fbox.push(boxOf(r)); }); }
+    rnFoot.forEach(r => { foot.push(r); fbox.push(boxOf(r)); }); });
   // הקו הכחול של כל תוכנית התחדשות (23, גם בלי נפחים), בגובה הקרקע: התמונה העירונית המלאה, ממודל העיר המשותף
-  if(RT && RT.boundaries && RT.boundaries.length){ const [o0, o1] = RT.origin, k = RT.scale, pos = [];
-    RT.boundaries.forEach(([, , flat]) => { for(let i = 0; i + 3 < flat.length; i += 2){ const a = xy([o0 + flat[i]*k, o1 + flat[i+1]*k]), b = xy([o0 + flat[i+2]*k, o1 + flat[i+3]*k]); pos.push(a[0], 1.2, -a[1], b[0], 1.2, -b[1]); } });
+  [RT, TV].forEach(R => { if(!R || !R.boundaries || !R.boundaries.length) return; const [o0, o1] = R.origin, k = R.scale, pos = [];
+    R.boundaries.forEach(([, , flat]) => { for(let i = 0; i + 3 < flat.length; i += 2){ const a = xy([o0 + flat[i]*k, o1 + flat[i+1]*k]), b = xy([o0 + flat[i+2]*k, o1 + flat[i+3]*k]); pos.push(a[0], 1.2, -a[1], b[0], 1.2, -b[1]); } });
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
-    scene.add(new T.LineSegments(g, new T.LineBasicMaterial({ color:(S && S.BLUE_LINE) || '#1D4ED8', transparent:true, opacity:.75 }))); }
-  const BG = (S && S.NEUTRAL_BG) || { fill:'#cfcdc7', opacity:.55 };
-  let rnMesh = null;
-  if(rnBG.p.length){ const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(rnBG.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(rnBG.n, 3));
-    rnMesh = new T.Mesh(g, new T.MeshStandardMaterial({ color:sc(BG.fill), roughness:.95, transparent:true, opacity:BG.opacity, depthWrite:false, side:T.DoubleSide })); rnMesh.renderOrder = 2; scene.add(rnMesh); }
-  const exOut = { p:[], n:[] }, exIn = { p:[], n:[] };
+    scene.add(new T.LineSegments(g, new T.LineBasicMaterial({ color:(S && S.BLUE_LINE) || '#1D4ED8', transparent:true, opacity:.75 }))); });
+  /* חומרים לפי מצב (ענת, 26.11.2026):
+     היום   - מה שמתוכנן במינימום שקיפות ("אחרת זה בלגן"): לבן כמעט שקוף, בלי צל.
+     מתוכנן - צבע הייעוד מהתקן (משבצות המקרא בתשריטי מבא"ת). מאושר אטום, בתכנון שקוף.
+     אחרי   - המחשה: חזית לבנה עם חלונות ומרפסות לכל מה שמאושר. מה שעוד בתכנון נשאר אפור שקוף, כי הוא יכול להשתנות.
+     מבני ציבור (מתג במקרא): הקיים בחום בהיר, והמוצע (603-0828491 ומגרשי הציבור בכל תב"ע) בחום כהה שקוף מעליו, כדי לראות את הגדילה */
+  const facTex = facadeTexture(T), facNight = facadeTexture(T, true);
+  const M = {
+    ghost:new T.MeshStandardMaterial({ color:0xffffff, roughness:1, transparent:true, opacity:.1, depthWrite:false }),
+    useA:new T.MeshStandardMaterial({ vertexColors:true, roughness:.85 }),
+    useP:new T.MeshStandardMaterial({ vertexColors:true, roughness:.85, transparent:true, opacity:.5, depthWrite:false }),
+    real:new T.MeshStandardMaterial({ color:0xffffff, map:facTex, roughness:.55, metalness:.05, emissive:new T.Color(0xffc27a), emissiveMap:facNight, emissiveIntensity:0 }),
+    roof:new T.MeshStandardMaterial({ color:sc('#dcd8cf'), roughness:.9 }),
+    planGray:new T.MeshStandardMaterial({ color:sc('#cfcdc7'), roughness:.95, transparent:true, opacity:.38, depthWrite:false }),
+    pubNew:new T.MeshStandardMaterial({ color:sc('#7a4f28'), roughness:.8, transparent:true, opacity:.55, depthWrite:false }),
+    pubOld:new T.MeshStandardMaterial({ color:sc('#e7cfae'), roughness:.9 }),
+  };
+  mats.real = [M.roof, M.real];
+  modelG.children.forEach(o => { if(o.isMesh) o.material = mats.real; });   // המודל המפורט של תוכנית הבינוי: אותה המחשה
+  const rnMesh = {};
+  Object.entries(RN).forEach(([k, B]) => { if(!B.p.length) return; const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.Float32BufferAttribute(B.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(B.n, 3));
+    g.setAttribute('color', new T.Float32BufferAttribute(B.c, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(B.uv, 2));
+    const m = new T.Mesh(g, M.ghost); m.renderOrder = 2; m.castShadow = true; m.receiveShadow = true; scene.add(m); rnMesh[k] = m; });
+  const exOut = { p:[], n:[] }, exIn = { p:[], n:[] }, pubOut = { p:[], n:[] }, pubIn = { p:[], n:[] };
   if(BLD && BLD.tiles && PM && PM.itm2wgs){ const TL = BLD.tile;
     for(const k in BLD.tiles){ const [tx, ty] = k.split('_').map(Number);
       for(const [cat, h, flat] of BLD.tiles[k]){ const r = []; for(let i = 0; i < flat.length; i += 2){ const w = PM.itm2wgs(tx*TL + flat[i]/10, ty*TL + flat[i+1]/10); r.push(xy([w[1], w[0]])); }
         let mx = 0, my = 0; r.forEach(q => { mx += q[0]; my += q[1]; }); mx /= r.length; my /= r.length;
         const hit = fbox.some((b, i) => mx > b[0] && mx < b[2] && my > b[1] && my < b[3] && near(mx, my, foot[i]));
-        const A = hit ? exIn : exOut; let ar = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ar += a[0]*b[1] - b[0]*a[1]; }); if(ar < 0) r.reverse();
+        const A = cat === 1 ? (hit ? pubIn : pubOut) : hit ? exIn : exOut; let ar = 0; r.forEach((a, i) => { const b = r[(i+1)%r.length]; ar += a[0]*b[1] - b[0]*a[1]; }); if(ar < 0) r.reverse();
         r.forEach((a, i) => { const b = r[(i+1)%r.length], L = Math.hypot(b[0]-a[0], b[1]-a[1]) || 1, nx = (b[1]-a[1])/L, ny = -(b[0]-a[0])/L;
           A.p.push(a[0], 0, -a[1], b[0], 0, -b[1], b[0], h, -b[1], a[0], 0, -a[1], b[0], h, -b[1], a[0], h, -a[1]); for(let q = 0; q < 6; q++) A.n.push(nx, 0, -ny); });
         T.ShapeUtils.triangulateShape(r.map(q => new T.Vector2(q[0], q[1])), []).forEach(t => t.forEach(ix => { const q = r[ix]; A.p.push(q[0], h, -q[1]); A.n.push(0, 1, 0); })); } } }
   function near(x, y, r){ if(inPoly(x, y, r)) return true; for(let i = 0; i < r.length; i++){ const a = r[i], b = r[(i+1)%r.length], vx = b[0]-a[0], vy = b[1]-a[1], l = vx*vx + vy*vy || 1, t = Math.max(0, Math.min(1, ((x-a[0])*vx + (y-a[1])*vy)/l)); if(Math.hypot(x - a[0] - t*vx, y - a[1] - t*vy) < 8) return true; } return false; }
   const exM = new T.MeshStandardMaterial({ color:sc('#cfccc4'), roughness:.95 });
   const exMesh = A => { if(!A.p.length) return null; const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(A.p, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(A.n, 3)); const m = new T.Mesh(g, exM); m.castShadow = m.receiveShadow = true; scene.add(m); return m; };
-  exMesh(exOut); const exInM = exMesh(exIn);
+  exMesh(exOut); const exInM = exMesh(exIn), pubOutM = exMesh(pubOut), pubInM = exMesh(pubIn);
   const exCount = (exOut.p.length + exIn.p.length) ? true : false;
-  /** שלושה מצבים: קיים (המבנים הקיימים בלבד), תכנון (נפחי התב"ע), בינוי (המודלים של תוכניות הבינוי, ונפח התב"ע לשאר) */
-  let mode = 'build';
-  function setMode(m){ mode = m; if(exInM) exInM.visible = m === 'exist';
-    const withModel = new Set(); items.forEach(it => { if(it.model) (meshesOf.get(it) || []).forEach(x => withModel.add(x)); });
-    meshesOf.forEach(ms => ms.forEach(x => { x.visible = m === 'plan' || (m === 'build' && !withModel.has(x)); }));
-    scene.children.forEach(o => { if(o.isLineSegments && o.userData.f) o.visible = o.userData.f.visible; });
-    modelG.visible = m === 'build'; if(rnMesh) rnMesh.visible = m !== 'exist'; }
+  /** שלושה מצבים (ענת, 26.11.2026): היום (הקיים, והמתוכנן שקוף), מתוכנן (נפחי התב"ע בצבע הייעוד), אחרי (המחשה של המאושר ותוכניות הבינוי) */
+  let mode = 'build', pub = false;   // מבני הציבור: מתג במקרא, כבוי בפתיחה (בכל העיר יש 490 מגרשי ציבור)
+  const withModel = new Set(); items.forEach(it => { if(it.model) (meshesOf.get(it) || []).forEach(x => withModel.add(x)); });
+  const bpMats = new Map();   // חומרי הייעוד המקוריים של נפחי תוכניות הבינוי
+  meshesOf.forEach(ms => ms.forEach(x => { if(x.isMesh && Array.isArray(x.material)) bpMats.set(x, x.material); }));
+  function setMode(m){ mode = m;
+    exM.color.copy(sc(m === 'build' ? '#aeaba3' : '#cfccc4'));   // אחרי: הקיים כהה יותר, כדי שהמבנים החדשים יבלטו
+    if(exInM) exInM.visible = m === 'exist';
+    // מבני ציבור קיימים: בחום בהיר כשהמתג דלוק, גם בתוך תוכניות (הגדילה נראית דרך הנפח השקוף). כבוי: כמו כל מבנה קיים
+    [pubOutM, pubInM].forEach(x => { if(x) x.material = pub ? M.pubOld : exM; });
+    if(pubInM) pubInM.visible = pub || m === 'exist';
+    meshesOf.forEach(ms => ms.forEach(x => { const orig = bpMats.get(x);
+      if(!orig){ x.visible = m !== 'build' || !withModel.has(x); return; }      // משטח מגרש בלי נפח
+      x.visible = m === 'exist' || m === 'plan' || !withModel.has(x);
+      x.material = m === 'exist' ? M.ghost : m === 'plan' ? orig : mats.real; x.castShadow = m !== 'exist'; }));
+    scene.children.forEach(o => { if(o.isLineSegments && o.userData.f) o.visible = o.userData.f.visible && mode !== 'exist'; });
+    modelG.visible = m === 'build';
+    if(rnMesh.A) rnMesh.A.material = m === 'exist' ? M.ghost : m === 'plan' ? M.useA : M.real;
+    if(rnMesh.P) rnMesh.P.material = m === 'exist' ? M.ghost : m === 'plan' ? M.useP : M.planGray;
+    if(rnMesh.U) rnMesh.U.material = m === 'exist' ? M.ghost : pub ? M.pubNew : m === 'plan' ? M.useA : M.real;
+    Object.values(rnMesh).forEach(x => { x.castShadow = m !== 'exist' && x.material !== M.planGray && x.material !== M.pubNew; });
+  }
+  function setPublic(on){ pub = !!on; setMode(mode); return pub; }
   // סמן לתוכנית שנבחרה
   const ring = new T.Mesh(new T.RingGeometry(1, 1.035, 96), new T.MeshBasicMaterial({ color:0x111111, side:T.DoubleSide, transparent:true, opacity:.85 })); ring.rotation.x = -Math.PI/2; ring.position.y = 1; ring.visible = false; scene.add(ring);
 
@@ -229,9 +270,10 @@ function build(el, D, BLD, CM, RT, S, BT){
   let thumbR = null;
   items.forEach(it => { it.span = spanOf(it, xy); });
   setMode('build');
-  return { items, focus, home, thumb, setMode, get mode(){ return mode; }, exists:exCount, renewal:{ shown:rnCount, replaced:rnSkip, plans:RT ? RT.plans.length : 0 },
+  return { items, focus, home, thumb, setMode, setPublic, get mode(){ return mode; }, get pub(){ return pub; }, exists:exCount, renewal:{ shown:rnCount, replaced:rnSkip, plans:RT ? RT.plans.length : 0 },
     pause(on){ if(on && !paused){ paused = true; pauseAt = performance.now(); } else if(!on && paused){ t0 += performance.now() - pauseAt; paused = false; } return paused; },
     get paused(){ return paused; }, setAuto(on){ ctl.autoRotate = on; },
+    setHour(h){ const now = performance.now(); t0 = now - (h - H0)/(H1 - H0)*DAY_S*1000; if(paused) pauseAt = now; },   // לבדיקה ולצילום
     dispose(){ dead = true; if(stdUI) stdUI.unbind(); cancelAnimationFrame(raf); window.removeEventListener('resize', resize); ctl.dispose(); renderer.dispose(); if(thumbR) thumbR.dispose(); renderer.domElement.remove(); } };
 }
 function centerOf(it, xy){
@@ -253,6 +295,23 @@ function windowTexture(T, night){
   }
   const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/16, 1/12.8);   // 4 חלונות ב-16 מ', 4 קומות ב-12.8 מ'
   if(!night) t.encoding = T.sRGBEncoding; return t;
+}
+/** חזית להמחשה (מצב "אחרי"): מפתח של 4 מ' וקומה של 3.3 מ'. קיר לבן, חלון כהה עם השתקפות, ופס מרפסת לבן עם מעקה זכוכית.
+    בלילה כמחצית מהחלונות דולקים. UV במטרים, כמו ExtrudeGeometry. המחשה, לא התכנון של המבנה */
+function facadeTexture(T, night){
+  const c = document.createElement('canvas'); c.width = 128; c.height = 128; const x = c.getContext('2d');
+  let seed = night ? 11 : 3; const rnd = () => (seed = (seed*16807) % 2147483647)/2147483647;
+  if(night){ x.fillStyle = '#000'; x.fillRect(0, 0, 128, 128);
+    for(let i = 0; i < 2; i++) if(rnd() < .55){ x.fillStyle = `hsl(${30 + rnd()*16},85%,${52 + rnd()*18}%)`; x.fillRect(i*64 + 8, 22, 48, 74); } }
+  else {
+    x.fillStyle = '#f3f0ea'; x.fillRect(0, 0, 128, 128);                                   // קיר (וגם הפינה 0,0: הגגות)
+    for(let i = 0; i < 2; i++){ const g = x.createLinearGradient(0, 22, 0, 96); g.addColorStop(0, '#8fa3b3'); g.addColorStop(.55, '#53606c'); g.addColorStop(1, '#3d4852');
+      x.fillStyle = g; x.fillRect(i*64 + 6, 18, 52, 80); x.fillStyle = '#e9e6df'; x.fillRect(i*64 + 31, 22, 2, 74); }
+    x.fillStyle = '#ffffff'; x.fillRect(0, 100, 128, 10);                                  // מעקה המרפסת: פס לבן
+    x.fillStyle = 'rgba(160,185,200,.55)'; x.fillRect(0, 96, 128, 4);                      // זכוכית המעקה
+    x.fillStyle = '#d8d3c8'; x.fillRect(0, 110, 128, 3); }                                  // צל תקרת המרפסת
+  const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1/4, 1/3.3);
+  if(!night) t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t;
 }
 /** מפת אשדוד באפור ובלי כיתובים: Esri World Light Gray Base, רמה 14, אריחים על בד אחד (תקן התאום העירוני, סעיף 8) */
 function loadMap(T, scene, G, sc){
@@ -318,7 +377,7 @@ function stLabel(p){ const s = String(p.status || ''); return /הושלם/.test(
 function card(it, i){
   const p = it.p, img = it.render || it.thumb || '';
   return `<button class="cy-card" data-i="${i}" title="${H(p.planNum)}">
-    <span class="cy-img">${img ? `<img src="${H(img)}" alt="" loading="lazy">` : ''}${it.render ? '<em>הדמיה</em>' : it.model ? '<em>מודל</em>' : '<em>נפח לפי התב"ע</em>'}</span>
+    <span class="cy-img">${img ? `<img src="${H(img)}" alt="" loading="lazy">` : ''}${it.render ? '<em>הדמיה</em>' : it.model ? '<em class="cy-tag-model" title="הצגת המודל במודל התאום של העיר, במצב אחרי">מודל</em>' : '<em>נפח לפי התב"ע</em>'}</span>
     <span class="cy-t"><b>${H(p.planNum)}</b> <small>${H(stLabel(p))}</small></span>
     <span class="cy-d">${H([p.district, p.location].filter(Boolean).join(', '))}</span></button>`;
 }
@@ -326,25 +385,39 @@ async function open(){
   if(document.getElementById('cityIntro')) return;
   const ov = document.createElement('div'); ov.id = 'cityIntro'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'תוכניות הבינוי של אשדוד');
   ov.innerHTML = `<div class="cy-scene" id="cityScene"></div>
-    <header class="cy-top"><div><h1>תוכניות הבינוי של אשדוד</h1><p id="citySub">טוען את העיר…</p></div>
+    <header class="cy-top"><div><h1>תוכניות הבינוי של אשדוד</h1><p id="citySub">טוען את העיר</p></div>
       <div class="cy-acts"><span class="cy-modes" id="cityModes" role="tablist" aria-label="מצב">${MODES.map(([k, l, t]) => `<button data-mode="${k}" title="${H(t)}" class="${k === 'build' ? 'on' : ''}">${l}</button>`).join('')}</span>
         <span id="cityClock" class="cy-clock"></span><button class="cy-ghost" id="cityPause" title="עצירת השמש">עצירה</button><button class="cy-ghost" id="cityHome" title="חזרה למבט על כל העיר">כל העיר</button><button class="cy-ghost" id="cityShare" title="העתקת הקישור לדף">שיתוף</button><button class="cy-go" id="cityEnter">כניסה למערכת</button></div></header>
-    <div class="cy-legend" id="cityLegend">${[['residential','מגורים'],['mixed','מגורים ומסחר'],['commerce','מסחר'],['public','מבני ציבור']].map(([k, l]) => `<span><i data-k="${k}" style="background:${COL[k]}"></i>${l}</span>`).join('')}<span><i style="background:#efeae0;outline:1px solid #bbb"></i>תוכנית בינוי (מהמודל)</span><span><i style="background:#cfcdc7;opacity:.7;outline:1px dashed #a9a7a1"></i>התחדשות עירונית (רקע, מ"מה נבנה סביבי")</span><span><i style="background:#cfccc4"></i>מבנה קיים (GIS עירוני)</span><span><i class="cy-flat"></i>מגרש בלי נפח</span><small>נפחי התב"ע לפי טבלה 5 והתשריט: הערכה. גובה המבנים הקיימים סמלי, לפי השטח.</small></div>
+    <div class="cy-legend" id="cityLegend" aria-live="polite"></div>
     <div class="cy-strip" id="cityStrip"><div class="cy-track" id="cityTrack"></div></div>`;
   document.body.appendChild(ov); document.body.classList.add('city-open');
   ov.querySelector('#cityEnter').onclick = close;
+  let RT0 = null, TV0 = null;
   try{
-    const [, R, D, BLD, CM, RT, S, BT] = await Promise.all([window.PlanModel.loadThree(),
+    const [, R, D, BLD, CM, RT, S, BT, TV] = await Promise.all([window.PlanModel.loadThree(),
       fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
       fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null),
-      fetch('data/renewal-twin.json?v=1126').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null,
-      fetch('data/building-twin.json?v=1126d').then(r => r.json()).catch(() => null)]);
+      fetch('data/renewal-twin.json?v=1126c').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null,
+      fetch('data/building-twin.json?v=1126d').then(r => r.json()).catch(() => null), fetch('data/taba-volumes.json?v=1126c').then(r => r.json()).catch(() => null)]);
     RENDERS = (R && R.renders) || {};
-    st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S, BT);
-    if(S){ const lg = ov.querySelector('#cityLegend'); lg.querySelectorAll('i[data-k]').forEach(i => { i.style.background = S.landUseColor(i.dataset.k); }); }
+    RT0 = RT; TV0 = TV;
+    st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S, BT, TV); window._city = st;
+    if(S) Object.keys(COL).forEach(k => { COL[k] = S.landUseColor(k); });
   }catch(e){ console.warn('city', e); ov.querySelector('#citySub').textContent = 'ההדמיה לא נטענה. אפשר להיכנס למערכת.'; return; }
   const it = st.items, nv = it.filter(x => x.fs.length).length, nm = it.filter(x => x.model).length;
-  ov.querySelector('#citySub').textContent = `${it.length} תוכניות על המפה: ${nm} עם מודל, ${nv} עם נפח לפי התב"ע. ${st.renewal.shown ? `ברקע ${st.renewal.plans} תוכניות התחדשות: נפחים באפור וקו כחול. ` : ''}מעבר עם העכבר על תוכנית: מתמקדים. לחיצה: נכנסים.`;
+  // שורה אחת קצרה. ההסבר המלא בריחוף, כדי שהטקסט לא יסתיר את העיר (ענת, 26.11.2026)
+  const ntaba = new Set([...(RT0 && RT0.plans || []), ...(TV0 && TV0.plans || [])]).size, sub = ov.querySelector('#citySub');
+  sub.textContent = `${it.length} תוכניות בינוי · ${ntaba} תב"עות`;
+  sub.title = `${nm} תוכניות בינוי עם מודל, ${nv} עם נפח לפי התב"ע. ברקע ${ntaba} תב"עות: התחדשות עירונית מ"מה נבנה סביבי", המרינה (112/101/02/3) ורובע ז' (603-0595660). מעבר עם העכבר על תוכנית: מתמקדים. לחיצה: נכנסים.`;
+  const legend = () => { const lg = ov.querySelector('#cityLegend'), m = st.mode, sw = (bg, t, extra) => `<span><i style="background:${bg};${extra || ''}"></i>${t}</span>`;
+    const uses = [['residential','מגורים'],['mixed','מגורים ומסחר'],['commerce','מסחר ותיירות'],['hotel','מלונאות'],['public','מבני ציבור']];
+    let a = m === 'exist' ? [sw('#cfccc4', 'קיים'), sw('#ffffff', 'מתוכנן', 'opacity:.5;outline:1px solid #bbb')]
+      : m === 'plan' ? uses.map(([k, t]) => sw(COL[k], t)).concat(sw('#cfcdc7', 'בתכנון', 'opacity:.55;outline:1px dashed #999'))
+      : [sw('#f3f0ea', 'מאושר', 'outline:1px solid #bbb;background-image:linear-gradient(#53606c 0 0);background-size:5px 6px;background-position:3px 3px;background-repeat:no-repeat'), sw('#cfcdc7', 'בתכנון', 'opacity:.55;outline:1px dashed #999'), sw('#cfccc4', 'קיים')];
+    lg.innerHTML = a.join('') + `<button type="button" id="cityPub" aria-pressed="${st.pub}" title="מבני הציבור הקיימים בחום בהיר, והנפח שמותר לפי התב"ע (603-0828491 ומגרשי הציבור בכל תב"ע) בחום כהה שקוף מעליהם: רואים את הגדילה"><i style="background:#e7cfae"></i><i style="background:#7a4f28;opacity:.75"></i>מבני ציבור: היום והתב"ע</button>`
+      + `<span class="cy-q" tabindex="0" title="נפחי התב"ע לפי טבלה 5 והתשריט, וגובה המבנים הקיימים לפי השטח: הערכה. צבעי הייעוד ממשבצות המקרא בתשריטי מבא"ת (התקן המשותף). מלונאות: צבע לבדיקה. במצב אחרי החזיתות הן המחשה, לא התכנון של המבנים.">?</span>`;
+    lg.querySelector('#cityPub').onclick = e => { const on = st.setPublic(!st.pub); e.currentTarget.setAttribute('aria-pressed', on); }; };
+  legend();
   // מהתוכנית האחרונה לראשונה (מספר התוכנית בסדר יורד), מעבר אחד ועצירה בסוף
   const num = x => +String(x.p.planNum || x.p.tik).replace(/\D/g, '') || 0;
   const order = it.slice().sort((a, b) => num(b) - num(a));
@@ -359,7 +432,7 @@ async function open(){
   const pick = i => { if(sel === i) return; sel = i; st.focus(it[i]); st.setAuto(true); track.querySelectorAll('.cy-card').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
     const p = it[i].p; let b = ov.querySelector('.cy-info'); if(!b){ b = document.createElement('div'); b.className = 'cy-info'; ov.appendChild(b); }
     b.innerHTML = `<div class="cy-name">${H(window.projName ? window.projName(p) : p.planNum)}</div><div><small>${H(stLabel(p))}${it[i].model ? ' · יש מודל' : ''}</small></div>
-      <p class="cy-say">${H(sentence(it[i]) || (it[i].model ? 'במצב "בינוי" מוצג המודל של תוכנית הבינוי.' : it[i].fs.length ? '' : !it[i].c ? 'אין עדיין מיקום על המפה.' : 'בלי נפח במקור. מוצג המגרש בלבד.'))}</p><p class="cy-say cy-purpose"></p>
+      <p class="cy-say">${H(sentence(it[i]) || (it[i].model ? 'במצב "אחרי" מוצג המודל של תוכנית הבינוי.' : it[i].fs.length ? '' : !it[i].c ? 'אין עדיין מיקום על המפה.' : 'בלי נפח במקור. מוצג המגרש בלבד.'))}</p><p class="cy-say cy-purpose"></p>
       ${it[i].render && RENDERS[pnum(p)] ? '<small class="muted">ההדמיה: מתוך חומרי התוכנית שהוגשו לעירייה.</small>' : ''}
       <div class="cy-row"><button class="cy-go" data-enter="${p.id}">${it[i].model ? 'כניסה למודל' : 'כניסה לתוכנית'}</button><button class="cy-ghost" data-share="${i}">שיתוף התוכנית</button></div>`;
     try{ history.replaceState(null, '', '#city=' + pnum(p)); }catch(e){}
@@ -367,9 +440,13 @@ async function open(){
     purposeOf(p).then(t => { const q = b.querySelector('.cy-purpose'); if(q && sel === i && t) q.textContent = 'מטרת התב"ע: ' + t; }); };
   const enter = id => { close(); setTimeout(() => { try{ openProject(id); }catch(err){} }, 60); };   // תוכנית עם מודל נפתחת במודל: תוכנית בינוי, כל השכבות
   track.addEventListener('mouseover', e => { const c = e.target.closest('.cy-card'); if(c) pick(+c.dataset.i); });
-  track.onclick = e => { const c = e.target.closest('.cy-card'); if(c) enter(it[+c.dataset.i].p.id); };
+  // התג "מודל" בכרטיס: המודל של תוכנית הבינוי הוא חלק מהמודל התאום של העיר. לחיצה עליו מציגה אותו כאן, במצב "אחרי", בלי לצאת
+  track.onclick = e => { const c = e.target.closest('.cy-card'); if(!c) return; const x = it[+c.dataset.i];
+    if(e.target.closest('.cy-tag-model')){ showMode('build'); sel = -1; pick(+c.dataset.i); return; }
+    enter(x.p.id); };
   ov.addEventListener('click', e => { const sh = e.target.closest('[data-share]'); if(sh){ share(it[+sh.dataset.share], sh); return; } const b = e.target.closest('[data-enter]'); if(b) enter(+b.dataset.enter); });
-  ov.querySelector('#cityModes').onclick = e => { const b = e.target.closest('[data-mode]'); if(!b) return; st.setMode(b.dataset.mode); ov.querySelectorAll('#cityModes button').forEach(x => x.classList.toggle('on', x === b)); };
+  const showMode = k => { st.setMode(k); ov.querySelectorAll('#cityModes button').forEach(x => x.classList.toggle('on', x.dataset.mode === k)); legend(); };
+  ov.querySelector('#cityModes').onclick = e => { const b = e.target.closest('[data-mode]'); if(b) showMode(b.dataset.mode); };
   strip.onmouseenter = () => { hover = true; }; strip.onmouseleave = () => { hover = false; last = performance.now(); };
   strip.addEventListener('wheel', e => { pos += e.deltaY || e.deltaX; e.preventDefault(); }, { passive:false });
   ov.querySelector('#cityPause').onclick = e => { const p = st.pause(!st.paused); e.target.textContent = p ? 'המשך' : 'עצירה'; };
@@ -382,7 +459,7 @@ async function open(){
   requestAnimationFrame(roll);
   document.addEventListener('keydown', esc);
 }
-const MODES = [['exist', 'קיים', 'המבנים הקיימים בעיר, מה-GIS העירוני. גובה סמלי'], ['plan', 'תכנון', 'הנפחים לפי התב"ע: טבלה 5 והתשריט. הערכה'], ['build', 'בינוי', 'תוכניות הבינוי: המודל כשיש, ונפח התב"ע לשאר']];
+const MODES = [['exist', 'היום', 'המבנים הקיימים בעיר (GIS עירוני, גובה סמלי). מה שמתוכנן מופיע שקוף מאוד'], ['plan', 'מתוכנן', 'כל נפחי התב"ע ותוכניות הבינוי בצבע הייעוד, לפי מקרא התשריטים. הערכה'], ['build', 'אחרי', 'המחשה: המבנים המאושרים ותוכניות הבינוי עם חזיתות. מה שעוד בתכנון באפור שקוף']];
 function esc(e){ if(e.key === 'Escape') close(); }
 function close(){
   const ov = document.getElementById('cityIntro'); if(!ov) return;
