@@ -13,6 +13,7 @@ Per plan the geometry and its source (provenance of the shared standard):
   municipal-> 'computed'  the lot from the city lots layer, matched by lot number near known plans on the TABA
   taba     -> 'computed'  no lot numbers (a compound name): the whole TABA area, outline only
   parcels  -> 'verified'  registered parcels (gush/helka) from the city GIS
+  same_as                 an earlier submission of another building plan (meta.planLast): listed, not drawn twice
   None                    no TABA model and no parcels: listed, shown nowhere on a map (a gap to close)
 """
 import json, re, sys, datetime
@@ -106,7 +107,10 @@ for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
         rec['taba'] = rec['taba'] or lk['taba']; rec['lots'] = rec['lots'] or lk['lots']; rec['link_ref'] = lk['ref']
     rec['place'] = (lk or {}).get('place') or ', '.join(x for x in [r.get('district'), ('מגרש ' + ', '.join(map(str, rec['lots']))) if rec['lots'] else None] if x) or None
     m = models.get(tik)
-    if m:   # the detailed model: footprint = the lowest block of each building
+    same = str(r.get('planLast') or '').strip()
+    if same.startswith('תב/') and same != num:   # an earlier submission of another building plan: listed, drawn once (as the later one)
+        rec.update(source=None, prov=None, geometry=None, same_as=same)
+    elif m:   # the detailed model: footprint = the lowest block of each building
         polys = [[b['s'][0][0]] for b in m if b.get('s')]
         rec.update(source='model', prov='plan', geometry={'type': 'MultiPolygon', 'coordinates': polys},
                    model=[{'id': b['id'], 'label': b.get('label'), 's': b['s']} for b in m])
