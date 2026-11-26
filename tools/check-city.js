@@ -25,7 +25,7 @@ srv.listen(0, async () => {
     ok(a.canvas, `${vp.tag}: הסצנה מצוירת`);
     const ord = await pg.evaluate(() => [...document.querySelectorAll('#cityIntro .cy-card b')].map(b => +b.textContent.replace(/\D/g, '') || 0));
     ok(a.cards > 0 && ord.every((v, i) => !i || v <= ord[i-1]) && new Set(ord).size === ord.length, `${vp.tag}: בקרוסלה ${a.cards} תוכניות (מתוך ${a.plans}), מהאחרונה לראשונה, בלי כפילות. ${a.sub}`);
-    ok(/נפח לפי התב"ע/.test(a.sub) && !/טוען/.test(a.sub), `${vp.tag}: הכותרת מתעדכנת מיד, בלי מסך טעינה`);
+    ok(/תב"עות/.test(a.sub) && !/טוען/.test(a.sub), `${vp.tag}: הכותרת מתעדכנת מיד, בלי מסך טעינה`);
     await pg.waitForFunction(() => document.querySelectorAll('#cityIntro .cy-img img').length >= document.querySelectorAll('#cityIntro .cy-card').length - 2, null, { timeout:120000 }).catch(() => {});
     const th = await pg.evaluate(() => document.querySelectorAll('#cityIntro .cy-img img').length);
     ok(th >= a.cards - 2, `${vp.tag}: ${th} מתוך ${a.cards} כרטיסים עם הדמיה או תמונת נפחים (נוצרות ברקע)`);
@@ -37,7 +37,7 @@ srv.listen(0, async () => {
     ok(c2 !== a.clock, `${vp.tag}: השעון זז: ${a.clock} → ${c2}`);
     if(shots) await pg.screenshot({ path:path.join(shots, `city-${vp.tag}-b.png`) });
     for(const m of ['exist', 'plan', 'build']){ await pg.$eval(`#cityModes [data-mode="${m}"]`, e => e.click()); await pg.waitForTimeout(300); }
-    ok(await pg.$eval('#cityModes .on', e => e.dataset.mode) === 'build', `${vp.tag}: שלושה מצבים: קיים, תכנון, בינוי`);
+    ok(await pg.$eval('#cityModes .on', e => e.dataset.mode) === 'build', `${vp.tag}: שלושה מצבים: היום, מתוכנן, אחרי`);
     await pg.$eval('#cityIntro .cy-card', e => e.dispatchEvent(new MouseEvent('mouseover', { bubbles:true }))); await pg.waitForTimeout(1800);
     ok(await pg.$('#cityIntro .cy-info'), `${vp.tag}: ריחוף על כרטיס מתמקד בתוכנית`);
     if(shots) await pg.screenshot({ path:path.join(shots, `city-${vp.tag}-c.png`) });
