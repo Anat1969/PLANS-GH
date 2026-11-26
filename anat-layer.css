@@ -546,3 +546,7 @@ body.city-open{overflow:hidden}
 .cy-info{bottom:auto;top:96px;font-size:12.5px;max-width:300px;background:#ffffffeb}
 .cy-info .cy-name{font-size:15px}
 @media (max-width:640px){ .cy-legend{display:flex;inset-inline:8px;max-width:none;bottom:152px;font-size:11px} .cy-info{top:auto;bottom:200px} }
+/* בדיקת הסטטוס מול Xplan בתמונת הבוקר (26.11.2026) */
+.nw-sc{margin:6px 0 0;font-size:13.5px;color:#444}
+details.nw-sc summary{cursor:pointer}
+details.nw-sc ul{margin:6px 0;padding-inline-start:18px}

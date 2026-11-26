@@ -17,6 +17,7 @@ import { fileURLToPath } from 'url';
 const require = createRequire(import.meta.url);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const O = require(path.join(root, 'plans-ops-core.js'));
+import { statusCheck } from './status-check.mjs';
 
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? (process.argv[i+1] || true) : null; };
 const FORCE = !!arg('--force'), DRY = !!arg('--dry'), FROM = arg('--from'), TODAY = arg('--today');
@@ -95,9 +96,13 @@ async function main(){
   const prep = r.items.filter(i => i.kind === 'prep').map(i => { const p = plans.find(x => String(x.tik) === String(i.tik)); return p ? O.meetingPrep(p, i.meetKey, r.items, { today, contactsFor, goalFor }) : null; }).filter(Boolean);
   const dow = new Date(today + 'T00:00:00Z').getUTCDay();
   const weekly = (dow === 0 || !prev.weekly || O.days(prev.weekly.at, today) >= 7) ? { at:today, text:weeklyText(r, plans) } : prev.weekly;
+  // בדיקת הסטטוס מול Xplan (ענת, 26.11.2026). כשל כאן לא מפיל את ההרצה: נשמרת הבדיקה הקודמת, עם השגיאה
+  let sc = prev.statusCheck || null;
+  if(!FROM){ try{ sc = await statusCheck(); console.log(`סטטוס מול Xplan: ${sc.checked} תב"עות, ${sc.mismatches.length} פערים, ${sc.notes.length} לבדיקה`); }
+    catch(e){ console.warn('בדיקת הסטטוס נכשלה:', e.message); sc = Object.assign({}, sc || {}, { error:String(e.message).slice(0, 200), errorAt:now }); } }
   const run = { at:now, status:'ok', ms:Date.now() - t0, plans:plans.length, active:r.counts.active, items:r.items.length, newItems:fresh, resolved, attempts, by: process.env.GITHUB_RUN_ID ? 'github:' + process.env.GITHUB_RUN_ID : 'ידני' };
   const data = { version:1, lastRun:run, runs:[...(prev.runs || []), run].slice(-KEEP_RUNS), counts:r.counts, morning:r.morning,
-    digest:r.items.map(compact), prep, weekly, ledger, automations:O.AUTOMATIONS.map(a => ({ id:a.id, paused:!!(user.paused || {})[a.id], blocked:a.blocked || '' })) };
+    digest:r.items.map(compact), prep, weekly, ledger, statusCheck:sc, automations:O.AUTOMATIONS.map(a => ({ id:a.id, paused:!!(user.paused || {})[a.id], blocked:a.blocked || '' })) };
 
   console.log(`תוכניות: ${plans.length}, בטיפול: ${r.counts.active}, פריטים: ${r.items.length} (חדשים ${fresh}, נסגרו ${resolved})`);
   O.TIERS.forEach(([k, n]) => console.log(`  ${n}: ${(r.tiers[k] || []).length}`));

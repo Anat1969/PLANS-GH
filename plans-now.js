@@ -223,6 +223,14 @@ function serverLine(){
   const when = t ? t.toLocaleString('he-IL', { timeZone:'Asia/Jerusalem', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '—';
   return `<span class="nw-srv${l.status === 'ok' ? '' : ' off'}">בדיקה אחרונה ברקע: <b>${when}</b>${l.status === 'ok' ? '' : ', נכשלה'}</span>`;
 }
+/** בדיקת הסטטוס מול Xplan, מהמערכת ברקע (ops_server.statusCheck). שורה רק כשיש מה לבדוק */
+function statusLine(){
+  const c = SERVER && SERVER.statusCheck; if(!c || !c.rows) return '';
+  const mm = c.mismatches || [], nt = c.notes || [];
+  if(!mm.length && !nt.length) return `<p class="nw-sc">הסטטוס של ${c.checked} תב"עות תואם למינהל התכנון (Xplan).</p>`;
+  const li = r => `<li><b>${H(r.plan)}</b>${r.title ? ' ' + H(r.title) : ''}: ${r.mismatch ? `במסד ${r.db === 'approved' ? 'מאושרת' : 'בתכנון'}, וב-Xplan ${H(r.xplanText)}${r.date ? ' (' + H(r.date) + ')' : ''}` : `תוכנית בינוי מאושרת (${H((r.usesApproved || r.uses).join(', '))}) על תב"ע ש-Xplan מציג "${H(r.xplanText)}"`}</li>`;
+  return `<details class="nw-sc"><summary>${mm.length ? `<b>${mm.length}</b> תב"עות עם סטטוס שונה במינהל התכנון` : ''}${mm.length && nt.length ? ' · ' : ''}${nt.length ? `<b>${nt.length}</b> תוכניות בינוי על תב"ע שלא אושרה` : ''}</summary><ul>${[...mm, ...nt].map(li).join('')}</ul><small>מקור: Xplan, נבדק ${H(new Date(c.at).toLocaleDateString('he-IL'))}. התיקון במסד באישורך.</small></details>`;
+}
 function render(){
   const box = document.getElementById('nowBody'); if(!box) return;
   if(typeof isDeveloper === 'function' && isDeveloper()){ box.innerHTML = '<div class="nw"><h1>איפה אנחנו עומדים?</h1><p>הדף הזה שייך לאדריכלית העיר.</p></div>'; return; }
@@ -249,7 +257,7 @@ function render(){
         <div class="nw-budget" role="radiogroup" aria-label="מסגרת זמן">${[5, 15, 30, 60].map(m => `<button class="${(USER.budget || 15) === m ? 'on' : ''}" onclick="NowPage.budget(${m})">${m} דק'</button>`).join('')}</div>
         <button class="btn btn-primary nw-go" onclick="NowPage.start()">${ses && ses.queue && ses.idx < ses.queue.length ? 'המשך העבודה' : 'התחלת עבודה'}</button></div>`}
     </header>
-    <section class="nw-morning"><span class="nw-num">01</span><div><h2>תמונת הבוקר</h2>${R.morning.lines.map(l => `<p>${B(l)}</p>`).join('')}${todayLog.length ? `<p>${B(`היום תועדו **${todayLog.length}** פעולות: ${todayLog.filter(d => !d.sys).length} שלך ו-${todayLog.filter(d => d.sys).length} של המערכת. הפירוט ב"מה כבר נעשה".`)}</p>` : ''}</div></section>
+    <section class="nw-morning"><span class="nw-num">01</span><div><h2>תמונת הבוקר</h2>${R.morning.lines.map(l => `<p>${B(l)}</p>`).join('')}${statusLine()}${todayLog.length ? `<p>${B(`היום תועדו **${todayLog.length}** פעולות: ${todayLog.filter(d => !d.sys).length} שלך ו-${todayLog.filter(d => d.sys).length} של המערכת. הפירוט ב"מה כבר נעשה".`)}</p>` : ''}</div></section>
     <section class="nw-focus"><h2>${R.focus.length ? 'שלוש הפעולות החשובות' : 'אין פעולה שמחייבת אותך'}</h2>
       ${R.focus.length ? `<ul class="nw-list">${R.focus.map(i => rowHTML(i, true)).join('')}</ul>` : '<p class="nw-empty">המערכת ממשיכה לעקוב, ותעדכן כשמשהו ידרוש אותך.</p>'}</section>
     ${tiers}
