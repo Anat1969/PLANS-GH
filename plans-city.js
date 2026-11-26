@@ -398,7 +398,7 @@ async function open(){
       fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
       fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null),
       fetch('data/renewal-twin.json?v=1126c').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null,
-      fetch('data/building-twin.json?v=1126f').then(r => r.json()).catch(() => null), fetch('data/taba-volumes.json?v=1126c').then(r => r.json()).catch(() => null)]);
+      fetch('data/building-twin.json?v=1126f').then(r => r.json()).catch(() => null), fetch('data/taba-volumes.json?v=1126s').then(r => r.json()).catch(() => null)]);
     RENDERS = (R && R.renders) || {};
     RT0 = RT; TV0 = TV;
     st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S, BT, TV); window._city = st;

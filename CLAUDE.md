@@ -65,6 +65,9 @@
    - **603-0811588 (קריית שמעון פרס) ו-603-0828491 (מגרשי הציבור) מאושרות** לפי Xplan (27.11.2023 ו-18.03.2021). תוקן ב-`plan_projects`, ו-`build_city_twin()` ו-`renewal-twin.json` נבנו מחדש. שאר הארבע (603-0780734, 603-0993790, 603-1259092, 603-1510577) בתכנון, נבדק.
    - `window._city.setHour(h)` לבדיקה ולצילום.
 
+18. **בדיקת הסטטוס מול מינהל התכנון** (ענת, 26.11.2026: "בהתאם להמלצה"): `tools/status-check.mjs`. כל הרצה של המערכת ברקע משווה את הסטטוס של כל תב"ע (מספר 603-...) ב-`plan_projects` ובתיקי תוכניות הבינוי מול Xplan (שכבה 1, `station_desc` "אישור"), ושומרת ב-`ops_server.statusCheck`. פער, או תוכנית בינוי מאושרת על תב"ע שלא אושרה, מוצג בתמונת הבוקר ב"איפה אנחנו עומדים?". קריאה בלבד: התיקון במסד באישור ענת. כשל של Xplan לא מפיל את ההרצה. בדיקה ידנית: `NODE_USE_ENV_PROXY=1 node tools/status-check.mjs` (בסביבת הענן Node צריך את המשתנה כדי לעבור בפרוקסי). **ממצא ראשון (26.11.2026):** 19 תב"עות, בלי פער במסד. תוכנית הבינוי 1888 מאושרת בתיק, אבל התב"ע שלה (603-1460740) עוד בהפקדה.
+19. **התב"עות של תוכניות הבינוי, כל המגרשים** (`taba-volumes.py`): 44/101/02/3 (ריביירה: מלונות של 10 קומות, אכסון של 2 קומות, ספורט), 603-0262121 (מגרש 18: מגורים 60 מ' ומלון 78 מ') ו-603-0735282 (מגרשי הציבור 240, 241). חסר: 603-1460740 (בהפקדה, אין הוראות ב-TabaSearch), 126/101/02/3, 3/124/03/3, 14/118/03/3 ו-47/101/02/3 (הנמל, בלי מגרשים).
+
 ## A&I logo button
 The top bar holds only the app name (links home), content navigation, and ONE logo button "אד' ענת שטיבלמן A&I" (`<ai-menu>` from https://appofapp-gh.vercel.app/ai-menu.js). Every editing and development action (העתקת קישור, שיחת הפיתוח, פרויקט המחקר, התקנת האפליקציה, edit mode, add, delete) lives only inside it, never as loose buttons. Standard: https://github.com/Anat1969/AppOfApp-GH/blob/main/docs/ai-menu-standard.md
 
