@@ -88,6 +88,7 @@ def extra_lots(rec):
         rec['estimate'] = est   # computed volume: lot x coverage, to the table 5 height. Not the building plan's design
     return True
 
+LINKS = json.load(open('data/urban-standard/plan-links.json'))['plans']
 plans, seen = [], set()
 for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
     if r.get('deleted'):
@@ -100,6 +101,9 @@ for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
     rec = {'plan_number': num, 'tik': tik, 'taba': (r.get('change') or '').strip() or None, 'status': status(r.get('status')),
            'lots': lot_list(r.get('location'))}
     # מקום: רובע ומספרי מגרשים בלבד. שדה המיקום בתיק כולל לפעמים שם של יזם או חברה ("רותם פלדות - תדהר"), ולכן הטקסט שלו לא יוצא
+    lk = LINKS.get(num)   # a missing TABA or lot in the file, from the committee opinions (data/urban-standard/plan-links.json)
+    if lk and (not rec['taba'] or not rec['lots']):
+        rec['taba'] = rec['taba'] or lk['taba']; rec['lots'] = rec['lots'] or lk['lots']; rec['link_ref'] = lk['ref']
     rec['place'] = ', '.join(x for x in [r.get('district'), ('מגרש ' + ', '.join(map(str, rec['lots']))) if rec['lots'] else None] if x) or None
     m = models.get(tik)
     if m:   # the detailed model: footprint = the lowest block of each building

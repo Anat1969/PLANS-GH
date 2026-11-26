@@ -39,6 +39,8 @@ function collect(D, BT){
     let fs = [], scope = '';
     if(t){ const L = lotList(p); fs = t.f.filter(f => L.includes(+f.lot)); scope = fs.length ? 'lots' : 'taba'; if(!fs.length) fs = t.f; }
     const x = tw[String(p.planNum || '').replace(/\s+/g, '')];
+    // תב"ע ומגרשים שחסרים בתיק, מחוות הדעת (data/urban-standard/plan-links.json): אותם נפחים של התב"ע, בלי כפילות
+    if(!fs.length && x && x.source === 'lots' && x.taba){ const t2 = D.taba[norm(x.taba)]; if(t2){ fs = t2.f.filter(f => x.lots.includes(+f.lot)); scope = 'lots'; } }
     if(!fs.length && x && x.estimate){ fs = x.estimate.map(e => ({ r:e.r, base:e.base, top:e.top, cat:e.cat, lot:e.lot, est:1 })); scope = 'table5'; }
     const parcel = !fs.length && x && /xplan|municipal/.test(x.source || '') && x.geometry ? x.geometry : !fs.length && geo && geo.geo ? geo.geo : null;
     if(!fs.length && !geo && !renderOf(p)) return;            // תוכנית בלי מיקום אבל עם הדמיה: בקרוסלה, בלי נפח (ענת, 25.11.2026)
@@ -336,7 +338,7 @@ async function open(){
       fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
       fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null),
       fetch('data/renewal-twin.json?v=1126').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null,
-      fetch('data/building-twin.json?v=1126b').then(r => r.json()).catch(() => null)]);
+      fetch('data/building-twin.json?v=1126c').then(r => r.json()).catch(() => null)]);
     RENDERS = (R && R.renders) || {};
     st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S, BT);
     if(S){ const lg = ov.querySelector('#cityLegend'); lg.querySelectorAll('i[data-k]').forEach(i => { i.style.background = S.landUseColor(i.dataset.k); }); }
