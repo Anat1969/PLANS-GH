@@ -533,3 +533,16 @@ body.city-open{overflow:hidden}
 .cy-name{font-size:17px;font-weight:700;line-height:1.25}
 .cy-ghost{border:0;background:#ffffffcc}
 .cy-card:hover{outline:2px solid #11998e}
+/* דף הכניסה: מקרא בשורה אחת מעל הקרוסלה, והסבר בריחוף, כדי שהטקסט לא יסתיר את העיר (ענת, 26.11.2026) */
+.cy-legend{top:auto;bottom:156px;inset-inline-start:20px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 12px;max-width:min(720px,calc(100% - 400px));padding:5px 10px;background:#ffffffd9;font-size:12px}
+.cy-legend i{width:11px;height:11px;flex:none}
+.cy-legend button{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border:0;background:var(--btn-bg,#e9e8e3);cursor:pointer;border-radius:0}
+.cy-legend button[aria-pressed="true"]{background:#111;color:#fff}
+.cy-legend button i+i{margin-inline-end:3px}
+.cy-q{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#e9e8e3;font-size:11px;font-weight:700;cursor:help}
+.cy-top{padding:12px 20px 28px}
+.cy-top p{font-size:12.5px;cursor:help}
+.cy-img em.cy-tag-model{cursor:zoom-in;background:#111;color:#fff}
+.cy-info{bottom:auto;top:96px;font-size:12.5px;max-width:300px;background:#ffffffeb}
+.cy-info .cy-name{font-size:15px}
+@media (max-width:640px){ .cy-legend{display:flex;inset-inline:8px;max-width:none;bottom:152px;font-size:11px} .cy-info{top:auto;bottom:200px} }
