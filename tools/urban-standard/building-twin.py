@@ -9,6 +9,8 @@ Public fields only, like the entry page: number, district and lots, general stat
 Per plan the geometry and its source (provenance of the shared standard):
   model    -> 'plan'      the detailed model from the architect's drawings (floors.json), with floor blocks
   lots     -> 'computed'  TABA volumes of the plan's lots (plan_models, an estimate)
+  xplan    -> 'plan'      the lot polygon from Xplan (official), with an estimated volume from table 5 ('estimate')
+  municipal-> 'computed'  the lot from the city lots layer, matched by lot number near known plans on the TABA
   taba     -> 'computed'  no lot numbers (a compound name): the whole TABA area, outline only
   parcels  -> 'verified'  registered parcels (gush/helka) from the city GIS
   None                    no TABA model and no parcels: listed, shown nowhere on a map (a gap to close)
@@ -37,6 +39,54 @@ def status(s):
 def centroid(polys):
     pts = [p for poly in polys for p in poly[0]]
     return [round(sum(p[0] for p in pts) / len(pts), 6), round(sum(p[1] for p in pts) / len(pts), 6)] if pts else None
+
+
+# ── lots for building plans whose TABA has no model in plan_models (downloaded 26.11.2026) ──
+#   data/urban-standard/lots/<plan>.geojson: Xplan land-use layer of the Planning Administration (num = lot, mavat_name)
+#   data/urban-standard/lots/municipal-old-tabas.geojson: the city lots layer, for old plans that are not in Xplan
+#   data/urban-standard/extra-table5.json: floors, height and coverage read from table 5 of each plan's instructions
+import os, math
+XL = {}
+for fn in os.listdir('data/urban-standard/lots'):
+    d = json.load(open('data/urban-standard/lots/' + fn))
+    for f in d['features']:
+        pr = f['properties']; t = pr.get('pl_number') or pr.get('taba')
+        XL.setdefault(norm(t), []).append({'num': str(pr.get('num')), 'use': pr.get('mavat_name') or pr.get('gis_use'),
+            'src': 'municipal' if pr.get('gis_fid') else 'xplan', 'geom': f['geometry']})
+TABA_FIX = {'603-03117784': '603-0317784'}   # a typo in the file (an extra 1); the instructions of 603-0317784 name this lot (22)
+T5X = json.load(open('data/urban-standard/extra-table5.json'))['plans']
+def ring_of(g):
+    return g['coordinates'][0] if g['type'] == 'Polygon' else g['coordinates'][0][0]
+def shrink(r, k):
+    cx = sum(p[0] for p in r) / len(r); cy = sum(p[1] for p in r) / len(r)
+    return [[round(cx + (p[0] - cx) * k, 7), round(cy + (p[1] - cy) * k, 7)] for p in r]
+def extra_lots(rec):
+    L = XL.get(norm(TABA_FIX.get(rec['taba'], rec['taba'])))
+    if not L:
+        return False
+    want = [str(x) for x in rec['lots']]
+    hit = [l for l in L if l['num'] in want]
+    if not hit and L[0]['src'] == 'xplan' and len(L) == 1:   # a TABA of one lot: the number in the file is a name ("מנגו 4"), not a lot
+        hit = L
+    if not hit and L[0]['src'] == 'xplan' and not want:   # no lot in the file: the residential lots of the TABA (outline only, no volume)
+        hit = [l for l in L if 'מגורים' in (l['use'] or '')]
+    if not hit:
+        return False
+    src = hit[0]['src']
+    rec.update(source=src, prov='plan' if src == 'xplan' else 'computed',
+               geometry={'type': 'MultiPolygon', 'coordinates': [[ring_of(l['geom'])] for l in hit]},
+               lot_uses=sorted({l['use'] for l in hit if l['use']}))
+    t5 = T5X.get(TABA_FIX.get(rec['taba'], rec['taba']).replace(' ', '')) or {}
+    est = []
+    for l in hit:
+        v = t5.get(l['num'])
+        if not v:
+            continue
+        k = math.sqrt(min(v['coverage_pct'], 70) / 100)   # footprint = coverage of the lot (cap 70%: a podium of 93% is not the tower)
+        est.append({'lot': l['num'], 'cat': v['cat'], 'base': 0, 'top': v['height_m'], 'floors': v['floors'], 'r': shrink(ring_of(l['geom']), k), 'ref': v['ref']})
+    if est:
+        rec['estimate'] = est   # computed volume: lot x coverage, to the table 5 height. Not the building plan's design
+    return True
 
 plans, seen = [], set()
 for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
@@ -67,6 +117,8 @@ for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
         elif digits in parcels and parcels[digits].get('g'):
             g = parcels[digits]['g']
             rec.update(source='parcels', prov='verified', geometry=g)
+        elif extra_lots(rec):   # official lots: Xplan (online plans) or the municipal lots layer (old scanned plans)
+            pass
         else:
             rec.update(source=None, prov=None, geometry=None)
     if rec.get('geometry'):

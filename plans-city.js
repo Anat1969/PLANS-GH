@@ -30,13 +30,17 @@ const pnum = p => String(p.planNum || '').replace(/\D/g, '');
 function renderOf(p){ const r = RENDERS[pnum(p)]; if(r) return r.img; try{ const m = (window.planMaterials ? window.planMaterials(p) : []).find(x => x.cat === 'render' && x.img); return m ? m.img : ''; }catch(e){ return ''; } }
 
 /** לכל תוכנית: נפחים (מהתב"ע) או משטח המגרש, ומרכז */
-function collect(D){
+function collect(D, BT){
   const P = plansList(), used = new Set(), items = [];
+  // תוכניות בינוי שהתב"ע שלהן לא ב-plan_models: מגרשים מ-Xplan או משכבת המגרשים העירונית, ונפח לפי טבלה 5 (data/building-twin.json, הערכה)
+  const tw = {}; ((BT && BT.plans) || []).forEach(x => { tw[String(x.plan_number).replace(/\s+/g, '')] = x; });
   P.forEach(p => {
     const t = D.taba[norm(p.change)], geo = window.planGeo ? window.planGeo(p) : null;
     let fs = [], scope = '';
     if(t){ const L = lotList(p); fs = t.f.filter(f => L.includes(+f.lot)); scope = fs.length ? 'lots' : 'taba'; if(!fs.length) fs = t.f; }
-    const parcel = !fs.length && geo && geo.geo ? geo.geo : null;
+    const x = tw[String(p.planNum || '').replace(/\s+/g, '')];
+    if(!fs.length && x && x.estimate){ fs = x.estimate.map(e => ({ r:e.r, base:e.base, top:e.top, cat:e.cat, lot:e.lot, est:1 })); scope = 'table5'; }
+    const parcel = !fs.length && x && /xplan|municipal/.test(x.source || '') && x.geometry ? x.geometry : !fs.length && geo && geo.geo ? geo.geo : null;
     if(!fs.length && !geo && !renderOf(p)) return;            // תוכנית בלי מיקום אבל עם הדמיה: בקרוסלה, בלי נפח (ענת, 25.11.2026)
     items.push({ p, fs, scope, parcel, geo, taba:t ? t.n : '', sum:t && t.sum || null, render:renderOf(p) });
     fs.forEach(f => used.add(f));
@@ -45,8 +49,8 @@ function collect(D){
 }
 
 /* ── הסצנה ── */
-function build(el, D, BLD, CM, RT, S){
-  const T = window.THREE, items = collect(D);
+function build(el, D, BLD, CM, RT, S, BT){
+  const T = window.THREE, items = collect(D, BT);
   const pts = []; items.forEach(it => { it.fs.forEach(f => f.r.forEach(q => pts.push(q))); if(!it.fs.length && it.geo) pts.push([it.geo.lng, it.geo.lat]); });
   const lng0 = pts.reduce((s, q) => s + q[0], 0)/pts.length, lat0 = pts.reduce((s, q) => s + q[1], 0)/pts.length;
   const KX = 111320*Math.cos(lat0*Math.PI/180), KY = 110574;
@@ -286,6 +290,7 @@ function sentence(it){
   const a = [];
   if(it.fs.length && it.scope === 'lots'){ const lots = new Set(it.fs.map(f => f.lot)).size, cats = [...new Set(it.fs.map(f => CAT_HE[f.cat]).filter(Boolean))];
     a.push(`${lots === 1 ? 'מגרש אחד' : lots + ' מגרשים'}${cats.length ? ', ' + cats.join(' ו') : ''}, עד ${Math.round(it.h)} מ'.`); }
+  if(it.fs.length && it.scope === 'table5') a.push(`מגרש ${it.fs.map(f => f.lot).join(', ')}: נפח לפי טבלה 5 בהוראות התב"ע, עד ${Math.round(it.h)} מ' (הערכה, לא התכנון של תוכנית הבינוי).`);
   const S = it.sum; if(S && it.taba){ const b = [];
     if(S.units_after) b.push(`${N(S.units_after)} יח"ד`); if(S.floors_max) b.push(`עד ${S.floors_max} קומות`); if(S.height_max) b.push(`עד ${Math.round(S.height_max)} מ'`);
     if(b.length) a.push(`התב"ע ${it.taba}${S.lots ? `, ${S.lots} מגרשים` : ''}: ${b.join(', ')}.`); }
@@ -327,12 +332,13 @@ async function open(){
   document.body.appendChild(ov); document.body.classList.add('city-open');
   ov.querySelector('#cityEnter').onclick = close;
   try{
-    const [, R, D, BLD, CM, RT, S] = await Promise.all([window.PlanModel.loadThree(),
+    const [, R, D, BLD, CM, RT, S, BT] = await Promise.all([window.PlanModel.loadThree(),
       fetch('data/renders.json?v=1124p').then(r => r.json()).catch(() => ({})), fetch('data/city.json?v=1124p').then(r => r.json()),
       fetch('geo/bld/all.json?v=1125').then(r => r.json()).catch(() => null), fetch('data/city-models.json?v=1125').then(r => r.json()).catch(() => null),
-      fetch('data/renewal-twin.json?v=1126').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null]);
+      fetch('data/renewal-twin.json?v=1126').then(r => r.json()).catch(() => null), window.urbanStandard ? window.urbanStandard() : null,
+      fetch('data/building-twin.json?v=1126b').then(r => r.json()).catch(() => null)]);
     RENDERS = (R && R.renders) || {};
-    st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S);
+    st = build(ov.querySelector('#cityScene'), D, BLD, CM, RT, S, BT);
     if(S){ const lg = ov.querySelector('#cityLegend'); lg.querySelectorAll('i[data-k]').forEach(i => { i.style.background = S.landUseColor(i.dataset.k); }); }
   }catch(e){ console.warn('city', e); ov.querySelector('#citySub').textContent = 'ההדמיה לא נטענה. אפשר להיכנס למערכת.'; return; }
   const it = st.items, nv = it.filter(x => x.fs.length).length, nm = it.filter(x => x.model).length;
