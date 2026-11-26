@@ -104,7 +104,7 @@ for r in sorted(rows, key=lambda r: str(r.get('planNum'))):
     lk = LINKS.get(num)   # a missing TABA or lot in the file, from the committee opinions (data/urban-standard/plan-links.json)
     if lk and (not rec['taba'] or not rec['lots']):
         rec['taba'] = rec['taba'] or lk['taba']; rec['lots'] = rec['lots'] or lk['lots']; rec['link_ref'] = lk['ref']
-    rec['place'] = ', '.join(x for x in [r.get('district'), ('מגרש ' + ', '.join(map(str, rec['lots']))) if rec['lots'] else None] if x) or None
+    rec['place'] = (lk or {}).get('place') or ', '.join(x for x in [r.get('district'), ('מגרש ' + ', '.join(map(str, rec['lots']))) if rec['lots'] else None] if x) or None
     m = models.get(tik)
     if m:   # the detailed model: footprint = the lowest block of each building
         polys = [[b['s'][0][0]] for b in m if b.get('s')]
